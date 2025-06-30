@@ -1,0 +1,15 @@
+# 모든 텍스트 파일은 자동으로 line ending 처리
+* text=auto
+
+# Java/Kotlin/Gradle 소스코드는 LF 사용
+*.java text eol=lf
+*.kt text eol=lf
+*.gradle text eol=lf
+*.groovy text eol=lf
+*.md text eol=lf
+
+# Windows용 bat 파일은 CRLF
+*.bat text eol=crlf
+
+# 쉘 스크립트는 LF
+*.sh text eol=lf
