@@ -2,5 +2,9 @@ plugins {
 	id 'java-library'
 }
 
+jar {
+	enabled = true
+}
+
 dependencies {
 }
