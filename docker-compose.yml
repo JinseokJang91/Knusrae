@@ -1,0 +1,16 @@
+services:
+  postgres-db:
+    image: postgres:17
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: knusrae_user
+      POSTGRES_PASSWORD: CookRecipes999!@#
+      POSTGRES_DB: knusrae_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

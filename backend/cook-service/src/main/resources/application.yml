@@ -1,5 +1,16 @@
 spring:
   application:
     name : cook-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/knusrae_db
+    username: knusrae_user
+    password: CookRecipes999!@#
+  jpa:
+    hibernate:
+      ddl-auto: update # dev : update, prd : validate or none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
 server:
   port: 8082

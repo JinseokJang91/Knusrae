@@ -32,4 +32,8 @@ subprojects {
 	tasks.named('test') {
 		useJUnitPlatform()
 	}
+
+	dependencies {
+		implementation 'org.postgresql:postgresql:42.6.0'
+	}
 }
