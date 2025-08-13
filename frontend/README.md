@@ -1,5 +1,17 @@
-# Vue 3 + TypeScript + Vite
+# 요리 레시피 웹사이트
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Vue3와 PrimeVue를 기반으로 한 요리 레시피 공유 플랫폼입니다.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## 시작하기
+
+```bash
+npm install
+npm run dev
+```
+
+## 주요 기능
+
+- 레시피 등록 및 관리
+- 레시피 검색 및 필터링
+- 요리 팁 및 가이드
+- 커뮤니티 기능
