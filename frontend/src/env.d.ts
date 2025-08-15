@@ -8,9 +8,17 @@ declare module '*.vue' {
 
 interface ImportMetaEnv {
     readonly VITE_APP_TITLE: string;
-    // 더 많은 환경 변수들을 여기에 추가할 수 있습니다
+    readonly VITE_NAVER_CLIENT_ID: string;
+    readonly VITE_NAVER_REDIRECT_URI: string;
 }
 
 interface ImportMeta {
     readonly env: ImportMetaEnv;
+}
+
+declare global {
+    interface Window {
+        naver: any;
+    }
+    const naver: any;
 }

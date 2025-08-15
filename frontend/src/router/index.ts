@@ -47,6 +47,11 @@ const routes: RouteRecordRaw[] = [
         path: '/auth/error',
         name: 'error',
         component: () => import('@/views/pages/auth/Error.vue')
+    },
+    {
+        path: '/auth/naver/callback',
+        name: 'naverCallback',
+        component: () => import('@/views/pages/auth/NaverCallback.vue')
     }
 ];
 

@@ -5,21 +5,22 @@ import AppMenuItem from './AppMenuItem.vue';
 
 const model = ref([
     {
-        label: 'Home',
-        items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }]
-    },
-    {
-        label: '요리 레시피',
+        label: '추천',
         items: [
             {
-                label: '레시피 등록',
-                icon: 'pi pi-fw pi-plus',
-                to: '/uikit/formlayout'
-            },
-            {
-                label: '레시피 목록',
-                icon: 'pi pi-fw pi-list',
+                label: '오늘의 레시피',
+                icon: 'pi pi-fw pi-sun',
                 to: '/pages/empty'
+            }
+        ]
+    },
+    {
+        label: '레시피',
+        items: [
+            {
+                label: '카테고리',
+                icon: 'pi pi-fw pi-list',
+                to: '/uikit/formlayout'
             },
             {
                 label: '요리 팁',
