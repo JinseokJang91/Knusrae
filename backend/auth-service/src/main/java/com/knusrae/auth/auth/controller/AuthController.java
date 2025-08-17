@@ -1,5 +1,6 @@
 package com.knusrae.auth.auth.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knusrae.auth.auth.dto.NaverUserDTO;
 import com.knusrae.auth.auth.service.NaverAuthService;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -20,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final NaverAuthService naverAuthService;
     private final ObjectMapper objectMapper;
+
+    private static final String REDIRECT_URI = "http://localhost:5173/auth/naver/callback";
 
     @GetMapping("/naver/callback")
     public ResponseEntity<String> naverCallback(@RequestParam("code") String code,
@@ -29,8 +34,8 @@ public class AuthController {
             NaverUserDTO userDto = naverAuthService.naverLoginProcess(code, state);
             String userJson = objectMapper.writeValueAsString(userDto);
             String redirectUrl = String.format(
-                    "http://localhost:5173/auth/naver/callback?success=true&user=%s",
-                    java.net.URLEncoder.encode(userJson, "UTF-8")
+                    REDIRECT_URI + "?success=true&user=%s",
+                    java.net.URLEncoder.encode(userJson, StandardCharsets.UTF_8)
             );
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header(HttpHeaders.LOCATION, redirectUrl)
@@ -43,8 +48,8 @@ public class AuthController {
 
     private ResponseEntity<String> getErrorRedirectResponse() {
         try {
-            String redirectUrl = "http://localhost:5173/auth/naver/callback?success=false&error=" +
-                    java.net.URLEncoder.encode("로그인 처리 중 오류가 발생했습니다.", "UTF-8");
+            String redirectUrl = REDIRECT_URI + "?success=false&error=" +
+                    java.net.URLEncoder.encode("로그인 처리 중 오류가 발생했습니다.", StandardCharsets.UTF_8);
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header(HttpHeaders.LOCATION, redirectUrl)
                     .build();

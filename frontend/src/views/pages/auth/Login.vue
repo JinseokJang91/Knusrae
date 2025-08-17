@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import loginIconNaver from '@/assets/images/login-icon-naver.png';
+import logoImage from '@/assets/images/logo-image.png';
 import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -42,7 +44,7 @@ function handleNaverLogin() {
             console.log('네이버 로그인 성공:', event.data.user);
             localStorage.setItem('naver_user', JSON.stringify(event.data.user));
             alert('네이버 로그인이 성공했습니다!');
-            window.location.reload();
+            goHome();
         } else if (event.data.type === 'NAVER_LOGIN_ERROR') {
             console.error('네이버 로그인 오류:', event.data.error);
             alert('네이버 로그인 중 오류가 발생했습니다: ' + event.data.error);
@@ -56,7 +58,6 @@ function handleNaverLogin() {
         if (popup?.closed) {
             clearInterval(checkClosed);
             window.removeEventListener('message', handleMessage);
-            window.location.reload();
         }
     }, 1000);
 }
@@ -83,7 +84,7 @@ function goHome() {
             <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">
                 <div class="w-full bg-surface-0 dark:bg-surface-900 py-20 px-8 sm:px-20" style="border-radius: 53px">
                     <div class="text-center mb-8">
-                        <img src="/images/logo-image.png" alt="로고 이미지" class="logo-image w-16 h-auto mx-auto mb-8" />
+                        <img :src="logoImage" alt="로고 이미지" class="logo-image w-16 h-auto mx-auto mb-8" />
                         <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">로그인 / 회원가입</div>
                     </div>
 
@@ -106,7 +107,7 @@ function goHome() {
 
                         <div class="mt-4">
                             <button @click="handleNaverLogin" class="flex items-center justify-center w-full p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors">
-                                <img src="/images/login-icon-naver.png" alt="네이버 로고" class="w-6 h-6 mr-2" />
+                                <img :src="loginIconNaver" alt="네이버 로고" class="w-6 h-6 mr-2" />
                                 <span>네이버로 로그인</span>
                             </button>
                         </div>

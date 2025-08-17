@@ -1,4 +1,5 @@
 <script setup>
+import logoText from '@/assets/images/logo-text.png';
 import { useLayout } from '@/layout/composables/layout';
 import { ref } from 'vue';
 import AppConfigurator from './AppConfigurator.vue';
@@ -27,7 +28,7 @@ const clearSearch = () => {
                 <i class="pi pi-bars"></i>
             </button>
             <router-link to="/" class="layout-topbar-logo">
-                <img src="/images/logo-text.png" alt="너에게 스며드는 레시피" class="logo-text-image" />
+                <img :src="logoText" alt="너에게 스며드는 레시피" class="logo-text-image" />
             </router-link>
         </div>
 
@@ -71,9 +72,13 @@ const clearSearch = () => {
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
                     </button>
-                    <router-link to="/auth/login" class="layout-topbar-action">
+                    <router-link v-if="true" to="/auth/login" class="layout-topbar-action">
                         <i class="pi pi-sign-in"></i>
                         <span>Sign In</span>
+                    </router-link>
+                    <router-link v-else to="/" class="layout-topbar-action">
+                        <i class="pi pi-sign-out"></i>
+                        <span>Sign Out</span>
                     </router-link>
                 </div>
             </div>
