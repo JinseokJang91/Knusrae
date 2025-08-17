@@ -11,7 +11,16 @@ const checked = ref(false);
 const NAVER_CLIENT_ID = import.meta.env.VITE_NAVER_CLIENT_ID;
 const NAVER_REDIRECT_URI = import.meta.env.VITE_NAVER_REDIRECT_URI;
 
+/**
+ * 네이버 로그인 처리
+ */
 function handleNaverLogin() {
+    // 환경 변수 체크
+    if (!NAVER_CLIENT_ID || !NAVER_REDIRECT_URI) {
+        alert('네이버 로그인 설정이 완료되지 않았습니다. 환경 변수를 확인해주세요.');
+        return;
+    }
+
     // CSRF 방지를 위한 state 생성
     const state = Math.random().toString(36).substr(2, 11);
     localStorage.setItem('naver_state', state);
@@ -22,16 +31,39 @@ function handleNaverLogin() {
     // 팝업으로 열기
     const popup = window.open(naverAuthUrl, 'naverLogin', 'width=500,height=600,scrollbars=yes,resizable=yes');
 
-    // 팝업에서 리다이렉트 감지
+    if (!popup) {
+        alert('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.');
+        return;
+    }
+
+    // 팝업에서 메시지 수신
+    const handleMessage = (event: MessageEvent) => {
+        if (event.data.type === 'NAVER_LOGIN_SUCCESS') {
+            console.log('네이버 로그인 성공:', event.data.user);
+            localStorage.setItem('naver_user', JSON.stringify(event.data.user));
+            alert('네이버 로그인이 성공했습니다!');
+            window.location.reload();
+        } else if (event.data.type === 'NAVER_LOGIN_ERROR') {
+            console.error('네이버 로그인 오류:', event.data.error);
+            alert('네이버 로그인 중 오류가 발생했습니다: ' + event.data.error);
+        }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    // 팝업 닫힘 감지
     const checkClosed = setInterval(() => {
         if (popup?.closed) {
             clearInterval(checkClosed);
-            // 팝업이 닫히면 메인 페이지 새로고침
+            window.removeEventListener('message', handleMessage);
             window.location.reload();
         }
     }, 1000);
 }
 
+/**
+ * 홈으로 이동
+ */
 function goHome() {
     router.push('/');
 }
@@ -60,7 +92,7 @@ function goHome() {
                         <InputText id="loginId" type="text" placeholder="Login ID" class="w-full md:w-[30rem] mb-8" v-model="email" />
 
                         <label for="loginPassword" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">패스워드</label>
-                        <Password id="loginPassword" v-model="password" placeholder="Login Password" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
+                        <Password id="loginPassword" v-model="password" placeholder="Login Password" :toggleMask="true" class="mb-4" fluid :feedback="false" />
 
                         <div class="flex items-center justify-between mt-2 mb-8 gap-8">
                             <div class="flex items-center">
@@ -69,14 +101,13 @@ function goHome() {
                             </div>
                             <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">패스워드 찾기</span>
                         </div>
+
                         <Button label="Sign In" class="w-full" as="router-link" to="/">로그인</Button>
 
                         <div class="mt-4">
-                            <button @click="handleNaverLogin" class="flex items-center justify-center w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-colors">
-                                <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z" />
-                                </svg>
-                                네이버로 로그인
+                            <button @click="handleNaverLogin" class="flex items-center justify-center w-full p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors">
+                                <img src="/images/login-icon-naver.png" alt="네이버 로고" class="w-6 h-6 mr-2" />
+                                <span>네이버로 로그인</span>
                             </button>
                         </div>
                     </div>
