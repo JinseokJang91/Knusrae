@@ -1,24 +1,51 @@
 <script setup>
 import logoText from '@/assets/images/logo-text.png';
 import { useLayout } from '@/layout/composables/layout';
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import AppConfigurator from './AppConfigurator.vue';
 
+const router = useRouter();
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 
 const searchQuery = ref('');
+const isLoggedIn = ref(Boolean(localStorage.getItem('naver_user')));
 
 const handleSearch = () => {
     if (searchQuery.value.trim()) {
-        // 검색 로직 구현
         console.log('검색어:', searchQuery.value);
-        // 여기에 실제 검색 기능을 추가할 수 있습니다
     }
 };
 
 const clearSearch = () => {
     searchQuery.value = '';
 };
+
+const updateLoginState = () => {
+    isLoggedIn.value = Boolean(localStorage.getItem('naver_user'));
+};
+
+const handleLogout = () => {
+    confirm('로그아웃 하시겠습니까?');
+    localStorage.removeItem('naver_user');
+    localStorage.removeItem('naver_access_token');
+    updateLoginState();
+    router.push('/auth/login');
+};
+
+onMounted(() => {
+    updateLoginState();
+    window.addEventListener('storage', updateLoginState);
+    window.addEventListener('message', (event) => {
+        if (event.data && (event.data.type === 'NAVER_LOGIN_SUCCESS' || event.data.type === 'NAVER_LOGIN_ERROR')) {
+            updateLoginState();
+        }
+    });
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('storage', updateLoginState);
+});
 </script>
 
 <template>
@@ -72,14 +99,14 @@ const clearSearch = () => {
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
                     </button>
-                    <router-link v-if="true" to="/auth/login" class="layout-topbar-action">
+                    <router-link v-if="!isLoggedIn" to="/auth/login" class="layout-topbar-action">
                         <i class="pi pi-sign-in"></i>
                         <span>Sign In</span>
                     </router-link>
-                    <router-link v-else to="/" class="layout-topbar-action">
+                    <button v-else type="button" class="layout-topbar-action" @click="handleLogout">
                         <i class="pi pi-sign-out"></i>
                         <span>Sign Out</span>
-                    </router-link>
+                    </button>
                 </div>
             </div>
         </div>

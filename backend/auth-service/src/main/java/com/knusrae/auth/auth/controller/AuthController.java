@@ -1,6 +1,5 @@
 package com.knusrae.auth.auth.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knusrae.auth.auth.dto.NaverUserDTO;
 import com.knusrae.auth.auth.service.NaverAuthService;
