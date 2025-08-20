@@ -11,6 +11,11 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    jwt:
+      secret: test
+      accessTokenTtlSeconds: 3600
+      permiAllPattern: "/auth/**"
 server:
   port: 8081
 

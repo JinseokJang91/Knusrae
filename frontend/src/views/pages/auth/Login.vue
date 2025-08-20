@@ -17,11 +17,6 @@ const NAVER_REDIRECT_URI = import.meta.env.VITE_NAVER_REDIRECT_URI;
  * 네이버 로그인 처리
  */
 function handleNaverLogin() {
-    // console.log('MODE', import.meta.env.MODE); // development여야 정상
-    // console.log('ALL', Object.keys(import.meta.env)); // VITE_* 키가 목록에 보이는지
-    // console.log('NAVER_CLIENT_ID', import.meta.env.VITE_NAVER_CLIENT_ID); // 실제 키 하나 점검
-    // console.log('NAVER_REDIRECT_URI', import.meta.env.VITE_NAVER_REDIRECT_URI); // 실제 키 하나 점검
-
     // 환경 변수 체크
     if (!NAVER_CLIENT_ID || !NAVER_REDIRECT_URI) {
         alert('네이버 로그인 설정이 완료되지 않았습니다. 환경 변수를 확인해주세요.');

@@ -3,13 +3,13 @@ import logoText from '@/assets/images/logo-text.png';
 import { useLayout } from '@/layout/composables/layout';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import AppConfigurator from './AppConfigurator.vue';
 
 const router = useRouter();
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 
 const searchQuery = ref('');
 const isLoggedIn = ref(Boolean(localStorage.getItem('naver_user')));
+const userName = ref('');
 
 const handleSearch = () => {
     if (searchQuery.value.trim()) {
@@ -23,6 +23,7 @@ const clearSearch = () => {
 
 const updateLoginState = () => {
     isLoggedIn.value = Boolean(localStorage.getItem('naver_user'));
+    userName.value = JSON.parse(localStorage.getItem('naver_user')).name;
 };
 
 const handleLogout = () => {
@@ -30,7 +31,7 @@ const handleLogout = () => {
     localStorage.removeItem('naver_user');
     localStorage.removeItem('naver_access_token');
     updateLoginState();
-    router.push('/auth/login');
+    router.push('/');
 };
 
 onMounted(() => {
@@ -70,7 +71,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="layout-topbar-actions">
-            <div class="layout-config-menu">
+            <!-- <div class="layout-config-menu">
                 <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
                     <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>
                 </button>
@@ -84,14 +85,10 @@ onBeforeUnmount(() => {
                     </button>
                     <AppConfigurator />
                 </div>
+            </div> -->
+            <div class="layout-config-menu" v-if="isLoggedIn">
+                <span class="layout-topbar-welcome">{{ userName }}님 환영합니다.</span>
             </div>
-
-            <button
-                class="layout-topbar-menu-button layout-topbar-action"
-                v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }"
-            >
-                <i class="pi pi-ellipsis-v"></i>
-            </button>
 
             <div class="layout-topbar-menu hidden lg:block">
                 <div class="layout-topbar-menu-content">
