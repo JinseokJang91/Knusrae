@@ -4,20 +4,25 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.Map;
 
+@Component
 public class JwtTokenProvider {
     private final Key key;
     private final long ttl;
 
-    public JwtTokenProvider(JwtProperties props) {
-        this.key = Keys.hmacShaKeyFor(props.secret().getBytes());
-        this.ttl = props.accessTokenTtlSeconds();
+    public JwtTokenProvider(@Value("${spring.security.jwt.secret}") String secretKey, @Value("${spring.security.jwt.accessTokenTtlSeconds}") long ttl) {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.ttl = ttl;
     }
 
     public String createToken(String subject, Map<String, Object> claims) {
