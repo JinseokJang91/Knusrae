@@ -5,10 +5,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Map;
 
+@Component
 public class SecurityHandlers {
     private final ObjectMapper om = new ObjectMapper();
 

@@ -61,9 +61,4 @@ public class SecurityConfig {
 
         return source;
     }
-
-    @Bean
-    public SecurityHandlers securityHandlers() {
-        return new SecurityHandlers();
-    }
 }
