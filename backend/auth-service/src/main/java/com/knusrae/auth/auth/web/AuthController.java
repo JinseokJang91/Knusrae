@@ -2,9 +2,12 @@ package com.knusrae.auth.auth.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knusrae.auth.auth.dto.NaverUserDTO;
+import com.knusrae.auth.auth.service.AuthService;
 import com.knusrae.auth.auth.service.NaverAuthService;
+import com.knusrae.auth.auth.web.request.LoginRequest;
+import com.knusrae.auth.auth.web.response.TokenResponse;
 import com.knusrae.common.security.JwtTokenProvider;
-import jakarta.validation.constraints.NotBlank;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,27 +21,16 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-record LoginRequest(@NotBlank String username, @NotBlank String password) {}
-record TokenResponse(String accessToken) {}
-
 @RestController
 @RequestMapping("/api/auth")
 @Slf4j
+@RequiredArgsConstructor
 public class AuthController {
     private final NaverAuthService naverAuthService;
     private final ObjectMapper objectMapper;
-    private final AuthenticationManager authManager;
-    private final JwtTokenProvider tokenProvider;
+    private final AuthService authService;
 
     private static final String REDIRECT_URI = "http://localhost:5173/auth/naver/callback";
-
-    public AuthController(NaverAuthService naverAuthService, ObjectMapper objectMapper, AuthenticationConfiguration config, JwtTokenProvider tokenProvider) throws Exception {
-
-        this.naverAuthService = naverAuthService;
-        this.objectMapper = objectMapper;
-        this.authManager = config.getAuthenticationManager();
-        this.tokenProvider = tokenProvider;
-    }
 
     @GetMapping("/naver/callback")
     public ResponseEntity<String> naverCallback(@RequestParam("code") String code,
@@ -74,12 +66,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest req) {
-        Authentication auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.username(), req.password())
-        );
-        String role = auth.getAuthorities().stream()
-                .findFirst().map(a -> a.getAuthority().replace("ROLE_", "")).orElse("USER");
-        String token = tokenProvider.createToken(auth.getName(), Map.of("role", role));
-        return ResponseEntity.ok(new TokenResponse(token));
+        TokenResponse response = authService.login(req);
+
+        return ResponseEntity.ok(response);
     }
 }

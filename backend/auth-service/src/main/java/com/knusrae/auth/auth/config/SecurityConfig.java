@@ -1,7 +1,6 @@
 package com.knusrae.auth.auth.config;
 
 import com.knusrae.common.security.JwtAuthenticationFilter;
-import com.knusrae.common.security.JwtTokenProvider;
 import com.knusrae.common.security.SecurityHandlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -31,18 +30,23 @@ public class SecurityConfig {
         http
                 // CSRF 비활성화
                 .csrf(AbstractHttpConfigurer::disable)
-                // CORS
+                // CORS 설정 적용
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // Session Stateless 적용
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 인증 허용/필수 대상 URL 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                // 예외 처리
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(handlers.authenticationEntryPoint())
                         .accessDeniedHandler(handlers.accessDeniedHandler())
                 )
+                // Jwt Token Filter 순서 적용
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                // HTTP Basic 인증 방식 적용
                 .httpBasic(Customizer.withDefaults());
 
         return http.build();
