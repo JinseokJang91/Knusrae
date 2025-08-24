@@ -3,13 +3,20 @@ package com.knusrae.auth.auth.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.knusrae.auth.auth.domain.User;
 import com.knusrae.auth.auth.dto.NaverUserDTO;
+import com.knusrae.auth.auth.dto.SocialRole;
+import com.knusrae.auth.auth.repository.UserRepository;
+import com.knusrae.auth.auth.service.request.TokenRequest;
+import com.knusrae.auth.auth.service.response.TokenResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@RequiredArgsConstructor
 public class NaverAuthService {
     @Value("${naver.client.id}")
     private String clientId;
@@ -17,21 +24,32 @@ public class NaverAuthService {
     private String clientSecret;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final TokenService tokenService;
+    private final UserRepository userRepository;
 
     private static final String TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
     private static final String USER_INFO_URL = "https://openapi.naver.com/v1/nid/me";
 
-    public NaverAuthService(RestTemplate restTemplate, ObjectMapper objectMapper) {
-        this.restTemplate = restTemplate;
-        this.objectMapper = objectMapper;
-    }
-
-    public NaverUserDTO naverLoginProcess(String code, String state) throws JsonProcessingException {
+    public TokenResponse naverLoginProcess(String code, String state) throws JsonProcessingException {
         // 액세스 토큰 요청
         String accessToken = getAccessToken(code, state);
 
         // 사용자 정보 요청
-        return getUserInfo(accessToken);
+        NaverUserDTO naverUserDTO = getUserInfo(accessToken);
+
+        // 1. DB에서 사용자 조회/없으면 생성
+        User user = (User) userRepository.findByEmail(naverUserDTO.getEmail())
+                .orElseGet(() -> userRepository.save(
+                        User.builder()
+                                .name(naverUserDTO.getName())
+                                .phone(naverUserDTO.getMobile())
+                                .role(SocialRole.NAVER)
+                                .build()
+                 ));
+        System.out.println("user = " + user);
+
+        // 2. JWT 토큰 발급 (ID, role 사용)
+        return tokenService.loginWithSocialUser(user.getId(), user.getRole().name());
     }
 
     private String getAccessToken(String code, String state) throws JsonProcessingException {

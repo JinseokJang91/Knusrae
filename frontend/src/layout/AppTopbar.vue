@@ -1,6 +1,7 @@
 <script setup>
 import logoText from '@/assets/images/logo-text.png';
 import { useLayout } from '@/layout/composables/layout';
+import { getCurrentUser, isLoggedIn } from '@/utils/auth';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -8,7 +9,7 @@ const router = useRouter();
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 
 const searchQuery = ref('');
-const isLoggedIn = ref(Boolean(localStorage.getItem('naver_user')));
+const isLoggedInState = ref(isLoggedIn());
 const userName = ref('');
 
 const handleSearch = () => {
@@ -22,16 +23,21 @@ const clearSearch = () => {
 };
 
 const updateLoginState = () => {
-    isLoggedIn.value = Boolean(localStorage.getItem('naver_user'));
-    userName.value = JSON.parse(localStorage.getItem('naver_user')).name;
+    isLoggedInState.value = isLoggedIn();
+    if (isLoggedInState.value) {
+        const user = getCurrentUser();
+        userName.value = user?.name || '사용자';
+    } else {
+        userName.value = '';
+    }
 };
 
 const handleLogout = () => {
-    confirm('로그아웃 하시겠습니까?');
-    localStorage.removeItem('naver_user');
-    localStorage.removeItem('naver_access_token');
-    updateLoginState();
-    router.push('/');
+    if (confirm('로그아웃 하시겠습니까?')) {
+        localStorage.removeItem('accessToken');
+        updateLoginState();
+        router.push('/');
+    }
 };
 
 onMounted(() => {
@@ -86,7 +92,7 @@ onBeforeUnmount(() => {
                     <AppConfigurator />
                 </div>
             </div> -->
-            <div class="layout-config-menu" v-if="isLoggedIn">
+            <div class="layout-config-menu" v-if="isLoggedInState">
                 <span class="layout-topbar-welcome">{{ userName }}님 환영합니다.</span>
             </div>
 
@@ -96,7 +102,7 @@ onBeforeUnmount(() => {
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
                     </button>
-                    <router-link v-if="!isLoggedIn" to="/auth/login" class="layout-topbar-action">
+                    <router-link v-if="!isLoggedInState" to="/auth/login" class="layout-topbar-action">
                         <i class="pi pi-sign-in"></i>
                         <span>Sign In</span>
                     </router-link>

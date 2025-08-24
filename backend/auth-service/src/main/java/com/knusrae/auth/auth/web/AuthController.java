@@ -1,25 +1,17 @@
 package com.knusrae.auth.auth.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.knusrae.auth.auth.dto.NaverUserDTO;
-import com.knusrae.auth.auth.service.AuthService;
+import com.knusrae.auth.auth.service.TokenService;
 import com.knusrae.auth.auth.service.NaverAuthService;
-import com.knusrae.auth.auth.web.request.LoginRequest;
-import com.knusrae.auth.auth.web.response.TokenResponse;
-import com.knusrae.common.security.JwtTokenProvider;
+import com.knusrae.auth.auth.service.response.TokenResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,7 +20,7 @@ import java.util.Map;
 public class AuthController {
     private final NaverAuthService naverAuthService;
     private final ObjectMapper objectMapper;
-    private final AuthService authService;
+    private final TokenService tokenService;
 
     private static final String REDIRECT_URI = "http://localhost:5173/auth/naver/callback";
 
@@ -37,12 +29,16 @@ public class AuthController {
                                                 @RequestParam("state") String state) {
         try {
             log.info("Naver OAuth callback received. code={}, state={}", code, state);
-            NaverUserDTO userDto = naverAuthService.naverLoginProcess(code, state);
-            String userJson = objectMapper.writeValueAsString(userDto);
+            TokenResponse tokenResponse = naverAuthService.naverLoginProcess(code, state);
+            System.out.println("tokenResponse = " + tokenResponse);
+            String accessToken = tokenResponse.accessToken();
+            log.info("Extracted access token: {}", accessToken != null ? accessToken.substring(0, Math.min(20, accessToken.length())) + "..." : "null");
             String redirectUrl = String.format(
-                    REDIRECT_URI + "?success=true&user=%s",
-                    java.net.URLEncoder.encode(userJson, StandardCharsets.UTF_8)
+                    REDIRECT_URI + "?success=true&accessToken=%s",
+                    java.net.URLEncoder.encode(accessToken, StandardCharsets.UTF_8)
             );
+            log.info("Redirecting to: {}", redirectUrl);
+
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header(HttpHeaders.LOCATION, redirectUrl)
                     .build();
@@ -56,18 +52,13 @@ public class AuthController {
         try {
             String redirectUrl = REDIRECT_URI + "?success=false&error=" +
                     java.net.URLEncoder.encode("로그인 처리 중 오류가 발생했습니다.", StandardCharsets.UTF_8);
+
+            log.info("Error redirecting to: {}", redirectUrl);
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header(HttpHeaders.LOCATION, redirectUrl)
                     .build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest req) {
-        TokenResponse response = authService.login(req);
-
-        return ResponseEntity.ok(response);
     }
 }

@@ -11,5 +11,6 @@ public class NaverUserDTO {
     private String gender;
     private String age;
     private String birthday;
+    private String mobile;
     private String profileImage;
 }

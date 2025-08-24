@@ -41,8 +41,9 @@ function handleNaverLogin() {
     // 팝업에서 메시지 수신
     const handleMessage = (event: MessageEvent) => {
         if (event.data.type === 'NAVER_LOGIN_SUCCESS') {
-            console.log('네이버 로그인 성공:', event.data.user);
-            localStorage.setItem('naver_user', JSON.stringify(event.data.user));
+            console.log('네이버 로그인 성공:', event.data.accessToken);
+            // JWT 토큰을 저장하고 사용자 정보는 토큰에서 추출하거나 별도 API 호출로 가져올 수 있음
+            localStorage.setItem('accessToken', event.data.accessToken);
             alert('네이버 로그인이 성공했습니다!');
             goHome();
         } else if (event.data.type === 'NAVER_LOGIN_ERROR') {
