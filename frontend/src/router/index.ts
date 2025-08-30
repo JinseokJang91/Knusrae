@@ -52,6 +52,16 @@ const routes: RouteRecordRaw[] = [
         path: '/auth/naver/callback',
         name: 'naverCallback',
         component: () => import('@/views/pages/auth/NaverCallback.vue')
+    },
+    {
+        path: '/auth/google/callback',
+        name: 'googleCallback',
+        component: () => import('@/views/pages/auth/GoogleCallback.vue')
+    },
+    {
+        path: '/auth/kakao/callback',
+        name: 'kakaoCallback',
+        component: () => import('@/views/pages/auth/KakaoCallback.vue')
     }
 ];
 

@@ -23,3 +23,19 @@ naver:
   client:
     id: xo6t_k8iBnzCW3jp0oR_
     secret: ZUT6PZtCVe
+  redirect:
+    uri: http://localhost:8081/api/auth/naver/callback
+
+google:
+  client:
+    id: 42444115561-ilr40o74pd0f60ac27os9j7onmt7pb2s.apps.googleusercontent.com
+    secret: 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
+  redirect:
+    uri: http://localhost:8081/api/auth/google/callback
+
+kakao:
+  client:
+    id: 0cb16dca75f806b9858d30b6ccab08df
+    secret: aTu843GReAb2ut4kyJLJIr50cdC9pVtg
+  redirect:
+    uri: http://localhost:8081/api/auth/kakao/callback

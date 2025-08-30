@@ -46,18 +46,10 @@ function handleSuccess(accessToken: string) {
         localStorage.setItem('accessToken', accessToken);
 
         // 부모 창에 성공 메시지 전달
-        if (window.opener) {
-            window.opener.postMessage(
-                {
-                    type: 'NAVER_LOGIN_SUCCESS',
-                    accessToken: accessToken
-                },
-                '*'
-            );
-        }
-
-        // 팝업 닫기
-        window.close();
+        sendMessageToParent({
+            type: 'NAVER_LOGIN_SUCCESS',
+            accessToken: accessToken
+        });
     } catch (e) {
         console.error('사용자 데이터 파싱 오류:', e);
         handleError('사용자 데이터 처리 중 오류가 발생했습니다.');
@@ -71,18 +63,29 @@ function handleError(errorMessage: string) {
     console.error('네이버 로그인 오류:', errorMessage);
 
     // 부모 창에 오류 메시지 전달
-    if (window.opener) {
-        window.opener.postMessage(
-            {
-                type: 'NAVER_LOGIN_ERROR',
-                error: errorMessage
-            },
-            '*'
-        );
+    sendMessageToParent({
+        type: 'NAVER_LOGIN_ERROR',
+        error: errorMessage
+    });
+}
+
+function sendMessageToParent(message: any) {
+    try {
+        if (window.opener && !window.opener.closed) {
+            window.opener.postMessage(message, window.location.origin);
+        }
+    } catch (error) {
+        console.error('부모 창에 메시지 전송 실패:', error);
     }
 
-    // 팝업 닫기
-    window.close();
+    // 메시지 전송 후 잠시 대기 후 창 닫기
+    setTimeout(() => {
+        try {
+            window.close();
+        } catch (error) {
+            console.error('창 닫기 실패:', error);
+        }
+    }, 100);
 }
 </script>
 
