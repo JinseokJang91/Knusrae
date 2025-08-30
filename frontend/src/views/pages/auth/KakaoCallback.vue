@@ -3,93 +3,63 @@ import { onMounted } from 'vue';
 
 onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    const state = urlParams.get('state');
+    const success = urlParams.get('success');
+    const accessToken = urlParams.get('accessToken');
     const error = urlParams.get('error');
 
-    // 에러가 있는 경우
-    if (error) {
-        sendMessageToParent({
-            type: 'KAKAO_LOGIN_ERROR',
-            error: error
-        });
-        return;
+    if (success === 'true' && accessToken) {
+        handleSuccess(accessToken);
+    } else if (success === 'false' || error) {
+        handleError(error || '로그인 처리 중 오류가 발생했습니다.');
+    } else {
+        // URL 파라미터가 없는 경우도 처리
+        handleError('예상치 못한 오류가 발생했습니다.');
     }
-
-    // 코드가 없는 경우
-    if (!code) {
-        sendMessageToParent({
-            type: 'KAKAO_LOGIN_ERROR',
-            error: '인증 코드를 받지 못했습니다.'
-        });
-        return;
-    }
-
-    // State 검증
-    const savedState = localStorage.getItem('kakao_state');
-    if (state !== savedState) {
-        sendMessageToParent({
-            type: 'KAKAO_LOGIN_ERROR',
-            error: '보안 검증에 실패했습니다.'
-        });
-        return;
-    }
-
-    // 백엔드로 인증 코드 전송
-    exchangeCodeForToken(code);
 });
+
+/**
+ * 로그인 성공 처리
+ */
+function handleSuccess(accessToken: string) {
+    try {
+        // 사용자 데이터 저장
+        localStorage.setItem('accessToken', accessToken);
+
+        // 부모 창에 성공 메시지 전달
+        sendMessageToParent({
+            type: 'KAKAO_LOGIN_SUCCESS',
+            accessToken: accessToken
+        });
+    } catch (e) {
+        console.error('사용자 데이터 파싱 오류:', e);
+        handleError('사용자 데이터 처리 중 오류가 발생했습니다.');
+    }
+}
+
+/**
+ * 로그인 오류 처리
+ */
+function handleError(errorMessage: string) {
+    // 부모 창에 오류 메시지 전달
+    sendMessageToParent({
+        type: 'KAKAO_LOGIN_ERROR',
+        error: errorMessage
+    });
+}
 
 function sendMessageToParent(message: any) {
     try {
         if (window.opener && !window.opener.closed) {
             window.opener.postMessage(message, window.location.origin);
         }
-    } catch (error) {
-        console.error('부모 창에 메시지 전송 실패:', error);
-    }
+    } catch (error) {}
 
     // 메시지 전송 후 잠시 대기 후 창 닫기
     setTimeout(() => {
         try {
             window.close();
-        } catch (error) {
-            console.error('창 닫기 실패:', error);
-        }
+        } catch (error) {}
     }, 100);
-}
-
-async function exchangeCodeForToken(code: string) {
-    try {
-        const response = await fetch('/api/auth/kakao/callback', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                code: code,
-                redirect_uri: import.meta.env.VITE_KAKAO_REDIRECT_URI
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('토큰 교환에 실패했습니다.');
-        }
-
-        const data = await response.json();
-
-        // 부모 창에 성공 메시지 전송
-        sendMessageToParent({
-            type: 'KAKAO_LOGIN_SUCCESS',
-            accessToken: data.accessToken,
-            user: data.user
-        });
-    } catch (error) {
-        console.error('토큰 교환 오류:', error);
-        sendMessageToParent({
-            type: 'KAKAO_LOGIN_ERROR',
-            error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'
-        });
-    }
 }
 </script>
 

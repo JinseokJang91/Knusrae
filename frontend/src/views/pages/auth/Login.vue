@@ -33,7 +33,7 @@ function handleNaverLogin() {
     const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(NAVER_REDIRECT_URI)}&state=${state}`;
 
     // 팝업으로 열기
-    const popup = window.open(naverAuthUrl, 'naverLogin', 'width=500,height=600,scrollbars=yes,resizable=yes,noopener,noreferrer');
+    const popup = window.open(naverAuthUrl, 'naverLogin', 'width=500,height=600,scrollbars=yes,resizable=yes');
 
     if (!popup) {
         alert('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.');
@@ -48,12 +48,10 @@ function handleNaverLogin() {
         }
 
         if (event.data.type === 'NAVER_LOGIN_SUCCESS') {
-            console.log('네이버 로그인 성공:', event.data.accessToken);
             localStorage.setItem('accessToken', event.data.accessToken);
             alert('네이버 로그인이 성공했습니다!');
             goHome();
         } else if (event.data.type === 'NAVER_LOGIN_ERROR') {
-            console.error('네이버 로그인 오류:', event.data.error);
             alert('네이버 로그인 중 오류가 발생했습니다: ' + event.data.error);
         }
     };
@@ -69,7 +67,6 @@ function handleNaverLogin() {
             }
         } catch (error) {
             // CORS 오류가 발생할 수 있으므로 무시
-            console.warn('팝업 상태 확인 중 오류:', error);
         }
     }, 1000);
 
@@ -98,8 +95,7 @@ function handleGoogleLogin() {
     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&scope=openid%20email%20profile&state=${state}`;
 
     // 팝업으로 열기
-    const popup = window.open(googleAuthUrl, 'googleLogin', 'width=500,height=600,scrollbars=yes,resizable=yes,noopener,noreferrer');
-    console.log(popup);
+    const popup = window.open(googleAuthUrl, 'googleLogin', 'width=500,height=600,scrollbars=yes,resizable=yes');
 
     if (!popup) {
         alert('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.');
@@ -114,12 +110,10 @@ function handleGoogleLogin() {
         }
 
         if (event.data.type === 'GOOGLE_LOGIN_SUCCESS') {
-            console.log('구글 로그인 성공:', event.data.accessToken);
             localStorage.setItem('accessToken', event.data.accessToken);
             alert('구글 로그인이 성공했습니다!');
             goHome();
         } else if (event.data.type === 'GOOGLE_LOGIN_ERROR') {
-            console.error('구글 로그인 오류:', event.data.error);
             alert('구글 로그인 중 오류가 발생했습니다: ' + event.data.error);
         }
     };
@@ -135,7 +129,6 @@ function handleGoogleLogin() {
             }
         } catch (error) {
             // CORS 오류가 발생할 수 있으므로 무시
-            console.warn('팝업 상태 확인 중 오류:', error);
         }
     }, 1000);
 
@@ -164,7 +157,7 @@ function handleKakaoLogin() {
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_CLIENT_ID}&redirect_uri=${encodeURIComponent(KAKAO_REDIRECT_URI)}&state=${state}`;
 
     // 팝업으로 열기
-    const popup = window.open(kakaoAuthUrl, 'kakaoLogin', 'width=500,height=600,scrollbars=yes,resizable=yes,noopener,noreferrer');
+    const popup = window.open(kakaoAuthUrl, 'kakaoLogin', 'width=500,height=600,scrollbars=yes,resizable=yes');
 
     if (!popup) {
         alert('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.');
@@ -179,12 +172,10 @@ function handleKakaoLogin() {
         }
 
         if (event.data.type === 'KAKAO_LOGIN_SUCCESS') {
-            console.log('카카오 로그인 성공:', event.data.accessToken);
             localStorage.setItem('accessToken', event.data.accessToken);
             alert('카카오 로그인이 성공했습니다!');
             goHome();
         } else if (event.data.type === 'KAKAO_LOGIN_ERROR') {
-            console.error('카카오 로그인 오류:', event.data.error);
             alert('카카오 로그인 중 오류가 발생했습니다: ' + event.data.error);
         }
     };
@@ -200,7 +191,6 @@ function handleKakaoLogin() {
             }
         } catch (error) {
             // CORS 오류가 발생할 수 있으므로 무시
-            console.warn('팝업 상태 확인 중 오류:', error);
         }
     }, 1000);
 

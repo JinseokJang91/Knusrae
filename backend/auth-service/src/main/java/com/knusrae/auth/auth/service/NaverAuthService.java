@@ -46,7 +46,6 @@ public class NaverAuthService {
                                 .role(SocialRole.NAVER)
                                 .build()
                  ));
-        System.out.println("user = " + user);
 
         // 2. JWT 토큰 발급 (ID, role 사용)
         return tokenService.loginWithSocialUser(user.getId(), user.getRole().name());
