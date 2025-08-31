@@ -1,7 +1,7 @@
 package com.knusrae.auth.auth.domain;
 
+import com.knusrae.auth.auth.dto.Gender;
 import com.knusrae.auth.auth.dto.SocialRole;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,13 +9,13 @@ import lombok.Data;
 @Builder
 public class User {
     private String id;
-    private String password;
-    private String name;
     private String email;
+    private String name;
     private String phone;
-    private String address;
+    private Gender gender;
     private SocialRole role;
-    private String status;
+    private String state;
+    private String birth;
     private String createdAt;
     private String updatedAt;
 }
