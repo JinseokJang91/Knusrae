@@ -21,6 +21,8 @@ public class KakaoUserDTO {
         private String phoneNumber;
         @JsonProperty("email_verified")
         private boolean emailVerified;
+        private String birthyear;
+        private String birthday;
     }
 
     @Data
@@ -46,5 +48,13 @@ public class KakaoUserDTO {
 
     public String getPhoneNumber() {
         return kakaoAccount != null ? kakaoAccount.getPhoneNumber() : null;
+    }
+
+    public String getBirthyear() {
+        return kakaoAccount != null ? kakaoAccount.getBirthyear() : null;
+    }
+
+    public String getBirthday() {
+        return kakaoAccount != null ? kakaoAccount.getBirthday() : null;
     }
 }

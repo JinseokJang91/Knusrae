@@ -15,8 +15,8 @@ public class TokenService {
     }
 
     // Added method for social login
-    public TokenResponse loginWithSocialUser(String userId, String role) {
-        String token = tokenProvider.createToken(userId, Map.of("role", role));
+    public TokenResponse loginWithSocialUser(Long userId, String username, String role) {
+        String token = tokenProvider.createToken(String.valueOf(userId), Map.of("role", role, "username", username));
         return new TokenResponse(token);
     }
 }

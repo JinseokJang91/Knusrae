@@ -10,6 +10,7 @@ public class NaverUserDTO {
     private String email;
     private String gender;
     private String age;
+    private String birthyear;
     private String birthday;
     private String mobile;
     private String profileImage;

@@ -3,16 +3,21 @@ package com.knusrae.auth.auth.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.knusrae.auth.auth.domain.User;
+import com.knusrae.auth.auth.domain.Member;
 import com.knusrae.auth.auth.dto.GoogleUserDTO;
+import com.knusrae.auth.auth.dto.MemberState;
 import com.knusrae.auth.auth.dto.SocialRole;
-import com.knusrae.auth.auth.repository.UserRepository;
+import com.knusrae.auth.auth.repository.MemberRepository;
 import com.knusrae.auth.auth.service.response.TokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +32,7 @@ public class GoogleAuthService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final TokenService tokenService;
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
 
     private static final String TOKEN_URL = "https://oauth2.googleapis.com/token";
     private static final String USER_INFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
@@ -40,17 +45,23 @@ public class GoogleAuthService {
         GoogleUserDTO googleUserDTO = getUserInfo(accessToken);
 
         // 1. DB에서 사용자 조회/없으면 생성
-        User user = (User) userRepository.findByEmail(googleUserDTO.getEmail())
-                .orElseGet(() -> userRepository.save(
-                        User.builder()
-                                .name(googleUserDTO.getName())
-                                .email(googleUserDTO.getEmail())
-                                .role(SocialRole.GOOGLE)
-                                .build()
-                ));
+        Member member = memberRepository.findByEmail(googleUserDTO.getEmail());
+
+        if(ObjectUtils.isEmpty(member)) {
+            member = memberRepository.save(
+                    Member.builder()
+                            .email(googleUserDTO.getEmail())
+                            .name(googleUserDTO.getName())
+                            .state(MemberState.ACTIVE)
+                            .role(SocialRole.GOOGLE)
+                            .createdAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                            .updatedAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                            .build()
+            );
+        }
 
         // 2. JWT 토큰 발급 (ID, role 사용)
-        return tokenService.loginWithSocialUser(user.getId(), user.getRole().name());
+        return tokenService.loginWithSocialUser(member.getId(), member.getName(), member.getRole().name());
     }
 
     private String getAccessToken(String code) throws JsonProcessingException {

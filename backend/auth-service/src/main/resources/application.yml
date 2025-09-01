@@ -15,7 +15,6 @@ spring:
     jwt:
       secret: xA0sn7p9tB6cR3eMkG4vzS5uQ2W1yNpLqZoPsIdUjKxBlVuTwQ1FgHsDnPmCkRtL
       accessTokenTtlSeconds: 3600
-      permiAllPattern: "/auth/**"
 server:
   port: 8081
 
