@@ -24,7 +24,7 @@
 
     .layout-root-menuitem {
         > .layout-menuitem-root-text {
-            font-size: 1.1rem;
+            font-size: 1.5rem;
             text-transform: uppercase;
             font-weight: 700;
             color: var(--text-color);
@@ -57,6 +57,8 @@
     ul {
         margin: 0;
         padding: 0;
+        font-size: 1.2rem;
+        font-weight: 500;
         list-style-type: none;
 
         a {
@@ -73,7 +75,7 @@
                 box-shadow var(--element-transition-duration);
 
             .layout-menuitem-icon {
-                margin-right: 0.5rem;
+                margin-right: 0.75rem;
             }
 
             .layout-submenu-toggler {
