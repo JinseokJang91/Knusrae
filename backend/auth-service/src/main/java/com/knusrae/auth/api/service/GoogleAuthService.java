@@ -1,18 +1,15 @@
-package com.knusrae.auth.auth.service;
+package com.knusrae.auth.api.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.knusrae.auth.auth.domain.Member;
-import com.knusrae.auth.auth.dto.Gender;
-import com.knusrae.auth.auth.dto.MemberState;
-import com.knusrae.auth.auth.dto.NaverUserDTO;
-import com.knusrae.auth.auth.dto.SocialRole;
-import com.knusrae.auth.auth.repository.MemberRepository;
-import com.knusrae.auth.auth.service.response.TokenResponse;
+import com.knusrae.auth.api.domain.Member;
+import com.knusrae.auth.api.dto.GoogleUserDTO;
+import com.knusrae.auth.api.dto.MemberState;
+import com.knusrae.auth.api.dto.SocialRole;
+import com.knusrae.auth.api.repository.MemberRepository;
+import com.knusrae.auth.api.service.response.TokenResponse;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -24,39 +21,39 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
-public class NaverAuthService {
-    @Value("${naver.client.id}")
+public class GoogleAuthService {
+    @Value("${google.client.id}")
     private String clientId;
-    @Value("${naver.client.secret}")
+    @Value("${google.client.secret}")
     private String clientSecret;
+    @Value("${google.redirect.uri}")
+    private String redirectUri;
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final TokenService tokenService;
     private final MemberRepository memberRepository;
 
-    private static final String TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
-    private static final String USER_INFO_URL = "https://openapi.naver.com/v1/nid/me";
+    private static final String TOKEN_URL = "https://oauth2.googleapis.com/token";
+    private static final String USER_INFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
 
-    public TokenResponse naverLoginProcess(String code, String state) throws JsonProcessingException {
+    public TokenResponse googleLoginProcess(String code) throws JsonProcessingException {
         // 액세스 토큰 요청
-        String accessToken = getAccessToken(code, state);
+        String accessToken = getAccessToken(code);
 
         // 사용자 정보 요청
-        NaverUserDTO naverUserDTO = getUserInfo(accessToken);
+        GoogleUserDTO googleUserDTO = getUserInfo(accessToken);
 
         // 1. DB에서 사용자 조회/없으면 생성
-        Member member = memberRepository.findByEmail(naverUserDTO.getEmail());
-        
+        Member member = memberRepository.findByEmail(googleUserDTO.getEmail());
+
         if(ObjectUtils.isEmpty(member)) {
             member = memberRepository.save(
                     Member.builder()
-                            .email(naverUserDTO.getEmail())
-                            .name(naverUserDTO.getName())
-                            .phone( StringUtils.replaceChars(naverUserDTO.getMobile(), "-", ""))
-                            .gender("M".equals(naverUserDTO.getGender()) ? Gender.FEMALE : "F".equals(naverUserDTO.getGender()) ? Gender.MALE : Gender.UNKNOWN)
-                            .birth(Strings.concat(naverUserDTO.getBirthyear(), StringUtils.replaceChars(naverUserDTO.getBirthday(), "-", "")))
+                            .email(googleUserDTO.getEmail())
+                            .name(googleUserDTO.getName())
                             .state(MemberState.ACTIVE)
-                            .role(SocialRole.NAVER)
+                            .role(SocialRole.GOOGLE)
                             .createdAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                             .updatedAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                             .build()
@@ -67,23 +64,22 @@ public class NaverAuthService {
         return tokenService.loginWithSocialUser(member.getId(), member.getName(), member.getRole().name());
     }
 
-    private String getAccessToken(String code, String state) throws JsonProcessingException {
+    private String getAccessToken(String code) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         String tokenRequestBody = String.format(
-                "grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&state=%s",
-                clientId, clientSecret, code, state
+                "grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&redirect_uri=%s",
+                clientId, clientSecret, code, redirectUri
         );
         HttpEntity<String> tokenRequest = new HttpEntity<>(tokenRequestBody, headers);
         ResponseEntity<String> tokenResponse = restTemplate.postForEntity(TOKEN_URL, tokenRequest, String.class);
 
         JsonNode tokenJson = objectMapper.readTree(tokenResponse.getBody());
-
         return tokenJson.get("access_token").asText();
     }
 
-    private NaverUserDTO getUserInfo(String accessToken) throws JsonProcessingException {
+    private GoogleUserDTO getUserInfo(String accessToken) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
 
@@ -92,9 +88,6 @@ public class NaverAuthService {
                 USER_INFO_URL, HttpMethod.GET, userInfoRequest, String.class
         );
 
-        JsonNode userInfoJson = objectMapper.readTree(userInfoResponse.getBody());
-        JsonNode user = userInfoJson.get("response");
-
-        return objectMapper.treeToValue(user, NaverUserDTO.class);
+        return objectMapper.readValue(userInfoResponse.getBody(), GoogleUserDTO.class);
     }
 }

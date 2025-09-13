@@ -1,4 +1,4 @@
-package com.knusrae.auth.auth.dto;
+package com.knusrae.auth.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.knusrae.auth.auth.config;
+package com.knusrae.auth.config;
 
 import com.knusrae.common.security.JwtAuthenticationFilter;
 import com.knusrae.common.security.SecurityHandlers;

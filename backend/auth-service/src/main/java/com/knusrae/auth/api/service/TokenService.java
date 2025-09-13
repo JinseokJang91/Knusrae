@@ -1,6 +1,6 @@
-package com.knusrae.auth.auth.service;
+package com.knusrae.auth.api.service;
 
-import com.knusrae.auth.auth.service.response.TokenResponse;
+import com.knusrae.auth.api.service.response.TokenResponse;
 import com.knusrae.common.security.JwtTokenProvider;
 import org.springframework.stereotype.Service;
 

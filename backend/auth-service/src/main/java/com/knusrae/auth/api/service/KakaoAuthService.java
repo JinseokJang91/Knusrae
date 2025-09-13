@@ -1,14 +1,14 @@
-package com.knusrae.auth.auth.service;
+package com.knusrae.auth.api.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.knusrae.auth.auth.domain.Member;
-import com.knusrae.auth.auth.dto.KakaoUserDTO;
-import com.knusrae.auth.auth.dto.MemberState;
-import com.knusrae.auth.auth.dto.SocialRole;
-import com.knusrae.auth.auth.repository.MemberRepository;
-import com.knusrae.auth.auth.service.response.TokenResponse;
+import com.knusrae.auth.api.domain.Member;
+import com.knusrae.auth.api.dto.KakaoUserDTO;
+import com.knusrae.auth.api.dto.MemberState;
+import com.knusrae.auth.api.dto.SocialRole;
+import com.knusrae.auth.api.repository.MemberRepository;
+import com.knusrae.auth.api.service.response.TokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;

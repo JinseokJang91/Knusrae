@@ -1,4 +1,4 @@
-package com.knusrae.auth.auth.service.request;
+package com.knusrae.auth.api.service.request;
 
 import jakarta.validation.constraints.NotBlank;
 

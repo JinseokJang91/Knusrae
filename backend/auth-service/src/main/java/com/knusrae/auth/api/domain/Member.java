@@ -1,8 +1,8 @@
-package com.knusrae.auth.auth.domain;
+package com.knusrae.auth.api.domain;
 
-import com.knusrae.auth.auth.dto.Gender;
-import com.knusrae.auth.auth.dto.SocialRole;
-import com.knusrae.auth.auth.dto.MemberState;
+import com.knusrae.auth.api.dto.Gender;
+import com.knusrae.auth.api.dto.SocialRole;
+import com.knusrae.auth.api.dto.MemberState;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

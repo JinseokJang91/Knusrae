@@ -1,4 +1,4 @@
-package com.knusrae.auth.auth.dto;
+package com.knusrae.auth.api.dto;
 
 public enum SocialRole {
     NAVER,
