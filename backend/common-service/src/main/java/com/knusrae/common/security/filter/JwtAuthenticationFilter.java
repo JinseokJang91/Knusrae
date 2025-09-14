@@ -1,5 +1,6 @@
-package com.knusrae.common.security;
+package com.knusrae.common.security.filter;
 
+import com.knusrae.common.security.provider.JwtTokenProvider;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,7 +1,7 @@
-package com.knusrae.auth.config;
+package com.knusrae.common.security.config;
 
-import com.knusrae.common.security.JwtAuthenticationFilter;
-import com.knusrae.common.security.SecurityHandlers;
+import com.knusrae.common.security.filter.JwtAuthenticationFilter;
+import com.knusrae.common.security.handler.SecurityHandlers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package com.knusrae.common.security;
+package com.knusrae.common.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;

@@ -1,7 +1,7 @@
 package com.knusrae.auth.api.service;
 
 import com.knusrae.auth.api.service.response.TokenResponse;
-import com.knusrae.common.security.JwtTokenProvider;
+import com.knusrae.common.security.provider.JwtTokenProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;

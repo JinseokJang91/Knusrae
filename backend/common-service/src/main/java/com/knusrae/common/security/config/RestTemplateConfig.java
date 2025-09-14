@@ -1,4 +1,4 @@
-package com.knusrae.auth.config;
+package com.knusrae.common.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

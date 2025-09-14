@@ -4,8 +4,10 @@ import com.knusrae.cook.api.dto.CookState;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
 
 @Entity
+@Getter
 public class Recipe {
     @Id @GeneratedValue
     private Long id;

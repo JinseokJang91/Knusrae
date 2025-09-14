@@ -1,4 +1,4 @@
-package com.knusrae.common.security;
+package com.knusrae.common.security.provider;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;

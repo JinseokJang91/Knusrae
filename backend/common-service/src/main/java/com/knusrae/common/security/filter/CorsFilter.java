@@ -1,4 +1,4 @@
-package com.knusrae.auth.config;
+package com.knusrae.common.security.filter;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
