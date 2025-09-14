@@ -11,6 +11,64 @@ const routes: RouteRecordRaw[] = [
                 name: 'dashboard',
                 component: () => import('@/views/Dashboard.vue')
             },
+            // 추천 메뉴
+            {
+                path: '/recommend/today',
+                name: 'todayRecipe',
+                component: () => import('@/views/pages/recommend/TodayRecipe.vue')
+            },
+            {
+                path: '/recommend/weekly',
+                name: 'weeklyRanking',
+                component: () => import('@/views/pages/recommend/WeeklyRanking.vue')
+            },
+            {
+                path: '/recommend/monthly',
+                name: 'monthlyRanking',
+                component: () => import('@/views/pages/recommend/MonthlyRanking.vue')
+            },
+            // 레시피 메뉴
+            {
+                path: '/recipe/favorites',
+                name: 'favorites',
+                component: () => import('@/views/pages/recipe/Favorites.vue')
+            },
+            {
+                path: '/recipe/category',
+                name: 'category',
+                component: () => import('@/views/pages/recipe/Category.vue')
+            },
+            {
+                path: '/recipe/storage',
+                name: 'storage',
+                component: () => import('@/views/pages/recipe/Storage.vue')
+            },
+            {
+                path: '/recipe/preparation',
+                name: 'preparation',
+                component: () => import('@/views/pages/recipe/Preparation.vue')
+            },
+            // 소통 메뉴
+            {
+                path: '/community/reviews',
+                name: 'reviews',
+                component: () => import('@/views/pages/community/Reviews.vue')
+            },
+            {
+                path: '/community/board',
+                name: 'board',
+                component: () => import('@/views/pages/community/Board.vue')
+            },
+            {
+                path: '/community/events',
+                name: 'events',
+                component: () => import('@/views/pages/community/Events.vue')
+            },
+            {
+                path: '/community/qna',
+                name: 'qna',
+                component: () => import('@/views/pages/community/QnA.vue')
+            },
             {
                 path: '/uikit/formlayout',
                 name: 'formlayout',

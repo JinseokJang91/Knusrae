@@ -10,17 +10,17 @@ const model = ref([
             {
                 label: '오늘의 레시피',
                 icon: 'pi pi-fw pi-sun',
-                to: '/uikit/formlayout'
+                to: '/recommend/today'
             },
             {
                 label: '주간 랭킹',
                 icon: 'pi pi-fw pi-flag',
-                to: '/uikit/formlayout'
+                to: '/recommend/weekly'
             },
             {
                 label: '월간 랭킹',
                 icon: 'pi pi-fw pi-flag-fill',
-                to: '/uikit/formlayout'
+                to: '/recommend/monthly'
             }
         ]
     },
@@ -30,22 +30,22 @@ const model = ref([
             {
                 label: '찜 목록',
                 icon: 'pi pi-fw pi-heart',
-                to: '/uikit/formlayout'
+                to: '/recipe/favorites'
             },
             {
                 label: '카테고리',
                 icon: 'pi pi-fw pi-list',
-                to: '/uikit/formlayout'
+                to: '/recipe/category'
             },
             {
                 label: '재료 보관법',
                 icon: 'pi pi-fw pi-box',
-                to: '/uikit/formlayout'
+                to: '/recipe/storage'
             },
             {
                 label: '재료 손질법',
                 icon: 'pi pi-fw pi-clipboard',
-                to: '/uikit/formlayout'
+                to: '/recipe/preparation'
             }
         ]
     },
@@ -55,22 +55,22 @@ const model = ref([
             {
                 label: '요리 후기',
                 icon: 'pi pi-fw pi-receipt',
-                to: '/pages/empty'
+                to: '/community/reviews'
             },
             {
                 label: '자유 게시판',
                 icon: 'pi pi-fw pi-warehouse',
-                to: '/uikit/formlayout'
+                to: '/community/board'
             },
             {
                 label: '이벤트',
                 icon: 'pi pi-fw pi-lightbulb',
-                to: '/uikit/formlayout'
+                to: '/community/events'
             },
             {
                 label: '질문과 답변',
                 icon: 'pi pi-fw pi-question-circle',
-                to: '/uikit/formlayout'
+                to: '/community/qna'
             }
         ]
     }
