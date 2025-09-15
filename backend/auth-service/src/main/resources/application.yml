@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:classpath:application-common.yml
   application:
     name : auth-service
   datasource:
@@ -11,10 +13,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  security:
-    jwt:
-      secret: xA0sn7p9tB6cR3eMkG4vzS5uQ2W1yNpLqZoPsIdUjKxBlVuTwQ1FgHsDnPmCkRtL
-      accessTokenTtlSeconds: 3600
 server:
   port: 8081
 
