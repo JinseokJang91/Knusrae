@@ -20,4 +20,16 @@ public class RecipeDto {
         this.state = recipe.getState().name();
         this.userId = recipe.getUserId();
     }
+
+
+    public Recipe toEntity() {
+        return Recipe.builder()
+                .id(id)
+                .title(title)
+                .category(category)
+                .hits(hits)
+                .state(CookState.valueOf(state))
+                .userId(userId)
+                .build();
+    }
 }

@@ -39,7 +39,8 @@ public class SecurityConfig {
                 // 인증 허용/필수 대상 URL 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated()
+//                        .anyRequest().authenticated()
+                        .anyRequest().permitAll() // TODO cook-service test
                 )
                 // 예외 처리
                 .exceptionHandling(e -> e

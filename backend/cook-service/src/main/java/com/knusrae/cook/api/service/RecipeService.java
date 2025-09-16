@@ -21,4 +21,8 @@ public class RecipeService {
                 .map(RecipeDto::new)
                 .toList();
     }
+
+    public void saveRecipe(RecipeDto recipeDto) {
+        recipeRepository.save(recipeDto.toEntity());
+    }
 }
