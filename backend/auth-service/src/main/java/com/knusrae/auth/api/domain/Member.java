@@ -1,45 +1,60 @@
 package com.knusrae.auth.api.domain;
 
-import com.knusrae.auth.api.dto.Gender;
-import com.knusrae.auth.api.dto.SocialRole;
-import com.knusrae.auth.api.dto.MemberState;
+import com.knusrae.auth.api.dto.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class Member {
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
-    @Size(max = 50)
-    private String email;
-    @Size(max = 20)
+    @Column(nullable = false, length = 20)
     private String name;
-    @Size(max = 11)
+
+    @Column(length = 20)
+    private String nickname;
+
+    @Column(length = 13)
     private String phone;
+
+    @NotNull
+    @Column(nullable = false, length = 50)
+    private String email;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "gender", length = 10)
-    private Gender gender;
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", length = 10)
-    private SocialRole role;
-    @Enumerated(EnumType.STRING)
-    @Column(name = "state", length = 10)
-    private MemberState state;
-    @Size(max = 8)
+    @Column(name = "active", nullable = false)
+    @Builder.Default
+    private Active isActive = Active.TRUE;
+
+    @NotNull
+    @Column(length = 10)
     private String birth;
-    @Size(max = 50)
-    private String createdAt;
-    @Size(max = 50)
-    private String updatedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private Gender gender;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "social_role", nullable = false)
+    private SocialRole socialRole;
+
+    @NotNull
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @NotNull
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 }

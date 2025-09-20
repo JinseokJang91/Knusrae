@@ -9,6 +9,4 @@ import java.util.List;
 @Repository
 public interface RecipeRepository extends JpaRepository<Recipe, Long>, RecipeRepositoryCustom {
     List<Recipe> findAllByOrderByCreatedAtDesc();
-
-    Recipe save(Recipe recipe);
 }

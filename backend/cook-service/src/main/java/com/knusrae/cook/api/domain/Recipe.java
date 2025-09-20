@@ -1,6 +1,8 @@
 package com.knusrae.cook.api.domain;
 
 import com.knusrae.cook.api.dto.CookState;
+import com.knusrae.cook.api.dto.Status;
+import com.knusrae.cook.api.dto.Visibility;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -28,6 +30,16 @@ public class Recipe {
     @NotNull
     @Column(nullable = false)
     private String category;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Status status = Status.DRAFT;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Visibility visibility = Visibility.PUBLIC;
 
     @Builder.Default
     private Long hits = 0L;

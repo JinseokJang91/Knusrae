@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knusrae.auth.api.domain.Member;
+import com.knusrae.auth.api.dto.Active;
 import com.knusrae.auth.api.dto.KakaoUserDTO;
-import com.knusrae.auth.api.dto.MemberState;
 import com.knusrae.auth.api.dto.SocialRole;
 import com.knusrae.auth.api.repository.MemberRepository;
 import com.knusrae.auth.api.service.response.TokenResponse;
@@ -19,7 +19,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -52,20 +51,21 @@ public class KakaoAuthService {
         if(ObjectUtils.isEmpty(member)) {
             member = memberRepository.save(
                     Member.builder()
-                            .email(kakaoUserDTO.getEmail())
-                            .name(StringUtils.isNotBlank(kakaoUserDTO.getName()) ? kakaoUserDTO.getName() : kakaoUserDTO.getNickname())
+                            .name(kakaoUserDTO.getName())
+                            .nickname(kakaoUserDTO.getNickname())
                             .phone(StringUtils.replaceChars(kakaoUserDTO.getPhoneNumber(), "+82 ", "0").replace("-", ""))
+                            .email(kakaoUserDTO.getEmail())
                             .birth(Strings.concat(kakaoUserDTO.getBirthyear(), kakaoUserDTO.getBirthday()))
-                            .state(MemberState.ACTIVE)
-                            .role(SocialRole.KAKAO)
-                            .createdAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                            .updatedAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                            .isActive(Active.TRUE)
+                            .socialRole(SocialRole.KAKAO)
+                            .createdAt(LocalDateTime.now())
+                            .updatedAt(LocalDateTime.now())
                             .build()
             );
         }
 
         // 2. JWT 토큰 발급 (ID, role 사용)
-        return tokenService.loginWithSocialUser(member.getId(), member.getName(), member.getRole().name());
+        return tokenService.loginWithSocialUser(member.getId(), member.getName(), member.getSocialRole().name());
     }
 
     private String getAccessToken(String code) throws JsonProcessingException {

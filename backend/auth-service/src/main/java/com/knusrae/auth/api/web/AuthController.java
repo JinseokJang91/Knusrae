@@ -25,9 +25,11 @@ public class AuthController {
     private final GoogleAuthService googleAuthService;
     private final KakaoAuthService kakaoAuthService;
 
-    private static final String NAVER_REDIRECT_URI = "http://localhost:5173/auth/naver/callback";
-    private static final String GOOGLE_REDIRECT_URI = "http://localhost:5173/auth/google/callback";
-    private static final String KAKAO_REDIRECT_URI = "http://localhost:5173/auth/kakao/callback";
+    private static final String API_BASE_URL = "http://localhost:5173";
+
+    private static final String NAVER_REDIRECT_URI = "/auth/naver/callback";
+    private static final String GOOGLE_REDIRECT_URI = "/auth/google/callback";
+    private static final String KAKAO_REDIRECT_URI = "/auth/kakao/callback";
 
     @GetMapping("/naver/callback")
     public ResponseEntity<String> naverCallback(@RequestParam("code") String code,
@@ -38,7 +40,7 @@ public class AuthController {
             String accessToken = tokenResponse.accessToken();
             
             String redirectUrl = String.format(
-                    NAVER_REDIRECT_URI + "?success=true&accessToken=%s",
+                    API_BASE_URL + NAVER_REDIRECT_URI + "?success=true&accessToken=%s",
                     java.net.URLEncoder.encode(accessToken, StandardCharsets.UTF_8)
             );
 
@@ -47,7 +49,7 @@ public class AuthController {
                     .build();
         } catch (Exception e) {
             log.error("네이버 로그인 처리 중 오류", e);
-            return getErrorRedirectResponse(NAVER_REDIRECT_URI);
+            return getErrorRedirectResponse(API_BASE_URL + NAVER_REDIRECT_URI);
         }
     }
 
@@ -59,7 +61,7 @@ public class AuthController {
             String accessToken = tokenResponse.accessToken();
 
             String redirectUrl = String.format(
-                    GOOGLE_REDIRECT_URI + "?success=true&accessToken=%s",
+                    API_BASE_URL + GOOGLE_REDIRECT_URI + "?success=true&accessToken=%s",
                     java.net.URLEncoder.encode(accessToken, StandardCharsets.UTF_8)
             );
 
@@ -71,7 +73,7 @@ public class AuthController {
                     .build();
         } catch (Exception e) {
             log.error("구글 로그인 처리 중 오류", e);
-            return getErrorRedirectResponse(GOOGLE_REDIRECT_URI);
+            return getErrorRedirectResponse(API_BASE_URL + GOOGLE_REDIRECT_URI);
         }
     }
 
@@ -83,7 +85,7 @@ public class AuthController {
             String accessToken = tokenResponse.accessToken();
 
             String redirectUrl = String.format(
-                    KAKAO_REDIRECT_URI + "?success=true&accessToken=%s",
+                    API_BASE_URL + KAKAO_REDIRECT_URI + "?success=true&accessToken=%s",
                     java.net.URLEncoder.encode(accessToken, StandardCharsets.UTF_8)
             );
 
@@ -92,7 +94,7 @@ public class AuthController {
                     .build();
         } catch (Exception e) {
             log.error("카카오 로그인 처리 중 오류", e);
-            return getErrorRedirectResponse(KAKAO_REDIRECT_URI);
+            return getErrorRedirectResponse(API_BASE_URL + KAKAO_REDIRECT_URI);
         }
     }
 

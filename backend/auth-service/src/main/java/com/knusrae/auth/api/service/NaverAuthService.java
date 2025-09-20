@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knusrae.auth.api.domain.Member;
+import com.knusrae.auth.api.dto.Active;
 import com.knusrae.auth.api.dto.Gender;
-import com.knusrae.auth.api.dto.MemberState;
 import com.knusrae.auth.api.dto.NaverUserDTO;
 import com.knusrae.auth.api.dto.SocialRole;
 import com.knusrae.auth.api.repository.MemberRepository;
@@ -20,7 +20,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -50,21 +49,22 @@ public class NaverAuthService {
         if(ObjectUtils.isEmpty(member)) {
             member = memberRepository.save(
                     Member.builder()
-                            .email(naverUserDTO.getEmail())
                             .name(naverUserDTO.getName())
+                            .nickname(naverUserDTO.getNickname())
                             .phone( StringUtils.replaceChars(naverUserDTO.getMobile(), "-", ""))
-                            .gender("M".equals(naverUserDTO.getGender()) ? Gender.FEMALE : "F".equals(naverUserDTO.getGender()) ? Gender.MALE : Gender.UNKNOWN)
+                            .email(naverUserDTO.getEmail())
+                            .isActive(Active.TRUE)
                             .birth(Strings.concat(naverUserDTO.getBirthyear(), StringUtils.replaceChars(naverUserDTO.getBirthday(), "-", "")))
-                            .state(MemberState.ACTIVE)
-                            .role(SocialRole.NAVER)
-                            .createdAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                            .updatedAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                            .gender("M".equals(naverUserDTO.getGender()) ? Gender.FEMALE : "F".equals(naverUserDTO.getGender()) ? Gender.MALE : Gender.UNKNOWN)
+                            .socialRole(SocialRole.NAVER)
+                            .createdAt(LocalDateTime.now())
+                            .updatedAt(LocalDateTime.now())
                             .build()
             );
         }
 
         // 2. JWT 토큰 발급 (ID, role 사용)
-        return tokenService.loginWithSocialUser(member.getId(), member.getName(), member.getRole().name());
+        return tokenService.loginWithSocialUser(member.getId(), member.getName(), member.getSocialRole().name());
     }
 
     private String getAccessToken(String code, String state) throws JsonProcessingException {
