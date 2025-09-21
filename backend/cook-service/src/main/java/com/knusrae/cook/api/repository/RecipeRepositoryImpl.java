@@ -1,7 +1,7 @@
 package com.knusrae.cook.api.repository;
 
 import com.knusrae.cook.api.domain.Recipe;
-import com.knusrae.cook.api.dto.CookState;
+import com.knusrae.cook.api.dto.Visibility;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -25,7 +25,7 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
         return queryFactory
                 .selectFrom(recipe)
                 .where(recipe.category.eq(category)
-                        .and(recipe.state.eq(CookState.ACTIVE)))
+                        .and(recipe.visibility.eq(Visibility.PUBLIC)))
                 .orderBy(recipe.createdAt.desc())
                 .fetch();
     }
@@ -34,16 +34,16 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
     public List<Recipe> findAllByUserId(Long userId) {
         return queryFactory
                 .selectFrom(recipe)
-                .where(recipe.userId.eq(userId))
+                .where(recipe.memberId.eq(userId))
                 .orderBy(recipe.createdAt.desc())
                 .fetch();
     }
 
     @Override
-    public List<Recipe> findAllByState(CookState state) {
+    public List<Recipe> findAllByVisibility(Visibility visibility) {
         return queryFactory
                 .selectFrom(recipe)
-                .where(recipe.state.eq(state))
+                .where(recipe.visibility.eq(visibility))
                 .orderBy(recipe.createdAt.desc())
                 .fetch();
     }
@@ -53,7 +53,7 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
         return queryFactory
                 .selectFrom(recipe)
                 .where(recipe.title.containsIgnoreCase(keyword)
-                        .and(recipe.state.eq(CookState.ACTIVE)))
+                        .and(recipe.visibility.eq(Visibility.PUBLIC)))
                 .orderBy(recipe.createdAt.desc())
                 .fetch();
     }
@@ -70,7 +70,7 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
             builder.and(recipe.category.eq(category));
         }
 
-        builder.and(recipe.state.eq(CookState.ACTIVE));
+        builder.and(recipe.visibility.eq(Visibility.PUBLIC));
 
         return queryFactory
                 .selectFrom(recipe)
@@ -83,14 +83,14 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
     public List<Recipe> findPopularRecipes(int limit) {
         return queryFactory
                 .selectFrom(recipe)
-                .where(recipe.state.eq(CookState.ACTIVE))
+                .where(recipe.visibility.eq(Visibility.PUBLIC))
                 .orderBy(recipe.hits.desc(), recipe.createdAt.desc())
                 .limit(limit)
                 .fetch();
     }
 
     @Override
-    public Page<Recipe> findRecipesWithPaging(String keyword, String category, CookState state, Pageable pageable) {
+    public Page<Recipe> findRecipesWithPaging(String keyword, String category, Visibility visibility, Pageable pageable) {
         BooleanBuilder builder = new BooleanBuilder();
 
         if (keyword != null && !keyword.trim().isEmpty()) {
@@ -101,10 +101,10 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
             builder.and(recipe.category.eq(category));
         }
 
-        if (state != null) {
-            builder.and(recipe.state.eq(state));
+        if (visibility != null) {
+            builder.and(recipe.visibility.eq(visibility));
         } else {
-            builder.and(recipe.state.eq(CookState.ACTIVE));
+            builder.and(recipe.visibility.eq(Visibility.PUBLIC));
         }
 
         JPAQuery<Recipe> query = queryFactory
@@ -131,7 +131,7 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
         return queryFactory
                 .select(recipe.count())
                 .from(recipe)
-                .where(recipe.userId.eq(userId))
+                .where(recipe.memberId.eq(userId))
                 .fetchOne();
     }
 
@@ -141,7 +141,7 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
                 .select(recipe.count())
                 .from(recipe)
                 .where(recipe.category.eq(category)
-                        .and(recipe.state.eq(CookState.ACTIVE)))
+                        .and(recipe.visibility.eq(Visibility.PUBLIC)))
                 .fetchOne();
     }
 }

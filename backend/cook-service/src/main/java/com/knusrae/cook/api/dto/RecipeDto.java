@@ -9,7 +9,6 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
-@Builder
 public class RecipeDto {
     private final Long id;
 
@@ -19,11 +18,13 @@ public class RecipeDto {
     @NotBlank(message = "카테고리는 필수입니다.")
     private final String category;
 
-    private final Long hits;
-    private final String state;
+    private final String status;
+    private final String visibility;
 
-    @NotNull(message = "사용자 ID는 필수입니다.")
-    private final Long userId;
+    private final Long hits;
+
+    @NotNull(message = "회원 ID는 필수입니다.")
+    private final Long memberId;
 
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
@@ -32,21 +33,23 @@ public class RecipeDto {
         this.id = recipe.getId();
         this.title = recipe.getTitle();
         this.category = recipe.getCategory();
+        this.status = recipe.getStatus().name();
+        this.visibility = recipe.getVisibility().name();
         this.hits = recipe.getHits();
-        this.state = recipe.getState().name();
-        this.userId = recipe.getUserId();
+        this.memberId = recipe.getMemberId();
         this.createdAt = recipe.getCreatedAt();
         this.updatedAt = recipe.getUpdatedAt();
     }
 
-    // 생성자 - @Builder와 함께 사용
-    public RecipeDto(Long id, String title, String category, Long hits, String state, Long userId, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    @Builder
+    public RecipeDto(Long id, String title, String category, Long hits, String status, String visibility, Long memberId, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.category = category;
         this.hits = hits;
-        this.state = state;
-        this.userId = userId;
+        this.status = status;
+        this.visibility = visibility;
+        this.memberId = memberId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -56,30 +59,32 @@ public class RecipeDto {
                 .id(id)
                 .title(title)
                 .category(category)
+                .status(Status.valueOf(status))
+                .visibility(Visibility.valueOf(visibility))
                 .hits(hits != null ? hits : 0L)
-                .state(state != null ? CookState.valueOf(state) : CookState.ACTIVE)
-                .userId(userId)
+                .memberId(memberId)
                 .build();
     }
 
     // 생성용 DTO
-    public static RecipeDto createDto(String title, String category, Long userId) {
+    public static RecipeDto createDto(String title, String category, Long memberId) {
         return RecipeDto.builder()
                 .title(title)
                 .category(category)
-                .userId(userId)
-                .hits(0L)
-                .state(CookState.ACTIVE.name())
+                .status(Status.DRAFT.name())
+                .visibility(Visibility.PUBLIC.name())
+                .memberId(memberId)
                 .build();
     }
 
     // 업데이트용 DTO
-    public static RecipeDto updateDto(Long id, String title, String category, CookState state) {
+    public static RecipeDto updateDto(Long id, String title, String category, String status, String visibility) {
         return RecipeDto.builder()
                 .id(id)
                 .title(title)
                 .category(category)
-                .state(state.name())
+                .status(status)
+                .visibility(visibility)
                 .build();
     }
 }

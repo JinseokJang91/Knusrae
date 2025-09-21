@@ -1,7 +1,7 @@
 package com.knusrae.cook.api.web;
 
-import com.knusrae.cook.api.dto.CookState;
 import com.knusrae.cook.api.dto.RecipeDto;
+import com.knusrae.cook.api.dto.Visibility;
 import com.knusrae.cook.api.service.RecipeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -107,9 +107,9 @@ public class RecipeController {
     public ResponseEntity<Page<RecipeDto>> getRecipesWithPaging(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) CookState state,
+            @RequestParam(required = false) Visibility visibility,
             @PageableDefault(size = 20) Pageable pageable) {
-        Page<RecipeDto> recipePage = recipeService.getRecipesWithPaging(keyword, category, state, pageable);
+        Page<RecipeDto> recipePage = recipeService.getRecipesWithPaging(keyword, category, visibility, pageable);
         return ResponseEntity.ok(recipePage);
     }
 

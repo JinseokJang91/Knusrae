@@ -1,8 +1,8 @@
 package com.knusrae.cook.api.service;
 
 import com.knusrae.cook.api.domain.Recipe;
-import com.knusrae.cook.api.dto.CookState;
 import com.knusrae.cook.api.dto.RecipeDto;
+import com.knusrae.cook.api.dto.Visibility;
 import com.knusrae.cook.api.repository.RecipeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -52,7 +52,7 @@ public class RecipeService {
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
 
         recipe.updateRecipe(recipeDto.getTitle(), recipeDto.getCategory(),
-                CookState.valueOf(recipeDto.getState()));
+                Visibility.valueOf(recipeDto.getVisibility()));
 
         return new RecipeDto(recipe);
     }
@@ -72,7 +72,7 @@ public class RecipeService {
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
 
-        recipe.changeState(CookState.INACTIVE);
+        recipe.changeVisibility(Visibility.PRIVATE);
     }
 
     // QueryDSL 기반 복합 조회 기능들
@@ -119,8 +119,8 @@ public class RecipeService {
 
     // 페이징 처리된 레시피 목록
     public Page<RecipeDto> getRecipesWithPaging(String keyword, String category,
-                                                CookState state, Pageable pageable) {
-        Page<Recipe> recipePage = recipeRepository.findRecipesWithPaging(keyword, category, state, pageable);
+                                                Visibility visibility, Pageable pageable) {
+        Page<Recipe> recipePage = recipeRepository.findRecipesWithPaging(keyword, category, visibility, pageable);
         return recipePage.map(RecipeDto::new);
     }
 

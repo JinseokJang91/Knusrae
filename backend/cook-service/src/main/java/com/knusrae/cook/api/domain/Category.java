@@ -1,6 +1,6 @@
 package com.knusrae.cook.api.domain;
 
-import com.knusrae.cook.api.dto.CookState;
+import com.knusrae.cook.api.dto.Status;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -14,7 +14,7 @@ public class Category {
     private Long parentId;
     private Long depth;
     private String name;
-    private CookState state;
+    private Status status;
 
     @Size(max = 50)
     private String createdAt;

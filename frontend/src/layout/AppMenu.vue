@@ -28,11 +28,6 @@ const model = ref([
         label: '레시피',
         items: [
             {
-                label: '찜 목록',
-                icon: 'pi pi-fw pi-heart',
-                to: '/recipe/favorites'
-            },
-            {
                 label: '카테고리',
                 icon: 'pi pi-fw pi-list',
                 to: '/recipe/category'

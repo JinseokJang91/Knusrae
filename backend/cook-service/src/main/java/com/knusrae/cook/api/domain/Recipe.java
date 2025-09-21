@@ -1,6 +1,5 @@
 package com.knusrae.cook.api.domain;
 
-import com.knusrae.cook.api.dto.CookState;
 import com.knusrae.cook.api.dto.Status;
 import com.knusrae.cook.api.dto.Visibility;
 import jakarta.persistence.*;
@@ -32,26 +31,22 @@ public class Recipe {
     private String category;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "DRAFT | PUBLISHED | DELETED")
     @Builder.Default
     private Status status = Status.DRAFT;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "PUBLIC | PRIVATE")
     @Builder.Default
     private Visibility visibility = Visibility.PUBLIC;
 
     @Builder.Default
+    @Column
     private Long hits = 0L;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "state", length = 10)
-    @Builder.Default
-    private CookState state = CookState.ACTIVE;
 
     @NotNull
     @Column(nullable = false)
-    private Long userId;
+    private Long memberId;
 
     @CreatedDate
     @Column(updatable = false)
@@ -61,10 +56,10 @@ public class Recipe {
     private LocalDateTime updatedAt;
 
     // 업데이트 메서드
-    public void updateRecipe(String title, String category, CookState state) {
+    public void updateRecipe(String title, String category, Visibility visibility) {
         this.title = title;
         this.category = category;
-        this.state = state;
+        this.visibility = visibility;
     }
 
     // 조회수 증가 메서드
@@ -73,7 +68,7 @@ public class Recipe {
     }
 
     // 상태 변경 메서드
-    public void changeState(CookState state) {
-        this.state = state;
+    public void changeVisibility(Visibility visibility) {
+        this.visibility = visibility;
     }
 }

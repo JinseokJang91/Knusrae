@@ -11,6 +11,32 @@ const routes: RouteRecordRaw[] = [
                 name: 'dashboard',
                 component: () => import('@/views/Dashboard.vue')
             },
+            // 마이페이지 메뉴
+            {
+                path: '/my/profile',
+                name: 'myProfile',
+                component: () => import('@/views/pages/my/Profile.vue')
+            },
+            {
+                path: '/my/recipes',
+                name: 'myRecipes',
+                component: () => import('@/views/pages/my/Recipes.vue')
+            },
+            {
+                path: '/my/comments',
+                name: 'myComments',
+                component: () => import('@/views/pages/my/Comments.vue')
+            },
+            {
+                path: '/my/reviews',
+                name: 'myReviews',
+                component: () => import('@/views/pages/my/Reviews.vue')
+            },
+            {
+                path: '/my/inquiries',
+                name: 'myInquiries',
+                component: () => import('@/views/pages/my/Inquiries.vue')
+            },
             // 추천 메뉴
             {
                 path: '/recommend/today',
