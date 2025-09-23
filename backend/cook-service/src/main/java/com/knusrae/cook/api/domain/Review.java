@@ -9,13 +9,12 @@ import jakarta.validation.constraints.Size;
 public class Review {
     @Id @GeneratedValue
     private Long id;
-
     private String title;
-    private Long userId;
-    private String tag;
-
-    @Size(max = 50)
+    private String content;
+    private String images;
+    private Long memberId;
+    private Long recipeId;
+    private Long score;
     private String createdAt;
-    @Size(max = 50)
     private String updatedAt;
 }

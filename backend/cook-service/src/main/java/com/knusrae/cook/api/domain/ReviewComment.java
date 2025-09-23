@@ -7,12 +7,13 @@ import jakarta.persistence.Id;
 import java.time.LocalDateTime;
 
 @Entity
-public class Category {
+public class ReviewComment {
     @Id @GeneratedValue
     private Long id;
     private Long parentId;
-    private Long depth;
-    private String name;
+    private String content;
+    private Long memberId;
+    private Long reviewId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

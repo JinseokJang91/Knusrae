@@ -27,6 +27,10 @@ public class Recipe {
     private String title;
 
     @NotNull
+    @Column
+    private String description;
+
+    @NotNull
     @Column(nullable = false)
     private String category;
 

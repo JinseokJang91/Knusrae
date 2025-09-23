@@ -7,14 +7,10 @@ import jakarta.validation.constraints.Size;
 public class RecipeDetail {
     @Id @GeneratedValue
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Recipe recipe;
-    private String content;
+    private Long step;
+    private Long recipeId;
     private String image;
-
-    @Size(max = 50)
+    private String content;
     private String createdAt;
-    @Size(max = 50)
     private String updatedAt;
 }
