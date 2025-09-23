@@ -166,9 +166,11 @@ const loadRecipes = async () => {
 };
 
 // 새 레시피 등록
+import { useRouter } from 'vue-router';
+const router = useRouter();
+
 const handleCreateRecipe = async () => {
-    // TODO: 레시피 등록 폼 모달이나 페이지로 이동하는 로직 구현
-    console.log('새 레시피 등록');
+    router.push('/my/recipes/new');
 };
 
 // 레시피 수정

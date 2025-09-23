@@ -23,6 +23,11 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/pages/my/Recipes.vue')
             },
             {
+                path: '/my/recipes/new',
+                name: 'myRecipeCreate',
+                component: () => import('@/views/pages/my/RecipeCreate.vue')
+            },
+            {
                 path: '/my/comments',
                 name: 'myComments',
                 component: () => import('@/views/pages/my/Comments.vue')
@@ -152,6 +157,26 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
     history: createWebHistory(),
     routes
+});
+
+// 로그인 필요 경로 가드: /my/** 경로는 비로그인 시 로그인 페이지로 리다이렉트
+router.beforeEach((to, _from, next) => {
+    try {
+        const requiresAuth = to.path.startsWith('/my');
+        // 동적 임포트 없이 로컬 스토리지로 간단 체크 (utils/auth를 직접 임포트하지 않음)
+        const token = localStorage.getItem('accessToken');
+
+        if (requiresAuth && !token) {
+            next({
+                path: '/auth/login',
+                query: { redirect: to.fullPath }
+            });
+            return;
+        }
+    } catch (e) {
+        // 문제가 있어도 네비게이션은 진행
+    }
+    next();
 });
 
 export default router;
