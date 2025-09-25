@@ -15,6 +15,9 @@ public class RecipeDto {
     @NotBlank(message = "레시피 제목은 필수입니다.")
     private final String title;
 
+    @NotBlank(message = "레시피 설명은 필수입니다.")
+    private final String description;
+
     @NotBlank(message = "카테고리는 필수입니다.")
     private final String category;
 
@@ -39,12 +42,14 @@ public class RecipeDto {
         this.memberId = recipe.getMemberId();
         this.createdAt = recipe.getCreatedAt();
         this.updatedAt = recipe.getUpdatedAt();
+        this.description = recipe.getDescription();
     }
 
     @Builder
-    public RecipeDto(Long id, String title, String category, Long hits, String status, String visibility, Long memberId, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public RecipeDto(Long id, String title, String description, String category, Long hits, String status, String visibility, Long memberId, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
+        this.description = description;
         this.category = category;
         this.hits = hits;
         this.status = status;
@@ -58,6 +63,7 @@ public class RecipeDto {
         return Recipe.builder()
                 .id(id)
                 .title(title)
+                .description(description)
                 .category(category)
                 .status(Status.valueOf(status))
                 .visibility(Visibility.valueOf(visibility))
@@ -67,9 +73,10 @@ public class RecipeDto {
     }
 
     // 생성용 DTO
-    public static RecipeDto createDto(String title, String category, Long memberId) {
+    public static RecipeDto createDto(String title, String description, String category, Long memberId) {
         return RecipeDto.builder()
                 .title(title)
+                .description(description)
                 .category(category)
                 .status(Status.DRAFT.name())
                 .visibility(Visibility.PUBLIC.name())
@@ -78,10 +85,11 @@ public class RecipeDto {
     }
 
     // 업데이트용 DTO
-    public static RecipeDto updateDto(Long id, String title, String category, String status, String visibility) {
+    public static RecipeDto updateDto(Long id, String title, String description, String category, String status, String visibility) {
         return RecipeDto.builder()
                 .id(id)
                 .title(title)
+                .description(description)
                 .category(category)
                 .status(status)
                 .visibility(visibility)

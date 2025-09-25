@@ -10,6 +10,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -35,12 +37,12 @@ public class Recipe {
     private String category;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "DRAFT | PUBLISHED | DELETED")
+    @Column(nullable = false) // "DRAFT | PUBLISHED | DELETED"
     @Builder.Default
     private Status status = Status.DRAFT;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "PUBLIC | PRIVATE")
+    @Column(nullable = false) // "PUBLIC | PRIVATE"
     @Builder.Default
     private Visibility visibility = Visibility.PUBLIC;
 
@@ -49,7 +51,7 @@ public class Recipe {
     private Long hits = 0L;
 
     @NotNull
-    @Column(nullable = false)
+    @Column(nullable = false, name = "member_id")
     private Long memberId;
 
     @CreatedDate
@@ -58,6 +60,22 @@ public class Recipe {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    // 연관관계 매핑
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("step ASC")
+    @Builder.Default
+    private List<RecipeDetail> recipeDetails = new ArrayList<>();
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("createdAt DESC")
+    @Builder.Default
+    private List<RecipeComment> recipeComments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("createdAt DESC")
+    @Builder.Default
+    private List<Review> reviews = new ArrayList<>();
 
     // 업데이트 메서드
     public void updateRecipe(String title, String category, Visibility visibility) {
@@ -74,5 +92,21 @@ public class Recipe {
     // 상태 변경 메서드
     public void changeVisibility(Visibility visibility) {
         this.visibility = visibility;
+    }
+
+    // 연관관계 편의 메서드
+    public void addRecipeDetail(RecipeDetail recipeDetail) {
+        this.recipeDetails.add(recipeDetail);
+        recipeDetail.setRecipe(this);
+    }
+
+    public void addRecipeComment(RecipeComment recipeComment) {
+        this.recipeComments.add(recipeComment);
+        recipeComment.setRecipe(this);
+    }
+
+    public void addReview(Review review) {
+        this.reviews.add(review);
+        review.setRecipe(this);
     }
 }

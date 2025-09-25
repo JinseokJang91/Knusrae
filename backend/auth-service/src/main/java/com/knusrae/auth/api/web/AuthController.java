@@ -3,6 +3,7 @@ package com.knusrae.auth.api.web;
 import com.knusrae.auth.api.service.GoogleAuthService;
 import com.knusrae.auth.api.service.KakaoAuthService;
 import com.knusrae.auth.api.service.NaverAuthService;
+import com.knusrae.auth.api.service.TokenService;
 import com.knusrae.auth.api.service.response.TokenResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ public class AuthController {
     private static final String NAVER_REDIRECT_URI = "/auth/naver/callback";
     private static final String GOOGLE_REDIRECT_URI = "/auth/google/callback";
     private static final String KAKAO_REDIRECT_URI = "/auth/kakao/callback";
+    private final TokenService tokenService;
 
     @GetMapping("/naver/callback")
     public ResponseEntity<String> naverCallback(@RequestParam("code") String code,
@@ -108,6 +110,21 @@ public class AuthController {
                     .build();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    // TEST
+    @GetMapping("/jwt/token")
+    public ResponseEntity<String> getJwtToken(@RequestParam("user_id") Long userId, @RequestParam("user_name") String userName) {
+        try {
+            TokenResponse tokenResponse = tokenService.loginWithSocialUser(userId, userName, "GOOGLE");
+
+            String accessToken = tokenResponse.accessToken();
+
+            return ResponseEntity.ok().body(accessToken);
+        } catch (Exception e) {
+            log.error("Jwt Token Error", e);
+            return ResponseEntity.badRequest().body("Jwt Token Error");
         }
     }
 }
