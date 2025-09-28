@@ -32,10 +32,22 @@ public class BoardComment {
     @Column(nullable = false, name = "member_id")
     private Long memberId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
+
+    public void setBoard(Board board) {
+        this.board = board;
+    }
 }
