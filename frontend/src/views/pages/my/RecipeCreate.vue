@@ -101,6 +101,7 @@
 </template>
 
 <script setup lang="ts">
+import { httpForm } from '@/utils/http';
 import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -204,11 +205,10 @@ async function submit() {
             if (s.file) formData.append(`images`, s.file, `step-${idx + 1}.png`);
         });
 
-        // TODO: 실제 API 엔드포인트로 전송
-        // const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL_COOK}/api/recipe`, { method: 'POST', body: formData });
-        // if (!resp.ok) throw new Error('등록 실패');
+        // 실제 API 엔드포인트로 전송 (토큰 자동 첨부)
+        await httpForm(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe', formData, { method: 'POST' });
 
-        alert('등록이 완료되었습니다. (API 연동 필요)');
+        alert('등록이 완료되었습니다.');
         router.push('/my/recipes');
     } catch (e) {
         error.value = '레시피 등록 중 오류가 발생했습니다.';

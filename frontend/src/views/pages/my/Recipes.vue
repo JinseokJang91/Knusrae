@@ -67,9 +67,10 @@
 </template>
 
 <script setup lang="ts">
+import { httpJson } from '@/utils/http';
 import { computed, onMounted, ref } from 'vue';
 
-// API 호출을 위한 기본 URL
+// API 호출을 위한 기본 URL 및 공용 HTTP 유틸
 const API_COOK_BASE_URL = import.meta.env.VITE_API_BASE_URL_COOK;
 
 // 레시피 타입 정의
@@ -95,22 +96,10 @@ interface Recipe {
 //     instructions?: string[];
 // }
 
-// API 호출 함수들
+// API 호출 함수들 (토큰 자동 첨부)
 const apiCall = async (url: string, options: RequestInit = {}) => {
     try {
-        const response = await fetch(`${API_COOK_BASE_URL}${url}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            },
-            ...options
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
+        return await httpJson(API_COOK_BASE_URL, url, options);
     } catch (error) {
         console.error('API 호출 중 오류 발생:', error);
         throw error;
