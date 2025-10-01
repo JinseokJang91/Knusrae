@@ -73,15 +73,15 @@
                 <div>
                     <label class="block mb-2 font-medium">공개 여부</label>
                     <select v-model="form.visibility" class="p-inputtext p-component w-full">
-                        <option value="public">공개</option>
-                        <option value="private">비공개</option>
+                        <option value="PUBLIC">공개</option>
+                        <option value="PRIVATE">비공개</option>
                     </select>
                 </div>
                 <div>
                     <label class="block mb-2 font-medium">상태</label>
                     <select v-model="form.status" class="p-inputtext p-component w-full">
-                        <option value="draft">초안</option>
-                        <option value="published">발행</option>
+                        <option value="DRAFT">초안</option>
+                        <option value="PUBLISHED">발행</option>
                     </select>
                 </div>
             </div>
@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { httpForm } from '@/utils/http';
+import { httpForm, httpJson } from '@/utils/http';
 import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -117,8 +117,10 @@ interface RecipeStepDraft {
 interface RecipeDraft {
     title: string;
     description: string;
-    status: 'draft' | 'published';
-    visibility: 'public' | 'private';
+    category: string;
+    status: 'DRAFT' | 'PUBLISHED';
+    visibility: 'PUBLIC' | 'PRIVATE';
+    memberId: number;
     steps: RecipeStepDraft[];
 }
 
@@ -128,8 +130,10 @@ const error = ref<string | null>(null);
 const form = reactive<RecipeDraft>({
     title: '',
     description: '',
-    status: 'draft',
-    visibility: 'public',
+    category: 'TEST',
+    status: 'DRAFT',
+    visibility: 'PUBLIC',
+    memberId: 1,
     steps: []
 });
 
@@ -177,8 +181,12 @@ async function saveAsDraft() {
     submitting.value = true;
     error.value = null;
     try {
-        // TODO: 초안 저장 API 연동 (현재는 로컬 동작만)
-        alert('초안이 임시로 저장되었습니다. (API 연동 필요)');
+        await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe', {
+            method: 'POST',
+            body: JSON.stringify(form)
+        });
+
+        alert('초안이 저장되었습니다.');
     } catch (e) {
         error.value = '초안 저장 중 오류가 발생했습니다.';
     } finally {
