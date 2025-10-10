@@ -13,6 +13,16 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+app:
+  storage:
+    # S3
+    local:
+      base-dir: ${USER_HOME:/JangJinSeok}/test
+      public-base-url: http://localhost:8082/api
 
 server:
   port: 8082

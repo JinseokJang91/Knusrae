@@ -213,6 +213,8 @@ async function submit() {
             if (s.file) formData.append(`images`, s.file, `step-${idx + 1}.png`);
         });
 
+        formData.append('mainImageIndex', '0');
+
         // 실제 API 엔드포인트로 전송 (토큰 자동 첨부)
         await httpForm(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe', formData, { method: 'POST' });
 

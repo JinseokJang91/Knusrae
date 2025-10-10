@@ -58,6 +58,17 @@ export async function httpForm(baseUrl: string, url: string, formData: FormData,
         if (token) headers['Authorization'] = `Bearer ${token}`;
     }
 
+    console.log('baseUrl', baseUrl);
+    console.log('url', url);
+    console.log('formData title', formData.get('title'));
+    console.log('formData description', formData.get('description'));
+    console.log('formData status', formData.get('status'));
+    console.log('formData visibility', formData.get('visibility'));
+    console.log('formData steps', formData.get('steps'));
+    console.log('formData images', formData.get('images'));
+    console.log('formData mainImageIndex', formData.get('mainImageIndex'));
+    console.log('options', options);
+
     const response = await fetch(`${baseUrl}${url}`, {
         method: options.method || 'POST',
         body: formData,

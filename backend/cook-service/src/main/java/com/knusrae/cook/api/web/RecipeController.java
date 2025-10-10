@@ -4,27 +4,37 @@ import com.knusrae.cook.api.dto.RecipeDto;
 import com.knusrae.cook.api.dto.Visibility;
 import com.knusrae.cook.api.service.RecipeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/recipe")
 @RequiredArgsConstructor
+@Slf4j
 public class RecipeController {
 
     private final RecipeService recipeService;
 
     // CREATE - 레시피 생성
-    @PostMapping
-    public ResponseEntity<RecipeDto> createRecipe(@Valid @RequestBody RecipeDto recipeDto) {
-        RecipeDto createdRecipe = recipeService.createRecipe(recipeDto);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<RecipeDto> createRecipe(
+            @Valid @RequestPart(value = "steps") RecipeDto recipeDto,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "mainImageIndex", required = false) Integer mainImageIndex
+    ) {
+        log.info("recipeDto: {}, images: {}, mainImageIndex: {}", recipeDto, images, mainImageIndex);
+        RecipeDto createdRecipe = recipeService.createRecipe(recipeDto, images, mainImageIndex);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdRecipe);
     }
 
@@ -130,9 +140,13 @@ public class RecipeController {
     }
 
     // 기존 API들 (하위 호환성 유지)
-    @PostMapping("/save")
-    public ResponseEntity<Void> saveRecipe(@RequestBody RecipeDto recipeDto) {
-        recipeService.saveRecipe(recipeDto);
+    @PostMapping(value = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> saveRecipe(
+            @Valid @RequestPart RecipeDto recipeDto,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "mainImageIndex", required = false) Integer mainImageIndex
+    ) {
+        recipeService.saveRecipe(recipeDto, images, mainImageIndex);
         return ResponseEntity.ok().build();
     }
 }
