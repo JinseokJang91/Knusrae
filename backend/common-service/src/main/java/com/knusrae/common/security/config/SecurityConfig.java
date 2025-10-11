@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -38,9 +39,11 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 인증 허용/필수 대상 URL 설정
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/recipe").permitAll() // ← 임시
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
-//                        .anyRequest().permitAll() // TODO cook-service test
                 )
                 // 예외 처리
                 .exceptionHandling(e -> e
@@ -50,7 +53,7 @@ public class SecurityConfig {
                 // Jwt Token Filter 순서 적용
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 // HTTP Basic 인증 방식 적용
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
     }

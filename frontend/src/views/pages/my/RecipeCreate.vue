@@ -181,7 +181,7 @@ async function saveAsDraft() {
     submitting.value = true;
     error.value = null;
     try {
-        await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe', {
+        await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe/draft', {
             method: 'POST',
             body: JSON.stringify(form)
         });
@@ -199,21 +199,59 @@ async function submit() {
     submitting.value = true;
     error.value = null;
     try {
+        // 토큰 검증
+        const token = localStorage.getItem('accessToken');
+        console.log('🔐 RecipeCreate - Current Token:', token ? '토큰 존재' : '토큰 없음');
+
+        if (!token) {
+            throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+        }
+
         // 멀티파트 폼 구성 (이미지 + 텍스트 단계)
         const formData = new FormData();
-        formData.append('title', form.title);
-        formData.append('description', form.description);
-        formData.append('status', form.status);
-        formData.append('visibility', form.visibility);
 
-        const stepsPayload = form.steps.map((s, idx) => ({ order: idx + 1, text: s.text }));
-        formData.append('steps', new Blob([JSON.stringify(stepsPayload)], { type: 'application/json' }));
+        const recipePayload = {
+            title: form.title,
+            description: form.description,
+            category: 'food', // TODO: 카테고리 선택 후 변경
+            status: form.status,
+            visibility: form.visibility,
+            memberId: 1, // TODO: 로그인 후 변경
+            steps: form.steps.map((s, idx) => ({ order: idx + 1, text: s.text }))
+            // mainImageIndex: '0'
+        };
+        console.log('recipePayload : ', recipePayload);
+
+        // Blob을 사용하여 명시적으로 MIME 타입 설정
+        const recipeBlob = new Blob([JSON.stringify(recipePayload)], { 
+            type: 'application/json; charset=utf-8' 
+        });
+        formData.append('recipe', recipeBlob, 'recipe.json');
+        console.log('formData type 1 : ', (formData.get('recipe') as File).type);
+        console.log('formData type 2 : ', (formData.get('recipe') as Blob).type);
+
+        // formData.append('title', form.title);
+        // formData.append('description', form.description);
+        // formData.append('status', form.status);
+        // formData.append('visibility', form.visibility);
+
+        // const stepsPayload = form.steps.map((s, idx) => ({ order: idx + 1, text: s.text }));
+        // formData.append('steps', new Blob([JSON.stringify(stepsPayload)], { type: 'application/json' }));
 
         form.steps.forEach((s, idx) => {
+            console.log('s : ', s);
             if (s.file) formData.append(`images`, s.file, `step-${idx + 1}.png`);
         });
 
         formData.append('mainImageIndex', '0');
+
+        // API 호출 전 로깅
+        console.log('🚀 RecipeCreate - API 호출 시작:', {
+            baseUrl: import.meta.env.VITE_API_BASE_URL_COOK,
+            endpoint: '/api/recipe',
+            method: 'POST',
+            formDataKeys: Array.from(formData.keys())
+        });
 
         // 실제 API 엔드포인트로 전송 (토큰 자동 첨부)
         await httpForm(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe', formData, { method: 'POST' });

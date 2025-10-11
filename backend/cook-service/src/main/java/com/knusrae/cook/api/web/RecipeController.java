@@ -1,5 +1,7 @@
 package com.knusrae.cook.api.web;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.knusrae.cook.api.dto.RecipeDto;
 import com.knusrae.cook.api.dto.Visibility;
 import com.knusrae.cook.api.service.RecipeService;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -25,16 +28,50 @@ import java.util.List;
 public class RecipeController {
 
     private final RecipeService recipeService;
+    private final ObjectMapper objectMapper;
 
-    // CREATE - 레시피 생성
+    // CREATE - 레시피 생성 (이미지 포함)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<RecipeDto> createRecipe(
-            @Valid @RequestPart(value = "steps") RecipeDto recipeDto,
+            // @RequestPart(value = "recipe", required = true) MultipartFile recipeFile,
+//            @Valid @RequestPart(value = "recipe") RecipeDto recipeDto,
+            @RequestPart(value = "recipe") String recipeJson,
             @RequestPart(value = "images", required = false) List<MultipartFile> images,
             @RequestPart(value = "mainImageIndex", required = false) Integer mainImageIndex
+    ) throws JsonProcessingException {
+        var mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        RecipeDto dto = mapper.readValue(recipeJson, RecipeDto.class);
+        RecipeDto created = recipeService.createRecipe(dto, images, mainImageIndex);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+
+//        RecipeDto createdRecipe = recipeService.createRecipe(recipeDto, images, mainImageIndex);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(createdRecipe);
+
+        // try {
+        //     // MultipartFile에서 JSON 문자열을 읽어서 RecipeDto로 변환
+        //     String recipeJson = new String(recipeFile.getBytes());
+        //     log.info("Received recipe JSON: {}", recipeJson);
+            
+        //     RecipeDto recipeDto = objectMapper.readValue(recipeJson, RecipeDto.class);
+        //     log.info("Parsed recipeDto: {}, images: {}, mainImageIndex: {}", recipeDto, images, mainImageIndex);
+            
+        //     RecipeDto createdRecipe = recipeService.createRecipe(recipeDto, images, mainImageIndex);
+        //     return ResponseEntity.status(HttpStatus.CREATED).body(createdRecipe);
+        // } catch (Exception e) {
+        //     log.error("Error parsing recipe JSON: {}", e.getMessage(), e);
+        //     return ResponseEntity.badRequest().build();
+        // }
+    }
+
+    // CREATE - 레시피 생성 (이미지 없음, JSON만)
+    @PostMapping(value = "/json", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RecipeDto> createRecipeJson(
+            @Valid @RequestBody RecipeDto recipeDto
     ) {
-        log.info("recipeDto: {}, images: {}, mainImageIndex: {}", recipeDto, images, mainImageIndex);
-        RecipeDto createdRecipe = recipeService.createRecipe(recipeDto, images, mainImageIndex);
+        log.info("Creating recipe without images: {}", recipeDto);
+        RecipeDto createdRecipe = recipeService.createRecipe(recipeDto, null, null);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdRecipe);
     }
 

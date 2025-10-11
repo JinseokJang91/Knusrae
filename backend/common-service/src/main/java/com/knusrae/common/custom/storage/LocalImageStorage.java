@@ -22,10 +22,10 @@ import java.util.UUID;
 @Slf4j
 public class LocalImageStorage implements ImageStorage {
     @Value("${app.storage.local.base-dir}")
-    private String baseDir;
+    private String baseDir; // C:/JangJinSeok/test/uploads
 
     @Value("${app.storage.local.public-base-url}")
-    private String publicBaseUrl;
+    private String publicBaseUrl; // http://localhost:8082/uploads
 
     @Override
     public UploadResponse upload(MultipartFile file, String relativePath) {
@@ -33,17 +33,22 @@ public class LocalImageStorage implements ImageStorage {
             String ext = extractExt(Objects.requireNonNull(file.getOriginalFilename()));
             String filename = UUID.randomUUID() + (ext.isEmpty() ? "" : "." + ext);
 
-            Path targetDir = Paths.get(baseDir, publicBaseUrl).normalize();
+            String safeRel = (relativePath == null || relativePath.isBlank()) ? "" : relativePath;
+            // 디스크 저장 폴더
+            Path targetDir = Paths.get(baseDir, safeRel).normalize();
             Files.createDirectories(targetDir);
 
+            // 실제 저장 파일 경로
             Path target = targetDir.resolve(filename).normalize();
             try (InputStream in = file.getInputStream()) {
                 Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            // key는 /recipes/123/2025-10-10/xxx.jpg 같은 상대경로로 관리
-            String key = Paths.get(publicBaseUrl, filename).toString().replace('\\', '/');
-            String url = publicBaseUrl + "/" + key;
+            // DB에는 "키"(상대경로)와 "공개 URL"을 함께 기록
+            // 예) key: recipes/123/2025-10-10/xxx.jpg
+            String key = Paths.get(safeRel, filename).toString().replace('\\', '/');
+            String url = (publicBaseUrl.endsWith("/") ? publicBaseUrl.substring(0, publicBaseUrl.length()-1) : publicBaseUrl)
+                    + "/" + key;
 
             return new UploadResponse(key, url);
         } catch (IOException e) {

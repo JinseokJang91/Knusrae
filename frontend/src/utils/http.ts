@@ -14,6 +14,49 @@ const getAccessToken = (): string | null => {
     }
 };
 
+// /**
+//  * JWT 토큰을 디코딩하여 페이로드를 반환
+//  */
+// const decodeJWT = (token: string): any => {
+//     try {
+//         const base64Url = token.split('.')[1];
+//         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+//         const jsonPayload = decodeURIComponent(
+//             atob(base64)
+//                 .split('')
+//                 .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+//                 .join('')
+//         );
+//         return JSON.parse(jsonPayload);
+//     } catch (error) {
+//         console.error('JWT 디코딩 오류:', error);
+//         return null;
+//     }
+// };
+
+// /**
+//  * 토큰이 유효한지 확인 (만료 시간 체크)
+//  */
+// const isTokenValid = (token: string): boolean => {
+//     try {
+//         const decoded = decodeJWT(token);
+//         if (!decoded || !decoded.exp) {
+//             return false;
+//         }
+//         const currentTime = Math.floor(Date.now() / 1000);
+//         const isValid = decoded.exp > currentTime;
+//         console.log('🔐 토큰 유효성 검사:', {
+//             currentTime,
+//             expTime: decoded.exp,
+//             isValid,
+//             timeLeft: decoded.exp - currentTime
+//         });
+//         return isValid;
+//     } catch {
+//         return false;
+//     }
+// };
+
 /**
  * JSON 요청을 위한 헬퍼 (Content-Type: application/json)
  */
@@ -49,35 +92,86 @@ export async function httpJson(baseUrl: string, url: string, options: HttpReques
  * 멀티파트/파일 업로드용 헬퍼 (FormData 사용 시 Content-Type은 브라우저가 설정)
  */
 export async function httpForm(baseUrl: string, url: string, formData: FormData, options: HttpRequestOptions = {}): Promise<any> {
-    const headers: Record<string, string> = {
-        ...(options.headers as Record<string, string> | undefined)
-    };
+    // 1) options 세팅
+    const reqInit: RequestInit = { ...options };
 
+    // 2) 외부에서 들어온 body는 사용 금지 (FormData 사용)
+    if ('body' in reqInit) delete (reqInit as any).body;
+
+    // 3) headers 구성 (Content-Type 삭제)
+    const headers: Record<string, string> = {
+        ...(reqInit.headers as Record<string, string> | undefined)
+    };
+    if ('Content-Type' in headers) delete headers['Content-Type'];
+
+    // 4) 인증 토큰 추가 및 디버깅
     if (options.attachAuth !== false) {
         const token = getAccessToken();
         if (token) headers['Authorization'] = `Bearer ${token}`;
     }
+    //     console.log('🔐 httpForm - Access Token:', token ? '토큰 존재' : '토큰 없음');
+    //     if (token) {
+    //         // 토큰 유효성 검사
+    //         if (!isTokenValid(token)) {
+    //             console.error('🚨 httpForm - 토큰이 만료되었습니다.');
+    //             localStorage.removeItem('accessToken');
+    //             localStorage.removeItem('refreshToken');
+    //             throw new Error('토큰이 만료되었습니다. 다시 로그인해주세요.');
+    //         }
+    //         headers['Authorization'] = `Bearer ${token}`;
+    //         console.log('🔐 httpForm - Authorization 헤더 추가됨');
+    //     } else {
+    //         console.warn('⚠️ httpForm - 토큰이 없어 인증 헤더를 추가할 수 없습니다.');
+    //     }
+    // } else {
+    //     console.log('🔐 httpForm - 인증 비활성화됨');
+    // }
 
-    console.log('baseUrl', baseUrl);
-    console.log('url', url);
-    console.log('formData title', formData.get('title'));
-    console.log('formData description', formData.get('description'));
-    console.log('formData status', formData.get('status'));
-    console.log('formData visibility', formData.get('visibility'));
-    console.log('formData steps', formData.get('steps'));
-    console.log('formData images', formData.get('images'));
-    console.log('formData mainImageIndex', formData.get('mainImageIndex'));
-    console.log('options', options);
+    // console.log('baseUrl', baseUrl);
+    // console.log('url', url);
+    // console.log('formData title', formData.get('title'));
+    // console.log('formData description', formData.get('description'));
+    // console.log('formData status', formData.get('status'));
+    // console.log('formData visibility', formData.get('visibility'));
+    // console.log('formData steps', formData.get('steps'));
+    // console.log('formData images', formData.get('images'));
+    // console.log('formData mainImageIndex', formData.get('mainImageIndex'));
+    // console.log('options', options);
 
-    const response = await fetch(`${baseUrl}${url}`, {
-        method: options.method || 'POST',
-        body: formData,
-        headers,
-        ...options
-    });
+    // 5) 최종 Request 생성 - 메서드, 바디, headers 세팅
+    reqInit.method = reqInit.method || 'POST';
+    reqInit.body = formData;
+    reqInit.headers = headers;
+
+    const response = await fetch(`${baseUrl}${url}`, reqInit);
+
+    // const response = await fetch(`${baseUrl}${url}`, {
+    //     method: options.method || 'POST',
+    //     body: formData,
+    //     headers,
+    //     ...options
+    // });
 
     if (!response.ok) {
         const text = await response.text().catch(() => '');
+        // console.error('❌ httpForm - API 에러:', {
+        //     status: response.status,
+        //     statusText: response.statusText,
+        //     url: `${baseUrl}${url}`,
+        //     responseText: text
+        // });
+
+        // // 401 에러인 경우 특별 처리
+        // if (response.status === 401) {
+        //     console.error('🚨 401 Unauthorized - 토큰이 유효하지 않거나 만료되었습니다.');
+        //     // 토큰 삭제 및 로그인 페이지로 리다이렉트
+        //     localStorage.removeItem('accessToken');
+        //     localStorage.removeItem('refreshToken');
+        //     if (window.location.pathname !== '/login') {
+        //         window.location.href = '/login';
+        //     }
+        // }
+
         throw new Error(`HTTP ${response.status}: ${text || response.statusText}`);
     }
 

@@ -1,38 +1,45 @@
 package com.knusrae.cook.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.knusrae.cook.api.domain.Recipe;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RecipeDto {
-    private final Long id;
+    private Long id;
 
     @NotBlank(message = "레시피 제목은 필수입니다.")
-    private final String title;
+    private String title;
 
     @NotBlank(message = "레시피 설명은 필수입니다.")
-    private final String description;
+    private String description;
 
     @NotBlank(message = "카테고리는 필수입니다.")
-    private final String category;
+    private String category;
 
-    private final String status;
-    private final String visibility;
+    private String status;
+    private String visibility;
 
-    private final Long hits;
+    private Long hits;
 
     @NotNull(message = "회원 ID는 필수입니다.")
-    private final Long memberId;
+    private Long memberId;
 
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private List<RecipeStepDto> steps;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public RecipeDto(Recipe recipe) {
         this.id = recipe.getId();
@@ -42,13 +49,16 @@ public class RecipeDto {
         this.visibility = recipe.getVisibility().name();
         this.hits = recipe.getHits();
         this.memberId = recipe.getMemberId();
+        this.steps = recipe.getRecipeDetails().stream()
+                .map(RecipeStepDto::fromEntity)
+                .toList();
         this.createdAt = recipe.getCreatedAt();
         this.updatedAt = recipe.getUpdatedAt();
         this.description = recipe.getDescription();
     }
 
     @Builder
-    public RecipeDto(Long id, String title, String description, String category, Long hits, String status, String visibility, Long memberId, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public RecipeDto(Long id, String title, String description, String category, Long hits, String status, String visibility, Long memberId, List<RecipeStepDto> steps, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -57,6 +67,7 @@ public class RecipeDto {
         this.status = status;
         this.visibility = visibility;
         this.memberId = memberId;
+        this.steps = steps;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -75,7 +86,7 @@ public class RecipeDto {
     }
 
     // 생성용 DTO
-    public static RecipeDto createDto(String title, String description, String category, Long memberId) {
+    public static RecipeDto createDto(String title, String description, String category, Long memberId, List<RecipeStepDto> steps) {
         return RecipeDto.builder()
                 .title(title)
                 .description(description)
@@ -83,11 +94,12 @@ public class RecipeDto {
                 .status(Status.DRAFT.name())
                 .visibility(Visibility.PUBLIC.name())
                 .memberId(memberId)
+                .steps(steps)
                 .build();
     }
 
     // 업데이트용 DTO
-    public static RecipeDto updateDto(Long id, String title, String description, String category, String status, String visibility) {
+    public static RecipeDto updateDto(Long id, String title, String description, String category, String status, String visibility, List<RecipeStepDto> steps) {
         return RecipeDto.builder()
                 .id(id)
                 .title(title)
@@ -95,6 +107,7 @@ public class RecipeDto {
                 .category(category)
                 .status(status)
                 .visibility(visibility)
+                .steps(steps)
                 .build();
     }
 }
