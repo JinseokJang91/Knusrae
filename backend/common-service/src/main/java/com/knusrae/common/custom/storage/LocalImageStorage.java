@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -64,6 +66,22 @@ public class LocalImageStorage implements ImageStorage {
         } catch (IOException e) {
             // 필요시 로깅
             log.error("이미지 파일 삭제 실패", e);
+        }
+    }
+
+    @Override
+    public Resource loadByKey(String key) {
+        try {
+            Path target = Paths.get(baseDir, key).normalize();
+            Resource resource = new UrlResource(target.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("파일을 찾을 수 없거나 읽을 수 없습니다: " + key);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("이미지 파일 로드 실패: " + key, e);
         }
     }
 

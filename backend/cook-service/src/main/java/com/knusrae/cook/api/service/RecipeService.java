@@ -86,6 +86,12 @@ public class RecipeService {
         return new RecipeDto(recipe);
     }
 
+    // READ - Recipe 엔티티 조회 (조회수 증가 없음)
+    public Recipe getRecipeEntity(Long id) {
+        return recipeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
+    }
+
     // UPDATE - 레시피 수정
     @Transactional
     public RecipeDto updateRecipe(Long id, RecipeDto recipeDto) {
