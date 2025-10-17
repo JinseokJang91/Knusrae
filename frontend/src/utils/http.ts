@@ -181,3 +181,61 @@ export async function httpForm(baseUrl: string, url: string, formData: FormData,
     }
     return response.text();
 }
+
+/**
+ * 멀티파트 응답을 처리하는 헬퍼 (이미지와 JSON 데이터를 함께 받을 때 사용)
+ */
+export async function httpMultipart(baseUrl: string, url: string, options: HttpRequestOptions = {}): Promise<{
+    recipe: any;
+    images: File[];
+    mainImageIndex?: number
+}> {
+    const headers: Record<string, string> = {
+        ...(options.headers as Record<string, string> | undefined)
+    };
+
+    if (options.attachAuth !== false) {
+        const token = getAccessToken();
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${baseUrl}${url}`, {
+        ...options,
+        headers
+    });
+
+    if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`HTTP ${response.status}: ${text || response.statusText}`);
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('multipart/form-data')) {
+        // FormData로 파싱
+        const formData = await response.formData();
+
+        const recipeJson = formData.get('recipe') as string;
+        const recipe = recipeJson ? JSON.parse(recipeJson) : null;
+
+        const images: File[] = [];
+        const imageEntries = formData.getAll('images');
+        for (const entry of imageEntries) {
+            if (entry instanceof File) {
+                images.push(entry);
+            }
+        }
+
+        const mainImageIndexStr = formData.get('mainImageIndex') as string;
+        const mainImageIndex = mainImageIndexStr ? parseInt(mainImageIndexStr) : undefined;
+
+        return {recipe, images, mainImageIndex};
+    }
+
+    // fallback: JSON 응답인 경우
+    if (contentType.includes('application/json')) {
+        const recipe = await response.json();
+        return {recipe, images: [], mainImageIndex: undefined};
+    }
+
+    throw new Error('Unsupported content type for multipart response');
+}

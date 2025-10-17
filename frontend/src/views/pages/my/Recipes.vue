@@ -31,7 +31,7 @@
                         <th class="px-3 py-2">제목</th>
                         <th class="px-3 py-2 w-28">상태</th>
                         <th class="px-3 py-2 w-28">공개</th>
-                        <th class="px-3 py-2 w-40 text-right">액션</th>
+                        <th class="px-3 py-2 w-48 text-right">액션</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,10 +52,17 @@
                             </span>
                         </td>
                         <td class="px-3 py-2 text-right">
-                            <button @click="handleEditRecipe(r)" class="p-button p-component p-button-text" :disabled="loading">
+                            <button @click="handleViewRecipe(r.id)" class="p-button p-component p-button-text"
+                                    :disabled="loading" title="상세 보기">
+                                <span class="pi pi-eye"></span>
+                            </button>
+                            <button @click="handleEditRecipe(r)" class="p-button p-component p-button-text"
+                                    :disabled="loading" title="수정">
                                 <span class="pi pi-pencil"></span>
                             </button>
-                            <button @click="handleDeleteRecipe(r.id)" class="p-button p-component p-button-text text-red-600" :disabled="loading">
+                            <button @click="handleDeleteRecipe(r.id)"
+                                    class="p-button p-component p-button-text text-red-600" :disabled="loading"
+                                    title="삭제">
                                 <span class="pi pi-trash"></span>
                             </button>
                         </td>
@@ -63,11 +70,75 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- 레시피 상세 모달 -->
+        <div v-if="showDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+             @click="closeDetailModal">
+            <div class="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto m-4" @click.stop>
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">레시피 상세</h3>
+                        <button @click="closeDetailModal" class="p-button p-component p-button-text">
+                            <span class="pi pi-times"></span>
+                        </button>
+                    </div>
+
+                    <div v-if="detailLoading" class="flex justify-center items-center py-8">
+                        <div class="pi pi-spinner pi-spin mr-2"></div>
+                        <span>레시피 로딩 중...</span>
+                    </div>
+
+                    <div v-else-if="recipeDetail">
+                        <h4 class="text-lg font-semibold mb-2">{{ recipeDetail.recipe.title }}</h4>
+                        <p class="text-gray-600 mb-4">{{ recipeDetail.recipe.description }}</p>
+
+                        <!-- 이미지 갤러리 -->
+                        <div v-if="recipeDetail.images.length > 0" class="mb-6">
+                            <h5 class="font-medium mb-2">이미지</h5>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div v-for="(image, index) in recipeDetail.imageUrls" :key="index"
+                                     class="relative border rounded-lg overflow-hidden"
+                                     :class="{ 'ring-2 ring-blue-500': index === recipeDetail.mainImageIndex }">
+                                    <img :src="image" :alt="`레시피 이미지 ${index + 1}`"
+                                         class="w-full h-32 object-cover"/>
+                                    <div v-if="index === recipeDetail.mainImageIndex"
+                                         class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-1 rounded">
+                                        메인
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 레시피 스텝 -->
+                        <div v-if="recipeDetail.recipe.steps && recipeDetail.recipe.steps.length > 0">
+                            <h5 class="font-medium mb-2">조리 단계</h5>
+                            <div class="space-y-2">
+                                <div v-for="(step, index) in recipeDetail.recipe.steps" :key="index"
+                                     class="flex gap-3 p-3 bg-gray-50 rounded">
+                                    <span class="font-bold text-blue-600">{{ index + 1 }}.</span>
+                                    <span>{{ step.description }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t text-sm text-gray-500">
+                            <div>카테고리: {{ recipeDetail.recipe.category }}</div>
+                            <div>상태: {{ recipeDetail.recipe.status }}</div>
+                            <div>공개 설정: {{ recipeDetail.recipe.visibility }}</div>
+                            <div>조회수: {{ recipeDetail.recipe.hits || 0 }}</div>
+                            <div v-if="recipeDetail.recipe.createdAt">
+                                등록일: {{ new Date(recipeDetail.recipe.createdAt).toLocaleDateString() }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { httpJson } from '@/utils/http';
+import {httpJson, httpMultipart} from '@/utils/http';
 import { computed, onMounted, ref } from 'vue';
 
 // API 호출을 위한 기본 URL 및 공용 HTTP 유틸
@@ -134,11 +205,34 @@ const deleteRecipe = async (id: number): Promise<void> => {
     });
 };
 
+// 5. 레시피 상세 조회
+const fetchRecipeDetail = async (id: number): Promise<any> => {
+    // multipart 응답을 처리
+    const result = await httpMultipart(API_COOK_BASE_URL, `/api/recipe/${id}`);
+
+    // 이미지 파일들을 blob URL로 변환하여 표시 가능하게 만들기
+    const imageUrls: string[] = [];
+    for (const imageFile of result.images) {
+        const imageUrl = URL.createObjectURL(imageFile);
+        imageUrls.push(imageUrl);
+    }
+
+    return {
+        recipe: result.recipe,
+        images: result.images,
+        imageUrls: imageUrls,
+        mainImageIndex: result.mainImageIndex
+    };
+};
+
 // 컴포넌트 상태
 const search = ref('');
 const rows = ref<Recipe[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
+const showDetailModal = ref(false);
+const detailLoading = ref(false);
+const recipeDetail = ref(null);
 
 // 레시피 목록 로드
 const loadRecipes = async () => {
@@ -184,6 +278,25 @@ const handleDeleteRecipe = async (id: number) => {
             loading.value = false;
         }
     }
+};
+
+// 레시피 상세 보기
+const handleViewRecipe = async (id: number) => {
+    detailLoading.value = true;
+    showDetailModal.value = true;
+    try {
+        recipeDetail.value = await fetchRecipeDetail(id);
+    } catch (err) {
+        console.error('레시피 상세 조회 오류:', err);
+    } finally {
+        detailLoading.value = false;
+    }
+};
+
+// 레시피 상세 모달 닫기
+const closeDetailModal = () => {
+    showDetailModal.value = false;
+    recipeDetail.value = null;
 };
 
 // 필터링된 레시피 목록
