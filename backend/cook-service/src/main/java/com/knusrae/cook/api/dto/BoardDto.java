@@ -1,7 +1,7 @@
 package com.knusrae.cook.api.dto;
 
-import com.knusrae.cook.api.domain.Board;
-import com.knusrae.cook.api.domain.BoardComment;
+import com.knusrae.cook.api.domain.entity.Board;
+import com.knusrae.cook.api.domain.entity.BoardComment;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;

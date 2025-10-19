@@ -1,6 +1,6 @@
 package com.knusrae.cook.api.dto;
 
-import com.knusrae.cook.api.domain.RecipeDetail;
+import com.knusrae.cook.api.domain.entity.RecipeDetail;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

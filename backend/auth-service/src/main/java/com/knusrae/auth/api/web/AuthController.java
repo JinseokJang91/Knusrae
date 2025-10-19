@@ -1,10 +1,10 @@
 package com.knusrae.auth.api.web;
 
-import com.knusrae.auth.api.service.GoogleAuthService;
-import com.knusrae.auth.api.service.KakaoAuthService;
-import com.knusrae.auth.api.service.NaverAuthService;
-import com.knusrae.auth.api.service.TokenService;
-import com.knusrae.auth.api.service.response.TokenResponse;
+import com.knusrae.auth.api.domain.service.GoogleAuthService;
+import com.knusrae.auth.api.domain.service.KakaoAuthService;
+import com.knusrae.auth.api.domain.service.NaverAuthService;
+import com.knusrae.auth.api.domain.service.TokenService;
+import com.knusrae.auth.api.web.response.TokenResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;

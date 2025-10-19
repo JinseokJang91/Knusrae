@@ -1,7 +1,9 @@
 package com.knusrae.cook.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.knusrae.cook.api.domain.Recipe;
+import com.knusrae.cook.api.domain.entity.Recipe;
+import com.knusrae.cook.api.domain.enums.Status;
+import com.knusrae.cook.api.domain.enums.Visibility;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

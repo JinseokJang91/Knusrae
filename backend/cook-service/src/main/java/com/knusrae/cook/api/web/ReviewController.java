@@ -1,7 +1,7 @@
 package com.knusrae.cook.api.web;
 
 import com.knusrae.cook.api.dto.ReviewDto;
-import com.knusrae.cook.api.service.ReviewService;
+import com.knusrae.cook.api.domain.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
