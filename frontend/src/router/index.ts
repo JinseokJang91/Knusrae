@@ -101,11 +101,6 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/pages/community/QnA.vue')
             },
             {
-                path: '/uikit/formlayout',
-                name: 'formlayout',
-                component: () => import('@/views/uikit/FormLayout.vue')
-            },
-            {
                 path: '/pages/empty',
                 name: 'empty',
                 component: () => import('@/views/pages/Empty.vue')
