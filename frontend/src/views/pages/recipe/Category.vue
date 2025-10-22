@@ -32,7 +32,7 @@
 
         <!-- 카테고리 통계 -->
         <div class="grid mb-4">
-            <div class="col-12 md:col-3">
+            <div class="col-12 sm:col-6 lg:col-3">
                 <Card class="stat-card">
                     <template #content>
                         <div class="flex align-items-center">
@@ -45,7 +45,7 @@
                     </template>
                 </Card>
             </div>
-            <div class="col-12 md:col-3">
+            <div class="col-12 sm:col-6 lg:col-3">
                 <Card class="stat-card">
                     <template #content>
                         <div class="flex align-items-center">
@@ -58,7 +58,7 @@
                     </template>
                 </Card>
             </div>
-            <div class="col-12 md:col-3">
+            <div class="col-12 sm:col-6 lg:col-3">
                 <Card class="stat-card">
                     <template #content>
                         <div class="flex align-items-center">
@@ -71,7 +71,7 @@
                     </template>
                 </Card>
             </div>
-            <div class="col-12 md:col-3">
+            <div class="col-12 sm:col-6 lg:col-3">
                 <Card class="stat-card">
                     <template #content>
                         <div class="flex align-items-center">
@@ -86,24 +86,19 @@
             </div>
         </div>
 
-        <!-- 카테고리 그리드 -->
-        <div class="grid mb-4">
-            <div v-for="category in categories" :key="category.value" class="col-12 md:col-6 lg:col-4">
-                <Card class="category-card cursor-pointer" :class="{ selected: selectedCategory === category.value }" @click="selectCategory(category.value)">
-                    <template #content>
-                        <div class="text-center">
-                            <div class="category-icon mb-3">
-                                <i :class="category.icon" :style="{ color: category.color }"></i>
-                            </div>
-                            <h3 class="text-xl font-semibold text-900 m-0 mb-2">{{ category.name }}</h3>
-                            <p class="text-600 m-0 mb-3">{{ category.description }}</p>
-                            <div class="flex justify-content-between align-items-center">
-                                <span class="text-sm text-500">{{ category.recipeCount }}개 레시피</span>
-                                <Button icon="pi pi-arrow-right" size="small" severity="secondary" rounded @click.stop="viewCategory(category.value)" />
-                            </div>
-                        </div>
-                    </template>
-                </Card>
+        <!-- 카테고리 선택 영역 (라디오 버튼 형태) -->
+        <div class="category-selector mb-4">
+            <div class="flex flex-wrap gap-2 justify-content-center">
+                <Button
+                    v-for="category in categories"
+                    :key="category.value"
+                    :label="category.name"
+                    :icon="category.icon"
+                    :class="selectedCategory === category.value ? 'p-button-primary' : 'p-button-outlined'"
+                    size="small"
+                    @click="selectCategory(category.value)"
+                    class="category-button"
+                />
             </div>
         </div>
 
@@ -135,47 +130,46 @@
 
             <!-- 레시피 목록이 있는 경우 -->
             <div v-else-if="displayRecipes.length > 0">
-                <!-- 그리드 뷰 -->
-                <div v-if="viewMode === 'grid'" class="grid">
-                    <div v-for="recipe in displayRecipes" :key="recipe.id" class="col-12 md:col-6 lg:col-4">
+                <!-- 그리드 뷰 (카드 형태) -->
+                <div v-if="viewMode === 'grid'" class="recipe-grid">
+                    <div v-for="recipe in displayRecipes" :key="recipe.id" class="recipe-card-wrapper">
                         <Card class="recipe-card h-full">
                             <template #header>
-                                <div class="relative">
-                                    <img :src="recipe.image" :alt="recipe.title" class="w-full h-15rem object-cover" />
-                                    <div class="absolute top-0 right-0 m-2">
-                                        <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
+                                <div class="recipe-image-container">
+                                    <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
+                                    <div class="recipe-overlay">
+                                        <div class="recipe-actions">
+                                            <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
+                                            <Button icon="pi pi-bookmark" severity="secondary" size="small" rounded @click="bookmarkRecipe(recipe.id)" />
+                                        </div>
+                                        <Tag :value="getCategoryName(recipe.category)" severity="info" class="recipe-category-tag" />
                                     </div>
-                                    <Tag :value="recipe.category" severity="info" class="absolute bottom-0 left-0 m-2" />
-                                </div>
-                            </template>
-                            <template #title>
-                                <div class="flex justify-content-between align-items-start">
-                                    <h3 class="text-xl font-semibold text-900 m-0">{{ recipe.title }}</h3>
-                                    <Rating v-model="recipe.rating" readonly :cancel="false" />
                                 </div>
                             </template>
                             <template #content>
-                                <p class="text-600 mb-3">{{ recipe.description }}</p>
-                                <div class="flex justify-content-between align-items-center text-sm text-500">
-                                    <div class="flex align-items-center gap-1">
-                                        <i class="pi pi-clock"></i>
-                                        <span>{{ recipe.cookingTime }}분</span>
-                                    </div>
-                                    <div class="flex align-items-center gap-1">
-                                        <i class="pi pi-users"></i>
-                                        <span>{{ recipe.servings }}인분</span>
-                                    </div>
-                                    <div class="flex align-items-center gap-1">
-                                        <i class="pi pi-star-fill text-yellow-500"></i>
-                                        <span>{{ recipe.rating }}</span>
+                                <div class="recipe-content">
+                                    <h3 class="recipe-title">{{ recipe.title }}</h3>
+                                    <p class="recipe-description">{{ recipe.description }}</p>
+                                    <div class="recipe-meta">
+                                        <div class="recipe-rating">
+                                            <Rating v-model="recipe.rating" readonly :cancel="false" />
+                                            <span class="rating-text">{{ recipe.rating }}</span>
+                                        </div>
+                                        <div class="recipe-info">
+                                            <div class="info-item">
+                                                <i class="pi pi-clock"></i>
+                                                <span>{{ recipe.cookingTime }}분</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <i class="pi pi-users"></i>
+                                                <span>{{ recipe.servings }}인분</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
                             <template #footer>
-                                <div class="flex gap-2">
-                                    <Button label="상세보기" class="flex-1" @click="viewRecipe(recipe.id)" />
-                                    <Button icon="pi pi-bookmark" severity="secondary" @click="bookmarkRecipe(recipe.id)" />
-                                </div>
+                                <Button label="상세보기" class="w-full" @click="viewRecipe(recipe.id)" />
                             </template>
                         </Card>
                     </div>
@@ -608,5 +602,176 @@ onMounted(async () => {
     margin-top: 2rem;
     padding-top: 2rem;
     border-top: 1px solid var(--surface-border);
+}
+
+/* 카테고리 선택기 스타일 */
+.category-selector {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.category-button {
+    min-width: 120px;
+    transition: all 0.2s ease;
+}
+
+.category-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 레시피 그리드 스타일 */
+.recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.recipe-card-wrapper {
+    transition: transform 0.2s ease;
+}
+
+.recipe-card-wrapper:hover {
+    transform: translateY(-4px);
+}
+
+.recipe-card {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.recipe-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* 레시피 이미지 스타일 */
+.recipe-image-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.recipe-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.recipe-card:hover .recipe-image {
+    transform: scale(1.05);
+}
+
+.recipe-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, transparent 50%, rgba(0, 0, 0, 0.5) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.recipe-card:hover .recipe-overlay {
+    opacity: 1;
+}
+
+.recipe-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.recipe-category-tag {
+    align-self: flex-start;
+}
+
+/* 레시피 콘텐츠 스타일 */
+.recipe-content {
+    padding: 1rem;
+}
+
+.recipe-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.4;
+}
+
+.recipe-description {
+    color: var(--text-color-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0 0 1rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.recipe-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.recipe-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rating-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.recipe-info {
+    display: flex;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--text-color-secondary);
+}
+
+.info-item i {
+    font-size: 0.8rem;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .recipe-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .category-selector {
+        padding: 1rem;
+    }
+
+    .category-button {
+        min-width: 100px;
+        font-size: 0.9rem;
+    }
 }
 </style>
