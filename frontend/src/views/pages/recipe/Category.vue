@@ -107,11 +107,11 @@
             </div>
         </div>
 
-        <!-- 레시피 목록 -->
-        <div v-if="selectedCategory || searchResults.length > 0">
+        <!-- 레시피 목록 섹션 -->
+        <div class="recipe-section">
             <div class="flex justify-content-between align-items-center mb-3">
                 <h2 class="text-2xl font-semibold text-900 m-0">
-                    {{ selectedCategory ? getCategoryName(selectedCategory) + ' 레시피' : '검색 결과' }}
+                    {{ selectedCategory ? getCategoryName(selectedCategory) + ' 레시피' : '전체 레시피' }}
                 </h2>
                 <div class="flex gap-2">
                     <Button icon="pi pi-th-large" :class="viewMode === 'grid' ? 'p-button-primary' : 'p-button-secondary'" size="small" @click="viewMode = 'grid'" />
@@ -119,110 +119,129 @@
                 </div>
             </div>
 
-            <!-- 그리드 뷰 -->
-            <div v-if="viewMode === 'grid'" class="grid">
-                <div v-for="recipe in displayRecipes" :key="recipe.id" class="col-12 md:col-6 lg:col-4">
-                    <Card class="recipe-card h-full">
-                        <template #header>
-                            <div class="relative">
-                                <img :src="recipe.image" :alt="recipe.title" class="w-full h-15rem object-cover" />
-                                <div class="absolute top-0 right-0 m-2">
-                                    <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
-                                </div>
-                                <Tag :value="recipe.category" severity="info" class="absolute bottom-0 left-0 m-2" />
-                            </div>
-                        </template>
-                        <template #title>
-                            <div class="flex justify-content-between align-items-start">
-                                <h3 class="text-xl font-semibold text-900 m-0">{{ recipe.title }}</h3>
-                                <Rating v-model="recipe.rating" readonly :cancel="false" />
-                            </div>
-                        </template>
-                        <template #content>
-                            <p class="text-600 mb-3">{{ recipe.description }}</p>
-                            <div class="flex justify-content-between align-items-center text-sm text-500">
-                                <div class="flex align-items-center gap-1">
-                                    <i class="pi pi-clock"></i>
-                                    <span>{{ recipe.cookingTime }}분</span>
-                                </div>
-                                <div class="flex align-items-center gap-1">
-                                    <i class="pi pi-users"></i>
-                                    <span>{{ recipe.servings }}인분</span>
-                                </div>
-                                <div class="flex align-items-center gap-1">
-                                    <i class="pi pi-star-fill text-yellow-500"></i>
-                                    <span>{{ recipe.rating }}</span>
-                                </div>
-                            </div>
-                        </template>
-                        <template #footer>
-                            <div class="flex gap-2">
-                                <Button label="상세보기" class="flex-1" @click="viewRecipe(recipe.id)" />
-                                <Button icon="pi pi-bookmark" severity="secondary" @click="bookmarkRecipe(recipe.id)" />
-                            </div>
-                        </template>
-                    </Card>
-                </div>
+            <!-- 로딩 상태 -->
+            <div v-if="loading" class="text-center py-8">
+                <ProgressSpinner />
+                <p class="text-600 mt-3">레시피를 불러오는 중...</p>
             </div>
 
-            <!-- 리스트 뷰 -->
-            <div v-else class="recipe-list">
-                <div v-for="recipe in displayRecipes" :key="recipe.id" class="recipe-list-item">
-                    <div class="flex align-items-center gap-3 p-3 border-round hover:surface-50 transition-colors transition-duration-150">
-                        <img :src="recipe.image" :alt="recipe.title" class="recipe-thumbnail" />
-                        <div class="flex-1">
-                            <h4 class="text-lg font-semibold text-900 m-0 mb-1">{{ recipe.title }}</h4>
-                            <p class="text-600 text-sm m-0 mb-2">{{ recipe.description }}</p>
-                            <div class="flex align-items-center gap-3 text-sm text-500">
-                                <div class="flex align-items-center gap-1">
-                                    <i class="pi pi-clock"></i>
-                                    <span>{{ recipe.cookingTime }}분</span>
+            <!-- 에러 상태 -->
+            <div v-else-if="error" class="text-center py-8">
+                <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+                <h3 class="text-2xl font-semibold text-600 mb-2">레시피를 불러올 수 없습니다</h3>
+                <p class="text-600 mb-4">{{ error }}</p>
+                <Button label="다시 시도" @click="loadRecipes" />
+            </div>
+
+            <!-- 레시피 목록이 있는 경우 -->
+            <div v-else-if="displayRecipes.length > 0">
+                <!-- 그리드 뷰 -->
+                <div v-if="viewMode === 'grid'" class="grid">
+                    <div v-for="recipe in displayRecipes" :key="recipe.id" class="col-12 md:col-6 lg:col-4">
+                        <Card class="recipe-card h-full">
+                            <template #header>
+                                <div class="relative">
+                                    <img :src="recipe.image" :alt="recipe.title" class="w-full h-15rem object-cover" />
+                                    <div class="absolute top-0 right-0 m-2">
+                                        <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
+                                    </div>
+                                    <Tag :value="recipe.category" severity="info" class="absolute bottom-0 left-0 m-2" />
                                 </div>
-                                <div class="flex align-items-center gap-1">
-                                    <i class="pi pi-users"></i>
-                                    <span>{{ recipe.servings }}인분</span>
+                            </template>
+                            <template #title>
+                                <div class="flex justify-content-between align-items-start">
+                                    <h3 class="text-xl font-semibold text-900 m-0">{{ recipe.title }}</h3>
+                                    <Rating v-model="recipe.rating" readonly :cancel="false" />
                                 </div>
-                                <div class="flex align-items-center gap-1">
-                                    <i class="pi pi-star-fill text-yellow-500"></i>
-                                    <span>{{ recipe.rating }}</span>
+                            </template>
+                            <template #content>
+                                <p class="text-600 mb-3">{{ recipe.description }}</p>
+                                <div class="flex justify-content-between align-items-center text-sm text-500">
+                                    <div class="flex align-items-center gap-1">
+                                        <i class="pi pi-clock"></i>
+                                        <span>{{ recipe.cookingTime }}분</span>
+                                    </div>
+                                    <div class="flex align-items-center gap-1">
+                                        <i class="pi pi-users"></i>
+                                        <span>{{ recipe.servings }}인분</span>
+                                    </div>
+                                    <div class="flex align-items-center gap-1">
+                                        <i class="pi pi-star-fill text-yellow-500"></i>
+                                        <span>{{ recipe.rating }}</span>
+                                    </div>
                                 </div>
-                                <Tag :value="recipe.category" severity="info" />
+                            </template>
+                            <template #footer>
+                                <div class="flex gap-2">
+                                    <Button label="상세보기" class="flex-1" @click="viewRecipe(recipe.id)" />
+                                    <Button icon="pi pi-bookmark" severity="secondary" @click="bookmarkRecipe(recipe.id)" />
+                                </div>
+                            </template>
+                        </Card>
+                    </div>
+                </div>
+
+                <!-- 리스트 뷰 -->
+                <div v-else class="recipe-list">
+                    <div v-for="recipe in displayRecipes" :key="recipe.id" class="recipe-list-item">
+                        <div class="flex align-items-center gap-3 p-3 border-round hover:surface-50 transition-colors transition-duration-150">
+                            <img :src="recipe.image" :alt="recipe.title" class="recipe-thumbnail" />
+                            <div class="flex-1">
+                                <h4 class="text-lg font-semibold text-900 m-0 mb-1">{{ recipe.title }}</h4>
+                                <p class="text-600 text-sm m-0 mb-2">{{ recipe.description }}</p>
+                                <div class="flex align-items-center gap-3 text-sm text-500">
+                                    <div class="flex align-items-center gap-1">
+                                        <i class="pi pi-clock"></i>
+                                        <span>{{ recipe.cookingTime }}분</span>
+                                    </div>
+                                    <div class="flex align-items-center gap-1">
+                                        <i class="pi pi-users"></i>
+                                        <span>{{ recipe.servings }}인분</span>
+                                    </div>
+                                    <div class="flex align-items-center gap-1">
+                                        <i class="pi pi-star-fill text-yellow-500"></i>
+                                        <span>{{ recipe.rating }}</span>
+                                    </div>
+                                    <Tag :value="recipe.category" severity="info" />
+                                </div>
                             </div>
-                        </div>
-                        <div class="flex flex-column gap-2">
-                            <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
-                            <Button label="상세보기" size="small" @click="viewRecipe(recipe.id)" />
+                            <div class="flex flex-column gap-2">
+                                <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
+                                <Button label="상세보기" size="small" @click="viewRecipe(recipe.id)" />
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- 페이지네이션 -->
+                <div class="flex justify-content-center mt-4">
+                    <Paginator v-model:first="first" :rows="rows" :totalRecords="totalDisplayRecipes" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
+                </div>
             </div>
 
-            <!-- 페이지네이션 -->
-            <div class="flex justify-content-center mt-4">
-                <Paginator v-model:first="first" :rows="rows" :totalRecords="totalDisplayRecipes" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
+            <!-- 빈 상태 -->
+            <div v-else class="text-center py-8">
+                <i class="pi pi-book text-6xl text-300 mb-4"></i>
+                <h3 class="text-2xl font-semibold text-600 mb-2">레시피가 없습니다</h3>
+                <p class="text-600 mb-4">{{ selectedCategory ? '선택한 카테고리에 레시피가 없습니다.' : '등록된 레시피가 없습니다.' }}</p>
             </div>
-        </div>
-
-        <!-- 빈 상태 -->
-        <div v-else class="text-center py-8">
-            <i class="pi pi-tags text-6xl text-300 mb-4"></i>
-            <h3 class="text-2xl font-semibold text-600 mb-2">카테고리를 선택해주세요</h3>
-            <p class="text-600 mb-4">위의 카테고리를 클릭하여 레시피를 확인해보세요!</p>
         </div>
     </div>
 </template>
 
 <script setup>
+import { httpJson } from '@/utils/http';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Dialog from 'primevue/dialog';
 import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import Paginator from 'primevue/paginator';
+import ProgressSpinner from 'primevue/progressspinner';
 import Rating from 'primevue/rating';
 import Tag from 'primevue/tag';
 import { useToast } from 'primevue/usetoast';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -240,6 +259,11 @@ const searchDifficulty = ref(null);
 const viewMode = ref('grid');
 const first = ref(0);
 const rows = ref(12);
+const loading = ref(false);
+const error = ref(null);
+
+// API 기본 URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8082';
 
 const difficulties = ref([
     { name: '쉬움', value: 'easy' },
@@ -322,86 +346,117 @@ const loadCategories = () => {
     ];
 };
 
-const loadRecipes = () => {
-    recipes.value = [
-        {
-            id: 1,
-            title: '김치찌개',
-            description: '매콤하고 시원한 김치찌개입니다.',
-            image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400',
-            category: 'korean',
-            difficulty: 'easy',
-            cookingTime: 30,
-            servings: 2,
-            rating: 4.5,
-            isFavorite: false
-        },
-        {
-            id: 2,
-            title: '짜장면',
-            description: '진한 춘장소스의 짜장면입니다.',
-            image: 'https://images.unsplash.com/photo-1563379091339-03246963d4d8?w=400',
-            category: 'chinese',
-            difficulty: 'medium',
-            cookingTime: 20,
-            servings: 2,
-            rating: 4.3,
-            isFavorite: false
-        },
-        {
-            id: 3,
-            title: '초밥',
-            description: '신선한 생선으로 만든 초밥입니다.',
-            image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400',
-            category: 'japanese',
-            difficulty: 'hard',
-            cookingTime: 45,
-            servings: 4,
-            rating: 4.8,
-            isFavorite: false
-        },
-        {
-            id: 4,
-            title: '파스타',
-            description: '크림소스가 일품인 파스타입니다.',
-            image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400',
-            category: 'western',
-            difficulty: 'medium',
-            cookingTime: 25,
-            servings: 2,
-            rating: 4.2,
-            isFavorite: true
-        },
-        {
-            id: 5,
-            title: '치즈케이크',
-            description: '부드럽고 달콤한 치즈케이크입니다.',
-            image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400',
-            category: 'dessert',
-            difficulty: 'hard',
-            cookingTime: 90,
-            servings: 8,
-            rating: 4.7,
-            isFavorite: true
-        },
-        {
-            id: 6,
-            title: '불고기',
-            description: '달콤한 양념의 불고기입니다.',
-            image: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400',
-            category: 'korean',
-            difficulty: 'easy',
-            cookingTime: 15,
-            servings: 3,
-            rating: 4.4,
-            isFavorite: false
-        }
-    ];
+const loadRecipes = async () => {
+    try {
+        loading.value = true;
+        error.value = null;
+
+        const response = await httpJson(API_BASE_URL, '/api/recipe/list', {
+            method: 'GET'
+        });
+        console.log('response :' + response);
+
+        recipes.value = response.data || response || [];
+
+        toast.add({
+            severity: 'success',
+            summary: '레시피 로드 완료',
+            detail: `${recipes.value.length}개의 레시피를 불러왔습니다.`,
+            life: 3000
+        });
+    } catch (err) {
+        console.error('레시피 로드 실패:', err);
+        error.value = err.message || '레시피를 불러오는데 실패했습니다.';
+
+        // API 실패 시 더미 데이터 사용
+        recipes.value = [
+            {
+                id: 1,
+                title: '김치찌개',
+                description: '매콤하고 시원한 김치찌개입니다.',
+                image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400',
+                category: 'korean',
+                difficulty: 'easy',
+                cookingTime: 30,
+                servings: 2,
+                rating: 4.5,
+                isFavorite: false
+            },
+            {
+                id: 2,
+                title: '짜장면',
+                description: '진한 춘장소스의 짜장면입니다.',
+                image: 'https://images.unsplash.com/photo-1563379091339-03246963d4d8?w=400',
+                category: 'chinese',
+                difficulty: 'medium',
+                cookingTime: 20,
+                servings: 2,
+                rating: 4.3,
+                isFavorite: false
+            },
+            {
+                id: 3,
+                title: '초밥',
+                description: '신선한 생선으로 만든 초밥입니다.',
+                image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400',
+                category: 'japanese',
+                difficulty: 'hard',
+                cookingTime: 45,
+                servings: 4,
+                rating: 4.8,
+                isFavorite: false
+            },
+            {
+                id: 4,
+                title: '파스타',
+                description: '크림소스가 일품인 파스타입니다.',
+                image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400',
+                category: 'western',
+                difficulty: 'medium',
+                cookingTime: 25,
+                servings: 2,
+                rating: 4.2,
+                isFavorite: true
+            },
+            {
+                id: 5,
+                title: '치즈케이크',
+                description: '부드럽고 달콤한 치즈케이크입니다.',
+                image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400',
+                category: 'dessert',
+                difficulty: 'hard',
+                cookingTime: 90,
+                servings: 8,
+                rating: 4.7,
+                isFavorite: true
+            },
+            {
+                id: 6,
+                title: '불고기',
+                description: '달콤한 양념의 불고기입니다.',
+                image: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400',
+                category: 'korean',
+                difficulty: 'easy',
+                cookingTime: 15,
+                servings: 3,
+                rating: 4.4,
+                isFavorite: false
+            }
+        ];
+
+        toast.add({
+            severity: 'warn',
+            summary: 'API 연결 실패',
+            detail: '더미 데이터를 표시합니다.',
+            life: 3000
+        });
+    } finally {
+        loading.value = false;
+    }
 };
 
-const refreshCategories = () => {
-    loadCategories();
-    loadRecipes();
+const refreshCategories = async () => {
+    await loadRecipes();
     toast.add({ severity: 'success', summary: '새로고침', detail: '카테고리 정보가 업데이트되었습니다.', life: 3000 });
 };
 
@@ -477,10 +532,15 @@ const onPageChange = (event) => {
     rows.value = event.rows;
 };
 
+// 카테고리 선택 감시
+watch(selectedCategory, (newCategory) => {
+    first.value = 0; // 페이지 초기화
+});
+
 // 생명주기
-onMounted(() => {
+onMounted(async () => {
     loadCategories();
-    loadRecipes();
+    await loadRecipes();
 });
 </script>
 
@@ -542,5 +602,11 @@ onMounted(() => {
     height: 80px;
     object-fit: cover;
     border-radius: 8px;
+}
+
+.recipe-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--surface-border);
 }
 </style>

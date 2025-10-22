@@ -18,6 +18,7 @@ declare module 'vue' {
     InputText: typeof import('primevue/inputtext')['default']
     Password: typeof import('primevue/password')['default']
     PricingWidget: typeof import('./src/components/landing/PricingWidget.vue')['default']
+    ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']

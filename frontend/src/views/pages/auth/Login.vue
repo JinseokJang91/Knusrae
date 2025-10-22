@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import loginIconNaver from '@/assets/images/login-icon-naver.png';
 import logoImage from '@/assets/images/logo-text.png';
-import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
 
 import { useRouter } from 'vue-router';
 
@@ -210,7 +209,6 @@ function goHome() {
 </script>
 
 <template>
-    <FloatingConfigurator />
     <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden relative">
         <!-- 홈 아이콘 -->
         <button @click="goHome" class="absolute top-6 left-6 p-3 bg-surface-100 dark:bg-surface-800 rounded-full hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors z-10" title="홈으로 돌아가기">
