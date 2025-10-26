@@ -4,6 +4,7 @@ import com.knusrae.common.custom.storage.ImageStorage;
 import com.knusrae.cook.api.domain.entity.Recipe;
 import com.knusrae.cook.api.domain.entity.RecipeImage;
 import com.knusrae.cook.api.dto.RecipeDto;
+import com.knusrae.cook.api.dto.RecipeDetailDto;
 import com.knusrae.cook.api.domain.enums.Visibility;
 import com.knusrae.cook.api.domain.repository.RecipeImageRepository;
 import com.knusrae.cook.api.domain.repository.RecipeRepository;
@@ -71,6 +72,7 @@ public class RecipeService {
     // READ - 전체 레시피 목록 조회
     public List<RecipeDto> getRecipeList() {
         List<Recipe> recipeList = recipeRepository.findAllByOrderByCreatedAtDesc();
+        recipeList.forEach(s -> s.setThumbnailUrl(s.getThumbnail()));
         return recipeList.stream()
                 .map(RecipeDto::new)
                 .toList();
@@ -90,6 +92,18 @@ public class RecipeService {
     public Recipe getRecipeEntity(Long id) {
         return recipeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
+    }
+
+    // READ - 레시피 상세 조회 (이미지, 댓글, 리뷰 포함)
+    @Transactional
+    public RecipeDetailDto getRecipeDetail(Long id) {
+        Recipe recipe = recipeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
+
+        // 조회수 증가
+        recipe.increaseHits();
+        
+        return RecipeDetailDto.fromEntity(recipe);
     }
 
     // UPDATE - 레시피 수정

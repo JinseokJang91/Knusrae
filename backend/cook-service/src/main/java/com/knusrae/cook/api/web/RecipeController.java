@@ -3,6 +3,7 @@ package com.knusrae.cook.api.web;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.knusrae.cook.api.dto.RecipeDto;
+import com.knusrae.cook.api.dto.RecipeDetailDto;
 import com.knusrae.cook.api.domain.enums.Visibility;
 import com.knusrae.cook.api.domain.service.RecipeService;
 import lombok.RequiredArgsConstructor;
@@ -91,6 +92,7 @@ public class RecipeController {
     @GetMapping("/list")
     public ResponseEntity<List<RecipeDto>> getRecipeList() {
         List<RecipeDto> recipeList = recipeService.getRecipeList();
+
         return ResponseEntity.ok(recipeList);
     }
 
@@ -171,6 +173,18 @@ public class RecipeController {
     public ResponseEntity<RecipeDto> getRecipeJson(@PathVariable Long id) {
         RecipeDto recipe = recipeService.getRecipe(id);
         return ResponseEntity.ok(recipe);
+    }
+
+    // READ - 레시피 상세 조회 (이미지, 댓글, 리뷰 포함)
+    @GetMapping(value = "/{id}/detail", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RecipeDetailDto> getRecipeDetail(@PathVariable Long id) {
+        try {
+            RecipeDetailDto recipeDetail = recipeService.getRecipeDetail(id);
+            return ResponseEntity.ok(recipeDetail);
+        } catch (Exception e) {
+            log.error("Error retrieving recipe detail: {}", e.getMessage(), e);
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // UPDATE - 레시피 수정

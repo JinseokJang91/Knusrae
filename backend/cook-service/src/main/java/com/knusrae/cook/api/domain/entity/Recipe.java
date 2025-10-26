@@ -46,6 +46,10 @@ public class Recipe {
     @Builder.Default
     private Visibility visibility = Visibility.PUBLIC;
 
+    @NotNull
+    @Column
+    private String thumbnail;
+
     @Builder.Default
     @Column
     private Long hits = 0L;
@@ -66,6 +70,11 @@ public class Recipe {
     @OrderBy("step ASC")
     @Builder.Default
     private List<RecipeDetail> recipeDetails = new ArrayList<>();
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    @Builder.Default
+    private List<RecipeImage> recipeImages = new ArrayList<>();
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("createdAt DESC")
@@ -108,5 +117,9 @@ public class Recipe {
     public void addReview(Review review) {
         this.reviews.add(review);
         review.setRecipe(this);
+    }
+
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnail = "/test/" + thumbnailUrl;
     }
 }
