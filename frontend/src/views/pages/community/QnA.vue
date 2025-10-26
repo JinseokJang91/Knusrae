@@ -1,7 +1,7 @@
 <template>
     <div class="card">
-        <div class="flex justify-content-between align-items-center mb-4">
-            <h1 class="text-3xl font-bold text-900">질문과 답변</h1>
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-gray-900">질문과 답변</h1>
             <div class="flex gap-2">
                 <Button icon="pi pi-refresh" label="새로고침" severity="secondary" @click="refreshQnA" />
                 <Button icon="pi pi-plus" label="질문하기" severity="success" @click="showAskDialog = true" />
@@ -10,21 +10,21 @@
 
         <!-- 질문하기 다이얼로그 -->
         <Dialog v-model:visible="showAskDialog" header="질문하기" :style="{ width: '600px' }">
-            <div class="flex flex-column gap-3">
+            <div class="flex flex-col gap-3">
                 <div>
-                    <label class="block text-900 font-medium mb-2">제목 *</label>
+                    <label class="block text-gray-900 font-medium mb-2">제목 *</label>
                     <InputText v-model="newQuestion.title" placeholder="질문 제목을 입력하세요" class="w-full" />
                 </div>
                 <div>
-                    <label class="block text-900 font-medium mb-2">카테고리 *</label>
+                    <label class="block text-gray-900 font-medium mb-2">카테고리 *</label>
                     <Dropdown v-model="newQuestion.category" :options="categories" optionLabel="name" optionValue="value" placeholder="카테고리 선택" class="w-full" />
                 </div>
                 <div>
-                    <label class="block text-900 font-medium mb-2">질문 내용 *</label>
+                    <label class="block text-gray-900 font-medium mb-2">질문 내용 *</label>
                     <Textarea v-model="newQuestion.content" placeholder="질문 내용을 자세히 입력하세요" rows="6" class="w-full" />
                 </div>
                 <div>
-                    <label class="block text-900 font-medium mb-2">태그</label>
+                    <label class="block text-gray-900 font-medium mb-2">태그</label>
                     <InputText v-model="newQuestion.tags" placeholder="태그를 쉼표로 구분하여 입력하세요" class="w-full" />
                 </div>
             </div>
@@ -39,10 +39,10 @@
             <div class="col-12 md:col-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ totalQuestions }}</h3>
-                                <p class="text-600 m-0">총 질문</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalQuestions }}</h3>
+                                <p class="text-gray-600 m-0">총 질문</p>
                             </div>
                             <i class="pi pi-question-circle text-4xl text-blue-500"></i>
                         </div>
@@ -52,10 +52,10 @@
             <div class="col-12 md:col-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ answeredQuestions }}</h3>
-                                <p class="text-600 m-0">답변 완료</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ answeredQuestions }}</h3>
+                                <p class="text-gray-600 m-0">답변 완료</p>
                             </div>
                             <i class="pi pi-check-circle text-4xl text-green-500"></i>
                         </div>
@@ -65,10 +65,10 @@
             <div class="col-12 md:col-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ pendingQuestions }}</h3>
-                                <p class="text-600 m-0">답변 대기</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ pendingQuestions }}</h3>
+                                <p class="text-gray-600 m-0">답변 대기</p>
                             </div>
                             <i class="pi pi-clock text-4xl text-orange-500"></i>
                         </div>
@@ -78,10 +78,10 @@
             <div class="col-12 md:col-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ expertCount }}</h3>
-                                <p class="text-600 m-0">전문가</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ expertCount }}</h3>
+                                <p class="text-gray-600 m-0">전문가</p>
                             </div>
                             <i class="pi pi-user text-4xl text-purple-500"></i>
                         </div>
@@ -112,12 +112,12 @@
 
                             <!-- 질문 내용 -->
                             <div class="flex-1">
-                                <div class="flex justify-content-between align-items-start mb-2">
+                                <div class="flex justify-between items-start mb-2">
                                     <div>
-                                        <h4 class="text-lg font-semibold text-900 m-0 mb-1 cursor-pointer" @click="viewQuestion(question.id)">
+                                        <h4 class="text-lg font-semibold text-gray-900 m-0 mb-1 cursor-pointer" @click="viewQuestion(question.id)">
                                             {{ question.title }}
                                         </h4>
-                                        <div class="flex align-items-center gap-2 text-sm text-500">
+                                        <div class="flex items-center gap-2 text-sm text-gray-500">
                                             <Tag :value="question.category" :severity="getCategorySeverity(question.category)" />
                                             <Tag :value="question.status" :severity="getStatusSeverity(question.status)" />
                                             <span>{{ question.userName }}</span>
@@ -125,8 +125,8 @@
                                             <span>{{ formatDate(question.createdAt) }}</span>
                                         </div>
                                     </div>
-                                    <div class="flex align-items-center gap-2">
-                                        <div class="flex align-items-center gap-1 text-sm text-500">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-1 text-sm text-gray-500">
                                             <i class="pi pi-eye"></i>
                                             <span>{{ question.views }}</span>
                                         </div>
@@ -134,7 +134,7 @@
                                     </div>
                                 </div>
 
-                                <p class="text-600 mb-3">{{ question.content.substring(0, 200) }}{{ question.content.length > 200 ? '...' : '' }}</p>
+                                <p class="text-gray-600 mb-3">{{ question.content.substring(0, 200) }}{{ question.content.length > 200 ? '...' : '' }}</p>
 
                                 <!-- 태그 -->
                                 <div v-if="question.tags && question.tags.length > 0" class="flex flex-wrap gap-1 mb-3">
@@ -144,16 +144,16 @@
                                 <!-- 답변 미리보기 -->
                                 <div v-if="question.answers && question.answers.length > 0" class="mb-3">
                                     <div class="answer-preview">
-                                        <div class="flex align-items-center gap-2 mb-2">
+                                        <div class="flex items-center gap-2 mb-2">
                                             <i class="pi pi-check-circle text-green-500"></i>
-                                            <span class="text-sm font-medium text-900">답변 {{ question.answers.length }}개</span>
+                                            <span class="text-sm font-medium text-gray-900">답변 {{ question.answers.length }}개</span>
                                         </div>
-                                        <p class="text-600 text-sm m-0">{{ question.answers[0].content.substring(0, 100) }}{{ question.answers[0].content.length > 100 ? '...' : '' }}</p>
+                                        <p class="text-gray-600 text-sm m-0">{{ question.answers[0].content.substring(0, 100) }}{{ question.answers[0].content.length > 100 ? '...' : '' }}</p>
                                     </div>
                                 </div>
 
                                 <!-- 액션 버튼 -->
-                                <div class="flex justify-content-between align-items-center">
+                                <div class="flex justify-between items-center">
                                     <div class="flex gap-3">
                                         <Button
                                             :icon="question.isLiked ? 'pi pi-heart-fill' : 'pi pi-heart'"
@@ -182,33 +182,33 @@
         <!-- 빈 상태 -->
         <div v-if="filteredQuestions.length === 0" class="text-center py-8">
             <i class="pi pi-question-circle text-6xl text-300 mb-4"></i>
-            <h3 class="text-2xl font-semibold text-600 mb-2">질문이 없습니다</h3>
-            <p class="text-600 mb-4">궁금한 것이 있으시면 언제든 질문해주세요!</p>
+            <h3 class="text-2xl font-semibold text-gray-600 mb-2">질문이 없습니다</h3>
+            <p class="text-gray-600 mb-4">궁금한 것이 있으시면 언제든 질문해주세요!</p>
             <Button label="질문하기" @click="showAskDialog = true" />
         </div>
 
         <!-- 페이지네이션 -->
-        <div v-if="filteredQuestions.length > 0" class="flex justify-content-center mt-4">
+        <div v-if="filteredQuestions.length > 0" class="flex justify-center mt-4">
             <Paginator v-model:first="first" :rows="rows" :totalRecords="totalFilteredQuestions" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
         </div>
 
         <!-- 질문 상세 다이얼로그 -->
         <Dialog v-model:visible="showQuestionDetail" :header="selectedQuestion?.title" :style="{ width: '800px' }">
-            <div v-if="selectedQuestion" class="flex flex-column gap-4">
+            <div v-if="selectedQuestion" class="flex flex-col gap-4">
                 <!-- 질문 내용 -->
                 <div class="question-detail">
-                    <div class="flex align-items-center gap-3 mb-3">
+                    <div class="flex items-center gap-3 mb-3">
                         <Avatar :image="selectedQuestion.userAvatar" :label="selectedQuestion.userName.charAt(0)" size="large" shape="circle" />
                         <div>
                             <div class="font-semibold">{{ selectedQuestion.userName }}</div>
-                            <div class="text-sm text-500">{{ formatDate(selectedQuestion.createdAt) }}</div>
+                            <div class="text-sm text-gray-500">{{ formatDate(selectedQuestion.createdAt) }}</div>
                         </div>
                         <div class="flex gap-2 ml-auto">
                             <Tag :value="selectedQuestion.category" :severity="getCategorySeverity(selectedQuestion.category)" />
                             <Tag :value="selectedQuestion.status" :severity="getStatusSeverity(selectedQuestion.status)" />
                         </div>
                     </div>
-                    <p class="text-600 mb-3">{{ selectedQuestion.content }}</p>
+                    <p class="text-gray-600 mb-3">{{ selectedQuestion.content }}</p>
                     <div v-if="selectedQuestion.tags && selectedQuestion.tags.length > 0" class="flex flex-wrap gap-1 mb-3">
                         <Tag v-for="tag in selectedQuestion.tags" :key="tag" :value="tag" severity="secondary" />
                     </div>
@@ -216,25 +216,25 @@
 
                 <!-- 답변 목록 -->
                 <div v-if="selectedQuestion.answers && selectedQuestion.answers.length > 0">
-                    <h4 class="text-900 font-medium mb-3">답변 ({{ selectedQuestion.answers.length }}개)</h4>
+                    <h4 class="text-gray-900 font-medium mb-3">답변 ({{ selectedQuestion.answers.length }}개)</h4>
                     <div v-for="answer in selectedQuestion.answers" :key="answer.id" class="answer-item mb-3">
-                        <div class="flex align-items-center gap-3 mb-2">
+                        <div class="flex items-center gap-3 mb-2">
                             <Avatar :image="answer.userAvatar" :label="answer.userName.charAt(0)" size="normal" shape="circle" />
                             <div>
                                 <div class="font-semibold">{{ answer.userName }}</div>
-                                <div class="text-sm text-500">{{ formatDate(answer.createdAt) }}</div>
+                                <div class="text-sm text-gray-500">{{ formatDate(answer.createdAt) }}</div>
                             </div>
                             <div v-if="answer.isExpert" class="ml-auto">
                                 <Tag value="전문가" severity="success" />
                             </div>
                         </div>
-                        <p class="text-600 m-0">{{ answer.content }}</p>
+                        <p class="text-gray-600 m-0">{{ answer.content }}</p>
                     </div>
                 </div>
 
                 <!-- 답변 작성 -->
                 <div v-if="selectedQuestion.status === 'pending'">
-                    <h4 class="text-900 font-medium mb-3">답변하기</h4>
+                    <h4 class="text-gray-900 font-medium mb-3">답변하기</h4>
                     <Textarea v-model="newAnswer" placeholder="답변을 입력하세요" rows="4" class="w-full mb-3" />
                     <Button label="답변 등록" @click="submitAnswer" />
                 </div>

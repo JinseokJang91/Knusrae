@@ -3,8 +3,8 @@
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-2xl font-bold">레시피 관리</h2>
             <div class="flex gap-2">
-                <input v-model="search" type="text" class="p-inputtext p-component" placeholder="레시피 검색" />
-                <button @click="handleCreateRecipe" class="p-button p-component" :disabled="loading">
+                <input v-model="search" type="text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="레시피 검색" />
+                <button @click="handleCreateRecipe" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50" :disabled="loading">
                     <span class="pi pi-plus mr-2"></span>
                     <span>레시피 등록하기</span>
                 </button>
@@ -26,7 +26,7 @@
         <div v-else class="overflow-auto border rounded-md">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="bg-surface-100 text-left">
+                    <tr class="bg-gray-100 text-left">
                         <th class="px-3 py-2 w-16">#</th>
                         <th class="px-3 py-2">제목</th>
                         <th class="px-3 py-2 w-28">상태</th>
@@ -36,7 +36,7 @@
                 </thead>
                 <tbody>
                     <tr v-if="filteredRecipes.length === 0">
-                        <td colspan="5" class="px-3 py-8 text-center text-surface-500">등록된 레시피가 없습니다.</td>
+                        <td colspan="5" class="px-3 py-8 text-center text-gray-500">등록된 레시피가 없습니다.</td>
                     </tr>
                     <tr v-for="(r, i) in filteredRecipes" :key="r.id" class="border-t">
                         <td class="px-3 py-2">{{ i + 1 }}</td>
@@ -52,17 +52,13 @@
                             </span>
                         </td>
                         <td class="px-3 py-2 text-right">
-                            <button @click="handleViewRecipe(r.id)" class="p-button p-component p-button-text"
-                                    :disabled="loading" title="상세 보기">
+                            <button @click="handleViewRecipe(r.id)" class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded" :disabled="loading" title="상세 보기">
                                 <span class="pi pi-eye"></span>
                             </button>
-                            <button @click="handleEditRecipe(r)" class="p-button p-component p-button-text"
-                                    :disabled="loading" title="수정">
+                            <button @click="handleEditRecipe(r)" class="px-2 py-1 text-green-600 hover:bg-green-100 rounded" :disabled="loading" title="수정">
                                 <span class="pi pi-pencil"></span>
                             </button>
-                            <button @click="handleDeleteRecipe(r.id)"
-                                    class="p-button p-component p-button-text text-red-600" :disabled="loading"
-                                    title="삭제">
+                            <button @click="handleDeleteRecipe(r.id)" class="px-2 py-1 text-red-600 hover:bg-red-100 rounded" :disabled="loading" title="삭제">
                                 <span class="pi pi-trash"></span>
                             </button>
                         </td>
@@ -72,13 +68,12 @@
         </div>
 
         <!-- 레시피 상세 모달 -->
-        <div v-if="showDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-             @click="closeDetailModal">
+        <div v-if="showDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click="closeDetailModal">
             <div class="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto m-4" @click.stop>
                 <div class="p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-xl font-bold">레시피 상세</h3>
-                        <button @click="closeDetailModal" class="p-button p-component p-button-text">
+                        <button @click="closeDetailModal" class="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded">
                             <span class="pi pi-times"></span>
                         </button>
                     </div>
@@ -96,15 +91,9 @@
                         <div v-if="recipeDetail.images.length > 0" class="mb-6">
                             <h5 class="font-medium mb-2">이미지</h5>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                <div v-for="(image, index) in recipeDetail.imageUrls" :key="index"
-                                     class="relative border rounded-lg overflow-hidden"
-                                     :class="{ 'ring-2 ring-blue-500': index === recipeDetail.mainImageIndex }">
-                                    <img :src="image" :alt="`레시피 이미지 ${index + 1}`"
-                                         class="w-full h-32 object-cover"/>
-                                    <div v-if="index === recipeDetail.mainImageIndex"
-                                         class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-1 rounded">
-                                        메인
-                                    </div>
+                                <div v-for="(image, index) in recipeDetail.imageUrls" :key="index" class="relative border rounded-lg overflow-hidden" :class="{ 'ring-2 ring-blue-500': index === recipeDetail.mainImageIndex }">
+                                    <img :src="image" :alt="`레시피 이미지 ${index + 1}`" class="w-full h-32 object-cover" />
+                                    <div v-if="index === recipeDetail.mainImageIndex" class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-1 rounded">메인</div>
                                 </div>
                             </div>
                         </div>
@@ -113,8 +102,7 @@
                         <div v-if="recipeDetail.recipe.steps && recipeDetail.recipe.steps.length > 0">
                             <h5 class="font-medium mb-2">조리 단계</h5>
                             <div class="space-y-2">
-                                <div v-for="(step, index) in recipeDetail.recipe.steps" :key="index"
-                                     class="flex gap-3 p-3 bg-gray-50 rounded">
+                                <div v-for="(step, index) in recipeDetail.recipe.steps" :key="index" class="flex gap-3 p-3 bg-gray-50 rounded">
                                     <span class="font-bold text-blue-600">{{ index + 1 }}.</span>
                                     <span>{{ step.description }}</span>
                                 </div>
@@ -126,9 +114,7 @@
                             <div>상태: {{ recipeDetail.recipe.status }}</div>
                             <div>공개 설정: {{ recipeDetail.recipe.visibility }}</div>
                             <div>조회수: {{ recipeDetail.recipe.hits || 0 }}</div>
-                            <div v-if="recipeDetail.recipe.createdAt">
-                                등록일: {{ new Date(recipeDetail.recipe.createdAt).toLocaleDateString() }}
-                            </div>
+                            <div v-if="recipeDetail.recipe.createdAt">등록일: {{ new Date(recipeDetail.recipe.createdAt).toLocaleDateString() }}</div>
                         </div>
                     </div>
                 </div>
@@ -138,7 +124,7 @@
 </template>
 
 <script setup lang="ts">
-import {httpJson, httpMultipart} from '@/utils/http';
+import { httpJson, httpMultipart } from '@/utils/http';
 import { computed, onMounted, ref } from 'vue';
 
 // API 호출을 위한 기본 URL 및 공용 HTTP 유틸
@@ -232,7 +218,7 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const showDetailModal = ref(false);
 const detailLoading = ref(false);
-const recipeDetail = ref(null);
+const recipeDetail = ref<any>(null);
 
 // 레시피 목록 로드
 const loadRecipes = async () => {

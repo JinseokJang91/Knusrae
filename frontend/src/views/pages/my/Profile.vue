@@ -4,12 +4,12 @@
         <div class="grid grid-cols-12 gap-6">
             <div class="col-span-12 md:col-span-4">
                 <div class="p-4 border rounded-md flex flex-col items-center gap-4">
-                    <div class="w-28 h-28 rounded-full bg-surface-200 flex items-center justify-center text-3xl text-surface-500">{{ initials }}</div>
+                    <div class="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-3xl text-gray-500">{{ initials }}</div>
                     <div class="text-center">
                         <div class="font-semibold">{{ form.name || '사용자' }}</div>
-                        <div class="text-sm text-surface-500">{{ form.email || 'email@example.com' }}</div>
+                        <div class="text-sm text-gray-500">{{ form.email || 'email@example.com' }}</div>
                     </div>
-                    <button type="button" class="p-button p-component">
+                    <button type="button" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
                         <span class="pi pi-upload mr-2"></span>
                         <span>프로필 이미지 변경</span>
                     </button>
@@ -19,15 +19,15 @@
                 <div class="grid grid-cols-12 gap-4">
                     <div class="col-span-12 md:col-span-6">
                         <label class="block text-sm mb-2">이름</label>
-                        <input v-model="form.name" type="text" class="w-full p-inputtext p-component" placeholder="이름" />
+                        <input v-model="form.name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="이름" />
                     </div>
                     <div class="col-span-12 md:col-span-6">
                         <label class="block text-sm mb-2">닉네임</label>
-                        <input v-model="form.nickname" type="text" class="w-full p-inputtext p-component" placeholder="닉네임" />
+                        <input v-model="form.nickname" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="닉네임" />
                     </div>
                     <div class="col-span-12">
                         <label class="block text-sm mb-2">이메일</label>
-                        <input v-model="form.email" type="email" class="w-full p-inputtext p-component opacity-80" disabled />
+                        <input v-model="form.email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 opacity-80" disabled />
                     </div>
                 </div>
 
@@ -36,21 +36,21 @@
                     <div class="grid grid-cols-12 gap-4">
                         <div class="col-span-12 md:col-span-6">
                             <label class="block text-sm mb-2">새 비밀번호</label>
-                            <input v-model="form.newPassword" type="password" class="w-full p-inputtext p-component" placeholder="새 비밀번호" />
+                            <input v-model="form.newPassword" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="새 비밀번호" />
                         </div>
                         <div class="col-span-12 md:col-span-6">
                             <label class="block text-sm mb-2">새 비밀번호 확인</label>
-                            <input v-model="form.newPasswordConfirm" type="password" class="w-full p-inputtext p-component" placeholder="새 비밀번호 확인" />
+                            <input v-model="form.newPasswordConfirm" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="새 비밀번호 확인" />
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-6 flex gap-2 justify-end">
-                    <button type="button" class="p-button p-component p-button-outlined" @click="onReset">
+                    <button type="button" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50" @click="onReset">
                         <span class="pi pi-refresh mr-2"></span>
                         <span>초기화</span>
                     </button>
-                    <button type="button" class="p-button p-component" @click="onSave">
+                    <button type="button" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" @click="onSave">
                         <span class="pi pi-save mr-2"></span>
                         <span>저장</span>
                     </button>
@@ -60,7 +60,7 @@
     </div>
     <div v-if="toast" class="mt-3 text-green-600 text-sm">{{ toast }}</div>
     <div v-if="error" class="mt-3 text-red-600 text-sm">{{ error }}</div>
-    <div class="mt-6 text-xs text-surface-500">UI 스켈레톤 - 실제 API 연동 시 상태/검증을 연결합니다.</div>
+    <div class="mt-6 text-xs text-gray-500">UI 스켈레톤 - 실제 API 연동 시 상태/검증을 연결합니다.</div>
 </template>
 
 <script setup lang="ts">

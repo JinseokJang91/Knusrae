@@ -1,7 +1,7 @@
 <template>
     <div class="card">
-        <div class="flex justify-content-between align-items-center mb-4">
-            <h1 class="text-3xl font-bold text-900">자유 게시판</h1>
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-gray-900">자유 게시판</h1>
             <div class="flex gap-2">
                 <Button icon="pi pi-refresh" label="새로고침" severity="secondary" @click="refreshBoard" />
                 <Button icon="pi pi-plus" label="글 작성" severity="success" @click="showWriteDialog = true" />
@@ -10,21 +10,21 @@
 
         <!-- 글 작성 다이얼로그 -->
         <Dialog v-model:visible="showWriteDialog" header="게시글 작성" :style="{ width: '600px' }">
-            <div class="flex flex-column gap-3">
+            <div class="flex flex-col gap-3">
                 <div>
-                    <label class="block text-900 font-medium mb-2">제목 *</label>
+                    <label class="block text-gray-900 font-medium mb-2">제목 *</label>
                     <InputText v-model="newPost.title" placeholder="제목을 입력하세요" class="w-full" />
                 </div>
                 <div>
-                    <label class="block text-900 font-medium mb-2">카테고리 *</label>
+                    <label class="block text-gray-900 font-medium mb-2">카테고리 *</label>
                     <Dropdown v-model="newPost.category" :options="categories" optionLabel="name" optionValue="value" placeholder="카테고리 선택" class="w-full" />
                 </div>
                 <div>
-                    <label class="block text-900 font-medium mb-2">내용 *</label>
+                    <label class="block text-gray-900 font-medium mb-2">내용 *</label>
                     <Textarea v-model="newPost.content" placeholder="내용을 입력하세요" rows="8" class="w-full" />
                 </div>
                 <div>
-                    <label class="block text-900 font-medium mb-2">태그</label>
+                    <label class="block text-gray-900 font-medium mb-2">태그</label>
                     <InputText v-model="newPost.tags" placeholder="태그를 쉼표로 구분하여 입력하세요" class="w-full" />
                 </div>
             </div>
@@ -39,10 +39,10 @@
             <div class="col-12 md:col-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ totalPosts }}</h3>
-                                <p class="text-600 m-0">총 게시글</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalPosts }}</h3>
+                                <p class="text-gray-600 m-0">총 게시글</p>
                             </div>
                             <i class="pi pi-file text-4xl text-blue-500"></i>
                         </div>
@@ -52,10 +52,10 @@
             <div class="col-12 md:col-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ todayPosts }}</h3>
-                                <p class="text-600 m-0">오늘의 글</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ todayPosts }}</h3>
+                                <p class="text-gray-600 m-0">오늘의 글</p>
                             </div>
                             <i class="pi pi-calendar text-4xl text-green-500"></i>
                         </div>
@@ -65,10 +65,10 @@
             <div class="col-12 md:col-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ totalComments }}</h3>
-                                <p class="text-600 m-0">총 댓글</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalComments }}</h3>
+                                <p class="text-gray-600 m-0">총 댓글</p>
                             </div>
                             <i class="pi pi-comment text-4xl text-orange-500"></i>
                         </div>
@@ -78,10 +78,10 @@
             <div class="col-12 md:col-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ activeUsers }}</h3>
-                                <p class="text-600 m-0">활성 사용자</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ activeUsers }}</h3>
+                                <p class="text-gray-600 m-0">활성 사용자</p>
                             </div>
                             <i class="pi pi-users text-4xl text-purple-500"></i>
                         </div>
@@ -111,12 +111,12 @@
 
                             <!-- 게시글 내용 -->
                             <div class="flex-1">
-                                <div class="flex justify-content-between align-items-start mb-2">
+                                <div class="flex justify-between items-start mb-2">
                                     <div>
-                                        <h4 class="text-lg font-semibold text-900 m-0 mb-1 cursor-pointer" @click="viewPost(post.id)">
+                                        <h4 class="text-lg font-semibold text-gray-900 m-0 mb-1 cursor-pointer" @click="viewPost(post.id)">
                                             {{ post.title }}
                                         </h4>
-                                        <div class="flex align-items-center gap-2 text-sm text-500">
+                                        <div class="flex items-center gap-2 text-sm text-gray-500">
                                             <Tag :value="post.category" :severity="getCategorySeverity(post.category)" />
                                             <span>{{ post.userName }}</span>
                                             <span>•</span>
@@ -124,8 +124,8 @@
                                             <span v-if="post.updatedAt !== post.createdAt" class="text-orange-500">(수정됨)</span>
                                         </div>
                                     </div>
-                                    <div class="flex align-items-center gap-2">
-                                        <div class="flex align-items-center gap-1 text-sm text-500">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-1 text-sm text-gray-500">
                                             <i class="pi pi-eye"></i>
                                             <span>{{ post.views }}</span>
                                         </div>
@@ -133,7 +133,7 @@
                                     </div>
                                 </div>
 
-                                <p class="text-600 mb-3">{{ post.content.substring(0, 150) }}{{ post.content.length > 150 ? '...' : '' }}</p>
+                                <p class="text-gray-600 mb-3">{{ post.content.substring(0, 150) }}{{ post.content.length > 150 ? '...' : '' }}</p>
 
                                 <!-- 태그 -->
                                 <div v-if="post.tags && post.tags.length > 0" class="flex flex-wrap gap-1 mb-3">
@@ -141,7 +141,7 @@
                                 </div>
 
                                 <!-- 액션 버튼 -->
-                                <div class="flex justify-content-between align-items-center">
+                                <div class="flex justify-between items-center">
                                     <div class="flex gap-3">
                                         <Button
                                             :icon="post.isLiked ? 'pi pi-heart-fill' : 'pi pi-heart'"
@@ -170,13 +170,13 @@
         <!-- 빈 상태 -->
         <div v-if="filteredPosts.length === 0" class="text-center py-8">
             <i class="pi pi-file text-6xl text-300 mb-4"></i>
-            <h3 class="text-2xl font-semibold text-600 mb-2">게시글이 없습니다</h3>
-            <p class="text-600 mb-4">첫 번째 게시글을 작성해보세요!</p>
+            <h3 class="text-2xl font-semibold text-gray-600 mb-2">게시글이 없습니다</h3>
+            <p class="text-gray-600 mb-4">첫 번째 게시글을 작성해보세요!</p>
             <Button label="글 작성" @click="showWriteDialog = true" />
         </div>
 
         <!-- 페이지네이션 -->
-        <div v-if="filteredPosts.length > 0" class="flex justify-content-center mt-4">
+        <div v-if="filteredPosts.length > 0" class="flex justify-center mt-4">
             <Paginator v-model:first="first" :rows="rows" :totalRecords="totalFilteredPosts" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
         </div>
     </div>

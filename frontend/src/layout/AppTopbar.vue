@@ -108,36 +108,36 @@ onBeforeUnmount(() => {
                             <span>Profile</span>
                         </button>
                         <div class="hidden absolute right-0 mt-2 w-56 card p-2 z-50">
-                            <router-link to="/my/profile" class="flex items-center gap-2 px-3 py-2 hover:bg-surface-100 rounded">
+                            <router-link to="/my/profile" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
                                 <i class="pi pi-id-card"></i>
                                 <span>내 정보 수정</span>
                             </router-link>
-                            <router-link to="/my/recipes" class="flex items-center gap-2 px-3 py-2 hover:bg-surface-100 rounded">
+                            <router-link to="/my/recipes" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
                                 <i class="pi pi-book"></i>
                                 <span>레시피 관리</span>
                             </router-link>
-                            <router-link to="/my/comments" class="flex items-center gap-2 px-3 py-2 hover:bg-surface-100 rounded">
+                            <router-link to="/my/comments" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
                                 <i class="pi pi-comments"></i>
                                 <span>댓글 관리</span>
                             </router-link>
-                            <router-link to="/my/reviews" class="flex items-center gap-2 px-3 py-2 hover:bg-surface-100 rounded">
+                            <router-link to="/my/reviews" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
                                 <i class="pi pi-star"></i>
                                 <span>후기 관리</span>
                             </router-link>
-                            <router-link to="/my/inquiries" class="flex items-center gap-2 px-3 py-2 hover:bg-surface-100 rounded">
+                            <router-link to="/my/inquiries" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
                                 <i class="pi pi-inbox"></i>
                                 <span>1:1 문의 내역</span>
                             </router-link>
-                            <router-link to="/recipe/favorites" class="flex items-center gap-2 px-3 py-2 hover:bg-surface-100 rounded">
+                            <router-link to="/recipe/favorites" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
                                 <i class="pi pi-heart"></i>
                                 <span>찜 목록</span>
                             </router-link>
                             <div class="my-2 border-t"></div>
-                            <router-link v-if="!isLoggedInState" to="/auth/login" class="flex items-center gap-2 px-3 py-2 hover:bg-surface-100 rounded">
+                            <router-link v-if="!isLoggedInState" to="/auth/login" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
                                 <i class="pi pi-sign-in"></i>
                                 <span>로그인</span>
                             </router-link>
-                            <button v-else type="button" class="flex items-center gap-2 px-3 py-2 hover:bg-surface-100 rounded w-full text-left" @click="handleLogout">
+                            <button v-else type="button" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded w-full text-left" @click="handleLogout">
                                 <i class="pi pi-sign-out"></i>
                                 <span>로그아웃</span>
                             </button>

@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-2xl font-bold">레시피 등록</h2>
             <div class="flex gap-2">
-                <button class="p-button p-component p-button-text" @click="goBack" :disabled="submitting">
+                <button class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md" @click="goBack" :disabled="submitting">
                     <span class="pi pi-arrow-left mr-2"></span>
                     <span>목록으로</span>
                 </button>
@@ -18,36 +18,36 @@
         <div class="grid grid-cols-1 gap-4">
             <div>
                 <label class="block mb-2 font-medium">제목</label>
-                <input v-model.trim="form.title" type="text" class="p-inputtext p-component w-full" placeholder="레시피 제목을 입력하세요" />
+                <input v-model.trim="form.title" type="text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" placeholder="레시피 제목을 입력하세요" />
             </div>
 
             <div>
                 <label class="block mb-2 font-medium">설명</label>
-                <textarea v-model.trim="form.description" class="p-inputtextarea p-component w-full" rows="4" placeholder="간단한 소개나 메모를 작성하세요"></textarea>
+                <textarea v-model.trim="form.description" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" rows="4" placeholder="간단한 소개나 메모를 작성하세요"></textarea>
             </div>
 
             <!-- 단계 관리 -->
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <label class="font-medium">조리 순서</label>
-                    <button class="p-button p-component" @click="addStep" :disabled="submitting">
+                    <button class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50" @click="addStep" :disabled="submitting">
                         <span class="pi pi-plus mr-2"></span>
                         <span>단계 추가</span>
                     </button>
                 </div>
-                <div v-if="form.steps.length === 0" class="p-3 text-surface-500 border rounded">아직 단계가 없습니다. '단계 추가'를 눌러 시작하세요.</div>
+                <div v-if="form.steps.length === 0" class="p-3 text-gray-500 border rounded">아직 단계가 없습니다. '단계 추가'를 눌러 시작하세요.</div>
 
-                <div v-for="(step, index) in form.steps" :key="step.id" class="border rounded p-3 mb-3 bg-surface-50">
+                <div v-for="(step, index) in form.steps" :key="step.id" class="border rounded p-3 mb-3 bg-gray-50">
                     <div class="flex items-center justify-between mb-3">
                         <div class="font-medium">단계 {{ index + 1 }}</div>
                         <div class="flex gap-2">
-                            <button class="p-button p-component p-button-text" @click="moveStepUp(index)" :disabled="index === 0 || submitting">
+                            <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded" @click="moveStepUp(index)" :disabled="index === 0 || submitting">
                                 <span class="pi pi-arrow-up"></span>
                             </button>
-                            <button class="p-button p-component p-button-text" @click="moveStepDown(index)" :disabled="index === form.steps.length - 1 || submitting">
+                            <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded" @click="moveStepDown(index)" :disabled="index === form.steps.length - 1 || submitting">
                                 <span class="pi pi-arrow-down"></span>
                             </button>
-                            <button class="p-button p-component p-button-text text-red-600" @click="removeStep(index)" :disabled="submitting">
+                            <button class="px-2 py-1 text-red-600 hover:bg-red-100 rounded" @click="removeStep(index)" :disabled="submitting">
                                 <span class="pi pi-trash"></span>
                             </button>
                         </div>
@@ -63,7 +63,7 @@
                         </div>
                         <div>
                             <label class="block mb-2">설명</label>
-                            <textarea v-model.trim="step.text" class="p-inputtextarea p-component w-full" rows="6" placeholder="이 단계에서의 설명을 작성하세요"></textarea>
+                            <textarea v-model.trim="step.text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" rows="6" placeholder="이 단계에서의 설명을 작성하세요"></textarea>
                         </div>
                     </div>
                 </div>
@@ -72,14 +72,14 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block mb-2 font-medium">공개 여부</label>
-                    <select v-model="form.visibility" class="p-inputtext p-component w-full">
+                    <select v-model="form.visibility" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
                         <option value="PUBLIC">공개</option>
                         <option value="PRIVATE">비공개</option>
                     </select>
                 </div>
                 <div>
                     <label class="block mb-2 font-medium">상태</label>
-                    <select v-model="form.status" class="p-inputtext p-component w-full">
+                    <select v-model="form.status" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
                         <option value="DRAFT">초안</option>
                         <option value="PUBLISHED">발행</option>
                     </select>
@@ -87,11 +87,11 @@
             </div>
 
             <div class="flex justify-end gap-2 mt-2">
-                <button class="p-button p-component p-button-text" @click="saveAsDraft" :disabled="submitting">
+                <button class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md" @click="saveAsDraft" :disabled="submitting">
                     <span class="pi pi-save mr-2"></span>
                     <span>초안 저장</span>
                 </button>
-                <button class="p-button p-component" @click="submit" :disabled="submitting || !isValid">
+                <button class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50" @click="submit" :disabled="submitting || !isValid">
                     <span class="pi pi-check mr-2"></span>
                     <span>등록</span>
                 </button>
@@ -223,8 +223,8 @@ async function submit() {
         console.log('recipePayload : ', recipePayload);
 
         // Blob을 사용하여 명시적으로 MIME 타입 설정
-        const recipeBlob = new Blob([JSON.stringify(recipePayload)], { 
-            type: 'application/json; charset=utf-8' 
+        const recipeBlob = new Blob([JSON.stringify(recipePayload)], {
+            type: 'application/json; charset=utf-8'
         });
         formData.append('recipe', recipeBlob, 'recipe.json');
         console.log('formData type 1 : ', (formData.get('recipe') as File).type);

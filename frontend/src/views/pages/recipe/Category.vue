@@ -1,7 +1,7 @@
 <template>
     <div class="card">
-        <div class="flex justify-content-between align-items-center mb-4">
-            <h1 class="text-3xl font-bold text-900">카테고리</h1>
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-gray-900">카테고리</h1>
             <div class="flex gap-2">
                 <Button icon="pi pi-refresh" label="새로고침" severity="secondary" @click="refreshCategories" />
                 <Button icon="pi pi-search" label="검색" severity="secondary" @click="showSearchDialog = true" />
@@ -10,17 +10,17 @@
 
         <!-- 검색 다이얼로그 -->
         <Dialog v-model:visible="showSearchDialog" header="레시피 검색" :style="{ width: '400px' }">
-            <div class="flex flex-column gap-3">
+            <div class="flex flex-col gap-3">
                 <div>
-                    <label class="block text-900 font-medium mb-2">검색어</label>
+                    <label class="block text-gray-900 font-medium mb-2">검색어</label>
                     <InputText v-model="searchQuery" placeholder="레시피 이름을 입력하세요" class="w-full" />
                 </div>
                 <div>
-                    <label class="block text-900 font-medium mb-2">카테고리</label>
+                    <label class="block text-gray-900 font-medium mb-2">카테고리</label>
                     <Dropdown v-model="searchCategory" :options="categories" optionLabel="name" optionValue="value" placeholder="전체 카테고리" class="w-full" />
                 </div>
                 <div>
-                    <label class="block text-900 font-medium mb-2">난이도</label>
+                    <label class="block text-gray-900 font-medium mb-2">난이도</label>
                     <Dropdown v-model="searchDifficulty" :options="difficulties" optionLabel="name" optionValue="value" placeholder="전체 난이도" class="w-full" />
                 </div>
             </div>
@@ -31,53 +31,53 @@
         </Dialog>
 
         <!-- 카테고리 통계 -->
-        <div class="grid mb-4">
-            <div class="col-12 sm:col-6 lg:col-3">
+        <div class="grid grid-cols-12 gap-4 mb-4">
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ totalCategories }}</h3>
-                                <p class="text-600 m-0">총 카테고리</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalCategories }}</h3>
+                                <p class="text-gray-600 m-0">총 카테고리</p>
                             </div>
                             <i class="pi pi-tags text-4xl text-blue-500"></i>
                         </div>
                     </template>
                 </Card>
             </div>
-            <div class="col-12 sm:col-6 lg:col-3">
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ totalRecipes }}</h3>
-                                <p class="text-600 m-0">총 레시피</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalRecipes }}</h3>
+                                <p class="text-gray-600 m-0">총 레시피</p>
                             </div>
                             <i class="pi pi-book text-4xl text-green-500"></i>
                         </div>
                     </template>
                 </Card>
             </div>
-            <div class="col-12 sm:col-6 lg:col-3">
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ selectedCategory ? getCategoryName(selectedCategory) : '전체' }}</h3>
-                                <p class="text-600 m-0">현재 카테고리</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ selectedCategory ? getCategoryName(selectedCategory) : '전체' }}</h3>
+                                <p class="text-gray-600 m-0">현재 카테고리</p>
                             </div>
                             <i class="pi pi-filter text-4xl text-orange-500"></i>
                         </div>
                     </template>
                 </Card>
             </div>
-            <div class="col-12 sm:col-6 lg:col-3">
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <Card class="stat-card">
                     <template #content>
-                        <div class="flex align-items-center">
+                        <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ filteredRecipes.length }}</h3>
-                                <p class="text-600 m-0">표시된 레시피</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ filteredRecipes.length }}</h3>
+                                <p class="text-gray-600 m-0">표시된 레시피</p>
                             </div>
                             <i class="pi pi-list text-4xl text-purple-500"></i>
                         </div>
@@ -88,7 +88,7 @@
 
         <!-- 카테고리 선택 영역 (라디오 버튼 형태) -->
         <div class="category-selector mb-4">
-            <div class="flex flex-wrap gap-2 justify-content-center">
+            <div class="flex flex-wrap gap-2 justify-center">
                 <Button
                     v-for="category in categories"
                     :key="category.value"
@@ -104,8 +104,8 @@
 
         <!-- 레시피 목록 섹션 -->
         <div class="recipe-section">
-            <div class="flex justify-content-between align-items-center mb-3">
-                <h2 class="text-2xl font-semibold text-900 m-0">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-2xl font-semibold text-gray-900 m-0">
                     {{ selectedCategory ? getCategoryName(selectedCategory) + ' 레시피' : '전체 레시피' }}
                 </h2>
                 <div class="flex gap-2">
@@ -117,14 +117,14 @@
             <!-- 로딩 상태 -->
             <div v-if="loading" class="text-center py-8">
                 <ProgressSpinner />
-                <p class="text-600 mt-3">레시피를 불러오는 중...</p>
+                <p class="text-gray-600 mt-3">레시피를 불러오는 중...</p>
             </div>
 
             <!-- 에러 상태 -->
             <div v-else-if="error" class="text-center py-8">
                 <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-                <h3 class="text-2xl font-semibold text-600 mb-2">레시피를 불러올 수 없습니다</h3>
-                <p class="text-600 mb-4">{{ error }}</p>
+                <h3 class="text-2xl font-semibold text-gray-600 mb-2">레시피를 불러올 수 없습니다</h3>
+                <p class="text-gray-600 mb-4">{{ error }}</p>
                 <Button label="다시 시도" @click="loadRecipes" />
             </div>
 
@@ -178,28 +178,28 @@
                 <!-- 리스트 뷰 -->
                 <div v-else class="recipe-list">
                     <div v-for="recipe in displayRecipes" :key="recipe.id" class="recipe-list-item">
-                        <div class="flex align-items-center gap-3 p-3 border-round hover:surface-50 transition-colors transition-duration-150">
+                        <div class="flex items-center gap-3 p-3 rounded hover:bg-gray-50 transition-colors duration-150">
                             <img :src="recipe.image" :alt="recipe.title" class="recipe-thumbnail" />
                             <div class="flex-1">
-                                <h4 class="text-lg font-semibold text-900 m-0 mb-1">{{ recipe.title }}</h4>
-                                <p class="text-600 text-sm m-0 mb-2">{{ recipe.description }}</p>
-                                <div class="flex align-items-center gap-3 text-sm text-500">
-                                    <div class="flex align-items-center gap-1">
+                                <h4 class="text-lg font-semibold text-gray-900 m-0 mb-1">{{ recipe.title }}</h4>
+                                <p class="text-gray-600 text-sm m-0 mb-2">{{ recipe.description }}</p>
+                                <div class="flex items-center gap-3 text-sm text-gray-500">
+                                    <div class="flex items-center gap-1">
                                         <i class="pi pi-clock"></i>
                                         <span>{{ recipe.cookingTime }}분</span>
                                     </div>
-                                    <div class="flex align-items-center gap-1">
+                                    <div class="flex items-center gap-1">
                                         <i class="pi pi-users"></i>
                                         <span>{{ recipe.servings }}인분</span>
                                     </div>
-                                    <div class="flex align-items-center gap-1">
+                                    <div class="flex items-center gap-1">
                                         <i class="pi pi-star-fill text-yellow-500"></i>
                                         <span>{{ recipe.rating }}</span>
                                     </div>
                                     <Tag :value="recipe.category" severity="info" />
                                 </div>
                             </div>
-                            <div class="flex flex-column gap-2">
+                            <div class="flex flex-col gap-2">
                                 <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
                                 <Button label="상세보기" size="small" @click="viewRecipe(recipe.id)" />
                             </div>
@@ -208,7 +208,7 @@
                 </div>
 
                 <!-- 페이지네이션 -->
-                <div class="flex justify-content-center mt-4">
+                <div class="flex justify-center mt-4">
                     <Paginator v-model:first="first" :rows="rows" :totalRecords="totalDisplayRecipes" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
                 </div>
             </div>
@@ -216,8 +216,8 @@
             <!-- 빈 상태 -->
             <div v-else class="text-center py-8">
                 <i class="pi pi-book text-6xl text-300 mb-4"></i>
-                <h3 class="text-2xl font-semibold text-600 mb-2">레시피가 없습니다</h3>
-                <p class="text-600 mb-4">{{ selectedCategory ? '선택한 카테고리에 레시피가 없습니다.' : '등록된 레시피가 없습니다.' }}</p>
+                <h3 class="text-2xl font-semibold text-gray-600 mb-2">레시피가 없습니다</h3>
+                <p class="text-gray-600 mb-4">{{ selectedCategory ? '선택한 카테고리에 레시피가 없습니다.' : '등록된 레시피가 없습니다.' }}</p>
             </div>
         </div>
     </div>
