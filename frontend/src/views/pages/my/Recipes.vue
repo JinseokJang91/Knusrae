@@ -38,9 +38,16 @@
                     <tr v-if="filteredRecipes.length === 0">
                         <td colspan="5" class="px-3 py-8 text-center text-gray-500">등록된 레시피가 없습니다.</td>
                     </tr>
-                    <tr v-for="(r, i) in filteredRecipes" :key="r.id" class="border-t">
+                    <tr v-for="(r, i) in filteredRecipes" :key="r.id" class="border-t hover:bg-gray-50">
                         <td class="px-3 py-2">{{ i + 1 }}</td>
-                        <td class="px-3 py-2">{{ r.title }}</td>
+                        <td class="px-3 py-2">
+                            <button 
+                                @click="viewRecipeDetail(r.id)"
+                                class="text-left text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                            >
+                                {{ r.title }}
+                            </button>
+                        </td>
                         <td class="px-3 py-2">
                             <span class="px-2 py-1 rounded text-xs" :class="r.status === 'draft' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'">
                                 {{ r.status === 'draft' ? '초안' : '발행' }}
@@ -126,9 +133,11 @@
 <script setup lang="ts">
 import { httpJson, httpMultipart } from '@/utils/http';
 import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 // API 호출을 위한 기본 URL 및 공용 HTTP 유틸
 const API_COOK_BASE_URL = import.meta.env.VITE_API_BASE_URL_COOK;
+const router = useRouter();
 
 // 레시피 타입 정의
 interface Recipe {
@@ -136,6 +145,7 @@ interface Recipe {
     title: string;
     status: 'draft' | 'published';
     visibility: 'public' | 'private';
+    thumbnail?: string;
     description?: string;
     ingredients?: string[];
     instructions?: string[];
@@ -235,8 +245,6 @@ const loadRecipes = async () => {
 };
 
 // 새 레시피 등록
-import { useRouter } from 'vue-router';
-const router = useRouter();
 
 const handleCreateRecipe = async () => {
     router.push('/my/recipes/new');
@@ -283,6 +291,11 @@ const handleViewRecipe = async (id: number) => {
 const closeDetailModal = () => {
     showDetailModal.value = false;
     recipeDetail.value = null;
+};
+
+// 레시피 상세 페이지로 이동
+const viewRecipeDetail = (id: number) => {
+    router.push(`/recipe/${id}`);
 };
 
 // 필터링된 레시피 목록

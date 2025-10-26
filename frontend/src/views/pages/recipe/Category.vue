@@ -1,15 +1,16 @@
 <template>
     <div class="card">
+        <!-- header : 페이지 제목, 새로고침 버튼, 상세검색 다이얼로그 버튼 -->
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-3xl font-bold text-gray-900">카테고리</h1>
             <div class="flex gap-2">
                 <Button icon="pi pi-refresh" label="새로고침" severity="secondary" @click="refreshCategories" />
-                <Button icon="pi pi-search" label="검색" severity="secondary" @click="showSearchDialog = true" />
+                <Button icon="pi pi-search" label="검색" severity="" @click="showSearchDialog = true" />
             </div>
         </div>
 
-        <!-- 검색 다이얼로그 -->
-        <Dialog v-model:visible="showSearchDialog" header="레시피 검색" :style="{ width: '400px' }">
+        <!-- dialog : 상세검색 -->
+        <Dialog v-model:visible="showSearchDialog" header="레시피 상세 검색" :style="{ width: '400px' }">
             <div class="flex flex-col gap-3">
                 <div>
                     <label class="block text-gray-900 font-medium mb-2">검색어</label>
@@ -30,15 +31,15 @@
             </template>
         </Dialog>
 
-        <!-- 카테고리 통계 -->
+        <!-- header : 카테고리 통계 -->
         <div class="grid grid-cols-12 gap-4 mb-4">
             <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <Card class="stat-card">
                     <template #content>
                         <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalCategories }}</h3>
                                 <p class="text-gray-600 m-0">총 카테고리</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalCategories }}</h3>
                             </div>
                             <i class="pi pi-tags text-4xl text-blue-500"></i>
                         </div>
@@ -50,8 +51,8 @@
                     <template #content>
                         <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalRecipes }}</h3>
                                 <p class="text-gray-600 m-0">총 레시피</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalRecipes }}</h3>
                             </div>
                             <i class="pi pi-book text-4xl text-green-500"></i>
                         </div>
@@ -63,8 +64,8 @@
                     <template #content>
                         <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ selectedCategory ? getCategoryName(selectedCategory) : '전체' }}</h3>
                                 <p class="text-gray-600 m-0">현재 카테고리</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ selectedCategory ? getCategoryName(selectedCategory) : '전체' }}</h3>
                             </div>
                             <i class="pi pi-filter text-4xl text-orange-500"></i>
                         </div>
@@ -76,8 +77,8 @@
                     <template #content>
                         <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ filteredRecipes.length }}</h3>
                                 <p class="text-gray-600 m-0">표시된 레시피</p>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ filteredRecipes.length }}</h3>
                             </div>
                             <i class="pi pi-list text-4xl text-purple-500"></i>
                         </div>
@@ -86,7 +87,7 @@
             </div>
         </div>
 
-        <!-- 카테고리 선택 영역 (라디오 버튼 형태) -->
+        <!-- header : 카테고리 선택 영역 (라디오 버튼 형태) -->
         <div class="category-selector mb-4">
             <div class="flex flex-wrap gap-2 justify-center">
                 <Button
@@ -102,7 +103,7 @@
             </div>
         </div>
 
-        <!-- 레시피 목록 섹션 -->
+        <!-- body : 레시피 목록 섹션 -->
         <div class="recipe-section">
             <div class="flex justify-between items-center mb-3">
                 <h2 class="text-2xl font-semibold text-gray-900 m-0">
@@ -136,7 +137,7 @@
                         <Card class="recipe-card h-full">
                             <template #header>
                                 <div class="recipe-image-container">
-                                    <img :src="recipe.image" :alt="recipe.title" class="recipe-image" />
+                                    <img :src="recipe.thumbnail" :alt="recipe.title" class="recipe-image" />
                                     <div class="recipe-overlay">
                                         <div class="recipe-actions">
                                             <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
@@ -207,7 +208,7 @@
                     </div>
                 </div>
 
-                <!-- 페이지네이션 -->
+                <!-- footer : 페이지네이션 -->
                 <div class="flex justify-center mt-4">
                     <Paginator v-model:first="first" :rows="rows" :totalRecords="totalDisplayRecipes" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
                 </div>
@@ -257,19 +258,23 @@ const loading = ref(false);
 const error = ref(null);
 
 // API 기본 URL
+// TODO 테스트는 로컬로 진행, 추후 분기처리로 EC2 연결 예정
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8082';
 
+// Enum Class - Difficulty (난이도)
 const difficulties = ref([
+    { name: '매우 쉬움', value: 'very easy' },
     { name: '쉬움', value: 'easy' },
     { name: '보통', value: 'medium' },
+    { name: '조금 어려움', value: 'little hard' },
     { name: '어려움', value: 'hard' }
 ]);
 
-// 계산된 속성
+// 카테고리 header > 총 카테고리 > 개수
 const totalCategories = computed(() => categories.value.length);
-
+// 카테고리 header > 총 레시피 > 개수
 const totalRecipes = computed(() => recipes.value.length);
-
+// 카테고리 header > 표시된 레시피 > 개수
 const filteredRecipes = computed(() => {
     if (selectedCategory.value) {
         return recipes.value.filter((recipe) => recipe.category === selectedCategory.value);
@@ -277,16 +282,19 @@ const filteredRecipes = computed(() => {
     return recipes.value;
 });
 
+// 카테고리 body > 레시피
 const displayRecipes = computed(() => {
     const source = searchResults.value.length > 0 ? searchResults.value : filteredRecipes.value;
     return source.slice(first.value, first.value + rows.value);
 });
 
+// 카테고리 footer > 페이징 처리
 const totalDisplayRecipes = computed(() => {
     return searchResults.value.length > 0 ? searchResults.value.length : filteredRecipes.value.length;
 });
 
-// 메서드
+// Function > onMounted > 카테고리 조회
+// TODO 카테고리 목록 조회 API 연결 예정
 const loadCategories = () => {
     categories.value = [
         {
@@ -340,6 +348,7 @@ const loadCategories = () => {
     ];
 };
 
+// Function > onMounted > 레시피 조회
 const loadRecipes = async () => {
     try {
         loading.value = true;
@@ -348,9 +357,10 @@ const loadRecipes = async () => {
         const response = await httpJson(API_BASE_URL, '/api/recipe/list', {
             method: 'GET'
         });
-        console.log('response :' + response);
 
         recipes.value = response.data || response || [];
+
+        console.log('RECIPE LIST : ' + recipes.value); // TODO 삭제
 
         toast.add({
             severity: 'success',
@@ -449,28 +459,32 @@ const loadRecipes = async () => {
     }
 };
 
+// Function > Button > header 새로고침
 const refreshCategories = async () => {
     await loadRecipes();
     toast.add({ severity: 'success', summary: '새로고침', detail: '카테고리 정보가 업데이트되었습니다.', life: 3000 });
 };
 
+// Function > Button > body 카테고리 선택 시 목록 필터링
 const selectCategory = (categoryValue) => {
     selectedCategory.value = selectedCategory.value === categoryValue ? null : categoryValue;
     searchResults.value = [];
     first.value = 0;
 };
 
-const viewCategory = (categoryValue) => {
-    selectedCategory.value = categoryValue;
-    searchResults.value = [];
-    first.value = 0;
-};
+// const viewCategory = (categoryValue) => {
+//     selectedCategory.value = categoryValue;
+//     searchResults.value = [];
+//     first.value = 0;
+// };
 
+// Function > header 현재 카테고리 값 동기화
 const getCategoryName = (categoryValue) => {
     const category = categories.value.find((cat) => cat.value === categoryValue);
     return category ? category.name : categoryValue;
 };
 
+// Function > Button > header 상세검색 다이얼로그 검색
 const performSearch = () => {
     showSearchDialog.value = false;
     selectedCategory.value = null;
@@ -500,6 +514,8 @@ const performSearch = () => {
     });
 };
 
+// Function > Button > 찜 목록 추가
+// TODO 찜 목록 데이터로 관리 시 API 연결 필요
 const toggleFavorite = (recipeId) => {
     const recipe = recipes.value.find((r) => r.id === recipeId);
     if (recipe) {
@@ -513,14 +529,18 @@ const toggleFavorite = (recipeId) => {
     }
 };
 
+// Function > 레시피 상세 조회
 const viewRecipe = (recipeId) => {
-    router.push(`/recipe/detail/${recipeId}`);
+    router.push(`/recipe/${recipeId}`);
 };
 
+// Function > Button > 북마크 추가
+// TODO 북마크 목록 데이터로 관리 시 API 연결 필요
 const bookmarkRecipe = (recipeId) => {
     toast.add({ severity: 'info', summary: '북마크', detail: '레시피가 북마크되었습니다.', life: 3000 });
 };
 
+// Function > 페이징
 const onPageChange = (event) => {
     first.value = event.first;
     rows.value = event.rows;
@@ -540,7 +560,7 @@ onMounted(async () => {
 
 <style scoped>
 .stat-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #249461 0%, #afe6ca 100%);
     color: white;
 }
 
