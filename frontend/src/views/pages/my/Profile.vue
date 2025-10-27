@@ -31,7 +31,7 @@
                     </div>
                 </div>
 
-                <div class="mt-6 p-4 border rounded-md">
+                <!-- <div class="mt-6 p-4 border rounded-md">
                     <h3 class="font-semibold mb-4">비밀번호 변경</h3>
                     <div class="grid grid-cols-12 gap-4">
                         <div class="col-span-12 md:col-span-6">
@@ -43,7 +43,7 @@
                             <input v-model="form.newPasswordConfirm" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="새 비밀번호 확인" />
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="mt-6 flex gap-2 justify-end">
                     <button type="button" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50" @click="onReset">
@@ -60,7 +60,6 @@
     </div>
     <div v-if="toast" class="mt-3 text-green-600 text-sm">{{ toast }}</div>
     <div v-if="error" class="mt-3 text-red-600 text-sm">{{ error }}</div>
-    <div class="mt-6 text-xs text-gray-500">UI 스켈레톤 - 실제 API 연동 시 상태/검증을 연결합니다.</div>
 </template>
 
 <script setup lang="ts">
