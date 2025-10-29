@@ -2,15 +2,15 @@ package com.knusrae.cook.api.domain.service;
 
 import com.knusrae.common.custom.storage.ImageStorage;
 import com.knusrae.cook.api.domain.entity.Recipe;
+import com.knusrae.cook.api.domain.entity.RecipeDetail;
 import com.knusrae.cook.api.domain.entity.RecipeImage;
+import com.knusrae.cook.api.domain.repository.RecipeStepRepository;
 import com.knusrae.cook.api.dto.RecipeDto;
 import com.knusrae.cook.api.dto.RecipeDetailDto;
-import com.knusrae.cook.api.domain.enums.Visibility;
 import com.knusrae.cook.api.domain.repository.RecipeImageRepository;
 import com.knusrae.cook.api.domain.repository.RecipeRepository;
+import com.knusrae.cook.api.dto.RecipeStepDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +25,7 @@ public class RecipeService {
     private final RecipeRepository recipeRepository;
     private final ImageStorage imageStorage;
     private final RecipeImageRepository recipeImageRepository;
+    private final RecipeStepRepository recipeStepRepository;
 
     // CREATE - 레시피 생성
     @Transactional
@@ -32,7 +33,22 @@ public class RecipeService {
         Recipe recipe = recipeDto.toEntity();
         Recipe savedRecipe = recipeRepository.save(recipe);
 
+        // 1) 조리 단계 저장 및 순서 목록 확보
+        java.util.List<RecipeDetail> savedDetails = new java.util.ArrayList<>();
+        if(!recipeDto.getSteps().isEmpty()) {
+            for(RecipeStepDto step : recipeDto.getSteps()) {
+                RecipeDetail recipeDetail = step.toEntity(step);
+                recipeDetail.setRecipe(savedRecipe);
+                RecipeDetail persisted = recipeStepRepository.save(recipeDetail);
+                savedDetails.add(persisted);
+            }
+            // step 값 기준 오름차순 정렬 보장
+            savedDetails.sort(java.util.Comparator.comparing(RecipeDetail::getStep));
+        }
+
+        // 2) 이미지 저장 및 메타 정보 저장
         if(images != null && !images.isEmpty()) {
+            int detailAssignIndex = 0; // 메인 이미지를 제외한 이미지를 단계에 순서대로 매핑하기 위한 인덱스
             for(int i = 0; i < images.size(); i++) {
                 MultipartFile file = images.get(i);
 
@@ -40,12 +56,12 @@ public class RecipeService {
                 validateImage(file);
 
                 // 2) 스토리지 업로드(로컬, TODO S3)
-                String relativeDir = "recipes/%d/%s".formatted(recipe.getId(), LocalDate.now());
+                String relativeDir = "recipes/%d/%s".formatted(savedRecipe.getId(), LocalDate.now());
                 ImageStorage.UploadResponse uploadResponse = imageStorage.upload(file, relativeDir);
 
                 // 3) 이미지 메타데이터 DB 저장
                 RecipeImage img = RecipeImage.builder()
-                        .recipe(recipe)
+                        .recipe(savedRecipe)
                         .url(uploadResponse.url())        // 예: http://localhost:8080/media/recipes/1/2025-10-10/uuid.jpg
                         .storageKey(uploadResponse.key()) // 예: recipes/1/2025-10-10/uuid.jpg
                         .fileName(file.getOriginalFilename())
@@ -55,6 +71,17 @@ public class RecipeService {
                         .isMainImage(mainImageIndex != null && mainImageIndex == i)
                         .build();
                 recipeImageRepository.save(img);
+
+                // 메인 이미지를 제외한 나머지 이미지를 단계 이미지로 매핑
+                if (savedDetails.size() > 0) {
+                    boolean isMain = (mainImageIndex != null && mainImageIndex == i);
+                    if (!isMain && detailAssignIndex < savedDetails.size()) {
+                        RecipeDetail targetDetail = savedDetails.get(detailAssignIndex);
+                        targetDetail.updateDetail(targetDetail.getContent(), uploadResponse.url());
+                        recipeStepRepository.save(targetDetail);
+                        detailAssignIndex++;
+                    }
+                }
             }
         }
 
@@ -72,10 +99,27 @@ public class RecipeService {
     // READ - 전체 레시피 목록 조회
     public List<RecipeDto> getRecipeList() {
         List<Recipe> recipeList = recipeRepository.findAllByOrderByCreatedAtDesc();
-        recipeList.forEach(s -> s.setThumbnailUrl(s.getThumbnail()));
-        return recipeList.stream()
+        List<RecipeDto> recipeDtoList = recipeList.stream()
                 .map(RecipeDto::new)
                 .toList();
+        
+        // 각 레시피의 메인 이미지를 조회하여 썸네일로 설정
+        for (RecipeDto dto : recipeDtoList) {
+            Recipe recipe = recipeRepository.findById(dto.getId())
+                    .orElse(null);
+            if (recipe != null) {
+                List<RecipeImage> images = recipeImageRepository.findAllByRecipe(recipe);
+                RecipeImage mainImage = images.stream()
+                        .filter(RecipeImage::isMainImage)
+                        .findFirst()
+                        .orElse(images.isEmpty() ? null : images.get(0)); // 메인 이미지가 없으면 첫 번째 이미지
+                if (mainImage != null) {
+                    dto.setThumbnail(mainImage.getUrl());
+                }
+            }
+        }
+        
+        return recipeDtoList;
     }
 
     // READ - 단일 레시피 조회 (조회수 증가)
@@ -85,7 +129,19 @@ public class RecipeService {
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
 
         recipe.increaseHits(); // 조회수 증가
-        return new RecipeDto(recipe);
+        RecipeDto dto = new RecipeDto(recipe);
+        
+        // 메인 이미지를 조회하여 썸네일로 설정
+        List<RecipeImage> images = recipeImageRepository.findAllByRecipe(recipe);
+        RecipeImage mainImage = images.stream()
+                .filter(RecipeImage::isMainImage)
+                .findFirst()
+                .orElse(images.isEmpty() ? null : images.get(0)); // 메인 이미지가 없으면 첫 번째 이미지
+        if (mainImage != null) {
+            dto.setThumbnail(mainImage.getUrl());
+        }
+        
+        return dto;
     }
 
     // READ - Recipe 엔티티 조회 (조회수 증가 없음)
@@ -106,17 +162,7 @@ public class RecipeService {
         return RecipeDetailDto.fromEntity(recipe);
     }
 
-    // UPDATE - 레시피 수정
-    @Transactional
-    public RecipeDto updateRecipe(Long id, RecipeDto recipeDto) {
-        Recipe recipe = recipeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
-
-        recipe.updateRecipe(recipeDto.getTitle(), recipeDto.getCategory(),
-                Visibility.valueOf(recipeDto.getVisibility()));
-
-        return new RecipeDto(recipe);
-    }
+    // 비활성화: 수정은 현재 미사용
 
     // DELETE - 레시피 삭제 (물리적 삭제)
     @Transactional
@@ -132,76 +178,7 @@ public class RecipeService {
         recipeRepository.delete(recipe);
     }
 
-    // DELETE - 레시피 비활성화 (논리적 삭제)
-    @Transactional
-    public void deactivateRecipe(Long id) {
-        Recipe recipe = recipeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
+    // 비활성화: 논리삭제는 현재 미사용
 
-        recipe.changeVisibility(Visibility.PRIVATE);
-    }
-
-    // QueryDSL 기반 복합 조회 기능들
-
-    // 카테고리별 레시피 조회
-    public List<RecipeDto> getRecipesByCategory(String category) {
-        List<Recipe> recipes = recipeRepository.findAllByCategory(category);
-        return recipes.stream()
-                .map(RecipeDto::new)
-                .toList();
-    }
-
-    // 사용자별 레시피 조회
-    public List<RecipeDto> getRecipesByUserId(Long userId) {
-        List<Recipe> recipes = recipeRepository.findAllByUserId(userId);
-        return recipes.stream()
-                .map(RecipeDto::new)
-                .toList();
-    }
-
-    // 제목으로 레시피 검색
-    public List<RecipeDto> searchRecipesByTitle(String keyword) {
-        List<Recipe> recipes = recipeRepository.findByTitleContaining(keyword);
-        return recipes.stream()
-                .map(RecipeDto::new)
-                .toList();
-    }
-
-    // 복합 조건 검색 (제목 + 카테고리)
-    public List<RecipeDto> searchRecipes(String keyword, String category) {
-        List<Recipe> recipes = recipeRepository.findByTitleAndCategory(keyword, category);
-        return recipes.stream()
-                .map(RecipeDto::new)
-                .toList();
-    }
-
-    // 인기 레시피 조회
-    public List<RecipeDto> getPopularRecipes(int limit) {
-        List<Recipe> recipes = recipeRepository.findPopularRecipes(limit);
-        return recipes.stream()
-                .map(RecipeDto::new)
-                .toList();
-    }
-
-    // 페이징 처리된 레시피 목록
-    public Page<RecipeDto> getRecipesWithPaging(String keyword, String category,
-                                                Visibility visibility, Pageable pageable) {
-        Page<Recipe> recipePage = recipeRepository.findRecipesWithPaging(keyword, category, visibility, pageable);
-        return recipePage.map(RecipeDto::new);
-    }
-
-    // 통계 정보
-    public Long getRecipeCountByUserId(Long userId) {
-        return recipeRepository.countByUserId(userId);
-    }
-
-    public Long getRecipeCountByCategory(String category) {
-        return recipeRepository.countByCategory(category);
-    }
-
-    // 기존 메서드들 (하위 호환성 유지)
-    @Transactional
-    public void saveRecipe(RecipeDto recipeDto, List<MultipartFile> images, Integer mainImageIndex) {
-        createRecipe(recipeDto, images, mainImageIndex);
-    }
+    // 비활성화: 검색/통계/페이징/레거시 메서드들은 현재 미사용
 }

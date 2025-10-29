@@ -2,10 +2,7 @@ package com.knusrae.cook.api.dto;
 
 import com.knusrae.cook.api.domain.entity.Recipe;
 import com.knusrae.cook.api.domain.entity.Review;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,6 +12,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class RecipeDetailDto {
     private Long id;
     private String title;

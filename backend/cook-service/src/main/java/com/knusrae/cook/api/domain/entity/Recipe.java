@@ -3,7 +3,6 @@ package com.knusrae.cook.api.domain.entity;
 import com.knusrae.cook.api.domain.enums.Status;
 import com.knusrae.cook.api.domain.enums.Visibility;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -24,15 +23,12 @@ public class Recipe {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
     @Column(nullable = false)
     private String title;
 
-    @NotNull
     @Column
     private String description;
 
-    @NotNull
     @Column(nullable = false)
     private String category;
 
@@ -46,7 +42,6 @@ public class Recipe {
     @Builder.Default
     private Visibility visibility = Visibility.PUBLIC;
 
-    @NotNull
     @Column
     private String thumbnail;
 
@@ -54,7 +49,6 @@ public class Recipe {
     @Column
     private Long hits = 0L;
 
-    @NotNull
     @Column(nullable = false, name = "member_id")
     private Long memberId;
 

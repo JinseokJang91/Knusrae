@@ -1,7 +1,7 @@
-package com.knusrae.cook.api.domain.repository;
+package com.knusrae.user.api.domain.repository;
 
-import com.knusrae.cook.api.domain.entity.Board;
-import com.knusrae.cook.api.domain.entity.QBoard;
+import com.knusrae.user.api.domain.entity.Board;
+import com.knusrae.user.api.domain.entity.QBoard;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;

@@ -21,14 +21,12 @@ public class RecipeDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
     @Column(nullable = false)
     private Long step;
 
     @Column(length = 500)
     private String image;
 
-    @NotNull
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
@@ -58,4 +56,6 @@ public class RecipeDetail {
     public void setRecipe(Recipe recipe) {
         this.recipe = recipe;
     }
+
+
 }

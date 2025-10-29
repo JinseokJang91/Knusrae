@@ -1,7 +1,7 @@
-package com.knusrae.cook.api.web;
+package com.knusrae.user.api.web;
 
-import com.knusrae.cook.api.dto.BoardDto;
-import com.knusrae.cook.api.domain.service.BoardService;
+import com.knusrae.user.api.domain.service.BoardService;
+import com.knusrae.user.api.dto.BoardDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,15 +1,13 @@
 package com.knusrae.cook.api.dto;
 
 import com.knusrae.cook.api.domain.entity.RecipeDetail;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class RecipeStepDto {
     private Long order;
     private String text;
@@ -18,6 +16,13 @@ public class RecipeStepDto {
         return RecipeStepDto.builder()
                 .order(recipeDetail.getStep())
                 .text(recipeDetail.getContent())
+                .build();
+    }
+
+    public RecipeDetail toEntity(RecipeStepDto recipeStepDto) {
+        return RecipeDetail.builder()
+                .step(recipeStepDto.getOrder())
+                .content(recipeStepDto.getText())
                 .build();
     }
 }

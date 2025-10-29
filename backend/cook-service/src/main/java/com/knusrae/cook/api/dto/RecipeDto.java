@@ -6,10 +6,7 @@ import com.knusrae.cook.api.domain.enums.Status;
 import com.knusrae.cook.api.domain.enums.Visibility;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ToString
 public class RecipeDto {
     private Long id;
 
@@ -44,6 +42,10 @@ public class RecipeDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    public void setThumbnail(String thumbnail) {
+        this.thumbnail = thumbnail;
+    }
+
     public RecipeDto(Recipe recipe) {
         this.id = recipe.getId();
         this.title = recipe.getTitle();
@@ -62,7 +64,7 @@ public class RecipeDto {
     }
 
     @Builder
-    public RecipeDto(Long id, String title, String description, String category, Long hits, String status, String visibility, String thumbnail, Long memberId, List<RecipeStepDto> steps, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public RecipeDto(Long id, String title, String description, String category, Long hits, String status, String visibility, Long memberId, List<RecipeStepDto> steps, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -70,7 +72,6 @@ public class RecipeDto {
         this.hits = hits;
         this.status = status;
         this.visibility = visibility;
-        this.thumbnail = thumbnail;
         this.memberId = memberId;
         this.steps = steps;
         this.createdAt = createdAt;
@@ -85,28 +86,26 @@ public class RecipeDto {
                 .category(category)
                 .status(Status.valueOf(status))
                 .visibility(Visibility.valueOf(visibility))
-                .thumbnail(thumbnail)
                 .hits(hits != null ? hits : 0L)
                 .memberId(memberId)
                 .build();
     }
 
     // 생성용 DTO
-    public static RecipeDto createDto(String title, String description, String category, String thumbnail, Long memberId, List<RecipeStepDto> steps) {
+    public static RecipeDto createDto(String title, String description, String category, Long memberId, List<RecipeStepDto> steps) {
         return RecipeDto.builder()
                 .title(title)
                 .description(description)
                 .category(category)
                 .status(Status.DRAFT.name())
                 .visibility(Visibility.PUBLIC.name())
-                .thumbnail(thumbnail)
                 .memberId(memberId)
                 .steps(steps)
                 .build();
     }
 
     // 업데이트용 DTO
-    public static RecipeDto updateDto(Long id, String title, String description, String category, String thumbnail, String status, String visibility, List<RecipeStepDto> steps) {
+    public static RecipeDto updateDto(Long id, String title, String description, String category, String status, String visibility, List<RecipeStepDto> steps) {
         return RecipeDto.builder()
                 .id(id)
                 .title(title)
@@ -114,7 +113,6 @@ public class RecipeDto {
                 .category(category)
                 .status(status)
                 .visibility(visibility)
-                .thumbnail(thumbnail)
                 .steps(steps)
                 .build();
     }
