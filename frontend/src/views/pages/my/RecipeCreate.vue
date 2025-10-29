@@ -16,6 +16,23 @@
         </div>
 
         <div class="grid grid-cols-1 gap-4">
+
+            <!-- 썸네일 업로드 -->
+            <div>
+                <label class="block mb-2 font-medium">썸네일</label>
+                <div class="flex items-center gap-4">
+                    <input type="file" accept="image/*" @change="onThumbnailChange" :disabled="submitting" />
+                    <button v-if="form.thumbnailPreview" class="px-3 py-1 text-red-600 hover:bg-red-100 rounded" @click="clearThumbnail" :disabled="submitting">
+                        <span class="pi pi-times mr-1"></span>
+                        제거
+                    </button>
+                </div>
+                <div v-if="form.thumbnailPreview" class="mt-2">
+                    <img :src="form.thumbnailPreview" alt="thumbnail preview" class="max-h-48 rounded border" />
+                </div>
+                <p class="text-sm text-gray-500 mt-1">등록 시 썸네일이 대표 이미지로 사용됩니다.</p>
+            </div>
+
             <div>
                 <label class="block mb-2 font-medium">제목</label>
                 <input v-model.trim="form.title" type="text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" placeholder="레시피 제목을 입력하세요" />
@@ -121,6 +138,8 @@ interface RecipeDraft {
     status: 'DRAFT' | 'PUBLISHED';
     visibility: 'PUBLIC' | 'PRIVATE';
     memberId: number;
+    thumbnailFile?: File | null;
+    thumbnailPreview?: string;
     steps: RecipeStepDraft[];
 }
 
@@ -134,6 +153,8 @@ const form = reactive<RecipeDraft>({
     status: 'DRAFT',
     visibility: 'PUBLIC',
     memberId: 1,
+    thumbnailFile: null,
+    thumbnailPreview: '',
     steps: []
 });
 
@@ -171,6 +192,21 @@ function onStepImageChange(e: Event, step: RecipeStepDraft) {
     step.file = file;
     if (step.previewUrl) URL.revokeObjectURL(step.previewUrl);
     step.previewUrl = URL.createObjectURL(file);
+}
+
+function onThumbnailChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    form.thumbnailFile = file;
+    if (form.thumbnailPreview) URL.revokeObjectURL(form.thumbnailPreview);
+    form.thumbnailPreview = URL.createObjectURL(file);
+}
+
+function clearThumbnail() {
+    if (form.thumbnailPreview) URL.revokeObjectURL(form.thumbnailPreview);
+    form.thumbnailPreview = '';
+    form.thumbnailFile = null;
 }
 
 function goBack() {
@@ -238,11 +274,17 @@ async function submit() {
         // const stepsPayload = form.steps.map((s, idx) => ({ order: idx + 1, text: s.text }));
         // formData.append('steps', new Blob([JSON.stringify(stepsPayload)], { type: 'application/json' }));
 
+        // 썸네일이 있다면 먼저 추가 (대표 이미지가 됨)
+        if (form.thumbnailFile) {
+            formData.append('images', form.thumbnailFile, 'thumbnail.png');
+        }
+
         form.steps.forEach((s, idx) => {
             console.log('s : ', s);
             if (s.file) formData.append(`images`, s.file, `step-${idx + 1}.png`);
         });
 
+        // 대표 이미지 인덱스 설정: 썸네일이 있으면 0, 없으면 첫 번째 이미지(0)
         formData.append('mainImageIndex', '0');
 
         // API 호출 전 로깅

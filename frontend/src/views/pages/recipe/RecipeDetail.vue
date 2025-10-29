@@ -120,28 +120,36 @@
                     <div 
                         v-for="(step, index) in recipe.steps" 
                         :key="step.id"
-                        class="flex gap-6"
+                        class="bg-gray-50 rounded-xl p-6"
                     >
-                        <!-- 단계 번호 -->
-                        <div class="flex-shrink-0">
-                            <div class="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center text-xl font-bold">
+                        <div class="mb-4 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg font-bold">
                                 {{ index + 1 }}
                             </div>
+                            <div class="text-gray-600">단계 {{ index + 1 }}</div>
                         </div>
-                        
-                        <!-- 단계 내용 -->
-                        <div class="flex-1">
-                            <div class="bg-gray-50 rounded-xl p-6">
-                                <p class="text-gray-800 text-lg leading-relaxed mb-4">{{ step.content }}</p>
-                                
-                                <!-- 단계별 이미지 -->
-                                <div v-if="step.image" class="mt-4">
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                            <!-- 좌측: 이미지 -->
+                            <div>
+                                <div class="relative w-full overflow-hidden rounded-lg shadow-md bg-white">
                                     <img 
-                                        :src="step.image" 
+                                        v-if="step.image"
+                                        :src="step.image"
                                         :alt="`단계 ${index + 1} 이미지`"
-                                        class="w-full max-w-md rounded-lg shadow-md"
+                                        class="w-full h-72 object-cover"
                                     />
+                                    <div v-else class="w-full h-72 flex items-center justify-center text-5xl text-gray-300 bg-gray-100">
+                                        🖼️
+                                    </div>
                                 </div>
+                            </div>
+
+                            <!-- 우측: 설명 -->
+                            <div>
+                                <p class="text-gray-800 text-lg leading-relaxed whitespace-pre-line">
+                                    {{ step.content }}
+                                </p>
                             </div>
                         </div>
                     </div>

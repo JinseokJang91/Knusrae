@@ -180,7 +180,7 @@
                 <div v-else class="recipe-list">
                     <div v-for="recipe in displayRecipes" :key="recipe.id" class="recipe-list-item">
                         <div class="flex items-center gap-3 p-3 rounded hover:bg-gray-50 transition-colors duration-150">
-                            <img :src="recipe.image" :alt="recipe.title" class="recipe-thumbnail" />
+                            <img :src="recipe.thumbnail" :alt="recipe.title" class="recipe-thumbnail" />
                             <div class="flex-1">
                                 <h4 class="text-lg font-semibold text-gray-900 m-0 mb-1">{{ recipe.title }}</h4>
                                 <p class="text-gray-600 text-sm m-0 mb-2">{{ recipe.description }}</p>
