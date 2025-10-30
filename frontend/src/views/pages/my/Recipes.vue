@@ -59,9 +59,6 @@
                             </span>
                         </td>
                         <td class="px-3 py-2 text-right">
-                            <button @click="handleViewRecipe(r.id)" class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded" :disabled="loading" title="상세 보기">
-                                <span class="pi pi-eye"></span>
-                            </button>
                             <button @click="handleEditRecipe(r)" class="px-2 py-1 text-green-600 hover:bg-green-100 rounded" :disabled="loading" title="수정">
                                 <span class="pi pi-pencil"></span>
                             </button>
@@ -201,26 +198,6 @@ const deleteRecipe = async (id: number): Promise<void> => {
     });
 };
 
-// 5. 레시피 상세 조회
-const fetchRecipeDetail = async (id: number): Promise<any> => {
-    // multipart 응답을 처리
-    const result = await httpMultipart(API_COOK_BASE_URL, `/api/recipe/${id}`);
-
-    // 이미지 파일들을 blob URL로 변환하여 표시 가능하게 만들기
-    const imageUrls: string[] = [];
-    for (const imageFile of result.images) {
-        const imageUrl = URL.createObjectURL(imageFile);
-        imageUrls.push(imageUrl);
-    }
-
-    return {
-        recipe: result.recipe,
-        images: result.images,
-        imageUrls: imageUrls,
-        mainImageIndex: result.mainImageIndex
-    };
-};
-
 // 컴포넌트 상태
 const search = ref('');
 const rows = ref<Recipe[]>([]);
@@ -271,19 +248,6 @@ const handleDeleteRecipe = async (id: number) => {
         } finally {
             loading.value = false;
         }
-    }
-};
-
-// 레시피 상세 보기
-const handleViewRecipe = async (id: number) => {
-    detailLoading.value = true;
-    showDetailModal.value = true;
-    try {
-        recipeDetail.value = await fetchRecipeDetail(id);
-    } catch (err) {
-        console.error('레시피 상세 조회 오류:', err);
-    } finally {
-        detailLoading.value = false;
     }
 };
 

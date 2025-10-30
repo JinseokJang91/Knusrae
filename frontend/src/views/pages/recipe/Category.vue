@@ -3,88 +3,6 @@
         <!-- header : 페이지 제목, 새로고침 버튼, 상세검색 다이얼로그 버튼 -->
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-3xl font-bold text-gray-900">카테고리</h1>
-            <div class="flex gap-2">
-                <Button icon="pi pi-refresh" label="새로고침" severity="secondary" @click="refreshCategories" />
-                <Button icon="pi pi-search" label="검색" severity="" @click="showSearchDialog = true" />
-            </div>
-        </div>
-
-        <!-- dialog : 상세검색 -->
-        <Dialog v-model:visible="showSearchDialog" header="레시피 상세 검색" :style="{ width: '400px' }">
-            <div class="flex flex-col gap-3">
-                <div>
-                    <label class="block text-gray-900 font-medium mb-2">검색어</label>
-                    <InputText v-model="searchQuery" placeholder="레시피 이름을 입력하세요" class="w-full" />
-                </div>
-                <div>
-                    <label class="block text-gray-900 font-medium mb-2">카테고리</label>
-                    <Dropdown v-model="searchCategory" :options="categories" optionLabel="name" optionValue="value" placeholder="전체 카테고리" class="w-full" />
-                </div>
-                <div>
-                    <label class="block text-gray-900 font-medium mb-2">난이도</label>
-                    <Dropdown v-model="searchDifficulty" :options="difficulties" optionLabel="name" optionValue="value" placeholder="전체 난이도" class="w-full" />
-                </div>
-            </div>
-            <template #footer>
-                <Button label="취소" severity="secondary" @click="showSearchDialog = false" />
-                <Button label="검색" @click="performSearch" />
-            </template>
-        </Dialog>
-
-        <!-- header : 카테고리 통계 -->
-        <div class="grid grid-cols-12 gap-4 mb-4">
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <Card class="stat-card">
-                    <template #content>
-                        <div class="flex items-center">
-                            <div class="flex-1">
-                                <p class="text-gray-600 m-0">총 카테고리</p>
-                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalCategories }}</h3>
-                            </div>
-                            <i class="pi pi-tags text-4xl text-blue-500"></i>
-                        </div>
-                    </template>
-                </Card>
-            </div>
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <Card class="stat-card">
-                    <template #content>
-                        <div class="flex items-center">
-                            <div class="flex-1">
-                                <p class="text-gray-600 m-0">총 레시피</p>
-                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalRecipes }}</h3>
-                            </div>
-                            <i class="pi pi-book text-4xl text-green-500"></i>
-                        </div>
-                    </template>
-                </Card>
-            </div>
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <Card class="stat-card">
-                    <template #content>
-                        <div class="flex items-center">
-                            <div class="flex-1">
-                                <p class="text-gray-600 m-0">현재 카테고리</p>
-                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ selectedCategory ? getCategoryName(selectedCategory) : '전체' }}</h3>
-                            </div>
-                            <i class="pi pi-filter text-4xl text-orange-500"></i>
-                        </div>
-                    </template>
-                </Card>
-            </div>
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <Card class="stat-card">
-                    <template #content>
-                        <div class="flex items-center">
-                            <div class="flex-1">
-                                <p class="text-gray-600 m-0">표시된 레시피</p>
-                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ filteredRecipes.length }}</h3>
-                            </div>
-                            <i class="pi pi-list text-4xl text-purple-500"></i>
-                        </div>
-                    </template>
-                </Card>
-            </div>
         </div>
 
         <!-- header : 카테고리 선택 영역 (라디오 버튼 형태) -->
@@ -247,7 +165,6 @@ const categories = ref([]);
 const recipes = ref([]);
 const selectedCategory = ref(null);
 const searchResults = ref([]);
-const showSearchDialog = ref(false);
 const searchQuery = ref('');
 const searchCategory = ref(null);
 const searchDifficulty = ref(null);
@@ -270,10 +187,6 @@ const difficulties = ref([
     { name: '어려움', value: 'hard' }
 ]);
 
-// 카테고리 header > 총 카테고리 > 개수
-const totalCategories = computed(() => categories.value.length);
-// 카테고리 header > 총 레시피 > 개수
-const totalRecipes = computed(() => recipes.value.length);
 // 카테고리 header > 표시된 레시피 > 개수
 const filteredRecipes = computed(() => {
     if (selectedCategory.value) {
@@ -459,12 +372,6 @@ const loadRecipes = async () => {
     }
 };
 
-// Function > Button > header 새로고침
-const refreshCategories = async () => {
-    await loadRecipes();
-    toast.add({ severity: 'success', summary: '새로고침', detail: '카테고리 정보가 업데이트되었습니다.', life: 3000 });
-};
-
 // Function > Button > body 카테고리 선택 시 목록 필터링
 const selectCategory = (categoryValue) => {
     selectedCategory.value = selectedCategory.value === categoryValue ? null : categoryValue;
@@ -482,36 +389,6 @@ const selectCategory = (categoryValue) => {
 const getCategoryName = (categoryValue) => {
     const category = categories.value.find((cat) => cat.value === categoryValue);
     return category ? category.name : categoryValue;
-};
-
-// Function > Button > header 상세검색 다이얼로그 검색
-const performSearch = () => {
-    showSearchDialog.value = false;
-    selectedCategory.value = null;
-
-    let results = recipes.value;
-
-    if (searchQuery.value) {
-        results = results.filter((recipe) => recipe.title.toLowerCase().includes(searchQuery.value.toLowerCase()) || recipe.description.toLowerCase().includes(searchQuery.value.toLowerCase()));
-    }
-
-    if (searchCategory.value) {
-        results = results.filter((recipe) => recipe.category === searchCategory.value);
-    }
-
-    if (searchDifficulty.value) {
-        results = results.filter((recipe) => recipe.difficulty === searchDifficulty.value);
-    }
-
-    searchResults.value = results;
-    first.value = 0;
-
-    toast.add({
-        severity: 'info',
-        summary: '검색 완료',
-        detail: `${results.length}개의 레시피를 찾았습니다.`,
-        life: 3000
-    });
 };
 
 // Function > Button > 찜 목록 추가
