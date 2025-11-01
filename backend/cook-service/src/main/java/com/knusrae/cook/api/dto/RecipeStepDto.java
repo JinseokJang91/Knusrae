@@ -15,7 +15,7 @@ public class RecipeStepDto {
     public static RecipeStepDto fromEntity(RecipeDetail recipeDetail) {
         return RecipeStepDto.builder()
                 .order(recipeDetail.getStep())
-                .text(recipeDetail.getContent())
+                .text(recipeDetail.getDescription())
                 .build();
     }
 

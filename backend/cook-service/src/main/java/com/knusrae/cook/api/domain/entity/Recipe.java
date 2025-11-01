@@ -26,11 +26,8 @@ public class Recipe {
     @Column(nullable = false)
     private String title;
 
-    @Column
+    @Column(name = "introduction", length = 1000)
     private String description;
-
-    @Column(nullable = false)
-    private String category;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false) // "DRAFT | PUBLISHED | DELETED"
@@ -80,10 +77,14 @@ public class Recipe {
     @Builder.Default
     private List<Review> reviews = new ArrayList<>();
 
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<RecipeCategory> recipeCategories = new ArrayList<>();
+
     // 업데이트 메서드
-    public void updateRecipe(String title, String category, Visibility visibility) {
+    public void updateRecipe(String title, String description, Visibility visibility) {
         this.title = title;
-        this.category = category;
+        this.description = description;
         this.visibility = visibility;
     }
 
@@ -111,6 +112,15 @@ public class Recipe {
     public void addReview(Review review) {
         this.reviews.add(review);
         review.setRecipe(this);
+    }
+
+    public void addRecipeCategory(RecipeCategory recipeCategory) {
+        this.recipeCategories.add(recipeCategory);
+        recipeCategory.setRecipe(this);
+    }
+
+    public void clearRecipeCategories() {
+        this.recipeCategories.clear();
     }
 
     public void setThumbnailUrl(String thumbnailUrl) {

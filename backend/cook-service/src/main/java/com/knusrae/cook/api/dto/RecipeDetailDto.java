@@ -17,7 +17,7 @@ public class RecipeDetailDto {
     private Long id;
     private String title;
     private String description;
-    private String category;
+    private List<RecipeCategoryDto> categories;
     private String status;
     private String visibility;
     private String thumbnail;
@@ -47,7 +47,9 @@ public class RecipeDetailDto {
                 .id(recipe.getId())
                 .title(recipe.getTitle())
                 .description(recipe.getDescription())
-                .category(recipe.getCategory())
+                .categories(recipe.getRecipeCategories().stream()
+                        .map(RecipeCategoryDto::fromEntity)
+                        .collect(Collectors.toList()))
                 .status(recipe.getStatus().name())
                 .visibility(recipe.getVisibility().name())
                 .thumbnail(recipe.getThumbnail())

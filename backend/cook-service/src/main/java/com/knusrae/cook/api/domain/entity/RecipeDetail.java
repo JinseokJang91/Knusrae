@@ -1,7 +1,6 @@
 package com.knusrae.cook.api.domain.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -28,7 +27,7 @@ public class RecipeDetail {
     private String image;
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
+    private String description;
 
     @CreatedDate
     @Column(updatable = false)
@@ -44,7 +43,7 @@ public class RecipeDetail {
 
     // 비즈니스 메서드
     public void updateDetail(String content, String image) {
-        this.content = content;
+        this.description = content;
         this.image = image;
     }
 

@@ -1,15 +1,20 @@
 package com.knusrae.cook.api.domain.service;
 
 import com.knusrae.common.custom.storage.ImageStorage;
+import com.knusrae.cook.api.domain.entity.CommonCodeDetail;
+import com.knusrae.cook.api.domain.entity.CommonCodeDetailId;
 import com.knusrae.cook.api.domain.entity.Recipe;
+import com.knusrae.cook.api.domain.entity.RecipeCategory;
 import com.knusrae.cook.api.domain.entity.RecipeDetail;
 import com.knusrae.cook.api.domain.entity.RecipeImage;
 import com.knusrae.cook.api.domain.repository.RecipeStepRepository;
+import com.knusrae.cook.api.domain.repository.CommonCodeDetailRepository;
 import com.knusrae.cook.api.dto.RecipeDto;
 import com.knusrae.cook.api.dto.RecipeDetailDto;
 import com.knusrae.cook.api.domain.repository.RecipeImageRepository;
 import com.knusrae.cook.api.domain.repository.RecipeRepository;
 import com.knusrae.cook.api.dto.RecipeStepDto;
+import com.knusrae.cook.api.dto.RecipeCategoryDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,12 +31,16 @@ public class RecipeService {
     private final ImageStorage imageStorage;
     private final RecipeImageRepository recipeImageRepository;
     private final RecipeStepRepository recipeStepRepository;
+    private final CommonCodeDetailRepository commonCodeDetailRepository;
 
     // CREATE - 레시피 생성
     @Transactional
     public RecipeDto createRecipe(RecipeDto recipeDto, List<MultipartFile> images, Integer mainImageIndex) {
         Recipe recipe = recipeDto.toEntity();
         Recipe savedRecipe = recipeRepository.save(recipe);
+
+        // 0) 카테고리 저장
+        saveRecipeCategories(savedRecipe, recipeDto.getCategories());
 
         // 1) 조리 단계 저장 및 순서 목록 확보
         java.util.List<RecipeDetail> savedDetails = new java.util.ArrayList<>();
@@ -77,7 +86,7 @@ public class RecipeService {
                     boolean isMain = (mainImageIndex != null && mainImageIndex == i);
                     if (!isMain && detailAssignIndex < savedDetails.size()) {
                         RecipeDetail targetDetail = savedDetails.get(detailAssignIndex);
-                        targetDetail.updateDetail(targetDetail.getContent(), uploadResponse.url());
+                        targetDetail.updateDetail(targetDetail.getDescription(), uploadResponse.url());
                         recipeStepRepository.save(targetDetail);
                         detailAssignIndex++;
                     }
@@ -86,6 +95,29 @@ public class RecipeService {
         }
 
         return new RecipeDto(savedRecipe);
+    }
+
+    private void saveRecipeCategories(Recipe recipe, List<RecipeCategoryDto> categories) {
+        if (categories == null || categories.isEmpty()) {
+            return;
+        }
+
+        for (RecipeCategoryDto categoryDto : categories) {
+            if (categoryDto.getCodeId() == null || categoryDto.getDetailCodeId() == null) {
+                continue;
+            }
+
+            CommonCodeDetailId id = new CommonCodeDetailId(
+                    categoryDto.getCodeId(),
+                    categoryDto.getDetailCodeId()
+            );
+
+            CommonCodeDetail detail = commonCodeDetailRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공통 코드 상세입니다: " + id));
+
+            RecipeCategory recipeCategory = RecipeCategory.of(recipe, detail);
+            recipe.addRecipeCategory(recipeCategory);
+        }
     }
 
     private void validateImage(MultipartFile file) {

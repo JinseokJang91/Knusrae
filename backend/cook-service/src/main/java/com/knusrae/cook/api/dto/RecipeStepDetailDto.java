@@ -22,7 +22,7 @@ public class RecipeStepDetailDto {
         return RecipeStepDetailDto.builder()
                 .id(recipeDetail.getId())
                 .step(recipeDetail.getStep())
-                .content(recipeDetail.getContent())
+                .content(recipeDetail.getDescription())
                 .image(recipeDetail.getImage())
                 .createdAt(recipeDetail.getCreatedAt())
                 .updatedAt(recipeDetail.getUpdatedAt())
