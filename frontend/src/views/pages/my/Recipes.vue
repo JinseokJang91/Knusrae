@@ -89,7 +89,7 @@
 
                     <div v-else-if="recipeDetail">
                         <h4 class="text-lg font-semibold mb-2">{{ recipeDetail.recipe.title }}</h4>
-                        <p class="text-gray-600 mb-4">{{ recipeDetail.recipe.description }}</p>
+                        <p class="text-gray-600 mb-4">{{ recipeDetail.recipe.introduction }}</p>
 
                         <!-- 이미지 갤러리 -->
                         <div v-if="recipeDetail.images.length > 0" class="mb-6">
@@ -114,7 +114,7 @@
                         </div>
 
                         <div class="mt-4 pt-4 border-t text-sm text-gray-500">
-                            <div>카테고리: {{ recipeDetail.recipe.category }}</div>
+                            <div>카테고리: {{ formatCategories(recipeDetail.recipe.categories) }}</div>
                             <div>상태: {{ recipeDetail.recipe.status }}</div>
                             <div>공개 설정: {{ recipeDetail.recipe.visibility }}</div>
                             <div>조회수: {{ recipeDetail.recipe.hits || 0 }}</div>
@@ -143,11 +143,12 @@ interface Recipe {
     status: 'draft' | 'published';
     visibility: 'public' | 'private';
     thumbnail?: string;
-    description?: string;
+    introduction?: string;
     ingredients?: string[];
     instructions?: string[];
     createdAt?: string;
     updatedAt?: string;
+    categories?: Array<{ codeId: string; detailCodeId: string; codeName?: string; detailName?: string }>;
 }
 
 // 레시피 생성/수정을 위한 타입 (향후 사용 예정)
@@ -260,6 +261,16 @@ const closeDetailModal = () => {
 // 레시피 상세 페이지로 이동
 const viewRecipeDetail = (id: number) => {
     router.push(`/recipe/${id}`);
+};
+
+const formatCategories = (categories?: Array<{ codeName?: string; detailName?: string }>) => {
+    if (!categories || categories.length === 0) {
+        return '-';
+    }
+    return categories
+        .map((category) => category.detailName || category.codeName)
+        .filter((name): name is string => Boolean(name && name.trim()))
+        .join(', ');
 };
 
 // 필터링된 레시피 목록

@@ -43,6 +43,29 @@
                 <textarea v-model.trim="form.description" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" rows="4" placeholder="간단한 소개나 메모를 작성하세요"></textarea>
             </div>
 
+            <div>
+                <label class="block mb-2 font-medium">카테고리</label>
+                <div v-if="categoriesError" class="mb-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    {{ categoriesError }}
+                </div>
+                <div v-else>
+                    <div v-if="categoriesLoading" class="p-3 text-gray-500 border border-dashed rounded">
+                        카테고리 정보를 불러오는 중입니다...
+                    </div>
+                    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div v-for="option in categoryOptions" :key="option.codeId" class="flex flex-col gap-2">
+                            <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>
+                            <select v-model="form.categories[option.codeId]" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">선택하세요</option>
+                                <option v-for="detail in option.details" :key="detail.detailCodeId" :value="detail.detailCodeId">
+                                    {{ detail.codeName }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 단계 관리 -->
             <div>
                 <div class="flex items-center justify-between mb-2">
@@ -119,7 +142,7 @@
 
 <script setup lang="ts">
 import { httpForm, httpJson } from '@/utils/http';
-import { computed, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -131,36 +154,84 @@ interface RecipeStepDraft {
     text: string;
 }
 
+interface CommonCodeDetailOption {
+    detailCodeId: string;
+    codeName: string;
+}
+
+interface CommonCodeOption {
+    codeId: string;
+    codeName: string;
+    details: CommonCodeDetailOption[];
+}
+
 interface RecipeDraft {
     title: string;
     description: string;
-    category: string;
     status: 'DRAFT' | 'PUBLISHED';
     visibility: 'PUBLIC' | 'PRIVATE';
     memberId: number;
     thumbnailFile?: File | null;
     thumbnailPreview?: string;
     steps: RecipeStepDraft[];
+    categories: Record<string, string>;
 }
 
 const submitting = ref(false);
 const error = ref<string | null>(null);
+const categoriesLoading = ref(false);
+const categoriesError = ref<string | null>(null);
+const categoryOptions = ref<CommonCodeOption[]>([]);
 
 const form = reactive<RecipeDraft>({
     title: '',
     description: '',
-    category: 'TEST',
     status: 'DRAFT',
     visibility: 'PUBLIC',
     memberId: 1,
     thumbnailFile: null,
     thumbnailPreview: '',
-    steps: []
+    steps: [],
+    categories: {}
 });
 
 const isValid = computed(() => {
-    return Boolean(form.title.trim()) && form.steps.length > 0 && form.steps.every((s) => s.text.trim());
+    const basicValid = Boolean(form.title.trim());
+    const stepsValid = form.steps.length > 0 && form.steps.every((s) => s.text.trim());
+    const categoriesValid = categoryOptions.value.length === 0 || categoryOptions.value.every((option) => !!form.categories[option.codeId]);
+    return basicValid && stepsValid && categoriesValid;
 });
+
+onMounted(() => {
+    loadCategoryOptions();
+});
+
+async function loadCategoryOptions() {
+    categoriesLoading.value = true;
+    categoriesError.value = null;
+    try {
+        const response = await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/common-codes?codeGroup=CATEGORY', {
+            method: 'GET',
+            attachAuth: false
+        });
+
+        if (Array.isArray(response)) {
+            categoryOptions.value = response;
+            categoryOptions.value.forEach((option) => {
+                if (form.categories[option.codeId] === undefined) {
+                    form.categories[option.codeId] = '';
+                }
+            });
+        } else {
+            categoryOptions.value = [];
+        }
+    } catch (e) {
+        console.error('카테고리 정보를 불러오지 못했습니다.', e);
+        categoriesError.value = '카테고리 정보를 불러오지 못했습니다.';
+    } finally {
+        categoriesLoading.value = false;
+    }
+}
 
 function addStep() {
     form.steps.push({ id: crypto.randomUUID(), file: null, text: '', previewUrl: '' });
@@ -213,17 +284,38 @@ function goBack() {
     router.push('/my/recipes');
 }
 
+function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
+    const categories = categoryOptions.value
+        .map((option) => ({
+            codeId: option.codeId,
+            detailCodeId: form.categories[option.codeId]
+        }))
+        .filter((category) => Boolean(category.detailCodeId));
+
+    return {
+        title: form.title,
+        description: form.description,
+        status: statusOverride ?? form.status,
+        visibility: form.visibility,
+        memberId: form.memberId,
+        categories,
+        steps: form.steps.map((s, idx) => ({ order: idx + 1, text: s.text.trim() }))
+    };
+}
+
 async function saveAsDraft() {
     submitting.value = true;
     error.value = null;
     try {
+        const payload = buildRecipePayload('DRAFT');
         await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe/draft', {
             method: 'POST',
-            body: JSON.stringify(form)
+            body: JSON.stringify(payload)
         });
 
         alert('초안이 저장되었습니다.');
     } catch (e) {
+        console.error(e);
         error.value = '초안 저장 중 오류가 발생했습니다.';
     } finally {
         submitting.value = false;
@@ -231,13 +323,15 @@ async function saveAsDraft() {
 }
 
 async function submit() {
-    if (!isValid.value) return;
+    if (!isValid.value) {
+        error.value = '필수 항목을 모두 입력해주세요.';
+        return;
+    }
     submitting.value = true;
     error.value = null;
     try {
         // 토큰 검증
         const token = localStorage.getItem('accessToken');
-        console.log('🔐 RecipeCreate - Current Token:', token ? '토큰 존재' : '토큰 없음');
 
         if (!token) {
             throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
@@ -246,33 +340,13 @@ async function submit() {
         // 멀티파트 폼 구성 (이미지 + 텍스트 단계)
         const formData = new FormData();
 
-        const recipePayload = {
-            title: form.title,
-            description: form.description,
-            category: 'food', // TODO: 카테고리 선택 후 변경
-            status: form.status,
-            visibility: form.visibility,
-            memberId: 1, // TODO: 로그인 후 변경
-            steps: form.steps.map((s, idx) => ({ order: idx + 1, text: s.text }))
-            // mainImageIndex: '0'
-        };
-        console.log('recipePayload : ', recipePayload);
+        const recipePayload = buildRecipePayload();
 
         // Blob을 사용하여 명시적으로 MIME 타입 설정
         const recipeBlob = new Blob([JSON.stringify(recipePayload)], {
             type: 'application/json; charset=utf-8'
         });
         formData.append('recipe', recipeBlob, 'recipe.json');
-        console.log('formData type 1 : ', (formData.get('recipe') as File).type);
-        console.log('formData type 2 : ', (formData.get('recipe') as Blob).type);
-
-        // formData.append('title', form.title);
-        // formData.append('description', form.description);
-        // formData.append('status', form.status);
-        // formData.append('visibility', form.visibility);
-
-        // const stepsPayload = form.steps.map((s, idx) => ({ order: idx + 1, text: s.text }));
-        // formData.append('steps', new Blob([JSON.stringify(stepsPayload)], { type: 'application/json' }));
 
         // 썸네일이 있다면 먼저 추가 (대표 이미지가 됨)
         if (form.thumbnailFile) {
@@ -280,20 +354,11 @@ async function submit() {
         }
 
         form.steps.forEach((s, idx) => {
-            console.log('s : ', s);
-            if (s.file) formData.append(`images`, s.file, `step-${idx + 1}.png`);
+            if (s.file) formData.append('images', s.file, `step-${idx + 1}.png`);
         });
 
         // 대표 이미지 인덱스 설정: 썸네일이 있으면 0, 없으면 첫 번째 이미지(0)
         formData.append('mainImageIndex', '0');
-
-        // API 호출 전 로깅
-        console.log('🚀 RecipeCreate - API 호출 시작:', {
-            baseUrl: import.meta.env.VITE_API_BASE_URL_COOK,
-            endpoint: '/api/recipe',
-            method: 'POST',
-            formDataKeys: Array.from(formData.keys())
-        });
 
         // 실제 API 엔드포인트로 전송 (토큰 자동 첨부)
         await httpForm(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe', formData, { method: 'POST' });
@@ -301,7 +366,8 @@ async function submit() {
         alert('등록이 완료되었습니다.');
         router.push('/my/recipes');
     } catch (e) {
-        error.value = '레시피 등록 중 오류가 발생했습니다.';
+        console.error(e);
+        error.value = e instanceof Error ? e.message : '레시피 등록 중 오류가 발생했습니다.';
     } finally {
         submitting.value = false;
     }

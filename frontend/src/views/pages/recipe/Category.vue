@@ -115,7 +115,7 @@
                                         <i class="pi pi-star-fill text-yellow-500"></i>
                                         <span>{{ recipe.rating }}</span>
                                     </div>
-                                    <Tag :value="recipe.category" severity="info" />
+                                    <Tag :value="getCategoryName(recipe.category)" severity="info" />
                                 </div>
                             </div>
                             <div class="flex flex-col gap-2">
@@ -208,60 +208,53 @@ const totalDisplayRecipes = computed(() => {
 
 // Function > onMounted > 카테고리 조회
 // TODO 카테고리 목록 조회 API 연결 예정
-const loadCategories = () => {
+const loadCategories = async () => {
+    try {
+        const response = await httpJson(API_BASE_URL, '/api/common-codes?codeGroup=CATEGORY', {
+            method: 'GET',
+            attachAuth: false
+        });
+
+        const codes = Array.isArray(response) ? response : [];
+        const keywordGroup = codes.find((code) => code.codeId === 'COOKING_KEYWORD');
+
+        if (keywordGroup && Array.isArray(keywordGroup.details)) {
+            categories.value = keywordGroup.details.map((detail) => ({
+                value: detail.detailCodeId,
+                name: detail.codeName,
+                description: `${detail.codeName} 관련 레시피`,
+                icon: 'pi pi-tag',
+                color: '#3B82F6',
+                recipeCount: 0
+            }));
+            return;
+        }
+    } catch (error) {
+        console.warn('카테고리 목록 조회 실패, 기본값을 사용합니다.', error);
+    }
+
     categories.value = [
         {
-            value: 'korean',
+            value: '1001',
             name: '한식',
             description: '전통 한국 요리',
             icon: 'pi pi-home',
             color: '#3B82F6',
-            recipeCount: 45
-        },
-        {
-            value: 'chinese',
-            name: '중식',
-            description: '중국 전통 요리',
-            icon: 'pi pi-compass',
-            color: '#EF4444',
-            recipeCount: 32
-        },
-        {
-            value: 'japanese',
-            name: '일식',
-            description: '일본 전통 요리',
-            icon: 'pi pi-sun',
-            color: '#F59E0B',
-            recipeCount: 28
-        },
-        {
-            value: 'western',
-            name: '양식',
-            description: '서양 요리',
-            icon: 'pi pi-globe',
-            color: '#10B981',
-            recipeCount: 35
-        },
-        {
-            value: 'dessert',
-            name: '디저트',
-            description: '달콤한 디저트',
-            icon: 'pi pi-star',
-            color: '#8B5CF6',
-            recipeCount: 22
-        },
-        {
-            value: 'snack',
-            name: '간식',
-            description: '간편한 간식',
-            icon: 'pi pi-apple',
-            color: '#F97316',
-            recipeCount: 18
+            recipeCount: 0
         }
     ];
 };
 
 // Function > onMounted > 레시피 조회
+const derivePrimaryCategory = (recipe) => {
+    if (!recipe || !recipe.categories || recipe.categories.length === 0) {
+        return null;
+    }
+    const keywordCategory = recipe.categories.find((category) => category.codeId === 'COOKING_KEYWORD');
+    const target = keywordCategory || recipe.categories[0];
+    return target?.detailCodeId || target?.codeId || null;
+};
+
 const loadRecipes = async () => {
     try {
         loading.value = true;
@@ -271,7 +264,11 @@ const loadRecipes = async () => {
             method: 'GET'
         });
 
-        recipes.value = response.data || response || [];
+        const data = response.data || response || [];
+        recipes.value = data.map((recipe) => ({
+            ...recipe,
+            category: derivePrimaryCategory(recipe)
+        }));
 
         console.log('RECIPE LIST : ' + recipes.value); // TODO 삭제
 
@@ -430,7 +427,7 @@ watch(selectedCategory, (newCategory) => {
 
 // 생명주기
 onMounted(async () => {
-    loadCategories();
+    await loadCategories();
     await loadRecipes();
 });
 </script>
