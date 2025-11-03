@@ -66,6 +66,29 @@
                 </div>
             </div>
 
+            <div>
+                <label class="block mb-2 font-medium">요리팁</label>
+                <div v-if="cookingTipsError" class="mb-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                    {{ cookingTipsError }}
+                </div>
+                <div v-else>
+                    <div v-if="cookingTipsLoading" class="p-3 text-gray-500 border border-dashed rounded">
+                        요리팁 정보를 불러오는 중입니다...
+                    </div>
+                    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div v-for="option in cookingTipsOptions" :key="option.codeId" class="flex flex-col gap-2">
+                            <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>
+                            <select v-model="form.cookingTips[option.codeId]" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">선택하세요</option>
+                                <option v-for="detail in option.details" :key="detail.detailCodeId" :value="detail.detailCodeId">
+                                    {{ detail.codeName }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 단계 관리 -->
             <div>
                 <div class="flex items-center justify-between mb-2">
@@ -175,6 +198,7 @@ interface RecipeDraft {
     thumbnailPreview?: string;
     steps: RecipeStepDraft[];
     categories: Record<string, string>;
+    cookingTips: Record<string, string>;
 }
 
 const submitting = ref(false);
@@ -182,6 +206,9 @@ const error = ref<string | null>(null);
 const categoriesLoading = ref(false);
 const categoriesError = ref<string | null>(null);
 const categoryOptions = ref<CommonCodeOption[]>([]);
+const cookingTipsLoading = ref(false);
+const cookingTipsError = ref<string | null>(null);
+const cookingTipsOptions = ref<CommonCodeOption[]>([]);
 
 const form = reactive<RecipeDraft>({
     title: '',
@@ -192,18 +219,21 @@ const form = reactive<RecipeDraft>({
     thumbnailFile: null,
     thumbnailPreview: '',
     steps: [],
-    categories: {}
+    categories: {},
+    cookingTips: {}
 });
 
 const isValid = computed(() => {
     const basicValid = Boolean(form.title.trim());
     const stepsValid = form.steps.length > 0 && form.steps.every((s) => s.text.trim());
     const categoriesValid = categoryOptions.value.length === 0 || categoryOptions.value.every((option) => !!form.categories[option.codeId]);
-    return basicValid && stepsValid && categoriesValid;
+    const cookingTipsValid = cookingTipsOptions.value.length === 0 || cookingTipsOptions.value.every((option) => !!form.cookingTips[option.codeId]);
+    return basicValid && stepsValid && categoriesValid && cookingTipsValid;
 });
 
 onMounted(() => {
     loadCategoryOptions();
+    loadCookingTipsOptions();
 });
 
 async function loadCategoryOptions() {
@@ -230,6 +260,33 @@ async function loadCategoryOptions() {
         categoriesError.value = '카테고리 정보를 불러오지 못했습니다.';
     } finally {
         categoriesLoading.value = false;
+    }
+}
+
+async function loadCookingTipsOptions() {
+    cookingTipsLoading.value = true;
+    cookingTipsError.value = null;
+    try {
+        const response = await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/common-codes?codeGroup=COOKINGTIP', {
+            method: 'GET',
+            attachAuth: false
+        });
+
+        if (Array.isArray(response)) {
+            cookingTipsOptions.value = response;
+            cookingTipsOptions.value.forEach((option) => {
+                if (form.cookingTips[option.codeId] === undefined) {
+                    form.cookingTips[option.codeId] = '';
+                }
+            });
+        } else {
+            cookingTipsOptions.value = [];
+        }
+    } catch (e) {
+        console.error('요리팁 정보를 불러오지 못했습니다.', e);
+        cookingTipsError.value = '요리팁 정보를 불러오지 못했습니다.';
+    } finally {
+        cookingTipsLoading.value = false;
     }
 }
 
@@ -292,6 +349,13 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
         }))
         .filter((category) => Boolean(category.detailCodeId));
 
+    const cookingTips = cookingTipsOptions.value
+        .map((option) => ({
+            codeId: option.codeId,
+            detailCodeId: form.cookingTips[option.codeId]
+        }))
+        .filter((cookingTip) => Boolean(cookingTip.detailCodeId));
+
     return {
         title: form.title,
         description: form.description,
@@ -299,6 +363,7 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
         visibility: form.visibility,
         memberId: form.memberId,
         categories,
+        cookingTips,
         steps: form.steps.map((s, idx) => ({ order: idx + 1, text: s.text.trim() }))
     };
 }

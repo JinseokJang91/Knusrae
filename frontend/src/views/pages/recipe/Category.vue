@@ -5,19 +5,35 @@
             <h1 class="text-3xl font-bold text-gray-900">카테고리</h1>
         </div>
 
-        <!-- header : 카테고리 선택 영역 (라디오 버튼 형태) -->
+        <!-- header : 카테고리 선택 영역 (좌측 메인 카테고리, 우측 서브 카테고리) -->
         <div class="category-selector mb-4">
-            <div class="flex flex-wrap gap-2 justify-center">
-                <Button
-                    v-for="category in categories"
-                    :key="category.value"
-                    :label="category.name"
-                    :icon="category.icon"
-                    :class="selectedCategory === category.value ? 'p-button-primary' : 'p-button-outlined'"
-                    size="small"
-                    @click="selectCategory(category.value)"
-                    class="category-button"
-                />
+            <div class="flex gap-4">
+                <!-- 좌측: 메인 카테고리 목록 (수직 일렬) -->
+                <div class="main-categories">
+                    <div
+                        v-for="mainCategory in mainCategories"
+                        :key="mainCategory.codeId"
+                        :class="['main-category-item', selectedMainCategory === mainCategory.codeId ? 'selected' : '']"
+                        @click="selectMainCategory(mainCategory.codeId)"
+                    >
+                        {{ mainCategory.codeName }}
+                    </div>
+                </div>
+
+                <!-- 우측: 선택된 메인 카테고리의 서브 카테고리 목록 (나열) -->
+                <div class="sub-categories flex-1">
+                    <div class="flex flex-wrap gap-2">
+                        <Button
+                            v-for="detail in selectedMainCategoryDetails"
+                            :key="detail.detailCodeId"
+                            :label="detail.codeName"
+                            :class="selectedCategory === detail.detailCodeId ? 'p-button-primary' : 'p-button-outlined'"
+                            size="small"
+                            @click="selectCategory(detail.detailCodeId)"
+                            class="category-button"
+                        />
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -162,8 +178,10 @@ const toast = useToast();
 
 // 반응형 데이터
 const categories = ref([]);
+const mainCategories = ref([]); // 메인 카테고리 목록 (codeName 필드를 가진 항목들)
 const recipes = ref([]);
 const selectedCategory = ref(null);
+const selectedMainCategory = ref(null); // 선택된 메인 카테고리
 const searchResults = ref([]);
 const searchQuery = ref('');
 const searchCategory = ref(null);
@@ -206,6 +224,15 @@ const totalDisplayRecipes = computed(() => {
     return searchResults.value.length > 0 ? searchResults.value.length : filteredRecipes.value.length;
 });
 
+// 선택된 메인 카테고리의 서브 카테고리 목록 (details)
+const selectedMainCategoryDetails = computed(() => {
+    if (!selectedMainCategory.value) {
+        return [];
+    }
+    const mainCategory = mainCategories.value.find((cat) => cat.codeId === selectedMainCategory.value);
+    return mainCategory?.details || [];
+});
+
 // Function > onMounted > 카테고리 조회
 // TODO 카테고리 목록 조회 API 연결 예정
 const loadCategories = async () => {
@@ -214,10 +241,19 @@ const loadCategories = async () => {
             method: 'GET',
             attachAuth: false
         });
+        console.log('CATEGORY LIST : ' + JSON.stringify(response)); // TODO 삭제
 
         const codes = Array.isArray(response) ? response : [];
-        const keywordGroup = codes.find((code) => code.codeId === 'COOKING_KEYWORD');
+        
+        // 메인 카테고리 목록 저장 (codeName 필드를 가진 모든 항목들)
+        mainCategories.value = codes.map((code) => ({
+            codeId: code.codeId,
+            codeName: code.codeName,
+            details: code.details || []
+        }));
 
+        // 기존 categories 배열도 유지 (하위 호환성)
+        const keywordGroup = codes.find((code) => code.codeId === 'COOKING_KEYWORD');
         if (keywordGroup && Array.isArray(keywordGroup.details)) {
             categories.value = keywordGroup.details.map((detail) => ({
                 value: detail.detailCodeId,
@@ -227,22 +263,33 @@ const loadCategories = async () => {
                 color: '#3B82F6',
                 recipeCount: 0
             }));
-            return;
+        }
+
+        // 첫 번째 메인 카테고리를 기본 선택
+        if (mainCategories.value.length > 0) {
+            selectedMainCategory.value = mainCategories.value[0].codeId;
         }
     } catch (error) {
         console.warn('카테고리 목록 조회 실패, 기본값을 사용합니다.', error);
+        // 기본값 설정
+        mainCategories.value = [
+            {
+                codeId: 'COOKING_KEYWORD',
+                codeName: '요리 키워드',
+                details: []
+            }
+        ];
+        categories.value = [
+            {
+                value: '1001',
+                name: '한식',
+                description: '전통 한국 요리',
+                icon: 'pi pi-home',
+                color: '#3B82F6',
+                recipeCount: 0
+            }
+        ];
     }
-
-    categories.value = [
-        {
-            value: '1001',
-            name: '한식',
-            description: '전통 한국 요리',
-            icon: 'pi pi-home',
-            color: '#3B82F6',
-            recipeCount: 0
-        }
-    ];
 };
 
 // Function > onMounted > 레시피 조회
@@ -269,8 +316,6 @@ const loadRecipes = async () => {
             ...recipe,
             category: derivePrimaryCategory(recipe)
         }));
-
-        console.log('RECIPE LIST : ' + recipes.value); // TODO 삭제
 
         toast.add({
             severity: 'success',
@@ -367,6 +412,14 @@ const loadRecipes = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+// Function > Button > 메인 카테고리 선택
+const selectMainCategory = (codeId) => {
+    selectedMainCategory.value = codeId;
+    selectedCategory.value = null; // 메인 카테고리 변경 시 서브 카테고리 선택 해제
+    searchResults.value = [];
+    first.value = 0;
 };
 
 // Function > Button > body 카테고리 선택 시 목록 필터링
@@ -505,6 +558,43 @@ onMounted(async () => {
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 2rem;
+}
+
+/* 좌측 메인 카테고리 스타일 */
+.main-categories {
+    min-width: 200px;
+    border-right: 2px solid var(--surface-border);
+    padding-right: 1rem;
+    margin-right: 1rem;
+}
+
+.main-category-item {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: var(--text-color);
+    background: var(--surface-ground);
+    border: 1px solid transparent;
+}
+
+.main-category-item:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary-color);
+}
+
+.main-category-item.selected {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* 우측 서브 카테고리 스타일 */
+.sub-categories {
+    padding-left: 1rem;
 }
 
 .category-button {
@@ -661,6 +751,24 @@ onMounted(async () => {
 
     .category-selector {
         padding: 1rem;
+    }
+
+    .category-selector .flex {
+        flex-direction: column;
+    }
+
+    .main-categories {
+        min-width: 100%;
+        border-right: none;
+        border-bottom: 2px solid var(--surface-border);
+        padding-right: 0;
+        padding-bottom: 1rem;
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .sub-categories {
+        padding-left: 0;
     }
 
     .category-button {
