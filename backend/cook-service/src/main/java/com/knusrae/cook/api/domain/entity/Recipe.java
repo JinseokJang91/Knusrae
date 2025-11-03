@@ -80,6 +80,10 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<RecipeCategory> recipeCategories = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<RecipeCategory> recipeCookingTips = new ArrayList<>();
 
     // 업데이트 메서드
     public void updateRecipe(String title, String description, Visibility visibility) {

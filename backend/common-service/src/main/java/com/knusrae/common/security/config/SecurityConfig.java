@@ -40,8 +40,9 @@ public class SecurityConfig {
                 // 인증 허용/필수 대상 URL 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/recipe").permitAll() // ← 임시
+                        .requestMatchers(HttpMethod.GET, "/api/recipe/**").permitAll() // ← 임시
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/common-codes/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )

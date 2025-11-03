@@ -22,7 +22,7 @@ public class RecipeStepDto {
     public RecipeDetail toEntity(RecipeStepDto recipeStepDto) {
         return RecipeDetail.builder()
                 .step(recipeStepDto.getOrder())
-                .content(recipeStepDto.getText())
+                .description(recipeStepDto.getText())
                 .build();
     }
 }

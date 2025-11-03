@@ -26,6 +26,8 @@ public class RecipeDto {
     private String description;
 
     private List<RecipeCategoryDto> categories = new java.util.ArrayList<>();
+    
+    private List<RecipeCookingTipDto> cookingTips = new java.util.ArrayList<>();
 
     private String status;
     private String visibility;
@@ -61,6 +63,9 @@ public class RecipeDto {
         this.description = recipe.getDescription();
         this.categories = recipe.getRecipeCategories().stream()
                 .map(RecipeCategoryDto::fromEntity)
+                .toList();
+        this.cookingTips = recipe.getRecipeCookingTips().stream()
+                .map(RecipeCookingTipDto::fromEntity)
                 .toList();
     }
 
