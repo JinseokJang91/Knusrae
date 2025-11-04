@@ -17,34 +17,49 @@
 
         <div class="grid grid-cols-1 gap-4">
 
-            <!-- 썸네일 업로드 -->
-            <div>
-                <label class="block mb-2 font-medium">썸네일</label>
-                <div class="flex items-center gap-4">
-                    <input type="file" accept="image/*" @change="onThumbnailChange" :disabled="submitting" />
-                    <button v-if="form.thumbnailPreview" class="px-3 py-1 text-red-600 hover:bg-red-100 rounded" @click="clearThumbnail" :disabled="submitting">
-                        <span class="pi pi-times mr-1"></span>
-                        제거
-                    </button>
+            <!-- 썸네일 및 기본 정보 -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <!-- 썸네일 업로드 (좌측) -->
+                <div class="md:col-span-2">
+                    <label class="block mb-2 font-medium"><b>대표 사진</b></label>
+                    <input ref="thumbnailInputRef" type="file" accept="image/*" @change="onThumbnailChange" :disabled="submitting" class="hidden" />
+                    <div 
+                        class="relative w-full aspect-[5/3] bg-gray-200 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-300 hover:border-gray-400 transition-colors flex items-center justify-center"
+                        @click="() => !submitting && thumbnailInputRef?.click()"
+                    >
+                        <div v-if="!form.thumbnailPreview" class="text-center text-gray-500">
+                            <span class="pi pi-image text-4xl block mb-2"></span>
+                            <span class="text-sm">이미지를 클릭하여 추가하세요</span>
+                        </div>
+                        <div v-else class="relative w-full h-full">
+                            <img :src="form.thumbnailPreview" alt="thumbnail preview" class="w-full h-full object-cover rounded-md" />
+                            <button 
+                                class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                                @click.stop="clearThumbnail"
+                                :disabled="submitting"
+                            >
+                                <span class="pi pi-times"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">등록 시 썸네일이 대표 이미지로 사용됩니다.</p>
                 </div>
-                <div v-if="form.thumbnailPreview" class="mt-2">
-                    <img :src="form.thumbnailPreview" alt="thumbnail preview" class="max-h-48 rounded border" />
+
+                <!-- 제목 및 설명 (우측) -->
+                <div class="md:col-span-3 flex flex-col gap-4">
+                    <div>
+                        <label class="block mb-2 font-medium"><b>제목</b></label>
+                        <input v-model.trim="form.title" type="text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" placeholder="레시피 제목을 입력하세요" />
+                    </div>
+                    <div class="flex-1">
+                        <label class="block mb-2 font-medium"><b>설명</b></label>
+                        <textarea v-model.trim="form.description" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full h-full min-h-[120px]" placeholder="간단한 소개나 메모를 작성하세요"></textarea>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-500 mt-1">등록 시 썸네일이 대표 이미지로 사용됩니다.</p>
             </div>
 
             <div>
-                <label class="block mb-2 font-medium">제목</label>
-                <input v-model.trim="form.title" type="text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" placeholder="레시피 제목을 입력하세요" />
-            </div>
-
-            <div>
-                <label class="block mb-2 font-medium">설명</label>
-                <textarea v-model.trim="form.description" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" rows="4" placeholder="간단한 소개나 메모를 작성하세요"></textarea>
-            </div>
-
-            <div>
-                <label class="block mb-2 font-medium">카테고리</label>
+                <label class="block mb-2 font-medium"><b>카테고리</b></label>
                 <div v-if="categoriesError" class="mb-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
                     {{ categoriesError }}
                 </div>
@@ -67,7 +82,7 @@
             </div>
 
             <div>
-                <label class="block mb-2 font-medium">요리팁</label>
+                <label class="block mb-2 font-medium"><b>요리팁</b></label>
                 <div v-if="cookingTipsError" class="mb-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
                     {{ cookingTipsError }}
                 </div>
@@ -92,7 +107,7 @@
             <!-- 단계 관리 -->
             <div>
                 <div class="flex items-center justify-between mb-2">
-                    <label class="font-medium">조리 순서</label>
+                    <label class="font-medium"><b>조리 순서</b></label>
                     <button class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50" @click="addStep" :disabled="submitting">
                         <span class="pi pi-plus mr-2"></span>
                         <span>단계 추가</span>
@@ -116,15 +131,38 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div class="md:col-span-2">
                             <label class="block mb-2">이미지</label>
-                            <input type="file" accept="image/*" @change="onStepImageChange($event, step)" :disabled="submitting" />
-                            <div v-if="step.previewUrl" class="mt-2">
-                                <img :src="step.previewUrl" alt="step preview" class="max-h-48 rounded border" />
+                            <input 
+                                :ref="el => { if (el) stepInputRefs[step.id] = el as HTMLInputElement }" 
+                                type="file" 
+                                accept="image/*" 
+                                @change="onStepImageChange($event, step)" 
+                                :disabled="submitting" 
+                                class="hidden" 
+                            />
+                            <div 
+                                class="relative w-full aspect-[5/3] bg-gray-200 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-300 hover:border-gray-400 transition-colors flex items-center justify-center"
+                                @click="() => !submitting && stepInputRefs[step.id]?.click()"
+                            >
+                                <div v-if="!step.previewUrl" class="text-center text-gray-500">
+                                    <span class="pi pi-image text-4xl block mb-2"></span>
+                                    <span class="text-sm">이미지를 클릭하여 추가하세요</span>
+                                </div>
+                                <div v-else class="relative w-full h-full">
+                                    <img :src="step.previewUrl" alt="step preview" class="w-full h-full object-cover rounded-md" />
+                                    <button 
+                                        class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                                        @click.stop="clearStepImage(step)"
+                                        :disabled="submitting"
+                                    >
+                                        <span class="pi pi-times"></span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div>
+                        <div class="md:col-span-3">
                             <label class="block mb-2">설명</label>
                             <textarea v-model.trim="step.text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" rows="6" placeholder="이 단계에서의 설명을 작성하세요"></textarea>
                         </div>
@@ -134,14 +172,14 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block mb-2 font-medium">공개 여부</label>
+                    <label class="block mb-2 font-medium"><b>공개 여부</b></label>
                     <select v-model="form.visibility" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
                         <option value="PUBLIC">공개</option>
                         <option value="PRIVATE">비공개</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block mb-2 font-medium">상태</label>
+                    <label class="block mb-2 font-medium"><b>상태</b></label>
                     <select v-model="form.status" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
                         <option value="DRAFT">초안</option>
                         <option value="PUBLISHED">발행</option>
@@ -209,6 +247,8 @@ const categoryOptions = ref<CommonCodeOption[]>([]);
 const cookingTipsLoading = ref(false);
 const cookingTipsError = ref<string | null>(null);
 const cookingTipsOptions = ref<CommonCodeOption[]>([]);
+const thumbnailInputRef = ref<HTMLInputElement | null>(null);
+const stepInputRefs = ref<Record<string, HTMLInputElement>>({});
 
 const form = reactive<RecipeDraft>({
     title: '',
@@ -335,6 +375,19 @@ function clearThumbnail() {
     if (form.thumbnailPreview) URL.revokeObjectURL(form.thumbnailPreview);
     form.thumbnailPreview = '';
     form.thumbnailFile = null;
+    if (thumbnailInputRef.value) {
+        thumbnailInputRef.value.value = '';
+    }
+}
+
+function clearStepImage(step: RecipeStepDraft) {
+    if (step.previewUrl) URL.revokeObjectURL(step.previewUrl);
+    step.previewUrl = '';
+    step.file = null;
+    const inputRef = stepInputRefs.value[step.id];
+    if (inputRef) {
+        inputRef.value = '';
+    }
 }
 
 function goBack() {

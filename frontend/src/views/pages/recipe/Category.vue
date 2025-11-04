@@ -67,15 +67,15 @@
             <div v-else-if="displayRecipes.length > 0">
                 <!-- 그리드 뷰 (카드 형태) -->
                 <div v-if="viewMode === 'grid'" class="recipe-grid">
-                    <div v-for="recipe in displayRecipes" :key="recipe.id" class="recipe-card-wrapper">
+                    <div v-for="recipe in displayRecipes" :key="recipe.id" class="recipe-card-wrapper" @click="viewRecipe(recipe.id)">
                         <Card class="recipe-card h-full">
                             <template #header>
                                 <div class="recipe-image-container">
                                     <img :src="recipe.thumbnail" :alt="recipe.title" class="recipe-image" />
                                     <div class="recipe-overlay">
                                         <div class="recipe-actions">
-                                            <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
-                                            <Button icon="pi pi-bookmark" severity="secondary" size="small" rounded @click="bookmarkRecipe(recipe.id)" />
+                                            <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="large" rounded @click.stop="toggleFavorite(recipe.id)" />
+                                            <Button icon="pi pi-bookmark" severity="secondary" size="large" rounded @click.stop="bookmarkRecipe(recipe.id)" />
                                         </div>
                                         <Tag :value="getCategoryName(recipe.category)" severity="info" class="recipe-category-tag" />
                                     </div>
@@ -84,27 +84,30 @@
                             <template #content>
                                 <div class="recipe-content">
                                     <h3 class="recipe-title">{{ recipe.title }}</h3>
-                                    <p class="recipe-description">{{ recipe.description }}</p>
                                     <div class="recipe-meta">
-                                        <div class="recipe-rating">
-                                            <Rating v-model="recipe.rating" readonly :cancel="false" />
-                                            <span class="rating-text">{{ recipe.rating }}</span>
+                                        <div v-if="recipe.hasReviews && recipe.rating" class="recipe-rating">
+                                            <Rating :modelValue="recipe.rating" readonly :cancel="false" />
+                                            <span class="rating-text">{{ recipe.rating.toFixed(1) }}</span>
                                         </div>
                                         <div class="recipe-info">
-                                            <div class="info-item">
-                                                <i class="pi pi-clock"></i>
-                                                <span>{{ recipe.cookingTime }}분</span>
+                                            <div v-if="recipe.hits !== null && recipe.hits !== undefined" class="info-item">
+                                                <i class="pi pi-eye"></i>
+                                                <span>{{ recipe.hits.toLocaleString() }}</span>
                                             </div>
-                                            <div class="info-item">
+                                            <div v-if="recipe.cookingTime" class="info-item">
+                                                <i class="pi pi-clock"></i>
+                                                <span>{{ recipe.cookingTime }}</span>
+                                            </div>
+                                            <div v-if="recipe.servings" class="info-item">
                                                 <i class="pi pi-users"></i>
-                                                <span>{{ recipe.servings }}인분</span>
+                                                <span>{{ recipe.servings }}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </template>
                             <template #footer>
-                                <Button label="상세보기" class="w-full" @click="viewRecipe(recipe.id)" />
+                                <!-- <Button label="상세보기" class="w-full" @click="viewRecipe(recipe.id)" /> -->
                             </template>
                         </Card>
                     </div>
@@ -117,19 +120,22 @@
                             <img :src="recipe.thumbnail" :alt="recipe.title" class="recipe-thumbnail" />
                             <div class="flex-1">
                                 <h4 class="text-lg font-semibold text-gray-900 m-0 mb-1">{{ recipe.title }}</h4>
-                                <p class="text-gray-600 text-sm m-0 mb-2">{{ recipe.description }}</p>
                                 <div class="flex items-center gap-3 text-sm text-gray-500">
-                                    <div class="flex items-center gap-1">
+                                    <div v-if="recipe.hits !== null && recipe.hits !== undefined" class="flex items-center gap-1">
+                                        <i class="pi pi-eye"></i>
+                                        <span>{{ recipe.hits.toLocaleString() }}</span>
+                                    </div>
+                                    <div v-if="recipe.cookingTime" class="flex items-center gap-1">
                                         <i class="pi pi-clock"></i>
-                                        <span>{{ recipe.cookingTime }}분</span>
+                                        <span>{{ recipe.cookingTime }}</span>
                                     </div>
-                                    <div class="flex items-center gap-1">
+                                    <div v-if="recipe.servings" class="flex items-center gap-1">
                                         <i class="pi pi-users"></i>
-                                        <span>{{ recipe.servings }}인분</span>
+                                        <span>{{ recipe.servings }}</span>
                                     </div>
-                                    <div class="flex items-center gap-1">
+                                    <div v-if="recipe.hasReviews && recipe.rating" class="flex items-center gap-1">
                                         <i class="pi pi-star-fill text-yellow-500"></i>
-                                        <span>{{ recipe.rating }}</span>
+                                        <span>{{ recipe.rating.toFixed(1) }}</span>
                                     </div>
                                     <Tag :value="getCategoryName(recipe.category)" severity="info" />
                                 </div>
@@ -302,6 +308,24 @@ const derivePrimaryCategory = (recipe) => {
     return target?.detailCodeId || target?.codeId || null;
 };
 
+// Function > cookingTips에서 요리 시간 추출
+const extractCookingTime = (cookingTips) => {
+    if (!cookingTips || !Array.isArray(cookingTips)) {
+        return null;
+    }
+    const cookingTimeTip = cookingTips.find((tip) => tip.codeId === 'COOKING_TIME');
+    return cookingTimeTip?.detailName || null;
+};
+
+// Function > cookingTips에서 인분 수 추출
+const extractServings = (cookingTips) => {
+    if (!cookingTips || !Array.isArray(cookingTips)) {
+        return null;
+    }
+    const servingTip = cookingTips.find((tip) => tip.codeId === 'SERVINGS');
+    return servingTip?.detailName || null;
+};
+
 const loadRecipes = async () => {
     try {
         loading.value = true;
@@ -312,10 +336,28 @@ const loadRecipes = async () => {
         });
 
         const data = response.data || response || [];
-        recipes.value = data.map((recipe) => ({
-            ...recipe,
-            category: derivePrimaryCategory(recipe)
-        }));
+        console.log('data : ' + JSON.stringify(data));
+        recipes.value = data.map((recipe) => {
+            // cookingTips에서 SERVING과 COOKING_TIME 추출
+            const cookingTime = extractCookingTime(recipe.cookingTips);
+            const servings = extractServings(recipe.cookingTips);
+            console.log('cookingTime : ' + cookingTime);
+            console.log('servings : ' + servings);
+            
+            // 후기가 있을 때만 평균 별점 계산 (일단 reviews 필드가 없으므로 나중에 API에서 받을 것으로 가정)
+            const averageRating = recipe.reviews && recipe.reviews.length > 0
+                ? recipe.reviews.reduce((sum, review) => sum + (review.rating || 0), 0) / recipe.reviews.length
+                : null;
+
+            return {
+                ...recipe,
+                category: derivePrimaryCategory(recipe),
+                cookingTime,
+                servings,
+                rating: averageRating,
+                hasReviews: recipe.reviews && recipe.reviews.length > 0
+            };
+        });
 
         toast.add({
             severity: 'success',
@@ -332,73 +374,73 @@ const loadRecipes = async () => {
             {
                 id: 1,
                 title: '김치찌개',
-                description: '매콤하고 시원한 김치찌개입니다.',
-                image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400',
+                thumbnail: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400',
                 category: 'korean',
-                difficulty: 'easy',
-                cookingTime: 30,
-                servings: 2,
+                cookingTime: '30분',
+                servings: '2인분',
+                hits: 1250,
                 rating: 4.5,
+                hasReviews: true,
                 isFavorite: false
             },
             {
                 id: 2,
                 title: '짜장면',
-                description: '진한 춘장소스의 짜장면입니다.',
-                image: 'https://images.unsplash.com/photo-1563379091339-03246963d4d8?w=400',
+                thumbnail: 'https://images.unsplash.com/photo-1563379091339-03246963d4d8?w=400',
                 category: 'chinese',
-                difficulty: 'medium',
-                cookingTime: 20,
-                servings: 2,
+                cookingTime: '20분',
+                servings: '2인분',
+                hits: 980,
                 rating: 4.3,
+                hasReviews: true,
                 isFavorite: false
             },
             {
                 id: 3,
                 title: '초밥',
-                description: '신선한 생선으로 만든 초밥입니다.',
-                image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400',
+                thumbnail: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400',
                 category: 'japanese',
-                difficulty: 'hard',
-                cookingTime: 45,
-                servings: 4,
+                cookingTime: '45분',
+                servings: '4인분',
+                hits: 2100,
                 rating: 4.8,
+                hasReviews: true,
                 isFavorite: false
             },
             {
                 id: 4,
                 title: '파스타',
-                description: '크림소스가 일품인 파스타입니다.',
-                image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400',
+                thumbnail: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400',
                 category: 'western',
-                difficulty: 'medium',
-                cookingTime: 25,
-                servings: 2,
+                cookingTime: '25분',
+                servings: '2인분',
+                hits: 1560,
                 rating: 4.2,
+                hasReviews: true,
                 isFavorite: true
             },
             {
                 id: 5,
                 title: '치즈케이크',
-                description: '부드럽고 달콤한 치즈케이크입니다.',
-                image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400',
+                thumbnail: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400',
                 category: 'dessert',
-                difficulty: 'hard',
-                cookingTime: 90,
-                servings: 8,
-                rating: 4.7,
+                cookingTime: '90분',
+                servings: '8인분',
+                hits: 890,
+                rating: null,
+                hasReviews: false,
                 isFavorite: true
             },
             {
                 id: 6,
                 title: '불고기',
-                description: '달콤한 양념의 불고기입니다.',
-                image: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400',
+                thumbnail: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400',
                 category: 'korean',
-                difficulty: 'easy',
-                cookingTime: 15,
-                servings: 3,
-                rating: 4.4,
+                cookingTime: '15분',
+                servings: '3인분',
+                hits: 1750,
+                rating: null,
+                hasReviews: false,
                 isFavorite: false
             }
         ];
@@ -541,8 +583,13 @@ onMounted(async () => {
 .recipe-thumbnail {
     width: 80px;
     height: 80px;
+    min-width: 80px;
+    min-height: 80px;
     object-fit: cover;
+    object-position: center;
     border-radius: 8px;
+    display: block;
+    flex-shrink: 0;
 }
 
 .recipe-section {
@@ -617,6 +664,7 @@ onMounted(async () => {
 
 .recipe-card-wrapper {
     transition: transform 0.2s ease;
+    cursor: pointer;
 }
 
 .recipe-card-wrapper:hover {
@@ -638,15 +686,22 @@ onMounted(async () => {
 .recipe-image-container {
     position: relative;
     width: 100%;
-    height: 200px;
+    height: 300px;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .recipe-image {
     width: 100%;
     height: 100%;
+    min-width: 100%;
+    min-height: 100%;
     object-fit: cover;
+    object-position: center;
     transition: transform 0.3s ease;
+    display: block;
 }
 
 .recipe-card:hover .recipe-image {
@@ -691,20 +746,8 @@ onMounted(async () => {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-color);
-    margin: 0 0 0.5rem 0;
-    line-height: 1.4;
-}
-
-.recipe-description {
-    color: var(--text-color-secondary);
-    font-size: 0.9rem;
-    line-height: 1.5;
     margin: 0 0 1rem 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    line-height: 1.4;
 }
 
 .recipe-meta {
