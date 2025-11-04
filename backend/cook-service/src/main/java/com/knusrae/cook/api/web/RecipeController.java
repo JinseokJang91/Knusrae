@@ -82,6 +82,7 @@ public class RecipeController {
     @GetMapping("/list")
     public ResponseEntity<List<RecipeDto>> getRecipeList() {
         List<RecipeDto> recipeList = recipeService.getRecipeList();
+        log.info("[LOG][OUTPUT] recipeList: {}", recipeList);
 
         return ResponseEntity.ok(recipeList);
     }
