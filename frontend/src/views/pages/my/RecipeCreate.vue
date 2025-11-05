@@ -45,14 +45,14 @@
                     <p class="text-sm text-gray-500 mt-1">등록 시 썸네일이 대표 이미지로 사용됩니다.</p>
                 </div>
 
-                <!-- 제목 및 설명 (우측) -->
+                <!-- 제목 및 소개 (우측) -->
                 <div class="md:col-span-3 flex flex-col gap-4">
                     <div>
                         <label class="block mb-2 font-medium"><b>제목</b></label>
                         <input v-model.trim="form.title" type="text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" placeholder="레시피 제목을 입력하세요" />
                     </div>
                     <div class="flex-1">
-                        <label class="block mb-2 font-medium"><b>설명</b></label>
+                        <label class="block mb-2 font-medium"><b>소개</b></label>
                         <textarea v-model.trim="form.description" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full h-full min-h-[120px]" placeholder="간단한 소개나 메모를 작성하세요"></textarea>
                     </div>
                 </div>
@@ -398,14 +398,16 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
     const categories = categoryOptions.value
         .map((option) => ({
             codeId: option.codeId,
-            detailCodeId: form.categories[option.codeId]
+            detailCodeId: form.categories[option.codeId],
+            codeGroup: 'CATEGORY'
         }))
         .filter((category) => Boolean(category.detailCodeId));
 
     const cookingTips = cookingTipsOptions.value
         .map((option) => ({
             codeId: option.codeId,
-            detailCodeId: form.cookingTips[option.codeId]
+            detailCodeId: form.cookingTips[option.codeId],
+            codeGroup: 'COOKINGTIP'
         }))
         .filter((cookingTip) => Boolean(cookingTip.detailCodeId));
 

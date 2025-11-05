@@ -22,7 +22,7 @@
             <!-- 헤더 섹션 -->
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
                 <!-- 메인 이미지 -->
-                <div class="relative h-96 bg-gradient-to-r from-blue-400 to-purple-500">
+                <div class="relative h-64 bg-gradient-to-r from-blue-400 to-purple-500">
                     <img 
                         v-if="mainImage" 
                         :src="mainImage.url" 
@@ -69,6 +69,33 @@
                                 <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                                     {{ recipe.visibility === 'PUBLIC' ? '공개' : '비공개' }}
                                 </span>
+                            </div>
+
+                            <!-- 요리 정보 (cookingTips) -->
+                            <div v-if="cookingTipsData.servings || cookingTipsData.cookingTime || cookingTipsData.difficulty" class="flex flex-wrap gap-6 mb-4 p-4 bg-gray-50 rounded-lg">
+                                <!-- 인분 수 -->
+                                <div v-if="cookingTipsData.servings" class="flex items-center space-x-2">
+                                    <i class="pi pi-users text-blue-600 text-xl"></i>
+                                    <span class="text-gray-700 font-medium">{{ cookingTipsData.servings }}</span>
+                                </div>
+                                
+                                <!-- 요리 시간 -->
+                                <div v-if="cookingTipsData.cookingTime" class="flex items-center space-x-2">
+                                    <i class="pi pi-clock text-green-600 text-xl"></i>
+                                    <span class="text-gray-700 font-medium">{{ cookingTipsData.cookingTime }}</span>
+                                </div>
+                                
+                                <!-- 난이도 -->
+                                <div v-if="cookingTipsData.difficulty" class="flex items-center space-x-2">
+                                    <i class="pi pi-star text-yellow-600 text-xl"></i>
+                                    <div class="flex items-center space-x-1">
+                                        <i 
+                                            v-for="star in 5" 
+                                            :key="star"
+                                            :class="star <= (cookingTipsData.difficulty || 0) ? 'pi pi-star-fill text-yellow-400' : 'pi pi-star text-gray-300'"
+                                        ></i>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -130,7 +157,6 @@
                             <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg font-bold">
                                 {{ index + 1 }}
                             </div>
-                            <div class="text-gray-600">단계 {{ index + 1 }}</div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
@@ -328,6 +354,23 @@ const mainImage = computed(() => {
     return recipe.value.images.find((img: any) => img.isMainImage) || recipe.value.images[0];
 });
 
+// cookingTips에서 각 항목 추출
+const cookingTipsData = computed(() => {
+    if (!recipe.value?.cookingTips || !Array.isArray(recipe.value.cookingTips)) {
+        return { servings: null, cookingTime: null, difficulty: null };
+    }
+    
+    const servingsTip = recipe.value.cookingTips.find((tip: any) => tip.codeId === 'SERVINGS');
+    const cookingTimeTip = recipe.value.cookingTips.find((tip: any) => tip.codeId === 'COOKING_TIME');
+    const difficultyTip = recipe.value.cookingTips.find((tip: any) => tip.codeId === 'DIFFICULTY');
+    
+    return {
+        servings: servingsTip?.detailName || null,
+        cookingTime: cookingTimeTip?.detailName || null,
+        difficulty: difficultyTip ? parseInt(difficultyTip.detailName || '0', 10) : null
+    };
+});
+
 // 메서드
 const fetchRecipeDetail = async () => {
     try {
@@ -337,11 +380,12 @@ const fetchRecipeDetail = async () => {
         const recipeId = route.params.id;
         const response = await httpJson(
             import.meta.env.VITE_API_BASE_URL_COOK,
-            `/api/recipe/${recipeId}/detail`,
+            `/api/recipe/${recipeId}`,
             { method: 'GET' }
         );
         
         recipe.value = response;
+        console.log(JSON.stringify(recipe.value));
     } catch (err) {
         error.value = '레시피를 불러오는 중 오류가 발생했습니다.';
         console.error('Recipe detail fetch error:', err);
