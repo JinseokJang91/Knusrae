@@ -13,6 +13,7 @@ import com.knusrae.cook.api.dto.*;
 import com.knusrae.cook.api.domain.repository.RecipeImageRepository;
 import com.knusrae.cook.api.domain.repository.RecipeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +24,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class RecipeService {
     private final RecipeRepository recipeRepository;
     private final ImageStorage imageStorage;
@@ -113,6 +115,11 @@ public class RecipeService {
             CommonCodeDetail detail = commonCodeDetailRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공통 코드 상세입니다: " + id));
 
+            // codeGroup 검증
+            if (detail.getCode() != null && !"CATEGORY".equals(detail.getCode().getCodeGroup())) {
+                throw new IllegalArgumentException("카테고리는 codeGroup이 'CATEGORY'여야 합니다: " + detail.getCode().getCodeGroup());
+            }
+
             RecipeCategory recipeCategory = RecipeCategory.of(recipe, detail);
             recipe.addRecipeCategory(recipeCategory);
         }
@@ -136,8 +143,13 @@ public class RecipeService {
             CommonCodeDetail detail = commonCodeDetailRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공통 코드 상세입니다: " + id));
 
+            // codeGroup 검증
+            if (detail.getCode() != null && !"COOKINGTIP".equals(detail.getCode().getCodeGroup())) {
+                throw new IllegalArgumentException("요리팁은 codeGroup이 'COOKINGTIP'이어야 합니다: " + detail.getCode().getCodeGroup());
+            }
+
             RecipeCategory recipeCategory = RecipeCategory.of(recipe, detail);
-            recipe.addRecipeCategory(recipeCategory);
+            recipe.addRecipeCookingTip(recipeCategory);
         }
     }
 

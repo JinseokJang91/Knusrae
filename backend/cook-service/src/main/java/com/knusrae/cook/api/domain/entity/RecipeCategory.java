@@ -25,6 +25,9 @@ public class RecipeCategory {
     @JoinColumn(name = "recipe_id", nullable = false)
     private Recipe recipe;
 
+    @Column
+    private String codeGroup;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
             @JoinColumn(name = "code_id", referencedColumnName = "code_id", insertable = false, updatable = false),
@@ -47,10 +50,14 @@ public class RecipeCategory {
                 detail.getDetailCodeId()
         );
 
+        // codeGroup을 detail의 code에서 가져와서 저장 (성능과 조회 편의성을 위해)
+        String codeGroup = detail.getCode() != null ? detail.getCode().getCodeGroup() : null;
+
         return RecipeCategory.builder()
                 .id(id)
                 .recipe(recipe)
                 .detail(detail)
+                .codeGroup(codeGroup)
                 .build();
     }
 

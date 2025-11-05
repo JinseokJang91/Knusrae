@@ -18,6 +18,7 @@ public class RecipeDetailDto {
     private String title;
     private String description;
     private List<RecipeCategoryDto> categories;
+    private List<RecipeCookingTipDto> cookingTips;
     private String status;
     private String visibility;
     private String thumbnail;
@@ -42,13 +43,16 @@ public class RecipeDetailDto {
     // 통계 정보
     private RecipeStatsDto stats;
 
-    public static RecipeDetailDto fromEntity(Recipe recipe) {
+    public static RecipeDetailDto fromEntity(Recipe recipe) {       
         return RecipeDetailDto.builder()
                 .id(recipe.getId())
                 .title(recipe.getTitle())
                 .description(recipe.getDescription())
                 .categories(recipe.getRecipeCategories().stream()
                         .map(RecipeCategoryDto::fromEntity)
+                        .collect(Collectors.toList()))
+                .cookingTips(recipe.getRecipeCookingTips().stream()
+                        .map(RecipeCookingTipDto::fromEntity)
                         .collect(Collectors.toList()))
                 .status(recipe.getStatus().name())
                 .visibility(recipe.getVisibility().name())

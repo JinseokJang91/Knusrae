@@ -4,6 +4,7 @@ import com.knusrae.cook.api.domain.enums.Status;
 import com.knusrae.cook.api.domain.enums.Visibility;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -78,10 +79,12 @@ public class Recipe {
     private List<Review> reviews = new ArrayList<>();
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @SQLRestriction("code_group = 'CATEGORY'")
     @Builder.Default
     private List<RecipeCategory> recipeCategories = new ArrayList<>();
     
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @SQLRestriction("code_group = 'COOKINGTIP'")
     @Builder.Default
     private List<RecipeCategory> recipeCookingTips = new ArrayList<>();
 
@@ -122,9 +125,18 @@ public class Recipe {
         this.recipeCategories.add(recipeCategory);
         recipeCategory.setRecipe(this);
     }
+    
+    public void addRecipeCookingTip(RecipeCategory recipeCategory) {
+        this.recipeCookingTips.add(recipeCategory);
+        recipeCategory.setRecipe(this);
+    }
 
     public void clearRecipeCategories() {
         this.recipeCategories.clear();
+    }
+    
+    public void clearRecipeCookingTips() {
+        this.recipeCookingTips.clear();
     }
 
     public void setThumbnailUrl(String thumbnailUrl) {
