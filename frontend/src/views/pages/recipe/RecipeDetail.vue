@@ -22,32 +22,34 @@
             <!-- 헤더 섹션 -->
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
                 <!-- 메인 이미지 -->
-                <div class="relative h-64 bg-gradient-to-r from-blue-400 to-purple-500">
+                <div class="relative w-full bg-green-500">
                     <img 
                         v-if="mainImage" 
                         :src="mainImage.url" 
                         :alt="recipe.title"
-                        class="w-full h-full object-cover"
+                        class="w-3/4 mx-auto h-full object-cover py-4"
                     />
                     <div v-else class="flex items-center justify-center h-full text-white text-6xl">
                         🍳
                     </div>
                     
                     <!-- 뒤로가기 버튼 -->
-                    <button 
-                        @click="goBack"
-                        class="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
-                    >
-                        <i class="pi pi-arrow-left"></i>
-                    </button>
+                    <div class="absolute top-4 left-4 z-10">
+                        <Button 
+                            @click="goBack"
+                            icon="pi pi-arrow-left"
+                            rounded />
+                    </div>
 
                     <!-- 좋아요 버튼 -->
-                    <button 
-                        @click="toggleLike"
-                        class="absolute top-4 right-4 bg-white bg-opacity-20 text-white p-2 rounded-full hover:bg-opacity-30 transition-all"
-                    >
-                        <i :class="isLiked ? 'pi pi-heart-fill text-red-500' : 'pi pi-heart'"></i>
-                    </button>
+                    <div class="absolute top-4 right-4 z-10">
+                        <Button 
+                            @click="toggleLike" 
+                            :icon="isLiked ? 'pi pi-heart-fill' : 'pi pi-heart'" 
+                            :class="isLiked ? 'p-button-danger' : 'p-button-secondary'" 
+                            size="large" 
+                            rounded />
+                    </div>
                 </div>
 
                 <!-- 레시피 기본 정보 -->
@@ -55,7 +57,7 @@
                     <div class="flex items-start justify-between mb-6">
                         <div class="flex-1">
                             <h1 class="text-4xl font-bold text-gray-800 mb-2">{{ recipe.title }}</h1>
-                            <p class="text-lg text-gray-600 mb-4">{{ recipe.description }}</p>
+                            <p class="text-lg text-gray-600 mb-4">{{ recipe.introduction }}</p>
                             
                             <!-- 태그 -->
                             <div class="flex flex-wrap gap-2 mb-4">
