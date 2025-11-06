@@ -1,8 +1,8 @@
-package com.knusrae.auth.api.domain.entity;
+package com.knusrae.common.domain.entity;
 
-import com.knusrae.auth.api.domain.enums.Active;
-import com.knusrae.auth.api.domain.enums.Gender;
-import com.knusrae.auth.api.domain.enums.SocialRole;
+import com.knusrae.common.domain.enums.Active;
+import com.knusrae.common.domain.enums.Gender;
+import com.knusrae.common.domain.enums.SocialRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -61,3 +61,4 @@ public class Member {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 }
+

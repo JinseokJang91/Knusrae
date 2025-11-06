@@ -1,7 +1,8 @@
-package com.knusrae.auth.api.domain.enums;
+package com.knusrae.common.domain.enums;
 
 public enum SocialRole {
     NAVER,
     KAKAO,
     GOOGLE
 }
+

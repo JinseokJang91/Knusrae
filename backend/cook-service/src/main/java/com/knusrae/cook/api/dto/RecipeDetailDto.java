@@ -43,7 +43,11 @@ public class RecipeDetailDto {
     // 통계 정보
     private RecipeStatsDto stats;
 
-    public static RecipeDetailDto fromEntity(Recipe recipe) {       
+    public static RecipeDetailDto fromEntity(Recipe recipe) {
+        return fromEntity(recipe, "작성자");
+    }
+
+    public static RecipeDetailDto fromEntity(Recipe recipe, String memberName) {       
         return RecipeDetailDto.builder()
                 .id(recipe.getId())
                 .title(recipe.getTitle())
@@ -59,7 +63,7 @@ public class RecipeDetailDto {
                 .thumbnail(recipe.getThumbnail())
                 .hits(recipe.getHits())
                 .memberId(recipe.getMemberId())
-                .memberName("작성자") // TODO: 실제 사용자 이름 조회
+                .memberName(memberName)
                 .createdAt(recipe.getCreatedAt())
                 .updatedAt(recipe.getUpdatedAt())
                 .steps(recipe.getRecipeDetails().stream()

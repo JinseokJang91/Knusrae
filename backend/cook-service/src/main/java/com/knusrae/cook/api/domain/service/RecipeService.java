@@ -12,6 +12,7 @@ import com.knusrae.cook.api.domain.repository.CommonCodeDetailRepository;
 import com.knusrae.cook.api.dto.*;
 import com.knusrae.cook.api.domain.repository.RecipeImageRepository;
 import com.knusrae.cook.api.domain.repository.RecipeRepository;
+import com.knusrae.common.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class RecipeService {
     private final RecipeImageRepository recipeImageRepository;
     private final RecipeStepRepository recipeStepRepository;
     private final CommonCodeDetailRepository commonCodeDetailRepository;
+    private final MemberRepository memberRepository;
 
     // CREATE - 레시피 생성
     @Transactional
@@ -224,7 +226,12 @@ public class RecipeService {
         // 조회수 증가
         recipe.increaseHits();
         
-        return RecipeDetailDto.fromEntity(recipe);
+        // Member 정보 조회
+        String memberName = memberRepository.findById(recipe.getMemberId())
+                .map(member -> member.getName())
+                .orElse("작성자"); // Member를 찾을 수 없는 경우 기본값
+        
+        return RecipeDetailDto.fromEntity(recipe, memberName);
     }
 
     // 비활성화: 수정은 현재 미사용
