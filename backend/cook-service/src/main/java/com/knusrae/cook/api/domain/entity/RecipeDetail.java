@@ -26,7 +26,7 @@ public class RecipeDetail {
     @Column(length = 500)
     private String image;
 
-    @Column(name="content", nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
     @CreatedDate

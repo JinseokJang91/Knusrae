@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class RecipeDetailDto {
     private Long id;
     private String title;
-    private String description;
+    private String introduction;
     private List<RecipeCategoryDto> categories;
     private List<RecipeCookingTipDto> cookingTips;
     private String status;
@@ -51,7 +51,7 @@ public class RecipeDetailDto {
         return RecipeDetailDto.builder()
                 .id(recipe.getId())
                 .title(recipe.getTitle())
-                .description(recipe.getDescription())
+                .introduction(recipe.getDescription())
                 .categories(recipe.getRecipeCategories().stream()
                         .map(RecipeCategoryDto::fromEntity)
                         .collect(Collectors.toList()))

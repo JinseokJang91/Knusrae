@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class RecipeStepDetailDto {
     private Long id;
     private Long step;
-    private String content;
+    private String description;
     private String image;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -22,7 +22,7 @@ public class RecipeStepDetailDto {
         return RecipeStepDetailDto.builder()
                 .id(recipeDetail.getId())
                 .step(recipeDetail.getStep())
-                .content(recipeDetail.getDescription())
+                .description(recipeDetail.getDescription())
                 .image(recipeDetail.getImage())
                 .createdAt(recipeDetail.getCreatedAt())
                 .updatedAt(recipeDetail.getUpdatedAt())
