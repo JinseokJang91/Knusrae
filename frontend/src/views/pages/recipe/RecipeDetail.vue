@@ -22,7 +22,7 @@
             <!-- 헤더 섹션 -->
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
                 <!-- 메인 이미지 -->
-                <div class="relative w-full bg-green-500">
+                <div class="relative w-full bg-gray-500">
                     <img 
                         v-if="mainImage" 
                         :src="mainImage.url" 
@@ -38,6 +38,7 @@
                         <Button 
                             @click="goBack"
                             icon="pi pi-arrow-left"
+                            size="large"
                             rounded />
                     </div>
 
