@@ -4,7 +4,9 @@ spring:
   security:
     jwt:
       secret: xA0sn7p9tB6cR3eMkG4vzS5uQ2W1yNpLqZoPsIdUjKxBlVuTwQ1FgHsDnPmCkRtL
-      accessTokenTtlSeconds: 3600
+      accessTokenTtlSeconds: 3600  # 1시간
+      refreshTokenSecret: rF9kL2mN5pQ8sT1vW4xY7zA0bC3dE6fH9iJ2lM5oP8qR1tU4wX7yZ0aB3cD6e
+      refreshTokenTtlSeconds: 604800  # 7일
   servlet:
     multipart:
       max-file-size: 10MB

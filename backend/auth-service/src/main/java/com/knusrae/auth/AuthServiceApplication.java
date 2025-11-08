@@ -10,8 +10,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication
 @ComponentScan(basePackages = {"com.knusrae.auth", "com.knusrae.common"})
 @EnableJpaAuditing
-@EnableJpaRepositories(basePackages = "com.knusrae.common.domain.repository")
-@EntityScan(basePackages = "com.knusrae.common.domain.entity")
+@EnableJpaRepositories(basePackages = {"com.knusrae.common.domain.repository", "com.knusrae.auth.api.domain.repository"})
+@EntityScan(basePackages = {"com.knusrae.common.domain.entity", "com.knusrae.auth.api.domain.entity"})
 public class AuthServiceApplication {
 
 	public static void main(String[] args) {
