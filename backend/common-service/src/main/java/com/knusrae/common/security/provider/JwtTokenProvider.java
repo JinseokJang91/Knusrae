@@ -40,4 +40,12 @@ public class JwtTokenProvider {
     public Jws<Claims> parse(String token) {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
     }
+
+    /**
+     * Access Token의 TTL(Time To Live)을 반환합니다.
+     * @return Access Token의 TTL (초 단위)
+     */
+    public long getTtl() {
+        return ttl;
+    }
 }
