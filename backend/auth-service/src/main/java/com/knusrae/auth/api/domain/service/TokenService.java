@@ -17,6 +17,8 @@ public class TokenService {
     // Added method for social login
     public TokenResponse loginWithSocialUser(Long userId, String username, String role) {
         String token = tokenProvider.createToken(String.valueOf(userId), Map.of("role", role, "username", username));
-        return new TokenResponse(token);
+        // Phase 1: refreshToken은 null, refreshTokenExpiresIn은 0으로 설정
+        // Phase 2에서 실제 Refresh Token 구현 예정
+        return new TokenResponse(token, null, tokenProvider.getTtl(), 0L);
     }
 }
