@@ -10,12 +10,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
+<<<<<<< Updated upstream
+=======
+import java.time.Duration;
+import java.util.Map;
+>>>>>>> Stashed changes
 
 @RestController
 @RequestMapping("/api/auth")
@@ -110,6 +118,117 @@ public class AuthController {
                     .build();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 로그아웃 처리: Access Token과 Refresh Token을 무효화하고 쿠키를 삭제합니다.
+     * 
+     * @param accessToken 쿠키에서 받은 Access Token (우선순위 1)
+     * @param accessTokenHeader 헤더에서 받은 Access Token (우선순위 2, 쿠키가 없을 경우)
+     * @param refreshToken 쿠키에서 받은 Refresh Token (우선순위 1)
+     * @param refreshTokenHeader 헤더에서 받은 Refresh Token (우선순위 2, 쿠키가 없을 경우)
+     * @return 성공 메시지
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(
+            @CookieValue(value = "accessToken", required = false) String accessToken,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @CookieValue(value = "refreshToken", required = false) String refreshToken,
+            @RequestHeader(value = "Refresh-Token", required = false) String refreshTokenHeader) {
+        try {
+            // Access Token 추출 (쿠키 또는 Authorization 헤더)
+            String accessTokenValue = accessToken;
+            if (accessTokenValue == null && authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                accessTokenValue = authorizationHeader.substring(7);
+            }
+            
+            // Refresh Token 추출 (쿠키 또는 헤더)
+            String refreshTokenValue = refreshToken != null ? refreshToken : refreshTokenHeader;
+            
+            // 로그아웃 처리
+            tokenService.logout(accessTokenValue, refreshTokenValue);
+            
+            // 쿠키 삭제
+            ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", "")
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .maxAge(0)
+                    .sameSite("Lax")
+                    .build();
+            
+            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .maxAge(0)
+                    .sameSite("Lax")
+                    .build();
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                    .body(Map.of("message", "로그아웃되었습니다."));
+        } catch (Exception e) {
+            log.error("로그아웃 처리 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "INTERNAL_ERROR", "message", "로그아웃 처리 중 오류가 발생했습니다."));
+        }
+    }
+
+    /**
+     * Refresh Token을 사용하여 새로운 Access Token과 Refresh Token을 발행합니다.
+     * 
+     * @param refreshToken 쿠키에서 받은 Refresh Token (우선순위 1)
+     * @param refreshTokenHeader 헤더에서 받은 Refresh Token (우선순위 2, 쿠키가 없을 경우)
+     * @return TokenResponse (새 Access Token, 새 Refresh Token, 만료 시간 포함)
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken,
+            @RequestHeader(value = "Refresh-Token", required = false) String refreshTokenHeader) {
+        try {
+            // 쿠키 또는 헤더에서 Refresh Token 추출
+            String refreshTokenValue = refreshToken != null ? refreshToken : refreshTokenHeader;
+            
+            if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "REFRESH_TOKEN_REQUIRED", "message", "Refresh Token이 필요합니다."));
+            }
+
+            // 토큰 갱신
+            TokenResponse tokenResponse = tokenService.refreshAccessToken(refreshTokenValue);
+
+            // 새 토큰을 쿠키에 설정
+            ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
+                    .httpOnly(true)
+                    .secure(false) // 개발 환경에서는 false, 프로덕션에서는 true
+                    .path("/")
+                    .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
+                    .sameSite("Lax")
+                    .build();
+
+            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
+                    .httpOnly(true)
+                    .secure(false) // 개발 환경에서는 false, 프로덕션에서는 true
+                    .path("/")
+                    .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
+                    .sameSite("Lax")
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                    .body(tokenResponse);
+        } catch (IllegalArgumentException e) {
+            log.warn("토큰 갱신 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "INVALID_REFRESH_TOKEN", "message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("토큰 갱신 중 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "INTERNAL_ERROR", "message", "토큰 갱신 중 오류가 발생했습니다."));
         }
     }
 
