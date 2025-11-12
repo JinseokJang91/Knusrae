@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,11 +20,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
-<<<<<<< Updated upstream
-=======
 import java.time.Duration;
 import java.util.Map;
->>>>>>> Stashed changes
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -47,15 +46,11 @@ public class AuthController {
         try {
             TokenResponse tokenResponse = naverAuthService.naverLoginProcess(code, state);
             
-            String accessToken = tokenResponse.accessToken();
-            
-            String redirectUrl = String.format(
-                    API_BASE_URL + NAVER_REDIRECT_URI + "?success=true&accessToken=%s",
-                    java.net.URLEncoder.encode(accessToken, StandardCharsets.UTF_8)
-            );
+            String redirectUrl = API_BASE_URL + NAVER_REDIRECT_URI + "?success=true";
 
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, redirectUrl)
+            return buildSuccessResponse(redirectUrl, tokenResponse)
+                    .header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
+                    .header("Cross-Origin-Embedder-Policy", "unsafe-none")
                     .build();
         } catch (Exception e) {
             log.error("네이버 로그인 처리 중 오류", e);
@@ -68,16 +63,10 @@ public class AuthController {
         try {
             TokenResponse tokenResponse = googleAuthService.googleLoginProcess(code);
 
-            String accessToken = tokenResponse.accessToken();
-
-            String redirectUrl = String.format(
-                    API_BASE_URL + GOOGLE_REDIRECT_URI + "?success=true&accessToken=%s",
-                    java.net.URLEncoder.encode(accessToken, StandardCharsets.UTF_8)
-            );
+            String redirectUrl = API_BASE_URL + GOOGLE_REDIRECT_URI + "?success=true";
 
             // GOOGLE은 COOP, COEP header 설정 추가
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, redirectUrl)
+            return buildSuccessResponse(redirectUrl, tokenResponse)
                     .header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
                     .header("Cross-Origin-Embedder-Policy", "unsafe-none")
                     .build();
@@ -92,20 +81,53 @@ public class AuthController {
         try {
             TokenResponse tokenResponse = kakaoAuthService.kakaoLoginProcess(code);
 
-            String accessToken = tokenResponse.accessToken();
+            String redirectUrl = API_BASE_URL + KAKAO_REDIRECT_URI + "?success=true";
 
-            String redirectUrl = String.format(
-                    API_BASE_URL + KAKAO_REDIRECT_URI + "?success=true&accessToken=%s",
-                    java.net.URLEncoder.encode(accessToken, StandardCharsets.UTF_8)
-            );
-
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, redirectUrl)
-                    .build();
+            return buildSuccessResponse(redirectUrl, tokenResponse).build();
         } catch (Exception e) {
             log.error("카카오 로그인 처리 중 오류", e);
             return getErrorRedirectResponse(API_BASE_URL + KAKAO_REDIRECT_URI);
         }
+    }
+
+    /**
+     * 로그인 성공 시 쿠키에 토큰을 설정하고 리다이렉트합니다.
+     * 
+     * @param redirectUrl 리다이렉트 URL
+     * @param tokenResponse 토큰 응답 (Access Token, Refresh Token 포함)
+     * @return ResponseEntity builder
+     */
+    private ResponseEntity.HeadersBuilder<?> buildSuccessResponse(String redirectUrl, TokenResponse tokenResponse) {
+        // Access Token 쿠키 설정 (HttpOnly, Secure, SameSite)
+        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
+                .httpOnly(true)
+                .secure(false) // 개발 환경에서는 false, 프로덕션에서는 true
+                .path("/")
+                .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
+                .sameSite("Lax")
+                .build();
+
+        // Refresh Token 쿠키 설정 (HttpOnly, Secure, SameSite)
+        ResponseCookie refreshTokenCookie = null;
+        if (tokenResponse.refreshToken() != null) {
+            refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
+                    .httpOnly(true)
+                    .secure(false) // 개발 환경에서는 false, 프로덕션에서는 true
+                    .path("/")
+                    .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
+                    .sameSite("Lax")
+                    .build();
+        }
+
+        ResponseEntity.HeadersBuilder<?> responseBuilder = ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, redirectUrl)
+                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+
+        if (refreshTokenCookie != null) {
+            responseBuilder.header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+        }
+
+        return responseBuilder;
     }
 
     private ResponseEntity<String> getErrorRedirectResponse(String baseRedirectUri) {
