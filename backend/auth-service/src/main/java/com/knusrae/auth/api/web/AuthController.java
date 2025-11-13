@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
-import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -92,6 +91,7 @@ public class AuthController {
 
     /**
      * 로그인 성공 시 쿠키에 토큰을 설정하고 리다이렉트합니다.
+     * 보안을 위해 쿠키에만 토큰을 저장하고 URL에는 포함하지 않습니다.
      * 
      * @param redirectUrl 리다이렉트 URL
      * @param tokenResponse 토큰 응답 (Access Token, Refresh Token 포함)
@@ -119,6 +119,7 @@ public class AuthController {
                     .build();
         }
 
+        // URL에는 토큰을 포함하지 않음 (보안 강화)
         ResponseEntity.HeadersBuilder<?> responseBuilder = ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, redirectUrl)
                 .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());

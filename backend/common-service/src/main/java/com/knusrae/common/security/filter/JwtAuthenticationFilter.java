@@ -35,14 +35,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     // auth-service가 아닌 다른 서비스에서는 null이 될 수 있음
     // 리플렉션을 사용하여 동적으로 호출
     private final org.springframework.beans.factory.BeanFactory beanFactory;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            
+        // 토큰 추출: 우선순위 1) Authorization 헤더, 2) 쿠키
+        String token = extractToken(request);
+        
+        if (StringUtils.hasText(token)) {
             // 1. 블랙리스트 확인 (auth-service에서만 동작)
             if (isTokenBlacklisted(token)) {
                 handleJwtException(response, HttpServletResponse.SC_UNAUTHORIZED, "TOKEN_BLACKLISTED", "로그아웃된 토큰입니다.");
@@ -78,6 +77,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * 요청에서 토큰을 추출합니다.
+     * 우선순위: 1) Authorization 헤더, 2) 쿠키
+     * 
+     * @param request HTTP 요청
+     * @return 토큰 문자열 (없으면 null)
+     */
+    private String extractToken(HttpServletRequest request) {
+        // 1. Authorization 헤더에서 토큰 추출
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+            return header.substring(7);
+        }
+        
+        // 2. 쿠키에서 토큰 추출
+        jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (jakarta.servlet.http.Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        
+        return null;
     }
 
     /**
