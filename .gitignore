@@ -376,3 +376,5 @@ gradle-app.setting
 /frontend/.vite/
 /frontend/.env*
 /frontend/.vscode/
+
+.vscode/

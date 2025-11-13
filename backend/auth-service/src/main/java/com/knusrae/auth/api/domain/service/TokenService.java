@@ -4,16 +4,12 @@ import com.knusrae.auth.api.domain.entity.RefreshToken;
 import com.knusrae.auth.api.domain.entity.TokenBlacklist;
 import com.knusrae.auth.api.domain.repository.RefreshTokenRepository;
 import com.knusrae.auth.api.domain.repository.TokenBlacklistRepository;
-import com.knusrae.auth.api.domain.entity.RefreshToken;
-import com.knusrae.auth.api.domain.repository.RefreshTokenRepository;
 import com.knusrae.auth.api.web.response.TokenResponse;
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.common.security.provider.JwtTokenProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,6 +38,7 @@ public class TokenService {
      */
     @Transactional
     public TokenResponse loginWithSocialUser(Long userId, String username, String role) {
+        log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>> loginWithSocialUser Start");
         // 기존 Refresh Token이 있으면 삭제 (토큰 Rotation 정책)
         refreshTokenRepository.findByUserId(userId).ifPresent(existingToken -> {
             refreshTokenRepository.delete(existingToken);
