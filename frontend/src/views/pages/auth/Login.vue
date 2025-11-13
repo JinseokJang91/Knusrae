@@ -47,7 +47,7 @@ function handleNaverLogin() {
         }
 
         if (event.data.type === 'NAVER_LOGIN_SUCCESS') {
-            localStorage.setItem('accessToken', event.data.accessToken);
+            // 토큰은 HttpOnly 쿠키에 저장되어 있으므로 localStorage에 저장하지 않음
             alert('네이버 로그인이 성공했습니다!');
             goHome();
         } else if (event.data.type === 'NAVER_LOGIN_ERROR') {
@@ -109,7 +109,7 @@ function handleGoogleLogin() {
         }
 
         if (event.data.type === 'GOOGLE_LOGIN_SUCCESS') {
-            localStorage.setItem('accessToken', event.data.accessToken);
+            // 토큰은 HttpOnly 쿠키에 저장되어 있으므로 localStorage에 저장하지 않음
             alert('구글 로그인이 성공했습니다!');
             goHome();
         } else if (event.data.type === 'GOOGLE_LOGIN_ERROR') {
@@ -171,7 +171,7 @@ function handleKakaoLogin() {
         }
 
         if (event.data.type === 'KAKAO_LOGIN_SUCCESS') {
-            localStorage.setItem('accessToken', event.data.accessToken);
+            // 토큰은 HttpOnly 쿠키에 저장되어 있으므로 localStorage에 저장하지 않음
             alert('카카오 로그인이 성공했습니다!');
             goHome();
         } else if (event.data.type === 'KAKAO_LOGIN_ERROR') {
