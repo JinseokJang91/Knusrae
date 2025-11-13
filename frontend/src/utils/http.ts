@@ -8,6 +8,10 @@ export interface HttpRequestOptions extends RequestInit {
 
 const getAccessToken = (): string | null => {
     try {
+        // localStorage에서 토큰 읽기
+        // HttpOnly 쿠키는 JavaScript로 읽을 수 없으므로, 
+        // API 요청 시 쿠키가 자동으로 전송되도록 credentials: 'include' 설정 필요
+        // 또는 Authorization 헤더에 토큰을 넣어야 하는 경우 localStorage 사용
         return localStorage.getItem('accessToken');
     } catch {
         return null;
@@ -73,7 +77,8 @@ export async function httpJson(baseUrl: string, url: string, options: HttpReques
 
     const response = await fetch(`${baseUrl}${url}`, {
         ...options,
-        headers
+        headers,
+        credentials: 'include' // 쿠키 자동 전송 (HttpOnly 쿠키 포함)
     });
 
     if (!response.ok) {
@@ -142,6 +147,7 @@ export async function httpForm(baseUrl: string, url: string, formData: FormData,
     reqInit.method = reqInit.method || 'POST';
     reqInit.body = formData;
     reqInit.headers = headers;
+    reqInit.credentials = 'include'; // 쿠키 자동 전송 (HttpOnly 쿠키 포함)
 
     const response = await fetch(`${baseUrl}${url}`, reqInit);
 
@@ -201,7 +207,8 @@ export async function httpMultipart(baseUrl: string, url: string, options: HttpR
 
     const response = await fetch(`${baseUrl}${url}`, {
         ...options,
-        headers
+        headers,
+        credentials: 'include' // 쿠키 자동 전송 (HttpOnly 쿠키 포함)
     });
 
     if (!response.ok) {

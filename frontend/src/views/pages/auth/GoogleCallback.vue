@@ -3,12 +3,14 @@ import { onMounted } from 'vue';
 
 onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const accessToken = urlParams.get('accessToken');
     const success = urlParams.get('success');
     const error = urlParams.get('error');
 
-    if (success === 'true' && accessToken) {
-        handleSuccess(accessToken);
+    // 토큰은 HttpOnly 쿠키에 저장되므로 JavaScript로 읽을 수 없음
+    // 백엔드의 JwtAuthenticationFilter가 쿠키에서 자동으로 토큰을 읽어서 인증 처리
+    // 프론트엔드에서는 성공 여부만 확인하고, 토큰은 쿠키를 통해 자동으로 관리됨
+    if (success === 'true') {
+        handleSuccess();
     } else if (success === 'false' || error) {
         handleError(error || '로그인 처리 중 오류가 발생했습니다.');
     } else {
@@ -19,19 +21,21 @@ onMounted(() => {
 
 /**
  * 로그인 성공 처리
+ * 토큰은 HttpOnly 쿠키에 저장되어 있으므로 별도로 저장할 필요 없음
  */
-function handleSuccess(accessToken: string) {
+function handleSuccess() {
     try {
-        // 사용자 데이터 저장
-        localStorage.setItem('accessToken', accessToken);
+        // 토큰은 쿠키에 저장되어 있으므로 localStorage에 저장하지 않음
+        // API 요청 시 쿠키가 자동으로 전송되어 인증 처리됨
+        // 로그인 상태 플래그만 저장
+        localStorage.setItem('isLoggedIn', 'true');
 
         // 부모 창에 성공 메시지 전달
         sendMessageToParent({
-            type: 'GOOGLE_LOGIN_SUCCESS',
-            accessToken: accessToken
+            type: 'GOOGLE_LOGIN_SUCCESS'
         });
     } catch (e) {
-        handleError('사용자 데이터 처리 중 오류가 발생했습니다.');
+        handleError('로그인 처리 중 오류가 발생했습니다.');
     }
 }
 

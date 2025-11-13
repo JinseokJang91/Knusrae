@@ -25,16 +25,32 @@ const clearSearch = () => {
 const updateLoginState = () => {
     isLoggedInState.value = isLoggedIn();
     if (isLoggedInState.value) {
-        const user = getCurrentUser();
-        userName.value = user?.name || '사용자';
+        // HttpOnly 쿠키는 JavaScript로 읽을 수 없으므로
+        // 사용자 정보는 API를 통해 가져와야 하지만, 
+        // 간단하게 localStorage의 플래그만 확인
+        // 실제 사용자 정보는 필요시 API 호출로 가져올 수 있음
+        userName.value = '사용자'; // TODO: API를 통해 실제 사용자 정보 가져오기
     } else {
         userName.value = '';
     }
 };
 
-const handleLogout = () => {
+const handleLogout = async () => {
     if (confirm('로그아웃 하시겠습니까?')) {
-        localStorage.removeItem('accessToken');
+        try {
+            // 백엔드 로그아웃 API 호출 (쿠키 삭제)
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+            await fetch(`${API_BASE_URL}/api/auth/logout`, {
+                method: 'POST',
+                credentials: 'include' // 쿠키 전송
+            });
+        } catch (error) {
+            console.error('로그아웃 API 호출 실패:', error);
+        }
+        
+        // localStorage 플래그 제거
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('accessToken'); // 기존 토큰도 제거 (혹시 모를 경우 대비)
         updateLoginState();
         router.push('/');
     }
@@ -44,7 +60,14 @@ onMounted(() => {
     updateLoginState();
     window.addEventListener('storage', updateLoginState);
     window.addEventListener('message', (event) => {
-        if (event.data && (event.data.type === 'NAVER_LOGIN_SUCCESS' || event.data.type === 'NAVER_LOGIN_ERROR')) {
+        if (event.data && (
+            event.data.type === 'NAVER_LOGIN_SUCCESS' || 
+            event.data.type === 'NAVER_LOGIN_ERROR' ||
+            event.data.type === 'GOOGLE_LOGIN_SUCCESS' ||
+            event.data.type === 'GOOGLE_LOGIN_ERROR' ||
+            event.data.type === 'KAKAO_LOGIN_SUCCESS' ||
+            event.data.type === 'KAKAO_LOGIN_ERROR'
+        )) {
             updateLoginState();
         }
     });
