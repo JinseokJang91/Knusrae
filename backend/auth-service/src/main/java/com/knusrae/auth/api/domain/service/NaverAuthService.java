@@ -117,10 +117,11 @@ public class NaverAuthService {
                     userInfoResponse.getStatusCode() + " / body=" + userInfoResponse.getBody());
         }
 
+        // NAVER : response 객체에 사용자 정보 존재
         JsonNode userInfoJson = objectMapper.readTree(userInfoResponse.getBody());
         JsonNode user = userInfoJson.get("response");
 
-        if (ObjectUtils.isEmpty(user) || user.isNull()) {
+        if (user == null || user.isNull()) {
             throw new RuntimeException("Failed to get user info from Naver: " + userInfoResponse.getBody());
         }
 

@@ -118,13 +118,6 @@ public class KakaoAuthService {
                     userInfoResponse.getStatusCode() + " / body=" + userInfoResponse.getBody());
         }
 
-        JsonNode userInfoJson = objectMapper.readTree(userInfoResponse.getBody());
-        JsonNode user = userInfoJson.get("response");
-
-        if (ObjectUtils.isEmpty(user) || user.isNull()) {
-            throw new RuntimeException("Failed to get user info from Kakao: " + userInfoResponse.getBody());
-        }
-
-        return objectMapper.treeToValue(user, KakaoUserDTO.class);
+        return objectMapper.readValue(userInfoResponse.getBody(), KakaoUserDTO.class);
     }
 }
