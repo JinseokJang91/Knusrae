@@ -151,16 +151,6 @@ interface Recipe {
     categories?: Array<{ codeId: string; detailCodeId: string; codeName?: string; detailName?: string }>;
 }
 
-// 레시피 생성/수정을 위한 타입 (향후 사용 예정)
-// interface RecipeCreateRequest {
-//     title: string;
-//     description?: string;
-//     status: 'draft' | 'published';
-//     visibility: 'public' | 'private';
-//     ingredients?: string[];
-//     instructions?: string[];
-// }
-
 // API 호출 함수들 (토큰 자동 첨부)
 const apiCall = async (url: string, options: RequestInit = {}) => {
     try {
@@ -175,22 +165,6 @@ const apiCall = async (url: string, options: RequestInit = {}) => {
 const fetchRecipes = async (): Promise<Recipe[]> => {
     return await apiCall('/api/recipe/list');
 };
-
-// 2. 레시피 등록 (향후 사용 예정)
-// const createRecipe = async (recipeData: RecipeCreateRequest): Promise<Recipe> => {
-//     return await apiCall('/api/recipe', {
-//         method: 'POST',
-//         body: JSON.stringify(recipeData),
-//     });
-// };
-
-// 3. 레시피 수정 (향후 사용 예정)
-// const updateRecipe = async (id: number, recipeData: RecipeCreateRequest): Promise<Recipe> => {
-//     return await apiCall(`/api/recipe/${id}`, {
-//         method: 'PUT',
-//         body: JSON.stringify(recipeData),
-//     });
-// };
 
 // 4. 레시피 삭제
 const deleteRecipe = async (id: number): Promise<void> => {
@@ -230,8 +204,7 @@ const handleCreateRecipe = async () => {
 
 // 레시피 수정
 const handleEditRecipe = async (recipe: Recipe) => {
-    // TODO: 레시피 수정 폼 모달이나 페이지로 이동하는 로직 구현
-    console.log('레시피 수정:', recipe);
+    router.push(`/my/recipes/${recipe.id}/edit`);
 };
 
 // 레시피 삭제

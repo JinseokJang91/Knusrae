@@ -247,7 +247,6 @@ const loadCategories = async () => {
             method: 'GET',
             attachAuth: false
         });
-        console.log('CATEGORY LIST : ' + JSON.stringify(response)); // TODO 삭제
 
         const codes = Array.isArray(response) ? response : [];
         
@@ -336,13 +335,10 @@ const loadRecipes = async () => {
         });
 
         const data = response.data || response || [];
-        console.log('data : ' + JSON.stringify(data));
         recipes.value = data.map((recipe) => {
             // cookingTips에서 SERVING과 COOKING_TIME 추출
             const cookingTime = extractCookingTime(recipe.cookingTips);
             const servings = extractServings(recipe.cookingTips);
-            console.log('cookingTime : ' + cookingTime);
-            console.log('servings : ' + servings);
             
             // 후기가 있을 때만 평균 별점 계산 (일단 reviews 필드가 없으므로 나중에 API에서 받을 것으로 가정)
             const averageRating = recipe.reviews && recipe.reviews.length > 0

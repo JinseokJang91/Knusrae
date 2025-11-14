@@ -1,7 +1,7 @@
 <template>
     <div class="card">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-2xl font-bold">레시피 등록</h2>
+            <h2 class="text-2xl font-bold">레시피 수정</h2>
             <div class="flex gap-2">
                 <button class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md" @click="goBack" :disabled="submitting">
                     <span class="pi pi-arrow-left mr-2"></span>
@@ -15,7 +15,13 @@
             {{ error }}
         </div>
 
-        <div class="grid grid-cols-1 gap-4">
+        <!-- 로딩 상태 -->
+        <div v-if="initialLoading" class="flex justify-center items-center py-8">
+            <div class="pi pi-spinner pi-spin mr-2"></div>
+            <span>레시피 정보를 불러오는 중...</span>
+        </div>
+
+        <div v-else class="grid grid-cols-1 gap-4">
 
             <!-- 썸네일 및 기본 정보 -->
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -188,13 +194,13 @@
             </div>
 
             <div class="flex justify-end gap-2 mt-2">
-                <button class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md" @click="saveAsDraft" :disabled="submitting">
-                    <span class="pi pi-save mr-2"></span>
-                    <span>초안 저장</span>
+                <button class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md" @click="goBack" :disabled="submitting">
+                    <span class="pi pi-times mr-2"></span>
+                    <span>취소</span>
                 </button>
                 <button class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50" @click="submit" :disabled="submitting || !isValid">
                     <span class="pi pi-check mr-2"></span>
-                    <span>등록</span>
+                    <span>수정</span>
                 </button>
             </div>
         </div>
@@ -204,15 +210,18 @@
 <script setup lang="ts">
 import { httpForm, httpJson } from '@/utils/http';
 import { computed, onMounted, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
+const recipeId = computed(() => Number(route.params.id));
 
 interface RecipeStepDraft {
     id: string;
     file?: File | null;
     previewUrl?: string;
     text: string;
+    existingImageUrl?: string; // 기존 이미지 URL
 }
 
 interface CommonCodeDetailOption {
@@ -239,6 +248,7 @@ interface RecipeDraft {
     cookingTips: Record<string, string>;
 }
 
+const initialLoading = ref(true);
 const submitting = ref(false);
 const error = ref<string | null>(null);
 const categoriesLoading = ref(false);
@@ -271,10 +281,68 @@ const isValid = computed(() => {
     return basicValid && stepsValid && categoriesValid && cookingTipsValid;
 });
 
-onMounted(() => {
-    loadCategoryOptions();
-    loadCookingTipsOptions();
+onMounted(async () => {
+    await Promise.all([
+        loadCategoryOptions(),
+        loadCookingTipsOptions(),
+        loadRecipeData()
+    ]);
+    initialLoading.value = false;
 });
+
+async function loadRecipeData() {
+    try {
+        const API_COOK_BASE_URL = import.meta.env.VITE_API_BASE_URL_COOK;
+        const response = await httpJson(API_COOK_BASE_URL, `/api/recipe/${recipeId.value}`, {
+            method: 'GET'
+        });
+
+        // 레시피 기본 정보 설정
+        form.title = response.title || '';
+        form.description = response.introduction || '';
+        form.status = response.status || 'DRAFT';
+        form.visibility = response.visibility || 'PUBLIC';
+        form.memberId = response.memberId || 1;
+
+        // 썸네일 설정 (메인 이미지)
+        if (response.images && Array.isArray(response.images)) {
+            const mainImage = response.images.find((img: any) => img.mainImage);
+            if (mainImage) {
+                form.thumbnailPreview = mainImage.url;
+            }
+        }
+
+        // 카테고리 설정
+        if (response.categories && Array.isArray(response.categories)) {
+            response.categories.forEach((cat: any) => {
+                form.categories[cat.codeId] = cat.detailCodeId;
+            });
+        }
+
+        // 요리팁 설정
+        if (response.cookingTips && Array.isArray(response.cookingTips)) {
+            response.cookingTips.forEach((tip: any) => {
+                form.cookingTips[tip.codeId] = tip.detailCodeId;
+            });
+        }
+
+        // 단계 설정 (각 단계의 이미지 포함)
+        if (response.steps && Array.isArray(response.steps)) {
+            form.steps = response.steps.map((step: any) => {
+                return {
+                    id: crypto.randomUUID(),
+                    file: null,
+                    text: step.description || '',
+                    previewUrl: step.image || '',
+                    existingImageUrl: step.image || ''
+                };
+            });
+        }
+    } catch (e) {
+        console.error('레시피 정보를 불러오지 못했습니다.', e);
+        error.value = '레시피 정보를 불러오지 못했습니다.';
+    }
+}
 
 async function loadCategoryOptions() {
     categoriesLoading.value = true;
@@ -336,7 +404,9 @@ function addStep() {
 
 function removeStep(index: number) {
     const [removed] = form.steps.splice(index, 1);
-    if (removed && removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+    if (removed && removed.previewUrl && !removed.existingImageUrl) {
+        URL.revokeObjectURL(removed.previewUrl);
+    }
 }
 
 function moveStepUp(index: number) {
@@ -358,8 +428,11 @@ function onStepImageChange(e: Event, step: RecipeStepDraft) {
     const file = input.files?.[0];
     if (!file) return;
     step.file = file;
-    if (step.previewUrl) URL.revokeObjectURL(step.previewUrl);
+    if (step.previewUrl && !step.existingImageUrl) {
+        URL.revokeObjectURL(step.previewUrl);
+    }
     step.previewUrl = URL.createObjectURL(file);
+    step.existingImageUrl = undefined; // 새 파일 선택 시 기존 이미지 URL 제거
 }
 
 function onThumbnailChange(e: Event) {
@@ -367,12 +440,16 @@ function onThumbnailChange(e: Event) {
     const file = input.files?.[0];
     if (!file) return;
     form.thumbnailFile = file;
-    if (form.thumbnailPreview) URL.revokeObjectURL(form.thumbnailPreview);
+    if (form.thumbnailPreview && !form.thumbnailPreview.startsWith('http')) {
+        URL.revokeObjectURL(form.thumbnailPreview);
+    }
     form.thumbnailPreview = URL.createObjectURL(file);
 }
 
 function clearThumbnail() {
-    if (form.thumbnailPreview) URL.revokeObjectURL(form.thumbnailPreview);
+    if (form.thumbnailPreview && !form.thumbnailPreview.startsWith('http')) {
+        URL.revokeObjectURL(form.thumbnailPreview);
+    }
     form.thumbnailPreview = '';
     form.thumbnailFile = null;
     if (thumbnailInputRef.value) {
@@ -381,9 +458,12 @@ function clearThumbnail() {
 }
 
 function clearStepImage(step: RecipeStepDraft) {
-    if (step.previewUrl) URL.revokeObjectURL(step.previewUrl);
+    if (step.previewUrl && !step.existingImageUrl) {
+        URL.revokeObjectURL(step.previewUrl);
+    }
     step.previewUrl = '';
     step.file = null;
+    step.existingImageUrl = undefined;
     const inputRef = stepInputRefs.value[step.id];
     if (inputRef) {
         inputRef.value = '';
@@ -394,7 +474,7 @@ function goBack() {
     router.push('/my/recipes');
 }
 
-function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
+function buildRecipePayload() {
     const categories = categoryOptions.value
         .map((option) => ({
             codeId: option.codeId,
@@ -414,32 +494,13 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
     return {
         title: form.title,
         description: form.description,
-        status: statusOverride ?? form.status,
+        status: form.status,
         visibility: form.visibility,
         memberId: form.memberId,
         categories,
         cookingTips,
         steps: form.steps.map((s, idx) => ({ order: idx + 1, text: s.text.trim() }))
     };
-}
-
-async function saveAsDraft() {
-    submitting.value = true;
-    error.value = null;
-    try {
-        const payload = buildRecipePayload('DRAFT');
-        await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe/draft', {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
-
-        alert('초안이 저장되었습니다.');
-    } catch (e) {
-        console.error(e);
-        error.value = '초안 저장 중 오류가 발생했습니다.';
-    } finally {
-        submitting.value = false;
-    }
 }
 
 async function submit() {
@@ -463,30 +524,70 @@ async function submit() {
         });
         formData.append('recipe', recipeBlob, 'recipe.json');
 
-        // 썸네일이 있다면 먼저 추가 (대표 이미지가 됨)
-        if (form.thumbnailFile) {
-            formData.append('images', form.thumbnailFile, 'thumbnail.png');
+        // 이미지 변경 여부 확인
+        const hasThumbnailChange = form.thumbnailFile !== null;
+        const hasStepImageChanges = form.steps.some(s => s.file !== null);
+        const hasAnyImageChange = hasThumbnailChange || hasStepImageChanges;
+
+        // 이미지가 하나라도 변경되었을 때만 이미지 전송
+        if (hasAnyImageChange) {
+            
+            // 썸네일 처리: 새 파일이 있으면 사용, 없으면 기존 URL에서 다운로드
+            if (form.thumbnailFile) {
+                formData.append('images', form.thumbnailFile, 'thumbnail.png');
+            } else if (form.thumbnailPreview) {
+                try {
+                    const response = await fetch(form.thumbnailPreview, { credentials: 'include' });
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        formData.append('images', blob, 'thumbnail.png');
+                    } else {
+                        console.warn('썸네일 다운로드 실패:', response.status);
+                    }
+                } catch (err) {
+                    console.error('썸네일 fetch 에러:', err);
+                }
+            }
+
+            // 단계별 이미지 처리
+            for (let i = 0; i < form.steps.length; i++) {
+                const step = form.steps[i];
+                if (step.file) {
+                    formData.append('images', step.file, `step-${i + 1}.png`);
+                } else if (step.existingImageUrl) {
+                    try {
+                        const response = await fetch(step.existingImageUrl, { credentials: 'include' });
+                        if (response.ok) {
+                            const blob = await response.blob();
+                            formData.append('images', blob, `step-${i + 1}.png`);
+                        } else {
+                            console.warn(`Step ${i+1}: 이미지 다운로드 실패:`, response.status);
+                        }
+                    } catch (err) {
+                        console.error(`Step ${i+1}: fetch 에러:`, err);
+                    }
+                }
+            }
+
+            // 대표 이미지 인덱스 설정
+            formData.append('mainImageIndex', '0');
         }
+        // 이미지 변경이 없으면 images를 전송하지 않음 -> 백엔드에서 기존 이미지 유지
 
-        form.steps.forEach((s, idx) => {
-            if (s.file) formData.append('images', s.file, `step-${idx + 1}.png`);
-        });
+        // 실제 API 엔드포인트로 전송 (토큰 자동 첨부) - PUT 메서드로 수정
+        await httpForm(import.meta.env.VITE_API_BASE_URL_COOK, `/api/recipe/${recipeId.value}`, formData, { method: 'PUT' });
 
-        // 대표 이미지 인덱스 설정: 썸네일이 있으면 0, 없으면 첫 번째 이미지(0)
-        formData.append('mainImageIndex', '0');
-
-        // 실제 API 엔드포인트로 전송 (토큰 자동 첨부)
-        await httpForm(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe', formData, { method: 'POST' });
-
-        alert('등록이 완료되었습니다.');
+        alert('수정이 완료되었습니다.');
         router.push('/my/recipes');
     } catch (e) {
         console.error(e);
-        error.value = e instanceof Error ? e.message : '레시피 등록 중 오류가 발생했습니다.';
+        error.value = e instanceof Error ? e.message : '레시피 수정 중 오류가 발생했습니다.';
     } finally {
         submitting.value = false;
     }
 }
+
 </script>
 
 <style scoped></style>
+

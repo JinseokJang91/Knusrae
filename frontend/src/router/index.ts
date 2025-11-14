@@ -29,6 +29,11 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/pages/my/RecipeCreate.vue')
             },
             {
+                path: '/my/recipes/:id/edit',
+                name: 'myRecipeEdit',
+                component: () => import('@/views/pages/my/RecipeEdit.vue')
+            },
+            {
                 path: '/my/comments',
                 name: 'myComments',
                 component: () => import('@/views/pages/my/Comments.vue')
