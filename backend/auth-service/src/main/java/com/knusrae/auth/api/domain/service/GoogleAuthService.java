@@ -109,13 +109,6 @@ public class GoogleAuthService {
                     userInfoResponse.getStatusCode() + " / body=" + userInfoResponse.getBody());
         }
 
-        JsonNode userInfoJson = objectMapper.readTree(userInfoResponse.getBody());
-        JsonNode user = userInfoJson.get("response");
-
-        if (ObjectUtils.isEmpty(user) || user.isNull()) {
-            throw new RuntimeException("Failed to get user info from Google: " + userInfoResponse.getBody());
-        }
-
-        return objectMapper.treeToValue(user, GoogleUserDTO.class);
+        return objectMapper.readValue(userInfoResponse.getBody(), GoogleUserDTO.class);
     }
 }
