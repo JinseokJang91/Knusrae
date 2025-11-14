@@ -4,6 +4,7 @@ import { useLayout } from '@/layout/composables/layout';
 import { getCurrentUser, isLoggedIn } from '@/utils/auth';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { httpJson } from '@/utils/http';
 
 const router = useRouter();
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
@@ -22,14 +23,29 @@ const clearSearch = () => {
     searchQuery.value = '';
 };
 
-const updateLoginState = () => {
+const fetchUserInfo = async () => {
+    try {
+        // user-service의 BASE URL 사용 (환경 변수가 있으면 사용, 없으면 기본값)
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:8083';
+        const userInfo = await httpJson(API_BASE_URL, '/api/user/me', {
+            method: 'GET',
+            attachAuth: false // HttpOnly 쿠키는 자동으로 전송되므로 Authorization 헤더 불필요
+        });
+        
+        // API 응답에서 사용자 닉네임 추출 (nickname 우선, 없으면 name 사용)
+        userName.value = userInfo.nickname || userInfo.name || '사용자';
+    } catch (error) {
+        console.error('사용자 정보 조회 실패:', error);
+        // API 호출 실패 시 기본값 설정
+        userName.value = '사용자';
+    }
+};
+
+const updateLoginState = async () => {
     isLoggedInState.value = isLoggedIn();
     if (isLoggedInState.value) {
-        // HttpOnly 쿠키는 JavaScript로 읽을 수 없으므로
-        // 사용자 정보는 API를 통해 가져와야 하지만, 
-        // 간단하게 localStorage의 플래그만 확인
-        // 실제 사용자 정보는 필요시 API 호출로 가져올 수 있음
-        userName.value = '사용자'; // TODO: API를 통해 실제 사용자 정보 가져오기
+        // 로그인 상태일 때 사용자 정보 API 호출
+        await fetchUserInfo();
     } else {
         userName.value = '';
     }
@@ -39,7 +55,7 @@ const handleLogout = async () => {
     if (confirm('로그아웃 하시겠습니까?')) {
         try {
             // 백엔드 로그아웃 API 호출 (쿠키 삭제)
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
             await fetch(`${API_BASE_URL}/api/auth/logout`, {
                 method: 'POST',
                 credentials: 'include' // 쿠키 전송

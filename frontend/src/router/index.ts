@@ -1,5 +1,6 @@
 import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import { isLoggedIn } from '@/utils/auth';
 
 const routes: RouteRecordRaw[] = [
     {
@@ -163,10 +164,11 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
     try {
         const requiresAuth = to.path.startsWith('/my');
-        // 동적 임포트 없이 로컬 스토리지로 간단 체크 (utils/auth를 직접 임포트하지 않음)
-        const token = localStorage.getItem('accessToken');
+        // HttpOnly 쿠키 방식으로 변경되어 localStorage의 isLoggedIn 플래그를 확인
+        // 실제 인증은 백엔드의 JwtAuthenticationFilter가 쿠키에서 처리
+        const loggedIn = isLoggedIn();
 
-        if (requiresAuth && !token) {
+        if (requiresAuth && !loggedIn) {
             next({
                 path: '/auth/login',
                 query: { redirect: to.fullPath }
