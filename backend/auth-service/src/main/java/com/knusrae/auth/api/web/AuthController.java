@@ -148,7 +148,7 @@ public class AuthController {
      * 로그아웃 처리: Access Token과 Refresh Token을 무효화하고 쿠키를 삭제합니다.
      * 
      * @param accessToken 쿠키에서 받은 Access Token (우선순위 1)
-     * @param accessTokenHeader 헤더에서 받은 Access Token (우선순위 2, 쿠키가 없을 경우)
+     * @param authorizationHeader 헤더에서 받은 Access Token (우선순위 2, 쿠키가 없을 경우)
      * @param refreshToken 쿠키에서 받은 Refresh Token (우선순위 1)
      * @param refreshTokenHeader 헤더에서 받은 Refresh Token (우선순위 2, 쿠키가 없을 경우)
      * @return 성공 메시지
