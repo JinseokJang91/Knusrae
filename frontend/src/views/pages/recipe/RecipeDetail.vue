@@ -388,7 +388,6 @@ const fetchRecipeDetail = async () => {
         );
         
         recipe.value = response;
-        console.log(JSON.stringify(recipe.value));
     } catch (err) {
         error.value = '레시피를 불러오는 중 오류가 발생했습니다.';
         console.error('Recipe detail fetch error:', err);
