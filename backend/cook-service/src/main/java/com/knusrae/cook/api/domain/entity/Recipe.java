@@ -89,9 +89,10 @@ public class Recipe {
     private List<RecipeCategory> recipeCookingTips = new ArrayList<>();
 
     // 업데이트 메서드
-    public void updateRecipe(String title, String description, Visibility visibility) {
+    public void updateRecipe(String title, String description, Status status, Visibility visibility) {
         this.title = title;
         this.description = description;
+        this.status = status;
         this.visibility = visibility;
     }
 
@@ -136,6 +137,15 @@ public class Recipe {
     }
     
     public void clearRecipeCookingTips() {
+        this.recipeCookingTips.clear();
+    }
+    
+    // 카테고리 관련 메서드 (별칭)
+    public void clearCategories() {
+        this.recipeCategories.clear();
+    }
+    
+    public void clearCookingTips() {
         this.recipeCookingTips.clear();
     }
 
