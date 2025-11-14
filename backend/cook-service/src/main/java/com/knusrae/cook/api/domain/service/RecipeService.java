@@ -7,12 +7,15 @@ import com.knusrae.cook.api.domain.entity.Recipe;
 import com.knusrae.cook.api.domain.entity.RecipeCategory;
 import com.knusrae.cook.api.domain.entity.RecipeDetail;
 import com.knusrae.cook.api.domain.entity.RecipeImage;
+import com.knusrae.cook.api.domain.enums.Status;
+import com.knusrae.cook.api.domain.enums.Visibility;
 import com.knusrae.cook.api.domain.repository.RecipeStepRepository;
 import com.knusrae.cook.api.domain.repository.CommonCodeDetailRepository;
 import com.knusrae.cook.api.dto.*;
 import com.knusrae.cook.api.domain.repository.RecipeImageRepository;
 import com.knusrae.cook.api.domain.repository.RecipeRepository;
 import com.knusrae.common.domain.repository.MemberRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ public class RecipeService {
     private final RecipeStepRepository recipeStepRepository;
     private final CommonCodeDetailRepository commonCodeDetailRepository;
     private final MemberRepository memberRepository;
+    private final EntityManager entityManager;
 
     // CREATE - 레시피 생성
     @Transactional
@@ -234,7 +238,115 @@ public class RecipeService {
         return RecipeDetailDto.fromEntity(recipe, memberName);
     }
 
-    // 비활성화: 수정은 현재 미사용
+    // UPDATE - 레시피 수정
+    @Transactional
+    public RecipeDto updateRecipe(Long id, RecipeDto recipeDto, List<MultipartFile> images, Integer mainImageIndex) {
+        // 1) 기존 레시피 조회
+        Recipe recipe = recipeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
+
+        // 2) 기존 이미지 백업 (새 이미지가 있을 때만 삭제)
+        List<RecipeImage> existingImages = recipeImageRepository.findAllByRecipe(recipe);
+        
+        // 3) 기존 조리 단계 삭제
+        recipeStepRepository.deleteAllByRecipe(recipe);
+
+        // 4) 기존 카테고리 및 요리팁 삭제
+        // orphanRemoval=true가 제대로 작동하도록 명시적으로 clear 후 flush
+        recipe.clearCategories();
+        recipe.clearCookingTips();
+        entityManager.flush(); // 영속성 컨텍스트를 DB에 동기화하여 삭제 완료
+
+        // 5) 레시피 기본 정보 업데이트
+        Status statusValue = recipeDto.getStatus() != null ? Status.valueOf(recipeDto.getStatus()) : Status.DRAFT;
+        Visibility visibilityValue = recipeDto.getVisibility() != null ? Visibility.valueOf(recipeDto.getVisibility()) : Visibility.PUBLIC;
+        
+        recipe.updateRecipe(
+                recipeDto.getTitle(),
+                recipeDto.getDescription(),
+                statusValue,
+                visibilityValue
+        );
+
+        // 6) 카테고리 저장
+        saveRecipeCategories(recipe, recipeDto.getCategories());
+        saveRecipeCookingTips(recipe, recipeDto.getCookingTips());
+
+        // 7) 조리 단계 저장 및 순서 목록 확보
+        java.util.List<RecipeDetail> savedDetails = new java.util.ArrayList<>();
+        if(!recipeDto.getSteps().isEmpty()) {
+            for(RecipeStepDto step : recipeDto.getSteps()) {
+                RecipeDetail recipeDetail = step.toEntity(step);
+                recipeDetail.setRecipe(recipe);
+                RecipeDetail persisted = recipeStepRepository.save(recipeDetail);
+                savedDetails.add(persisted);
+            }
+            // step 값 기준 오름차순 정렬 보장
+            savedDetails.sort(java.util.Comparator.comparing(RecipeDetail::getStep));
+        }
+
+        // 8) 이미지 처리: 새 이미지가 있으면 기존 이미지 삭제 후 새 이미지 저장, 없으면 기존 이미지 유지
+        if(images != null && !images.isEmpty()) {
+            // 새 이미지가 있으면 기존 이미지 삭제
+            for(RecipeImage image : existingImages) {
+                imageStorage.deleteByKey(image.getStorageKey());
+                recipeImageRepository.delete(image);
+            }
+            
+            // 새 이미지 저장
+            int detailAssignIndex = 0; // 메인 이미지를 제외한 이미지를 단계에 순서대로 매핑하기 위한 인덱스
+            for(int i = 0; i < images.size(); i++) {
+                MultipartFile file = images.get(i);
+
+                // 1) 유효성 검사
+                validateImage(file);
+
+                // 2) 스토리지 업로드(로컬, TODO S3)
+                String relativeDir = "recipes/%d/%s".formatted(recipe.getId(), LocalDate.now());
+                ImageStorage.UploadResponse uploadResponse = imageStorage.upload(file, relativeDir);
+
+                // 3) 이미지 메타데이터 DB 저장
+                RecipeImage img = RecipeImage.builder()
+                        .recipe(recipe)
+                        .url(uploadResponse.url())        // 예: http://localhost:8080/media/recipes/1/2025-10-10/uuid.jpg
+                        .storageKey(uploadResponse.key()) // 예: recipes/1/2025-10-10/uuid.jpg
+                        .fileName(file.getOriginalFilename())
+                        .contentType(file.getContentType())
+                        .size(file.getSize())
+                        .sortOrder(i)
+                        .isMainImage(mainImageIndex != null && mainImageIndex == i)
+                        .build();
+                recipeImageRepository.save(img);
+
+                // 메인 이미지를 제외한 나머지 이미지를 단계 이미지로 매핑
+                if (savedDetails.size() > 0) {
+                    boolean isMain = (mainImageIndex != null && mainImageIndex == i);
+                    if (!isMain && detailAssignIndex < savedDetails.size()) {
+                        RecipeDetail targetDetail = savedDetails.get(detailAssignIndex);
+                        targetDetail.updateDetail(targetDetail.getDescription(), uploadResponse.url());
+                        recipeStepRepository.save(targetDetail);
+                        detailAssignIndex++;
+                    }
+                }
+            }
+        } else {
+            // 새 이미지가 없으면 기존 이미지를 단계에 매핑
+            if (savedDetails.size() > 0 && existingImages.size() > 0) {
+                // 메인 이미지가 아닌 이미지들을 단계에 매핑
+                int detailIndex = 0;
+                for(RecipeImage image : existingImages) {
+                    if (!image.isMainImage() && detailIndex < savedDetails.size()) {
+                        RecipeDetail targetDetail = savedDetails.get(detailIndex);
+                        targetDetail.updateDetail(targetDetail.getDescription(), image.getUrl());
+                        recipeStepRepository.save(targetDetail);
+                        detailIndex++;
+                    }
+                }
+            }
+        }
+
+        return new RecipeDto(recipe);
+    }
 
     // DELETE - 레시피 삭제 (물리적 삭제)
     @Transactional

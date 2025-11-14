@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto {
+public class MemberDto {
     private Long id;
     private String name;
     private String nickname;
