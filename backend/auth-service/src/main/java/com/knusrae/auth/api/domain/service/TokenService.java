@@ -38,7 +38,6 @@ public class TokenService {
      */
     @Transactional
     public TokenResponse loginWithSocialUser(Long userId, String username, String role) {
-        log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>> loginWithSocialUser Start");
         // 기존 Refresh Token이 있으면 삭제 (토큰 Rotation 정책)
         refreshTokenRepository.findByUserId(userId).ifPresent(existingToken -> {
             refreshTokenRepository.delete(existingToken);

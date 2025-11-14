@@ -11,12 +11,14 @@ import com.knusrae.common.domain.enums.SocialRole;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.auth.api.web.response.TokenResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -71,17 +73,35 @@ public class NaverAuthService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        String tokenRequestBody = String.format(
-                "grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&state=%s",
-                clientId, clientSecret, code, state
-        );
-        HttpEntity<String> tokenRequest = new HttpEntity<>(tokenRequestBody, headers);
-        ResponseEntity<String> tokenResponse = restTemplate.postForEntity(TOKEN_URL, tokenRequest, String.class);
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("client_id", clientId);
+        params.add("client_secret", clientSecret);
+        params.add("code", code);
+        params.add("state", state);
+
+        HttpEntity<MultiValueMap<String, String>> tokenRequest = new HttpEntity<>(params, headers);
+
+        ResponseEntity<String> tokenResponse =
+                restTemplate.postForEntity(TOKEN_URL, tokenRequest, String.class);
+
+        // 1) HTTP Status 체크
+        if (!tokenResponse.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Naver token API error: " +
+                    tokenResponse.getStatusCode() + " / body=" + tokenResponse.getBody());
+        }
 
         JsonNode tokenJson = objectMapper.readTree(tokenResponse.getBody());
 
-        return tokenJson.get("access_token").asText();
+        // 2) access_token 존재 여부 체크
+        JsonNode accessTokenNode = tokenJson.get("access_token");
+        if (accessTokenNode == null || accessTokenNode.isNull()) {
+            throw new RuntimeException("Failed to get access_token from Naver: " + tokenResponse.getBody());
+        }
+
+        return accessTokenNode.asText();
     }
+
 
     private NaverUserDTO getUserInfo(String accessToken) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
@@ -92,9 +112,19 @@ public class NaverAuthService {
                 USER_INFO_URL, HttpMethod.GET, userInfoRequest, String.class
         );
 
+        if (!userInfoResponse.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Naver user info API error: " +
+                    userInfoResponse.getStatusCode() + " / body=" + userInfoResponse.getBody());
+        }
+
         JsonNode userInfoJson = objectMapper.readTree(userInfoResponse.getBody());
         JsonNode user = userInfoJson.get("response");
 
+        if (ObjectUtils.isEmpty(user) || user.isNull()) {
+            throw new RuntimeException("Failed to get user info from Naver: " + userInfoResponse.getBody());
+        }
+
         return objectMapper.treeToValue(user, NaverUserDTO.class);
     }
+
 }
