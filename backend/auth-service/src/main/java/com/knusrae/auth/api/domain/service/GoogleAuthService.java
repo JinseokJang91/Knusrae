@@ -3,27 +3,25 @@ package com.knusrae.auth.api.domain.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.knusrae.auth.api.dto.GoogleUserDTO;
+import com.knusrae.auth.api.web.response.TokenResponse;
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.enums.Active;
-import com.knusrae.auth.api.dto.GoogleUserDTO;
 import com.knusrae.common.domain.enums.SocialRole;
 import com.knusrae.common.domain.repository.MemberRepository;
-import com.knusrae.auth.api.web.response.TokenResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class GoogleAuthService {
     @Value("${google.client.id}")
     private String clientId;
@@ -41,17 +39,13 @@ public class GoogleAuthService {
     private static final String USER_INFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
 
     public TokenResponse googleLoginProcess(String code) throws JsonProcessingException {
-        log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>> googleLoginProcess Start");
         // 액세스 토큰 요청
         String accessToken = getAccessToken(code);
-        log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>> googleLoginProcess accessToken : {}", accessToken);
         // 사용자 정보 요청
         GoogleUserDTO googleUserDTO = getUserInfo(accessToken);
-        log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>> googleLoginProcess googleUserDTO : {}", googleUserDTO.toString());
 
         // 1. DB에서 사용자 조회/없으면 생성
         Member member = memberRepository.findByEmail(googleUserDTO.getEmail());
-        log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>> googleLoginProcess member : {}", member.toString());
 
         if(ObjectUtils.isEmpty(member)) {
             member = memberRepository.save(
@@ -72,7 +66,6 @@ public class GoogleAuthService {
     }
 
     private String getAccessToken(String code) throws JsonProcessingException {
-        log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>> getAccessToken Start");
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -99,11 +92,8 @@ public class GoogleAuthService {
             throw new RuntimeException("Failed to get access_token from Google: " + tokenResponse.getBody());
         }
 
-        log.debug(">>>>>>>>>>>>>>>>>>>>>>>>>> getAccessToken End");
         return accessTokenNode.asText();
     }
-
-
 
     private GoogleUserDTO getUserInfo(String accessToken) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
@@ -114,6 +104,18 @@ public class GoogleAuthService {
                 USER_INFO_URL, HttpMethod.GET, userInfoRequest, String.class
         );
 
-        return objectMapper.readValue(userInfoResponse.getBody(), GoogleUserDTO.class);
+        if (!userInfoResponse.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Google user info API error: " +
+                    userInfoResponse.getStatusCode() + " / body=" + userInfoResponse.getBody());
+        }
+
+        JsonNode userInfoJson = objectMapper.readTree(userInfoResponse.getBody());
+        JsonNode user = userInfoJson.get("response");
+
+        if (ObjectUtils.isEmpty(user) || user.isNull()) {
+            throw new RuntimeException("Failed to get user info from Google: " + userInfoResponse.getBody());
+        }
+
+        return objectMapper.treeToValue(user, GoogleUserDTO.class);
     }
 }
