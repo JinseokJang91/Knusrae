@@ -31,7 +31,7 @@ public class MemberController {
      * @return 회원 정보 (MemberDto)
      */
     @GetMapping("/me")
-    public ResponseEntity<MemberDto> getCurrentMember(Authentication authentication) {
+    public ResponseEntity<MemberDto> retrieveCurrentMember(Authentication authentication) {
         try {
             // JWT 필터에서 설정한 Authentication의 principal에서 회원 ID 추출
             // JwtAuthenticationFilter에서 subject를 principal로 설정했으므로 String으로 받아서 Long으로 변환
