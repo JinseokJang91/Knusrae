@@ -46,8 +46,8 @@ public class RecipeController {
 
     // READ - 전체 레시피 목록 조회
     @GetMapping("/list")
-    public ResponseEntity<List<RecipeDto>> getRecipeList() {
-        List<RecipeDto> recipeList = recipeService.getRecipeList();
+    public ResponseEntity<List<RecipeDto>> listRecipes() {
+        List<RecipeDto> recipeList = recipeService.listRecipes();
         log.info("[LOG][OUTPUT] recipeList: {}", recipeList);
 
         return ResponseEntity.ok(recipeList);
@@ -55,10 +55,10 @@ public class RecipeController {
 
     // READ - 레시피 상세 조회 (이미지, 댓글, 리뷰 포함)
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RecipeDetailDto> getRecipeDetail(@PathVariable Long id) {
+    public ResponseEntity<RecipeDetailDto> retrieveRecipeDetail(@PathVariable Long id) {
         try {
             log.info("Fetching recipe detail for ID: {}", id);
-            RecipeDetailDto recipeDetail = recipeService.getRecipeDetail(id);
+            RecipeDetailDto recipeDetail = recipeService.retrieveRecipeDetail(id);
             log.info("Recipe detail : {}", recipeDetail);
             return ResponseEntity.ok(recipeDetail);
         } catch (Exception e) {

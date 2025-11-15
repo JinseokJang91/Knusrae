@@ -18,7 +18,7 @@ public class CommonCodeService {
 
     private final CommonCodeRepository commonCodeRepository;
 
-    public List<CommonCodeResponse> getCodesByGroup(String codeGroup) {
+    public List<CommonCodeResponse> listCodesByGroup(String codeGroup) {
         List<CommonCode> codes = commonCodeRepository.findAllByCodeGroupAndUseYnOrderBySortAsc(codeGroup, USE_Y);
         return codes.stream()
                 .map(CommonCodeResponse::fromEntity)

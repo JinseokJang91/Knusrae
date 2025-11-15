@@ -89,7 +89,7 @@ public class BoardService {
     /**
      * 모든 게시글 조회 (최신순)
      */
-    public List<BoardDto.ListResponse> getAllBoards() {
+    public List<BoardDto.ListResponse> listAllBoards() {
         log.info("Getting all boards");
 
         return boardRepository.findAllByOrderByCreatedAtDesc()

@@ -21,8 +21,8 @@ public class CommonCodeController {
     private final CommonCodeService commonCodeService;
 
     @GetMapping
-    public ResponseEntity<List<CommonCodeResponse>> getCommonCodes(@RequestParam("codeGroup") String codeGroup) {
-        List<CommonCodeResponse> responses = commonCodeService.getCodesByGroup(codeGroup);
+    public ResponseEntity<List<CommonCodeResponse>> listCommonCodes(@RequestParam("codeGroup") String codeGroup) {
+        List<CommonCodeResponse> responses = commonCodeService.listCodesByGroup(codeGroup);
         log.info("responses : {}", responses);
         return ResponseEntity.ok(responses);
     }

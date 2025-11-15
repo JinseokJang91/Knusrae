@@ -168,7 +168,7 @@ public class RecipeService {
     }
 
     // READ - 전체 레시피 목록 조회
-    public List<RecipeDto> getRecipeList() {
+    public List<RecipeDto> listRecipes() {
         List<Recipe> recipeList = recipeRepository.findAllByOrderByCreatedAtDesc();
         List<RecipeDto> recipeDtoList = recipeList.stream()
                 .map(RecipeDto::new)
@@ -193,37 +193,9 @@ public class RecipeService {
         return recipeDtoList;
     }
 
-    // READ - 단일 레시피 조회 (조회수 증가)
-    @Transactional
-    public RecipeDto getRecipe(Long id) {
-        Recipe recipe = recipeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
-
-        recipe.increaseHits(); // 조회수 증가
-        RecipeDto dto = new RecipeDto(recipe);
-        
-        // 메인 이미지를 조회하여 썸네일로 설정
-        List<RecipeImage> images = recipeImageRepository.findAllByRecipe(recipe);
-        RecipeImage mainImage = images.stream()
-                .filter(RecipeImage::isMainImage)
-                .findFirst()
-                .orElse(images.isEmpty() ? null : images.get(0)); // 메인 이미지가 없으면 첫 번째 이미지
-        if (mainImage != null) {
-            dto.setThumbnail(mainImage.getUrl());
-        }
-        
-        return dto;
-    }
-
-    // READ - Recipe 엔티티 조회 (조회수 증가 없음)
-    public Recipe getRecipeEntity(Long id) {
-        return recipeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
-    }
-
     // READ - 레시피 상세 조회 (이미지, 댓글, 리뷰 포함)
     @Transactional
-    public RecipeDetailDto getRecipeDetail(Long id) {
+    public RecipeDetailDto retrieveRecipeDetail(Long id) {
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
 
