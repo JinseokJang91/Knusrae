@@ -167,9 +167,9 @@ public class RecipeService {
         }
     }
 
-    // READ - 전체 레시피 목록 조회
-    public List<RecipeDto> listRecipes() {
-        List<Recipe> recipeList = recipeRepository.findAllByOrderByCreatedAtDesc();
+    // READ - 전체 레시피 목록 조회 (QueryDsl 사용: PUBLISHED & PUBLIC만 조회)
+    public List<RecipeDto> listAllRecipes() {
+        List<Recipe> recipeList = recipeRepository.findPublishedPublicRecipes();
         List<RecipeDto> recipeDtoList = recipeList.stream()
                 .map(RecipeDto::new)
                 .toList();
@@ -190,6 +190,32 @@ public class RecipeService {
             }
         }
         
+        return recipeDtoList;
+    }
+
+    // READ - 전체 레시피 목록 조회 (로그인 유저가 생성한 레시피 전체 조회)
+    public List<RecipeDto> listUserRecipes(Long userId) {
+        List<Recipe> recipeList = recipeRepository.findUserRecipes(userId);
+        List<RecipeDto> recipeDtoList = recipeList.stream()
+                .map(RecipeDto::new)
+                .toList();
+
+        // 각 레시피의 메인 이미지를 조회하여 썸네일로 설정
+        for (RecipeDto dto : recipeDtoList) {
+            Recipe recipe = recipeRepository.findById(dto.getId())
+                    .orElse(null);
+            if (recipe != null) {
+                List<RecipeImage> images = recipeImageRepository.findAllByRecipe(recipe);
+                RecipeImage mainImage = images.stream()
+                        .filter(RecipeImage::isMainImage)
+                        .findFirst()
+                        .orElse(images.isEmpty() ? null : images.get(0)); // 메인 이미지가 없으면 첫 번째 이미지
+                if (mainImage != null) {
+                    dto.setThumbnail(mainImage.getUrl());
+                }
+            }
+        }
+
         return recipeDtoList;
     }
 

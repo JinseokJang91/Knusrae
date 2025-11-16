@@ -44,11 +44,20 @@ public class RecipeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    // READ - 전체 레시피 목록 조회
-    @GetMapping("/list")
-    public ResponseEntity<List<RecipeDto>> listRecipes() {
-        List<RecipeDto> recipeList = recipeService.listRecipes();
-        log.info("[LOG][OUTPUT] recipeList: {}", recipeList);
+    // READ - 전체 레시피 목록 조회(로그인 유저용)
+    @GetMapping("/list/user/{userId}")
+    public ResponseEntity<List<RecipeDto>> listUserRecipes(@PathVariable Long userId) {
+        List<RecipeDto> recipeList = recipeService.listUserRecipes(userId);
+        log.info("[LOG][OUTPUT] user recipeList: {}", recipeList);
+
+        return ResponseEntity.ok(recipeList);
+    }
+
+    // READ - 전체 레시피 목록 조회(애플리케이션 사용자용)
+    @GetMapping("/list/all")
+    public ResponseEntity<List<RecipeDto>> listAllRecipes() {
+        List<RecipeDto> recipeList = recipeService.listAllRecipes();
+        log.info("[LOG][OUTPUT] all recipeList: {}", recipeList);
 
         return ResponseEntity.ok(recipeList);
     }

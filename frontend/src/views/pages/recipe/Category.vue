@@ -330,8 +330,9 @@ const loadRecipes = async () => {
         loading.value = true;
         error.value = null;
 
-        const response = await httpJson(API_BASE_URL, '/api/recipe/list', {
-            method: 'GET'
+        const response = await httpJson(API_BASE_URL, '/api/recipe/list/all', {
+            method: 'GET',
+            attachAuth: false
         });
 
         const data = response.data || response || [];
