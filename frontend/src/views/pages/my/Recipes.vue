@@ -49,13 +49,13 @@
                             </button>
                         </td>
                         <td class="px-3 py-2">
-                            <span class="px-2 py-1 rounded text-xs" :class="r.status === 'draft' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'">
-                                {{ r.status === 'draft' ? '초안' : '발행' }}
+                            <span class="px-2 py-1 rounded text-xs" :class="r.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'">
+                                {{ r.status === 'DRAFT' ? '초안' : '발행' }}
                             </span>
                         </td>
                         <td class="px-3 py-2">
-                            <span class="px-2 py-1 rounded text-xs" :class="r.visibility === 'public' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'">
-                                {{ r.visibility === 'public' ? '공개' : '비공개' }}
+                            <span class="px-2 py-1 rounded text-xs" :class="r.visibility === 'PUBLIC' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'">
+                                {{ r.visibility === 'PUBLIC' ? '공개' : '비공개' }}
                             </span>
                         </td>
                         <td class="px-3 py-2 text-right">
@@ -129,6 +129,7 @@
 
 <script setup lang="ts">
 import { httpJson, httpMultipart } from '@/utils/http';
+import { getCurrentUser } from '@/utils/auth';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -140,8 +141,8 @@ const router = useRouter();
 interface Recipe {
     id: number;
     title: string;
-    status: 'draft' | 'published';
-    visibility: 'public' | 'private';
+    status: 'DRAFT' | 'PUBLISHED';
+    visibility: 'PUBLIC' | 'PRIVATE';
     thumbnail?: string;
     introduction?: string;
     ingredients?: string[];
@@ -161,9 +162,13 @@ const apiCall = async (url: string, options: RequestInit = {}) => {
     }
 };
 
-// 1. 레시피 목록 조회
+// 1. 레시피 목록 조회 (로그인 유저의 레시피)
 const fetchRecipes = async (): Promise<Recipe[]> => {
-    return await apiCall('/api/recipe/list');
+    const currentUser = getCurrentUser();
+    if (!currentUser || !currentUser.id) {
+        throw new Error('로그인이 필요합니다.');
+    }
+    return await apiCall(`/api/recipe/list/user/${currentUser.id}`);
 };
 
 // 4. 레시피 삭제
