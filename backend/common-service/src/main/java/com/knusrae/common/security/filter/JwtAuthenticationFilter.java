@@ -12,7 +12,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -27,6 +27,7 @@ import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider tokenProvider;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -38,8 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 토큰 추출: 우선순위 1) Authorization 헤더, 2) 쿠키
-        String token = extractToken(request);
+        // 쿠키에서 토큰 추출
+        String token = extractTokenFromCookie(request);
         
         if (StringUtils.hasText(token)) {
             // 1. 블랙리스트 확인 (auth-service에서만 동작)
@@ -76,33 +77,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
         }
+        
         filterChain.doFilter(request, response);
     }
 
     /**
-     * 요청에서 토큰을 추출합니다.
-     * 우선순위: 1) Authorization 헤더, 2) 쿠키
+     * 쿠키에서 토큰을 추출합니다.
      * 
      * @param request HTTP 요청
      * @return 토큰 문자열 (없으면 null)
      */
-    private String extractToken(HttpServletRequest request) {
-        // 1. Authorization 헤더에서 토큰 추출
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
-            return header.substring(7);
-        }
-        
-        // 2. 쿠키에서 토큰 추출
+    private String extractTokenFromCookie(HttpServletRequest request) {
         jakarta.servlet.http.Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (jakarta.servlet.http.Cookie cookie : cookies) {
                 if ("accessToken".equals(cookie.getName())) {
+                    log.info("accessToken Name : {}", cookie.getName());
+                    log.info("accessToken Value : {}", cookie.getValue());
                     return cookie.getValue();
                 }
             }
         }
-        
         return null;
     }
 

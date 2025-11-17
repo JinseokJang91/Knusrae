@@ -281,8 +281,7 @@ async function loadCategoryOptions() {
     categoriesError.value = null;
     try {
         const response = await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/common-codes?codeGroup=CATEGORY', {
-            method: 'GET',
-            attachAuth: false
+            method: 'GET'
         });
 
         if (Array.isArray(response)) {
@@ -308,8 +307,7 @@ async function loadCookingTipsOptions() {
     cookingTipsError.value = null;
     try {
         const response = await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/common-codes?codeGroup=COOKINGTIP', {
-            method: 'GET',
-            attachAuth: false
+            method: 'GET'
         });
 
         if (Array.isArray(response)) {

@@ -244,8 +244,7 @@ const selectedMainCategoryDetails = computed(() => {
 const loadCategories = async () => {
     try {
         const response = await httpJson(API_BASE_URL, '/api/common-codes?codeGroup=CATEGORY', {
-            method: 'GET',
-            attachAuth: false
+            method: 'GET'
         });
 
         const codes = Array.isArray(response) ? response : [];
@@ -331,8 +330,7 @@ const loadRecipes = async () => {
         error.value = null;
 
         const response = await httpJson(API_BASE_URL, '/api/recipe/list/all', {
-            method: 'GET',
-            attachAuth: false
+            method: 'GET'
         });
 
         const data = response.data || response || [];

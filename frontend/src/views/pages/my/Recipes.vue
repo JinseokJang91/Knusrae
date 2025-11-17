@@ -129,9 +129,9 @@
 
 <script setup lang="ts">
 import { httpJson, httpMultipart } from '@/utils/http';
-import { getCurrentUser } from '@/utils/auth';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { getLoggedInUser } from '@/utils/auth';
 
 // API 호출을 위한 기본 URL 및 공용 HTTP 유틸
 const API_COOK_BASE_URL = import.meta.env.VITE_API_BASE_URL_COOK;
@@ -162,12 +162,26 @@ const apiCall = async (url: string, options: RequestInit = {}) => {
     }
 };
 
+const getLoggedInUserInfo = async () => {
+    try {
+        // user-service의 BASE URL 사용 (환경 변수가 있으면 사용, 없으면 기본값)
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_MEMBER;
+        const userInfo = await httpJson(API_BASE_URL, '/api/member/me', {
+            method: 'GET'
+        });
+        
+        return userInfo;
+    } catch (error) {
+        console.error('사용자 정보 조회 실패:', error);
+        // API 호출 실패 시 기본값 설정
+        return null;
+    }
+};
+
 // 1. 레시피 목록 조회 (로그인 유저의 레시피)
 const fetchRecipes = async (): Promise<Recipe[]> => {
-    const currentUser = getCurrentUser();
-    if (!currentUser || !currentUser.id) {
-        throw new Error('로그인이 필요합니다.');
-    }
+    const currentUser = await getLoggedInUserInfo();
+
     return await apiCall(`/api/recipe/list/user/${currentUser.id}`);
 };
 

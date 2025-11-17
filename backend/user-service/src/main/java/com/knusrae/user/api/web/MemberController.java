@@ -36,7 +36,7 @@ public class MemberController {
             // JWT 필터에서 설정한 Authentication의 principal에서 회원 ID 추출
             // JwtAuthenticationFilter에서 subject를 principal로 설정했으므로 String으로 받아서 Long으로 변환
             if (authentication == null || authentication.getPrincipal() == null) {
-                log.warn("GET /api/member/me - 인증 정보가 없습니다.");
+                log.error("GET /api/member/me - 인증 정보가 없습니다.");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 

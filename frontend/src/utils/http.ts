@@ -1,16 +1,8 @@
 /**
- * 공용 HTTP 클라이언트: accessToken을 자동으로 Authorization 헤더에 포함
- */
-
-export interface HttpRequestOptions extends RequestInit {
-    attachAuth?: boolean;
-}
-
-/**
  * JSON 요청을 위한 헬퍼 (Content-Type: application/json)
  * HttpOnly 쿠키를 통해 인증이 처리되므로 Authorization 헤더는 사용하지 않음
  */
-export async function httpJson(baseUrl: string, url: string, options: HttpRequestOptions = {}): Promise<any> {
+export async function httpJson(baseUrl: string, url: string, options: RequestInit = {}): Promise<any> {
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         ...(options.headers as Record<string, string> | undefined)
@@ -38,7 +30,7 @@ export async function httpJson(baseUrl: string, url: string, options: HttpReques
  * 멀티파트/파일 업로드용 헬퍼 (FormData 사용 시 Content-Type은 브라우저가 설정)
  * HttpOnly 쿠키를 통해 인증이 처리되므로 Authorization 헤더는 사용하지 않음
  */
-export async function httpForm(baseUrl: string, url: string, formData: FormData, options: HttpRequestOptions = {}): Promise<any> {
+export async function httpForm(baseUrl: string, url: string, formData: FormData, options: RequestInit = {}): Promise<any> {
     // 1) options 세팅
     const reqInit: RequestInit = { ...options };
 
@@ -76,7 +68,7 @@ export async function httpForm(baseUrl: string, url: string, formData: FormData,
  * 멀티파트 응답을 처리하는 헬퍼 (이미지와 JSON 데이터를 함께 받을 때 사용)
  * HttpOnly 쿠키를 통해 인증이 처리되므로 Authorization 헤더는 사용하지 않음
  */
-export async function httpMultipart(baseUrl: string, url: string, options: HttpRequestOptions = {}): Promise<{
+export async function httpMultipart(baseUrl: string, url: string, options: RequestInit = {}): Promise<{
     recipe: any;
     images: File[];
     mainImageIndex?: number

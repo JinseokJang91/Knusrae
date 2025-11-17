@@ -1,7 +1,7 @@
 <script setup>
 import logoText from '@/assets/images/logo-text.png';
 import { useLayout } from '@/layout/composables/layout';
-import { getCurrentUser, isLoggedIn } from '@/utils/auth';
+import { isLoggedIn } from '@/utils/auth';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { httpJson } from '@/utils/http';
@@ -26,10 +26,9 @@ const clearSearch = () => {
 const fetchUserInfo = async () => {
     try {
         // user-service의 BASE URL 사용 (환경 변수가 있으면 사용, 없으면 기본값)
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_USER || 'http://localhost:8083';
-        const userInfo = await httpJson(API_BASE_URL, '/api/user/me', {
-            method: 'GET',
-            attachAuth: false // HttpOnly 쿠키는 자동으로 전송되므로 Authorization 헤더 불필요
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_MEMBER;
+        const userInfo = await httpJson(API_BASE_URL, '/api/member/me', {
+            method: 'GET'
         });
         
         // API 응답에서 사용자 닉네임 추출 (nickname 우선, 없으면 name 사용)
@@ -66,7 +65,6 @@ const handleLogout = async () => {
         
         // localStorage 플래그 제거
         localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('accessToken'); // 기존 토큰도 제거 (혹시 모를 경우 대비)
         updateLoginState();
         router.push('/');
     }

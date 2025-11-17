@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -147,27 +146,18 @@ public class AuthController {
     /**
      * 로그아웃 처리: Access Token과 Refresh Token을 무효화하고 쿠키를 삭제합니다.
      * 
-     * @param accessToken 쿠키에서 받은 Access Token (우선순위 1)
-     * @param authorizationHeader 헤더에서 받은 Access Token (우선순위 2, 쿠키가 없을 경우)
-     * @param refreshToken 쿠키에서 받은 Refresh Token (우선순위 1)
-     * @param refreshTokenHeader 헤더에서 받은 Refresh Token (우선순위 2, 쿠키가 없을 경우)
+     * @param accessToken 쿠키에서 받은 Access Token
+     * @param refreshToken 쿠키에서 받은 Refresh Token
      * @return 성공 메시지
      */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(
             @CookieValue(value = "accessToken", required = false) String accessToken,
-            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
-            @CookieValue(value = "refreshToken", required = false) String refreshToken,
-            @RequestHeader(value = "Refresh-Token", required = false) String refreshTokenHeader) {
+            @CookieValue(value = "refreshToken", required = false) String refreshToken) {
         try {
-            // Access Token 추출 (쿠키 또는 Authorization 헤더)
+            // 쿠키에서 토큰 추출
             String accessTokenValue = accessToken;
-            if (accessTokenValue == null && authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-                accessTokenValue = authorizationHeader.substring(7);
-            }
-            
-            // Refresh Token 추출 (쿠키 또는 헤더)
-            String refreshTokenValue = refreshToken != null ? refreshToken : refreshTokenHeader;
+            String refreshTokenValue = refreshToken;
             
             // 로그아웃 처리
             tokenService.logout(accessTokenValue, refreshTokenValue);
@@ -203,17 +193,15 @@ public class AuthController {
     /**
      * Refresh Token을 사용하여 새로운 Access Token과 Refresh Token을 발행합니다.
      * 
-     * @param refreshToken 쿠키에서 받은 Refresh Token (우선순위 1)
-     * @param refreshTokenHeader 헤더에서 받은 Refresh Token (우선순위 2, 쿠키가 없을 경우)
+     * @param refreshToken 쿠키에서 받은 Refresh Token
      * @return TokenResponse (새 Access Token, 새 Refresh Token, 만료 시간 포함)
      */
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(
-            @CookieValue(value = "refreshToken", required = false) String refreshToken,
-            @RequestHeader(value = "Refresh-Token", required = false) String refreshTokenHeader) {
+            @CookieValue(value = "refreshToken", required = false) String refreshToken) {
         try {
-            // 쿠키 또는 헤더에서 Refresh Token 추출
-            String refreshTokenValue = refreshToken != null ? refreshToken : refreshTokenHeader;
+            // 쿠키에서 Refresh Token 추출
+            String refreshTokenValue = refreshToken;
             
             if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
