@@ -45,10 +45,10 @@ public class RecipeController {
     }
 
     // READ - 전체 레시피 목록 조회(로그인 유저용)
-    @GetMapping("/list/user/{userId}")
-    public ResponseEntity<List<RecipeDto>> listUserRecipes(@PathVariable Long userId) {
-        List<RecipeDto> recipeList = recipeService.listUserRecipes(userId);
-        log.info("[LOG][OUTPUT] user recipeList: {}", recipeList);
+    @GetMapping("/list/member/{memberId}")
+    public ResponseEntity<List<RecipeDto>> listMemberRecipes(@PathVariable Long memberId) {
+        List<RecipeDto> recipeList = recipeService.listMemberRecipes(memberId);
+        log.info("[LOG][OUTPUT] member recipeList: {}", recipeList);
 
         return ResponseEntity.ok(recipeList);
     }

@@ -80,7 +80,7 @@
                     <template #content>
                         <div class="flex items-center">
                             <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ activeUsers }}</h3>
+                                <h3 class="text-2xl font-bold text-gray-900 m-0">{{ activeMembers }}</h3>
                                 <p class="text-gray-600 m-0">활성 사용자</p>
                             </div>
                             <i class="pi pi-users text-4xl text-purple-500"></i>
@@ -107,7 +107,7 @@
                     <template #content>
                         <div class="flex gap-3">
                             <!-- 사용자 아바타 -->
-                            <Avatar :image="post.userAvatar" :label="post.userName.charAt(0)" size="large" shape="circle" />
+                            <Avatar :image="post.memberAvatar" :label="post.memberName.charAt(0)" size="large" shape="circle" />
 
                             <!-- 게시글 내용 -->
                             <div class="flex-1">
@@ -118,7 +118,7 @@
                                         </h4>
                                         <div class="flex items-center gap-2 text-sm text-gray-500">
                                             <Tag :value="post.category" :severity="getCategorySeverity(post.category)" />
-                                            <span>{{ post.userName }}</span>
+                                            <span>{{ post.memberName }}</span>
                                             <span>•</span>
                                             <span>{{ formatDate(post.createdAt) }}</span>
                                             <span v-if="post.updatedAt !== post.createdAt" class="text-orange-500">(수정됨)</span>
@@ -245,9 +245,9 @@ const totalComments = computed(() => {
     return posts.value.reduce((sum, post) => sum + post.comments, 0);
 });
 
-const activeUsers = computed(() => {
-    const uniqueUsers = new Set(posts.value.map((post) => post.userName));
-    return uniqueUsers.size;
+const activeMembers = computed(() => {
+    const uniqueMembers = new Set(posts.value.map((post) => post.memberName));
+    return uniqueMembers.size;
 });
 
 const filteredPosts = computed(() => {
@@ -256,7 +256,7 @@ const filteredPosts = computed(() => {
     // 검색 필터
     if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase();
-        filtered = filtered.filter((post) => post.title.toLowerCase().includes(query) || post.content.toLowerCase().includes(query) || post.userName.toLowerCase().includes(query));
+        filtered = filtered.filter((post) => post.title.toLowerCase().includes(query) || post.content.toLowerCase().includes(query) || post.memberName.toLowerCase().includes(query));
     }
 
     // 카테고리 필터
@@ -289,7 +289,7 @@ const totalFilteredPosts = computed(() => {
 
     if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase();
-        filtered = filtered.filter((post) => post.title.toLowerCase().includes(query) || post.content.toLowerCase().includes(query) || post.userName.toLowerCase().includes(query));
+        filtered = filtered.filter((post) => post.title.toLowerCase().includes(query) || post.content.toLowerCase().includes(query) || post.memberName.toLowerCase().includes(query));
     }
 
     if (selectedCategory.value) {
@@ -307,8 +307,8 @@ const loadPosts = () => {
             title: '요리 초보를 위한 팁 모음',
             content: '요리를 처음 시작하는 분들을 위한 기본적인 팁들을 정리해봤습니다. 칼 사용법부터 기본 양념까지 차근차근 설명드릴게요. 특히 안전사고 예방에 대한 내용도 포함되어 있으니 꼭 읽어보세요.',
             category: 'info',
-            userName: '김요리',
-            userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
+            memberName: '김요리',
+            memberAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
             createdAt: '2024-01-15T10:30:00Z',
             updatedAt: '2024-01-15T10:30:00Z',
             views: 156,
@@ -323,8 +323,8 @@ const loadPosts = () => {
             title: '김치찌개가 계속 시어져요 ㅠㅠ',
             content: '김치찌개를 만들 때마다 김치가 너무 시어져서 맛이 없어요. 김치를 어떻게 보관해야 할까요? 그리고 김치찌개를 만들 때 김치를 어떻게 처리해야 맛있게 나올까요? 도움 부탁드려요!',
             category: 'question',
-            userName: '이맛집',
-            userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
+            memberName: '이맛집',
+            memberAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
             createdAt: '2024-01-14T15:20:00Z',
             updatedAt: '2024-01-14T15:20:00Z',
             views: 89,
@@ -339,8 +339,8 @@ const loadPosts = () => {
             title: '오늘 만든 파스타 자랑해요!',
             content: '처음으로 크림파스타를 만들어봤는데 정말 맛있게 나왔어요! 특히 크림소스가 진하지도 않고 묽지도 않게 딱 좋게 나왔습니다. 다음에는 다른 소스로도 도전해보고 싶어요.',
             category: 'showoff',
-            userName: '박요리사',
-            userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50',
+            memberName: '박요리사',
+            memberAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50',
             createdAt: '2024-01-13T20:15:00Z',
             updatedAt: '2024-01-13T20:15:00Z',
             views: 234,
@@ -355,8 +355,8 @@ const loadPosts = () => {
             title: '새로운 레시피 사이트 발견!',
             content: '요즘 새로운 레시피 사이트를 발견했는데 정말 좋더라고요. 특히 영상으로 설명이 잘 되어있어서 따라하기 쉬웠습니다. 여러분도 한번 확인해보세요!',
             category: 'info',
-            userName: '최맛있',
-            userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50',
+            memberName: '최맛있',
+            memberAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50',
             createdAt: '2024-01-12T14:45:00Z',
             updatedAt: '2024-01-12T14:45:00Z',
             views: 167,
@@ -371,8 +371,8 @@ const loadPosts = () => {
             title: '요리 도구 추천 부탁드려요',
             content: '요리를 시작하려고 하는데 기본적으로 필요한 도구들이 뭔지 모르겠어요. 칼, 도마, 팬 정도는 알고 있는데 그 외에 꼭 필요한 도구들이 있을까요? 예산은 10만원 정도로 생각하고 있어요.',
             category: 'question',
-            userName: '정요리왕',
-            userAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50',
+            memberName: '정요리왕',
+            memberAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50',
             createdAt: '2024-01-11T09:30:00Z',
             updatedAt: '2024-01-11T09:30:00Z',
             views: 98,
@@ -407,8 +407,8 @@ const writePost = () => {
         title: newPost.value.title,
         content: newPost.value.content,
         category: newPost.value.category,
-        userName: '나',
-        userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
+        memberName: '나',
+        memberAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         views: 0,

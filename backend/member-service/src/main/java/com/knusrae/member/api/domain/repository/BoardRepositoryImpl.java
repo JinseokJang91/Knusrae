@@ -1,7 +1,7 @@
-package com.knusrae.user.api.domain.repository;
+package com.knusrae.member.api.domain.repository;
 
-import com.knusrae.user.api.domain.entity.Board;
-import com.knusrae.user.api.domain.entity.QBoard;
+import com.knusrae.member.api.domain.entity.Board;
+import com.knusrae.member.api.domain.entity.QBoard;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -22,10 +22,10 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
     private final QBoard board = QBoard.board;
 
     @Override
-    public List<Board> findAllByUserId(Long userId) {
+    public List<Board> findAllByMemberId(Long memberId) {
         return queryFactory
                 .selectFrom(board)
-                .where(board.memberId.eq(userId))
+                .where(board.memberId.eq(memberId))
                 .orderBy(board.createdAt.desc())
                 .fetch();
     }
@@ -87,7 +87,7 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
     }
 
     @Override
-    public Page<Board> findBoardsWithPaging(String keyword, Long userId, Pageable pageable) {
+    public Page<Board> findBoardsWithPaging(String keyword, Long memberId, Pageable pageable) {
         BooleanBuilder builder = new BooleanBuilder();
 
         // 키워드 검색 조건 (제목 또는 내용에 포함)
@@ -97,8 +97,8 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
         }
 
         // 사용자 필터 조건
-        if (userId != null) {
-            builder.and(board.memberId.eq(userId));
+        if (memberId != null) {
+            builder.and(board.memberId.eq(memberId));
         }
 
         JPAQuery<Board> query = queryFactory
@@ -122,10 +122,10 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
     }
 
     @Override
-    public Long countByUserId(Long userId) {
+    public Long countByMemberId(Long memberId) {
         return queryFactory
                 .selectFrom(board)
-                .where(board.memberId.eq(userId))
+                .where(board.memberId.eq(memberId))
                 .fetchCount();
     }
 

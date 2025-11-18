@@ -194,8 +194,8 @@ public class RecipeService {
     }
 
     // READ - 전체 레시피 목록 조회 (로그인 유저가 생성한 레시피 전체 조회)
-    public List<RecipeDto> listUserRecipes(Long userId) {
-        List<Recipe> recipeList = recipeRepository.findUserRecipes(userId);
+    public List<RecipeDto> listMemberRecipes(Long memberId) {
+        List<Recipe> recipeList = recipeRepository.findMemberRecipes(memberId);
         List<RecipeDto> recipeDtoList = recipeList.stream()
                 .map(RecipeDto::new)
                 .toList();

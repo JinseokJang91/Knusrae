@@ -4,7 +4,7 @@ plugins {
 }
 
 springBoot {
-	mainClass = 'com.knusrae.user.UserServiceApplication'
+	mainClass = 'com.knusrae.member.MemberServiceApplication'
 }
 
 dependencies {

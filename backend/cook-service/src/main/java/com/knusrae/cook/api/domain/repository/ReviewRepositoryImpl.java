@@ -22,10 +22,10 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     private final QReview review = QReview.review;
 
     @Override
-    public List<Review> findAllByUserId(Long userId) {
+    public List<Review> findAllByMemberId(Long memberId) {
         return queryFactory
                 .selectFrom(review)
-                .where(review.memberId.eq(userId))
+                .where(review.memberId.eq(memberId))
                 .orderBy(review.createdAt.desc())
                 .fetch();
     }
@@ -114,7 +114,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     }
 
     @Override
-    public Page<Review> findReviewsWithPaging(String keyword, Long recipeId, Long userId, Long score, Pageable pageable) {
+    public Page<Review> findReviewsWithPaging(String keyword, Long recipeId, Long memberId, Long score, Pageable pageable) {
         BooleanBuilder builder = new BooleanBuilder();
 
         // 키워드 검색 조건 (제목 또는 내용에 포함)
@@ -129,8 +129,8 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         }
 
         // 사용자 필터 조건
-        if (userId != null) {
-            builder.and(review.memberId.eq(userId));
+        if (memberId != null) {
+            builder.and(review.memberId.eq(memberId));
         }
 
         // 평점 필터 조건
@@ -159,10 +159,10 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     }
 
     @Override
-    public Long countByUserId(Long userId) {
+    public Long countByMemberId(Long memberId) {
         return queryFactory
                 .selectFrom(review)
-                .where(review.memberId.eq(userId))
+                .where(review.memberId.eq(memberId))
                 .fetchCount();
     }
 

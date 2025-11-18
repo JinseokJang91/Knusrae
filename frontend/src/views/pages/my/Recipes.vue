@@ -41,7 +41,7 @@
                     <tr v-for="(r, i) in filteredRecipes" :key="r.id" class="border-t hover:bg-gray-50">
                         <td class="px-3 py-2">{{ i + 1 }}</td>
                         <td class="px-3 py-2">
-                            <button 
+                            <button
                                 @click="viewRecipeDetail(r.id)"
                                 class="text-left text-blue-600 hover:text-blue-800 hover:underline font-medium"
                             >
@@ -128,10 +128,9 @@
 </template>
 
 <script setup lang="ts">
-import { httpJson, httpMultipart } from '@/utils/http';
+import { httpJson } from '@/utils/http';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { getLoggedInUser } from '@/utils/auth';
 
 // API 호출을 위한 기본 URL 및 공용 HTTP 유틸
 const API_COOK_BASE_URL = import.meta.env.VITE_API_BASE_URL_COOK;
@@ -162,15 +161,15 @@ const apiCall = async (url: string, options: RequestInit = {}) => {
     }
 };
 
-const getLoggedInUserInfo = async () => {
+const getLoggedInMemberInfo = async () => {
     try {
-        // user-service의 BASE URL 사용 (환경 변수가 있으면 사용, 없으면 기본값)
+        // member-service의 BASE URL 사용 (환경 변수가 있으면 사용, 없으면 기본값)
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_MEMBER;
-        const userInfo = await httpJson(API_BASE_URL, '/api/member/me', {
+        const memberInfo = await httpJson(API_BASE_URL, '/api/member/me', {
             method: 'GET'
         });
-        
-        return userInfo;
+
+        return memberInfo;
     } catch (error) {
         console.error('사용자 정보 조회 실패:', error);
         // API 호출 실패 시 기본값 설정
@@ -180,9 +179,9 @@ const getLoggedInUserInfo = async () => {
 
 // 1. 레시피 목록 조회 (로그인 유저의 레시피)
 const fetchRecipes = async (): Promise<Recipe[]> => {
-    const currentUser = await getLoggedInUserInfo();
+    const currentMember = await getLoggedInMemberInfo();
 
-    return await apiCall(`/api/recipe/list/user/${currentUser.id}`);
+    return await apiCall(`/api/recipe/list/member/${currentMember.id}`);
 };
 
 // 4. 레시피 삭제

@@ -10,5 +10,5 @@ rootProject.name = 'knusrae'
 
 include 'backend:auth-service'
 include 'backend:cook-service'
-include 'backend:user-service'
+include 'backend:member-service'
 include 'backend:common-service'

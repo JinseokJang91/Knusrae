@@ -108,7 +108,7 @@
                     <template #content>
                         <div class="flex gap-3">
                             <!-- 사용자 아바타 -->
-                            <Avatar :image="question.userAvatar" :label="question.userName.charAt(0)" size="large" shape="circle" />
+                            <Avatar :image="question.memberAvatar" :label="question.memberName.charAt(0)" size="large" shape="circle" />
 
                             <!-- 질문 내용 -->
                             <div class="flex-1">
@@ -120,7 +120,7 @@
                                         <div class="flex items-center gap-2 text-sm text-gray-500">
                                             <Tag :value="question.category" :severity="getCategorySeverity(question.category)" />
                                             <Tag :value="question.status" :severity="getStatusSeverity(question.status)" />
-                                            <span>{{ question.userName }}</span>
+                                            <span>{{ question.memberName }}</span>
                                             <span>•</span>
                                             <span>{{ formatDate(question.createdAt) }}</span>
                                         </div>
@@ -198,9 +198,9 @@
                 <!-- 질문 내용 -->
                 <div class="question-detail">
                     <div class="flex items-center gap-3 mb-3">
-                        <Avatar :image="selectedQuestion.userAvatar" :label="selectedQuestion.userName.charAt(0)" size="large" shape="circle" />
+                        <Avatar :image="selectedQuestion.memberAvatar" :label="selectedQuestion.memberName.charAt(0)" size="large" shape="circle" />
                         <div>
-                            <div class="font-semibold">{{ selectedQuestion.userName }}</div>
+                            <div class="font-semibold">{{ selectedQuestion.memberName }}</div>
                             <div class="text-sm text-gray-500">{{ formatDate(selectedQuestion.createdAt) }}</div>
                         </div>
                         <div class="flex gap-2 ml-auto">
@@ -219,9 +219,9 @@
                     <h4 class="text-gray-900 font-medium mb-3">답변 ({{ selectedQuestion.answers.length }}개)</h4>
                     <div v-for="answer in selectedQuestion.answers" :key="answer.id" class="answer-item mb-3">
                         <div class="flex items-center gap-3 mb-2">
-                            <Avatar :image="answer.userAvatar" :label="answer.userName.charAt(0)" size="normal" shape="circle" />
+                            <Avatar :image="answer.memberAvatar" :label="answer.memberName.charAt(0)" size="normal" shape="circle" />
                             <div>
-                                <div class="font-semibold">{{ answer.userName }}</div>
+                                <div class="font-semibold">{{ answer.memberName }}</div>
                                 <div class="text-sm text-gray-500">{{ formatDate(answer.createdAt) }}</div>
                             </div>
                             <div v-if="answer.isExpert" class="ml-auto">
@@ -323,7 +323,7 @@ const expertCount = computed(() => {
         if (question.answers) {
             question.answers.forEach((answer) => {
                 if (answer.isExpert) {
-                    experts.add(answer.userName);
+                    experts.add(answer.memberName);
                 }
             });
         }
@@ -337,7 +337,7 @@ const filteredQuestions = computed(() => {
     // 검색 필터
     if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase();
-        filtered = filtered.filter((question) => question.title.toLowerCase().includes(query) || question.content.toLowerCase().includes(query) || question.userName.toLowerCase().includes(query));
+        filtered = filtered.filter((question) => question.title.toLowerCase().includes(query) || question.content.toLowerCase().includes(query) || question.memberName.toLowerCase().includes(query));
     }
 
     // 카테고리 필터
@@ -375,7 +375,7 @@ const totalFilteredQuestions = computed(() => {
 
     if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase();
-        filtered = filtered.filter((question) => question.title.toLowerCase().includes(query) || question.content.toLowerCase().includes(query) || question.userName.toLowerCase().includes(query));
+        filtered = filtered.filter((question) => question.title.toLowerCase().includes(query) || question.content.toLowerCase().includes(query) || question.memberName.toLowerCase().includes(query));
     }
 
     if (selectedCategory.value) {
@@ -398,8 +398,8 @@ const loadQuestions = () => {
             content: '김치찌개를 만들 때마다 김치가 너무 시어져서 맛이 없어요. 김치를 어떻게 보관해야 할까요? 그리고 김치찌개를 만들 때 김치를 어떻게 처리해야 맛있게 나올까요?',
             category: 'cooking',
             status: 'answered',
-            userName: '김요리',
-            userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
+            memberName: '김요리',
+            memberAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
             createdAt: '2024-01-15T10:30:00Z',
             views: 89,
             likes: 5,
@@ -410,8 +410,8 @@ const loadQuestions = () => {
                 {
                     id: 1,
                     content: '김치가 시어지는 이유는 보관 방법 때문일 가능성이 높습니다. 김치를 냉장고에 보관할 때는 밀폐용기에 담아서 보관하시고, 김치찌개를 만들 때는 김치를 먼저 볶아서 신맛을 줄여보세요.',
-                    userName: '요리전문가',
-                    userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
+                    memberName: '요리전문가',
+                    memberAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
                     createdAt: '2024-01-15T11:00:00Z',
                     isExpert: true
                 }
@@ -423,8 +423,8 @@ const loadQuestions = () => {
             content: '파스타를 삶을 때 면이 계속 끈적거리고 뭉쳐요. 어떻게 해야 할까요? 물에 소금을 넣고 끓여도 같은 문제가 발생합니다.',
             category: 'cooking',
             status: 'answered',
-            userName: '이맛집',
-            userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
+            memberName: '이맛집',
+            memberAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
             createdAt: '2024-01-14T15:20:00Z',
             views: 67,
             likes: 3,
@@ -435,8 +435,8 @@ const loadQuestions = () => {
                 {
                     id: 2,
                     content: '파스타 면이 끈적거리는 이유는 물이 충분히 끓지 않았거나 면을 넣은 후 물이 끓지 않았기 때문입니다. 물이 완전히 끓을 때까지 기다린 후 면을 넣고, 면을 넣은 후에도 물이 계속 끓도록 해주세요.',
-                    userName: '파스타마스터',
-                    userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50',
+                    memberName: '파스타마스터',
+                    memberAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50',
                     createdAt: '2024-01-14T16:00:00Z',
                     isExpert: true
                 }
@@ -448,8 +448,8 @@ const loadQuestions = () => {
             content: '초밥을 만들 때 밥이 너무 끈적해서 초밥이 제대로 뭉쳐지지 않아요. 밥을 어떻게 지어야 할까요?',
             category: 'cooking',
             status: 'pending',
-            userName: '박요리사',
-            userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50',
+            memberName: '박요리사',
+            memberAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50',
             createdAt: '2024-01-13T20:15:00Z',
             views: 45,
             likes: 2,
@@ -464,8 +464,8 @@ const loadQuestions = () => {
             content: '요리를 시작하려고 하는데 좋은 칼을 추천해주세요. 예산은 5만원 정도로 생각하고 있어요.',
             category: 'tool',
             status: 'answered',
-            userName: '최맛있',
-            userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50',
+            memberName: '최맛있',
+            memberAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50',
             createdAt: '2024-01-12T14:45:00Z',
             views: 123,
             likes: 8,
@@ -476,8 +476,8 @@ const loadQuestions = () => {
                 {
                     id: 3,
                     content: '5만원 예산으로는 일본산 칼이나 독일산 칼을 추천드립니다. 특히 셰프나이프는 다용도로 사용할 수 있어서 초보자에게 좋습니다. 온라인에서 구매하시기 전에 직접 잡아보시는 것을 추천드려요.',
-                    userName: '도구전문가',
-                    userAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50',
+                    memberName: '도구전문가',
+                    memberAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50',
                     createdAt: '2024-01-12T15:30:00Z',
                     isExpert: true
                 }
@@ -489,8 +489,8 @@ const loadQuestions = () => {
             content: '생선을 사서 집에 가져왔는데 어떻게 보관해야 할까요? 냉장고에 그냥 넣어두면 될까요?',
             category: 'storage',
             status: 'pending',
-            userName: '정요리왕',
-            userAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50',
+            memberName: '정요리왕',
+            memberAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50',
             createdAt: '2024-01-11T09:30:00Z',
             views: 78,
             likes: 4,
@@ -525,8 +525,8 @@ const askQuestion = () => {
         content: newQuestion.value.content,
         category: newQuestion.value.category,
         status: 'pending',
-        userName: '나',
-        userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
+        memberName: '나',
+        memberAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
         createdAt: new Date().toISOString(),
         views: 0,
         likes: 0,
@@ -571,8 +571,8 @@ const submitAnswer = () => {
         const answer = {
             id: answerId,
             content: newAnswer.value,
-            userName: '나',
-            userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
+            memberName: '나',
+            memberAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
             createdAt: new Date().toISOString(),
             isExpert: false
         };

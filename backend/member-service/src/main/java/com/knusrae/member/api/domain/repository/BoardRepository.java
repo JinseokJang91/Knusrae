@@ -1,6 +1,6 @@
-package com.knusrae.user.api.domain.repository;
+package com.knusrae.member.api.domain.repository;
 
-import com.knusrae.user.api.domain.entity.Board;
+import com.knusrae.member.api.domain.entity.Board;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -7,5 +7,5 @@ import java.util.List;
 public interface RecipeRepositoryCustom {
     List<Recipe> findPublishedPublicRecipes();
 
-    List<Recipe> findUserRecipes(Long userId);
+    List<Recipe> findMemberRecipes(Long memberId);
 }

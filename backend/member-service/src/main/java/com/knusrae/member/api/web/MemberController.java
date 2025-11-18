@@ -1,8 +1,8 @@
-package com.knusrae.user.api.web;
+package com.knusrae.member.api.web;
 
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
-import com.knusrae.user.api.dto.MemberDto;
+import com.knusrae.member.api.dto.MemberDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

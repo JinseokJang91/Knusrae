@@ -1,8 +1,8 @@
-package com.knusrae.user.api.domain.service;
+package com.knusrae.member.api.domain.service;
 
-import com.knusrae.user.api.domain.entity.Board;
-import com.knusrae.user.api.domain.repository.BoardRepository;
-import com.knusrae.user.api.dto.BoardDto;
+import com.knusrae.member.api.domain.entity.Board;
+import com.knusrae.member.api.domain.repository.BoardRepository;
+import com.knusrae.member.api.dto.BoardDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -101,10 +101,10 @@ public class BoardService {
     /**
      * 사용자별 게시글 조회
      */
-    public List<BoardDto.ListResponse> getBoardsByUserId(Long userId) {
-        log.info("Getting boards by user id: {}", userId);
+    public List<BoardDto.ListResponse> getBoardsByMemberId(Long memberId) {
+        log.info("Getting boards by member id: {}", memberId);
 
-        return boardRepository.findByMemberIdOrderByCreatedAtDesc(userId)
+        return boardRepository.findByMemberIdOrderByCreatedAtDesc(memberId)
                 .stream()
                 .map(BoardDto.ListResponse::from)
                 .collect(Collectors.toList());
@@ -125,11 +125,11 @@ public class BoardService {
     /**
      * 페이징 처리된 게시글 목록 조회
      */
-    public Page<BoardDto.ListResponse> getBoardsWithPaging(String keyword, Long userId, Pageable pageable) {
-        log.info("Getting boards with paging - keyword: {}, userId: {}, page: {}",
-                keyword, userId, pageable.getPageNumber());
+    public Page<BoardDto.ListResponse> getBoardsWithPaging(String keyword, Long memberId, Pageable pageable) {
+        log.info("Getting boards with paging - keyword: {}, memberId: {}, page: {}",
+                keyword, memberId, pageable.getPageNumber());
 
-        Page<Board> boardPage = boardRepository.findBoardsWithPaging(keyword, userId, pageable);
+        Page<Board> boardPage = boardRepository.findBoardsWithPaging(keyword, memberId, pageable);
 
         return boardPage.map(BoardDto.ListResponse::from);
     }

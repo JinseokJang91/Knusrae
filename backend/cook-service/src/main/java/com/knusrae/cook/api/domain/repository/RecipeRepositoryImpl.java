@@ -30,11 +30,11 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
     }
 
     @Override
-    public List<Recipe> findUserRecipes(Long userId) {
+    public List<Recipe> findMemberRecipes(Long memberId) {
         return queryFactory
                 .selectFrom(recipe)
                 .where(
-                        recipe.memberId.eq(userId)
+                        recipe.memberId.eq(memberId)
                 )
                 .orderBy(recipe.createdAt.desc())
                 .fetch();

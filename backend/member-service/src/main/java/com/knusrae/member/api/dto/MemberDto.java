@@ -1,4 +1,4 @@
-package com.knusrae.user.api.dto;
+package com.knusrae.member.api.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

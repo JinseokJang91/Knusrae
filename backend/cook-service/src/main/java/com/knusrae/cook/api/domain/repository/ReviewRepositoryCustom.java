@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ReviewRepositoryCustom {
     // 사용자별 리뷰 조회
-    List<Review> findAllByUserId(Long userId);
+    List<Review> findAllByMemberId(Long memberId);
 
     // 레시피별 리뷰 조회
     List<Review> findAllByRecipeId(Long recipeId);
@@ -38,10 +38,10 @@ public interface ReviewRepositoryCustom {
     List<Review> findRecentReviews(int limit);
 
     // 페이징 처리된 리뷰 목록
-    Page<Review> findReviewsWithPaging(String keyword, Long recipeId, Long userId, Long score, Pageable pageable);
+    Page<Review> findReviewsWithPaging(String keyword, Long recipeId, Long memberId, Long score, Pageable pageable);
 
     // 사용자별 리뷰 개수
-    Long countByUserId(Long userId);
+    Long countByMemberId(Long memberId);
 
     // 레시피별 리뷰 개수
     Long countByRecipeId(Long recipeId);

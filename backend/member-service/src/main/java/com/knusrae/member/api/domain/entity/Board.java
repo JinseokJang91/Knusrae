@@ -1,4 +1,4 @@
-package com.knusrae.user.api.domain.entity;
+package com.knusrae.member.api.domain.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

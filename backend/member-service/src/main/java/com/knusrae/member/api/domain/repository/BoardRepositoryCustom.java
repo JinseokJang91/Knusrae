@@ -1,6 +1,6 @@
-package com.knusrae.user.api.domain.repository;
+package com.knusrae.member.api.domain.repository;
 
-import com.knusrae.user.api.domain.entity.Board;
+import com.knusrae.member.api.domain.entity.Board;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface BoardRepositoryCustom {
     // 사용자별 게시글 조회
-    List<Board> findAllByUserId(Long userId);
+    List<Board> findAllByMemberId(Long memberId);
 
     // 제목으로 검색 (LIKE 검색)
     List<Board> findByTitleContaining(String keyword);
@@ -29,10 +29,10 @@ public interface BoardRepositoryCustom {
     List<Board> findMostLikedBoards(int limit);
 
     // 페이징 처리된 게시글 목록
-    Page<Board> findBoardsWithPaging(String keyword, Long userId, Pageable pageable);
+    Page<Board> findBoardsWithPaging(String keyword, Long memberId, Pageable pageable);
 
     // 사용자별 게시글 개수
-    Long countByUserId(Long userId);
+    Long countByMemberId(Long memberId);
 
     // 검색 키워드에 따른 게시글 개수
     Long countByKeyword(String keyword);

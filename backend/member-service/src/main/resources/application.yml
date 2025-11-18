@@ -2,7 +2,7 @@ spring:
   config:
     import: optional:classpath:application-common.yml
   application:
-    name : user-service
+    name : member-service
   datasource:
     url: jdbc:postgresql://localhost:5432/knusrae_db
     username: knusrae_user

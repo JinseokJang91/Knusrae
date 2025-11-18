@@ -11,7 +11,7 @@ const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 
 const searchQuery = ref('');
 const isLoggedInState = ref(isLoggedIn());
-const userName = ref('');
+const memberName = ref('');
 
 const handleSearch = () => {
     if (searchQuery.value.trim()) {
@@ -23,20 +23,20 @@ const clearSearch = () => {
     searchQuery.value = '';
 };
 
-const fetchUserInfo = async () => {
+const fetchMemberInfo = async () => {
     try {
-        // user-service의 BASE URL 사용 (환경 변수가 있으면 사용, 없으면 기본값)
+        // member-service의 BASE URL 사용 (환경 변수가 있으면 사용, 없으면 기본값)
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_MEMBER;
-        const userInfo = await httpJson(API_BASE_URL, '/api/member/me', {
+        const memberInfo = await httpJson(API_BASE_URL, '/api/member/me', {
             method: 'GET'
         });
-        
+
         // API 응답에서 사용자 닉네임 추출 (nickname 우선, 없으면 name 사용)
-        userName.value = userInfo.nickname || userInfo.name || '사용자';
+        memberName.value = memberInfo.nickname || memberInfo.name || '사용자';
     } catch (error) {
         console.error('사용자 정보 조회 실패:', error);
         // API 호출 실패 시 기본값 설정
-        userName.value = '사용자';
+        memberName.value = '사용자';
     }
 };
 
@@ -44,9 +44,9 @@ const updateLoginState = async () => {
     isLoggedInState.value = isLoggedIn();
     if (isLoggedInState.value) {
         // 로그인 상태일 때 사용자 정보 API 호출
-        await fetchUserInfo();
+        await fetchMemberInfo();
     } else {
-        userName.value = '';
+        memberName.value = '';
     }
 };
 
@@ -62,7 +62,7 @@ const handleLogout = async () => {
         } catch (error) {
             console.error('로그아웃 API 호출 실패:', error);
         }
-        
+
         // localStorage 플래그 제거
         localStorage.removeItem('isLoggedIn');
         updateLoginState();
@@ -75,7 +75,7 @@ onMounted(() => {
     window.addEventListener('storage', updateLoginState);
     window.addEventListener('message', (event) => {
         if (event.data && (
-            event.data.type === 'NAVER_LOGIN_SUCCESS' || 
+            event.data.type === 'NAVER_LOGIN_SUCCESS' ||
             event.data.type === 'NAVER_LOGIN_ERROR' ||
             event.data.type === 'GOOGLE_LOGIN_SUCCESS' ||
             event.data.type === 'GOOGLE_LOGIN_ERROR' ||
@@ -130,7 +130,7 @@ onBeforeUnmount(() => {
                 </div>
             </div> -->
             <div class="layout-config-menu" v-if="isLoggedInState">
-                <span class="layout-topbar-welcome">{{ userName }}님 환영합니다.</span>
+                <span class="layout-topbar-welcome">{{ memberName }}님 환영합니다.</span>
             </div>
 
             <div class="layout-topbar-menu hidden lg:block">

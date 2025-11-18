@@ -111,7 +111,7 @@
                     <template #content>
                         <div class="flex gap-3">
                             <!-- 사용자 아바타 -->
-                            <Avatar :image="review.userAvatar" :label="review.userName.charAt(0)" size="large" shape="circle" />
+                            <Avatar :image="review.memberAvatar" :label="review.memberName.charAt(0)" size="large" shape="circle" />
 
                             <!-- 후기 내용 -->
                             <div class="flex-1">
@@ -119,7 +119,7 @@
                                     <div>
                                         <h4 class="text-lg font-semibold text-900 m-0 mb-1">{{ review.title }}</h4>
                                         <div class="flex align-items-center gap-2 text-sm text-500">
-                                            <span>{{ review.userName }}</span>
+                                            <span>{{ review.memberName }}</span>
                                             <span>•</span>
                                             <span>{{ formatDate(review.createdAt) }}</span>
                                             <span>•</span>
@@ -269,12 +269,12 @@ const todayReviews = computed(() => {
 });
 
 const topReviewer = computed(() => {
-    const userCounts = {};
+    const memberCounts = {};
     reviews.value.forEach((review) => {
-        userCounts[review.userName] = (userCounts[review.userName] || 0) + 1;
+        memberCounts[review.memberName] = (memberCounts[review.memberName] || 0) + 1;
     });
-    const topUser = Object.keys(userCounts).reduce((a, b) => (userCounts[a] > userCounts[b] ? a : b), '');
-    return topUser || '없음';
+    const topMember = Object.keys(memberCounts).reduce((a, b) => (memberCounts[a] > memberCounts[b] ? a : b), '');
+    return topMember || '없음';
 });
 
 const filteredReviews = computed(() => {
@@ -329,8 +329,8 @@ const loadReviews = () => {
             title: '김치찌개 완벽하게 성공!',
             content: '처음 만들어본 김치찌개인데 정말 맛있게 나왔어요. 김치가 잘 익어서 시원하고 매콤한 맛이 일품이었습니다. 다음에는 돼지고기를 더 넣어서 만들어보고 싶어요.',
             rating: 5,
-            userName: '김요리',
-            userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
+            memberName: '김요리',
+            memberAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
             recipeTitle: '김치찌개',
             createdAt: '2024-01-15T10:30:00Z',
             likes: 24,
@@ -345,8 +345,8 @@ const loadReviews = () => {
             title: '파스타가 좀 아쉬웠어요',
             content: '크림소스가 너무 진해서 좀 아쉬웠습니다. 다음에는 우유를 조금 더 넣어서 만들어보겠어요. 그래도 기본적인 맛은 있었습니다.',
             rating: 3,
-            userName: '이맛집',
-            userAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
+            memberName: '이맛집',
+            memberAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50',
             recipeTitle: '파스타',
             createdAt: '2024-01-14T15:20:00Z',
             likes: 12,
@@ -361,8 +361,8 @@ const loadReviews = () => {
             title: '초밥 만들기 도전!',
             content: '생선이 너무 신선해서 초밥이 정말 맛있게 나왔어요. 밥 양념도 딱 맞게 해서 완벽했습니다. 다음에는 더 다양한 생선으로 도전해보겠어요.',
             rating: 5,
-            userName: '박요리사',
-            userAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50',
+            memberName: '박요리사',
+            memberAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50',
             recipeTitle: '초밥',
             createdAt: '2024-01-13T20:15:00Z',
             likes: 35,
@@ -377,8 +377,8 @@ const loadReviews = () => {
             title: '치즈케이크 첫 도전',
             content: '디저트 만들기는 처음이었는데 생각보다 어려웠어요. 하지만 결과적으로는 괜찮게 나왔습니다. 다음에는 더 부드럽게 만들어보고 싶어요.',
             rating: 4,
-            userName: '최맛있',
-            userAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50',
+            memberName: '최맛있',
+            memberAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50',
             recipeTitle: '치즈케이크',
             createdAt: '2024-01-12T14:45:00Z',
             likes: 18,
@@ -415,8 +415,8 @@ const writeReview = () => {
         title: newReview.value.title,
         content: newReview.value.content,
         rating: newReview.value.rating,
-        userName: '나',
-        userAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
+        memberName: '나',
+        memberAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50',
         recipeTitle: recipe.title,
         createdAt: new Date().toISOString(),
         likes: 0,
