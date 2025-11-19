@@ -12,6 +12,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,25 +39,26 @@ public class TokenService {
      */
     @Transactional
     public TokenResponse loginWithSocialUser(Long userId, String username, String role) {
-        // 기존 Refresh Token이 있으면 삭제 (토큰 Rotation 정책)
-        refreshTokenRepository.findByUserId(userId).ifPresent(existingToken -> {
+        // 1. 기존 Refresh Token이 있으면 삭제 (토큰 Rotation 정책)
+        refreshTokenRepository.findByUserId(userId)
+                .ifPresent(existingToken -> {
             refreshTokenRepository.delete(existingToken);
             log.debug("기존 Refresh Token 삭제: userId={}", userId);
         });
 
-        // Access Token 생성
+        // 2. Access Token 생성
         String accessToken = tokenProvider.createAccessToken(
                 String.valueOf(userId),
-                Map.of("role", role, "username", username)
+                Map.of("role", role, "username", username) // TODO Claim 추가
         );
 
-        // Refresh Token 생성
-        String refreshToken = tokenProvider.createRefreshToken(String.valueOf(userId));
+        // 3. Refresh Token 생성
+        String refreshToken = tokenProvider.createRefreshToken(String.valueOf(userId)); // TODO Claim 추가
 
         // Refresh Token 만료 시간 계산 (현재 시간 + TTL)
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(tokenProvider.getRefreshTokenTtl());
 
-        // Refresh Token 저장
+        // 4. Refresh Token 저장
         RefreshToken refreshTokenEntity = RefreshToken.builder()
                 .token(refreshToken)
                 .userId(userId)
@@ -92,7 +94,7 @@ public class TokenService {
         
         // 2. tokenType 확인 (REFRESH 토큰인지 확인)
         String tokenType = claims.get("tokenType", String.class);
-        if (tokenType == null || !"REFRESH".equals(tokenType)) {
+        if (!"REFRESH".equals(tokenType)) {
             throw new IllegalArgumentException("유효하지 않은 Refresh Token입니다.");
         }
         
@@ -188,7 +190,7 @@ public class TokenService {
             }
             
             // 2. Refresh Token 삭제
-            if (refreshToken != null && !refreshToken.isBlank()) {
+            if (!StringUtils.isBlank(refreshToken) && !refreshToken.isBlank()) {
                 refreshTokenRepository.findByToken(refreshToken).ifPresent(refreshTokenRepository::delete);
                 log.debug("Refresh Token 삭제 완료");
             }

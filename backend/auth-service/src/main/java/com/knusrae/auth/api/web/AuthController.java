@@ -31,7 +31,7 @@ public class AuthController {
     private final GoogleAuthService googleAuthService;
     private final KakaoAuthService kakaoAuthService;
 
-    private static final String API_BASE_URL = "http://localhost:5173";
+    private static final String API_BASE_URL = "http://localhost:5173"; // TODO 로컬 삭제
 
     private static final String NAVER_REDIRECT_URI = "/auth/naver/callback";
     private static final String GOOGLE_REDIRECT_URI = "/auth/google/callback";
@@ -43,7 +43,7 @@ public class AuthController {
                                                 @RequestParam("state") String state) {
         try {
             TokenResponse tokenResponse = naverAuthService.naverLoginProcess(code, state);
-            
+
             String redirectUrl = API_BASE_URL + NAVER_REDIRECT_URI + "?success=true";
 
             return buildSuccessResponse(redirectUrl, tokenResponse)
@@ -155,12 +155,8 @@ public class AuthController {
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
         try {
-            // 쿠키에서 토큰 추출
-            String accessTokenValue = accessToken;
-            String refreshTokenValue = refreshToken;
-            
             // 로그아웃 처리
-            tokenService.logout(accessTokenValue, refreshTokenValue);
+            tokenService.logout(accessToken, refreshToken);
             
             // 쿠키 삭제
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", "")

@@ -1,6 +1,8 @@
 package com.knusrae.cook.api.domain.service;
 
 import com.knusrae.common.custom.storage.ImageStorage;
+import com.knusrae.common.domain.entity.Member;
+import com.knusrae.common.utils.constants.CommonConstants;
 import com.knusrae.cook.api.domain.entity.CommonCodeDetail;
 import com.knusrae.cook.api.domain.entity.CommonCodeDetailId;
 import com.knusrae.cook.api.domain.entity.Recipe;
@@ -18,11 +20,14 @@ import com.knusrae.common.domain.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -49,7 +54,7 @@ public class RecipeService {
         saveRecipeCookingTips(savedRecipe, recipeDto.getCookingTips());
 
         // 1) 조리 단계 저장 및 순서 목록 확보
-        java.util.List<RecipeDetail> savedDetails = new java.util.ArrayList<>();
+        List<RecipeDetail> savedDetails = new ArrayList<>();
         if(!recipeDto.getSteps().isEmpty()) {
             for(RecipeStepDto step : recipeDto.getSteps()) {
                 RecipeDetail recipeDetail = step.toEntity(step);
@@ -58,7 +63,7 @@ public class RecipeService {
                 savedDetails.add(persisted);
             }
             // step 값 기준 오름차순 정렬 보장
-            savedDetails.sort(java.util.Comparator.comparing(RecipeDetail::getStep));
+            savedDetails.sort(Comparator.comparing(RecipeDetail::getStep));
         }
 
         // 2) 이미지 저장 및 메타 정보 저장
@@ -88,7 +93,7 @@ public class RecipeService {
                 recipeImageRepository.save(img);
 
                 // 메인 이미지를 제외한 나머지 이미지를 단계 이미지로 매핑
-                if (savedDetails.size() > 0) {
+                if (!savedDetails.isEmpty()) {
                     boolean isMain = (mainImageIndex != null && mainImageIndex == i);
                     if (!isMain && detailAssignIndex < savedDetails.size()) {
                         RecipeDetail targetDetail = savedDetails.get(detailAssignIndex);
@@ -122,7 +127,7 @@ public class RecipeService {
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공통 코드 상세입니다: " + id));
 
             // codeGroup 검증
-            if (detail.getCode() != null && !"CATEGORY".equals(detail.getCode().getCodeGroup())) {
+            if (ObjectUtils.isEmpty(detail.getCode()) && !CommonConstants.COMMON_CODE_GROUP_CATEGORY.equals(detail.getCode().getCodeGroup())) {
                 throw new IllegalArgumentException("카테고리는 codeGroup이 'CATEGORY'여야 합니다: " + detail.getCode().getCodeGroup());
             }
 
@@ -150,7 +155,7 @@ public class RecipeService {
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공통 코드 상세입니다: " + id));
 
             // codeGroup 검증
-            if (detail.getCode() != null && !"COOKINGTIP".equals(detail.getCode().getCodeGroup())) {
+            if (ObjectUtils.isEmpty(detail.getCode()) && !CommonConstants.COMMON_CODE_GROUP_COOKINGTIP.equals(detail.getCode().getCodeGroup())) {
                 throw new IllegalArgumentException("요리팁은 codeGroup이 'COOKINGTIP'이어야 합니다: " + detail.getCode().getCodeGroup());
             }
 
@@ -183,7 +188,7 @@ public class RecipeService {
                 RecipeImage mainImage = images.stream()
                         .filter(RecipeImage::isMainImage)
                         .findFirst()
-                        .orElse(images.isEmpty() ? null : images.get(0)); // 메인 이미지가 없으면 첫 번째 이미지
+                        .orElse(images.isEmpty() ? null : images.getFirst()); // 메인 이미지가 없으면 첫 번째 이미지
                 if (mainImage != null) {
                     dto.setThumbnail(mainImage.getUrl());
                 }
@@ -209,7 +214,7 @@ public class RecipeService {
                 RecipeImage mainImage = images.stream()
                         .filter(RecipeImage::isMainImage)
                         .findFirst()
-                        .orElse(images.isEmpty() ? null : images.get(0)); // 메인 이미지가 없으면 첫 번째 이미지
+                        .orElse(images.isEmpty() ? null : images.getFirst()); // 메인 이미지가 없으면 첫 번째 이미지
                 if (mainImage != null) {
                     dto.setThumbnail(mainImage.getUrl());
                 }
@@ -230,7 +235,7 @@ public class RecipeService {
         
         // Member 정보 조회
         String memberName = memberRepository.findById(recipe.getMemberId())
-                .map(member -> member.getName())
+                .map(Member::getName)
                 .orElse("작성자"); // Member를 찾을 수 없는 경우 기본값
         
         return RecipeDetailDto.fromEntity(recipe, memberName);
@@ -317,7 +322,7 @@ public class RecipeService {
                 recipeImageRepository.save(img);
 
                 // 메인 이미지를 제외한 나머지 이미지를 단계 이미지로 매핑
-                if (savedDetails.size() > 0) {
+                if (!savedDetails.isEmpty()) {
                     boolean isMain = (mainImageIndex != null && mainImageIndex == i);
                     if (!isMain && detailAssignIndex < savedDetails.size()) {
                         RecipeDetail targetDetail = savedDetails.get(detailAssignIndex);
@@ -329,7 +334,7 @@ public class RecipeService {
             }
         } else {
             // 새 이미지가 없으면 기존 이미지를 단계에 매핑
-            if (savedDetails.size() > 0 && existingImages.size() > 0) {
+            if (!savedDetails.isEmpty() && !existingImages.isEmpty()) {
                 // 메인 이미지가 아닌 이미지들을 단계에 매핑
                 int detailIndex = 0;
                 for(RecipeImage image : existingImages) {

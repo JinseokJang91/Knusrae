@@ -1,5 +1,6 @@
 package com.knusrae.cook.api.domain.service;
 
+import com.knusrae.common.utils.constants.CommonConstants;
 import com.knusrae.cook.api.domain.entity.CommonCode;
 import com.knusrae.cook.api.domain.repository.CommonCodeRepository;
 import com.knusrae.cook.api.dto.CommonCodeResponse;
@@ -13,13 +14,11 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommonCodeService {
-
-    private static final String USE_Y = "Y";
-
     private final CommonCodeRepository commonCodeRepository;
 
     public List<CommonCodeResponse> listCodesByGroup(String codeGroup) {
-        List<CommonCode> codes = commonCodeRepository.findAllByCodeGroupAndUseYnOrderBySortAsc(codeGroup, USE_Y);
+        List<CommonCode> codes = commonCodeRepository.findAllByCodeGroupAndUseYnOrderBySortAsc(codeGroup, CommonConstants.USE_YN_Y);
+
         return codes.stream()
                 .map(CommonCodeResponse::fromEntity)
                 .toList();

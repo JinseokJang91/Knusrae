@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,8 +23,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
@@ -112,12 +115,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             // TokenBlacklistRepository가 존재하는지 확인 (auth-service에서만 존재)
             Object repository = beanFactory.getBean("tokenBlacklistRepository");
-            if (repository != null) {
+            if (!ObjectUtils.isEmpty(repository)) {
                 // 리플렉션을 사용하여 findByToken 메서드 호출
-                java.lang.reflect.Method method = repository.getClass().getMethod("findByToken", String.class);
+                Method method = repository.getClass().getMethod("findByToken", String.class);
                 Object result = method.invoke(repository, token);
-                if (result instanceof java.util.Optional) {
-                    return ((java.util.Optional<?>) result).isPresent();
+                if (result instanceof Optional) {
+                    return ((Optional<?>) result).isPresent();
                 }
             }
         } catch (Exception e) {

@@ -4,9 +4,9 @@ package com.knusrae.auth.api.web.response;
  * JWT 토큰 응답 DTO
  * 
  * @param accessToken Access Token
- * @param refreshToken Refresh Token (Phase 2에서 사용 예정, 현재는 null)
+ * @param refreshToken Refresh Token
  * @param accessTokenExpiresIn Access Token 만료 시간 (초 단위)
- * @param refreshTokenExpiresIn Refresh Token 만료 시간 (초 단위, Phase 2에서 사용 예정, 현재는 0)
+ * @param refreshTokenExpiresIn Refresh Token 만료 시간 (초 단위)
  */
 public record TokenResponse(
         String accessToken,

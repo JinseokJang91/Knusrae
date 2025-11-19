@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +20,11 @@ import java.util.Map;
 public class JwtTokenProvider {
     private final Key accessTokenKey;
     private final Key refreshTokenKey;
-    private final long accessTokenTtl;
-    private final long refreshTokenTtl;
+
+    @Getter
+    private final long accessTokenTtl; // Access Token의 TTL(Time To Live)
+    @Getter
+    private final long refreshTokenTtl; // Refresh Token의 TTL(Time To Live)
 
     public JwtTokenProvider(
             @Value("${spring.security.jwt.secret}") String accessTokenSecret,
@@ -124,22 +128,6 @@ public class JwtTokenProvider {
     @Deprecated
     public Jws<Claims> parse(String token) {
         return parseAccessToken(token);
-    }
-
-    /**
-     * Access Token의 TTL(Time To Live)을 반환합니다.
-     * @return Access Token의 TTL (초 단위)
-     */
-    public long getAccessTokenTtl() {
-        return accessTokenTtl;
-    }
-
-    /**
-     * Refresh Token의 TTL(Time To Live)을 반환합니다.
-     * @return Refresh Token의 TTL (초 단위)
-     */
-    public long getRefreshTokenTtl() {
-        return refreshTokenTtl;
     }
 
     /**
