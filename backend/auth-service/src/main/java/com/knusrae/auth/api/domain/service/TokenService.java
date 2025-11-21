@@ -17,7 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -198,5 +201,54 @@ public class TokenService {
             log.error("로그아웃 처리 중 오류 발생", e);
             throw new RuntimeException("로그아웃 처리 중 오류가 발생했습니다.", e);
         }
+    }
+
+    /**
+     * 테스트 계정으로 로그인 처리
+     * 개발/테스트 환경에서만 사용
+     * 
+     * @param email 테스트 계정 이메일
+     * @return TokenResponse (Access Token, Refresh Token, 만료 시간 포함)
+     * @throws IllegalArgumentException 존재하지 않는 이메일인 경우
+     */
+    @Transactional
+    public TokenResponse loginWithTestAccount(String email) {
+        // 이메일로 사용자 조회
+        Member member = memberRepository.findByEmail(email);
+        
+        if (member == null) {
+            throw new IllegalArgumentException("존재하지 않는 테스트 계정입니다: " + email);
+        }
+        
+        // 소셜 로그인과 동일한 방식으로 토큰 발급
+        return loginWithSocialUser(member.getId(), member.getName(), member.getSocialRole().name());
+    }
+
+    /**
+     * 사용 가능한 테스트 계정 목록 조회
+     * 이메일이 'test'로 시작하는 계정들을 반환
+     * 개발/테스트 환경에서만 사용
+     * 
+     * @return 테스트 계정 목록 (id, name, nickname, email, socialRole)
+     */
+    public List<Map<String, Object>> getTestAccounts() {
+        // test@로 시작하는 이메일을 가진 모든 사용자 조회
+        List<Member> testMembers = memberRepository.findAll().stream()
+                .filter(member -> member.getEmail() != null && member.getEmail().startsWith("test"))
+                .collect(Collectors.toList());
+        
+        // DTO 변환
+        return testMembers.stream()
+                .map(member -> {
+                    Map<String, Object> accountInfo = new HashMap<>();
+                    accountInfo.put("id", member.getId());
+                    accountInfo.put("name", member.getName());
+                    accountInfo.put("nickname", member.getNickname());
+                    accountInfo.put("email", member.getEmail());
+                    accountInfo.put("socialRole", member.getSocialRole().name());
+                    accountInfo.put("isActive", member.getIsActive().name());
+                    return accountInfo;
+                })
+                .collect(Collectors.toList());
     }
 }

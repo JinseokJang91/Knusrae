@@ -4,19 +4,17 @@ import com.knusrae.auth.api.domain.service.GoogleAuthService;
 import com.knusrae.auth.api.domain.service.KakaoAuthService;
 import com.knusrae.auth.api.domain.service.NaverAuthService;
 import com.knusrae.auth.api.domain.service.TokenService;
+import com.knusrae.auth.api.web.request.TestLoginRequest;
 import com.knusrae.auth.api.web.response.TokenResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -30,13 +28,16 @@ public class AuthController {
     private final NaverAuthService naverAuthService;
     private final GoogleAuthService googleAuthService;
     private final KakaoAuthService kakaoAuthService;
+    private final TokenService tokenService;
+
+    @Value("${app.test-login.enabled:false}")
+    private boolean testLoginEnabled;
 
     private static final String API_BASE_URL = "http://localhost:5173"; // TODO 로컬 삭제
 
     private static final String NAVER_REDIRECT_URI = "/auth/naver/callback";
     private static final String GOOGLE_REDIRECT_URI = "/auth/google/callback";
     private static final String KAKAO_REDIRECT_URI = "/auth/kakao/callback";
-    private final TokenService tokenService;
 
     @GetMapping("/naver/callback")
     public ResponseEntity<String> naverCallback(@RequestParam("code") String code,
@@ -239,7 +240,7 @@ public class AuthController {
         }
     }
 
-    // TEST
+    // TODO 토큰 발급 TEST EndPoint
     @GetMapping("/jwt/token")
     public ResponseEntity<String> getJwtToken(@RequestParam("user_id") Long userId, @RequestParam("user_name") String userName) {
         try {
@@ -251,6 +252,91 @@ public class AuthController {
         } catch (Exception e) {
             log.error("Jwt Token Error", e);
             return ResponseEntity.badRequest().body("Jwt Token Error");
+        }
+    }
+
+    /**
+     * 개발/테스트용 로그인 엔드포인트
+     * 이메일만으로 로그인하여 JWT 토큰을 발급받습니다.
+     * 프로덕션 환경에서는 비활성화되어야 합니다.
+     * 
+     * @param request 테스트 로그인 요청 (이메일)
+     * @return 로그인 성공 시 쿠키에 토큰 설정 및 사용자 정보 반환
+     */
+    @PostMapping("/test/login")
+    public ResponseEntity<?> testLogin(@Valid @RequestBody TestLoginRequest request) {
+        // 테스트 로그인이 비활성화된 경우
+        if (!testLoginEnabled) {
+            log.warn("테스트 로그인 시도가 차단되었습니다. (비활성화됨)");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "FORBIDDEN", "message", "테스트 로그인이 비활성화되었습니다."));
+        }
+        
+        try {
+            // 테스트 계정으로 로그인 처리
+            TokenResponse tokenResponse = tokenService.loginWithTestAccount(request.getEmail());
+
+            // Access Token 쿠키 설정
+            ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
+                    .httpOnly(true)
+                    .secure(false) // 개발 환경
+                    .path("/")
+                    .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
+                    .sameSite("Lax")
+                    .build();
+
+            // Refresh Token 쿠키 설정
+            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
+                    .httpOnly(true)
+                    .secure(false) // 개발 환경
+                    .path("/")
+                    .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
+                    .sameSite("Lax")
+                    .build();
+
+            log.info("테스트 로그인 성공: {}", request.getEmail());
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                    .body(Map.of(
+                            "message", "테스트 로그인 성공",
+                            "email", request.getEmail(),
+                            "accessTokenExpiresIn", tokenResponse.accessTokenExpiresIn(),
+                            "refreshTokenExpiresIn", tokenResponse.refreshTokenExpiresIn()
+                    ));
+        } catch (IllegalArgumentException e) {
+            log.warn("테스트 로그인 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "USER_NOT_FOUND", "message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("테스트 로그인 처리 중 오류", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "INTERNAL_ERROR", "message", "로그인 처리 중 오류가 발생했습니다."));
+        }
+    }
+
+    /**
+     * 사용 가능한 테스트 계정 목록 조회
+     * 개발/테스트 환경에서만 사용
+     * 
+     * @return 테스트 계정 목록
+     */
+    @GetMapping("/test/accounts")
+    public ResponseEntity<?> getTestAccounts() {
+        // 테스트 로그인이 비활성화된 경우
+        if (!testLoginEnabled) {
+            log.warn("테스트 계정 조회 시도가 차단되었습니다. (비활성화됨)");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "FORBIDDEN", "message", "테스트 로그인이 비활성화되었습니다."));
+        }
+        
+        try {
+            return ResponseEntity.ok(tokenService.getTestAccounts());
+        } catch (Exception e) {
+            log.error("테스트 계정 조회 중 오류", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "INTERNAL_ERROR", "message", "테스트 계정 조회 중 오류가 발생했습니다."));
         }
     }
 }

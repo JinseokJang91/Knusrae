@@ -3,8 +3,17 @@ import loginIconNaver from '@/assets/images/login-icon-naver.png';
 import logoImage from '@/assets/images/logo-text.png';
 
 import { useRouter } from 'vue-router';
+import { ref } from 'vue';
 
 const router = useRouter();
+
+// 개발 환경 체크
+const isDevelopment = import.meta.env.DEV;
+
+// 테스트 계정 관련
+const showTestAccounts = ref(false);
+const testAccounts = ref<any[]>([]);
+const loadingTestAccounts = ref(false);
 
 // 환경 변수
 const NAVER_CLIENT_ID = import.meta.env.VITE_NAVER_CLIENT_ID;
@@ -206,6 +215,62 @@ function handleKakaoLogin() {
 function goHome() {
     router.push('/');
 }
+
+/**
+ * 테스트 계정 목록 가져오기
+ */
+async function loadTestAccounts() {
+    if (!isDevelopment) return;
+    
+    loadingTestAccounts.value = true;
+    try {
+        const response = await fetch('http://localhost:8081/api/auth/test/accounts', {
+            method: 'GET',
+            credentials: 'include',
+        });
+        
+        if (response.ok) {
+            testAccounts.value = await response.json();
+            showTestAccounts.value = true;
+        } else {
+            alert('테스트 계정 목록을 가져오는데 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('테스트 계정 로드 에러:', error);
+        alert('테스트 계정 목록을 가져오는 중 오류가 발생했습니다.');
+    } finally {
+        loadingTestAccounts.value = false;
+    }
+}
+
+/**
+ * 테스트 계정으로 로그인
+ */
+async function loginWithTestAccount(email: string) {
+    try {
+        const response = await fetch('http://localhost:8081/api/auth/test/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ email }),
+        });
+        
+        if (response.ok) {
+            alert(`${email} 계정으로 로그인되었습니다!`);
+            localStorage.setItem('isLoggedIn', 'true');
+            
+            goHome();
+        } else {
+            const error = await response.json();
+            alert(`로그인 실패: ${error.message || '알 수 없는 오류'}`);
+        }
+    } catch (error) {
+        console.error('테스트 로그인 에러:', error);
+        alert('로그인 중 오류가 발생했습니다.');
+    }
+}
 </script>
 
 <template>
@@ -249,6 +314,35 @@ function goHome() {
                             <img :src="loginIconNaver" alt="네이버 로고" class="w-5 h-5" />
                             <span class="font-medium">네이버로 로그인</span>
                         </button>
+
+                        <!-- 개발 환경에서만 표시되는 테스트 계정 로그인 -->
+                        <div v-if="isDevelopment" class="mt-8 pt-6 border-t border-gray-300 dark:border-gray-700">
+                            <button @click="loadTestAccounts" :disabled="loadingTestAccounts" class="w-full flex items-center justify-center gap-2 bg-purple-100 dark:bg-purple-900 border border-purple-300 dark:border-purple-700 rounded-lg px-6 py-3 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors disabled:opacity-50">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <span class="font-medium">{{ loadingTestAccounts ? '로딩 중...' : '테스트 계정으로 로그인' }}</span>
+                            </button>
+
+                            <!-- 테스트 계정 목록 -->
+                            <div v-if="showTestAccounts" class="mt-4 space-y-2">
+                                <div v-for="account in testAccounts" :key="account.id" @click="loginWithTestAccount(account.email)" class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex-1">
+                                            <div class="font-medium text-gray-900 dark:text-gray-100">{{ account.name }}</div>
+                                            <div class="text-sm text-gray-600 dark:text-gray-400">{{ account.email }}</div>
+                                        </div>
+                                        <div class="text-xs px-2 py-1 rounded" :class="{
+                                            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': account.socialRole === 'GOOGLE',
+                                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': account.socialRole === 'KAKAO',
+                                            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': account.socialRole === 'NAVER'
+                                        }">
+                                            {{ account.socialRole }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
