@@ -556,6 +556,11 @@ const fetchRecipeDetail = async () => {
         
         recipe.value = response;
         
+        // 찜 여부 확인
+        if (currentMemberId.value) {
+            await checkFavoriteStatus();
+        }
+        
         // 댓글 목록 불러오기
         await fetchComments();
     } catch (err) {
@@ -563,6 +568,21 @@ const fetchRecipeDetail = async () => {
         console.error('Recipe detail fetch error:', err);
     } finally {
         loading.value = false;
+    }
+};
+
+const checkFavoriteStatus = async () => {
+    try {
+        const recipeId = route.params.id;
+        const response = await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/recipe/favorites/check?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
+            { method: 'GET' }
+        );
+        
+        isLiked.value = response.isFavorite;
+    } catch (err) {
+        console.error('찜 여부 확인 실패:', err);
     }
 };
 
@@ -585,9 +605,31 @@ const goBack = () => {
     router.back();
 };
 
-const toggleLike = () => {
-    isLiked.value = !isLiked.value;
-    // TODO: 좋아요 API 호출
+const toggleLike = async () => {
+    if (!currentMemberId.value) {
+        alert('로그인이 필요합니다.');
+        return;
+    }
+    
+    try {
+        const recipeId = route.params.id;
+        const response = await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/recipe/favorites/toggle?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
+            { method: 'PUT' }
+        );
+        
+        isLiked.value = response.isFavorite;
+        
+        if (response.isFavorite) {
+            // 찜 추가됨
+        } else {
+            // 찜 해제됨
+        }
+    } catch (err) {
+        console.error('찜 토글 실패:', err);
+        alert('찜 기능을 사용할 수 없습니다.');
+    }
 };
 
 const shareRecipe = () => {

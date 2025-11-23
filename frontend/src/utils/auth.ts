@@ -21,7 +21,6 @@ export async function fetchMemberInfo(): Promise<any> {
             method: 'GET'
         });
 
-        console.log('사용자 정보:', memberInfo);
         return memberInfo;
     } catch (error) {
         console.error('사용자 정보 조회 실패:', error);

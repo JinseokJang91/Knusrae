@@ -1,27 +1,12 @@
 <template>
     <div class="card">
-        <div class="flex justify-content-between align-items-center mb-4">
-            <h1 class="text-3xl font-bold text-900">찜 목록</h1>
+        <!-- header : 페이지 제목, 새로고침 버튼 -->
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-gray-900">찜 목록</h1>
             <div class="flex gap-2">
                 <Button icon="pi pi-refresh" label="새로고침" severity="secondary" @click="refreshFavorites" />
-                <Button icon="pi pi-filter" label="정렬" severity="secondary" @click="showSortDialog = true" />
-                <Button icon="pi pi-trash" label="선택 삭제" severity="danger" @click="deleteSelected" :disabled="selectedRecipes.length === 0" />
             </div>
         </div>
-
-        <!-- 정렬 다이얼로그 -->
-        <Dialog v-model:visible="showSortDialog" header="정렬 옵션" :style="{ width: '300px' }">
-            <div class="flex flex-column gap-3">
-                <div v-for="option in sortOptions" :key="option.value" class="flex align-items-center">
-                    <RadioButton v-model="selectedSort" :inputId="option.value" :value="option.value" />
-                    <label :for="option.value" class="ml-2">{{ option.label }}</label>
-                </div>
-            </div>
-            <template #footer>
-                <Button label="취소" severity="secondary" @click="showSortDialog = false" />
-                <Button label="적용" @click="applySort" />
-            </template>
-        </Dialog>
 
         <!-- 찜 목록 통계 -->
         <div class="grid mb-4">
@@ -38,119 +23,94 @@
                     </template>
                 </Card>
             </div>
-            <div class="col-12 md:col-4">
-                <Card class="stat-card">
-                    <template #content>
-                        <div class="flex align-items-center">
-                            <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ categoryCount }}</h3>
-                                <p class="text-600 m-0">다양한 카테고리</p>
-                            </div>
-                            <i class="pi pi-tags text-4xl text-blue-500"></i>
-                        </div>
-                    </template>
-                </Card>
+        </div>
+
+        <!-- body : 레시피 목록 섹션 -->
+        <div class="recipe-section">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-2xl font-semibold text-gray-900 m-0">
+                    내가 찜한 레시피
+                </h2>
             </div>
-            <div class="col-12 md:col-4">
-                <Card class="stat-card">
-                    <template #content>
-                        <div class="flex align-items-center">
-                            <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ selectedRecipes.length }}</h3>
-                                <p class="text-600 m-0">선택된 항목</p>
-                            </div>
-                            <i class="pi pi-check-square text-4xl text-green-500"></i>
-                        </div>
-                    </template>
-                </Card>
+
+            <!-- 로딩 상태 -->
+            <div v-if="loading" class="text-center py-8">
+                <ProgressSpinner />
+                <p class="text-gray-600 mt-3">찜 목록을 불러오는 중...</p>
             </div>
-        </div>
 
-        <!-- 카테고리 필터 -->
-        <div class="flex flex-wrap gap-2 mb-4">
-            <Button v-for="category in categories" :key="category.value" :label="category.name" :severity="selectedCategory === category.value ? 'primary' : 'secondary'" size="small" @click="filterByCategory(category.value)" />
-            <Button label="전체" :severity="selectedCategory === null ? 'primary' : 'secondary'" size="small" @click="filterByCategory(null)" />
-        </div>
-
-        <!-- 찜 목록 그리드 -->
-        <div v-if="filteredFavorites.length > 0" class="grid">
-            <div v-for="recipe in filteredFavorites" :key="recipe.id" class="col-12 md:col-6 lg:col-4">
-                <Card class="favorite-card h-full">
-                    <template #header>
-                        <div class="relative">
-                            <img :src="recipe.image" :alt="recipe.title" class="w-full h-15rem object-cover" />
-                            <div class="absolute top-0 right-0 m-2">
-                                <Checkbox v-model="selectedRecipes" :value="recipe.id" />
-                            </div>
-                            <div class="absolute top-0 left-0 m-2">
-                                <Tag :value="recipe.category" severity="info" />
-                            </div>
-                            <div class="absolute bottom-0 right-0 m-2">
-                                <Button icon="pi pi-heart-fill" class="p-button-danger" size="small" rounded @click="removeFavorite(recipe.id)" />
-                            </div>
-                        </div>
-                    </template>
-                    <template #title>
-                        <div class="flex justify-content-between align-items-start">
-                            <h3 class="text-xl font-semibold text-900 m-0">{{ recipe.title }}</h3>
-                            <Rating v-model="recipe.rating" readonly :cancel="false" />
-                        </div>
-                    </template>
-                    <template #content>
-                        <p class="text-600 mb-3">{{ recipe.description }}</p>
-                        <div class="flex justify-content-between align-items-center text-sm text-500 mb-3">
-                            <div class="flex align-items-center gap-1">
-                                <i class="pi pi-clock"></i>
-                                <span>{{ recipe.cookingTime }}분</span>
-                            </div>
-                            <div class="flex align-items-center gap-1">
-                                <i class="pi pi-users"></i>
-                                <span>{{ recipe.servings }}인분</span>
-                            </div>
-                            <div class="flex align-items-center gap-1">
-                                <i class="pi pi-star-fill text-yellow-500"></i>
-                                <span>{{ recipe.rating }}</span>
-                            </div>
-                        </div>
-                        <div class="text-sm text-500">
-                            <i class="pi pi-calendar mr-1"></i>
-                            찜한 날짜: {{ formatDate(recipe.favoriteDate) }}
-                        </div>
-                    </template>
-                    <template #footer>
-                        <div class="flex gap-2">
-                            <Button label="상세보기" class="flex-1" @click="viewRecipe(recipe.id)" />
-                            <Button icon="pi pi-bookmark" severity="secondary" @click="bookmarkRecipe(recipe.id)" />
-                            <Button icon="pi pi-share-alt" severity="secondary" @click="shareRecipe(recipe)" />
-                        </div>
-                    </template>
-                </Card>
+            <!-- 에러 상태 -->
+            <div v-else-if="error" class="text-center py-8">
+                <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+                <h3 class="text-2xl font-semibold text-gray-600 mb-2">찜 목록을 불러올 수 없습니다</h3>
+                <p class="text-gray-600 mb-4">{{ error }}</p>
+                <Button label="다시 시도" @click="loadFavorites" />
             </div>
-        </div>
 
-        <!-- 빈 상태 -->
-        <div v-else class="text-center py-8">
-            <i class="pi pi-heart text-6xl text-300 mb-4"></i>
-            <h3 class="text-2xl font-semibold text-600 mb-2">찜한 레시피가 없습니다</h3>
-            <p class="text-600 mb-4">마음에 드는 레시피를 찜해보세요!</p>
-            <Button label="레시피 둘러보기" @click="browseRecipes" />
-        </div>
+            <!-- 레시피 목록이 있는 경우 -->
+            <div v-else-if="displayFavorites.length > 0">
+                <!-- 리스트 뷰 -->
+                <div class="recipe-list">
+                    <div v-for="favorite in displayFavorites" :key="favorite.id" class="recipe-list-item">
+                        <div class="flex items-center gap-3 p-3 rounded hover:bg-gray-50 transition-colors duration-150">
+                            <img :src="favorite.recipe.thumbnail || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400'" :alt="favorite.recipe.title" class="recipe-thumbnail" @click="viewRecipe(favorite.recipeId)" />
+                            <div class="flex-1" @click="viewRecipe(favorite.recipeId)">
+                                <h4 class="text-lg font-semibold text-gray-900 m-0 mb-1">{{ favorite.recipe.title }}</h4>
+                                <p class="text-sm text-gray-600 mb-2">{{ favorite.recipe.description }}</p>
+                                <div class="flex items-center gap-3 text-sm text-gray-500">
+                                    <div v-if="favorite.recipe.hits !== null && favorite.recipe.hits !== undefined" class="flex items-center gap-1">
+                                        <i class="pi pi-eye"></i>
+                                        <span>{{ favorite.recipe.hits.toLocaleString() }}</span>
+                                    </div>
+                                    <div v-if="getCookingTime(favorite.recipe)" class="flex items-center gap-1">
+                                        <i class="pi pi-clock"></i>
+                                        <span>{{ getCookingTime(favorite.recipe) }}</span>
+                                    </div>
+                                    <div v-if="getServings(favorite.recipe)" class="flex items-center gap-1">
+                                        <i class="pi pi-users"></i>
+                                        <span>{{ getServings(favorite.recipe) }}</span>
+                                    </div>
+                                    <div v-if="getCategoryName(favorite.recipe)" class="flex items-center gap-1">
+                                        <Tag :value="getCategoryName(favorite.recipe)" severity="info" />
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <i class="pi pi-calendar"></i>
+                                        <span>{{ formatDate(favorite.createdAt) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <Button icon="pi pi-heart-fill" class="p-button-danger" size="small" rounded @click="removeFavorite(favorite.recipeId)" />
+                                <Button label="상세보기" size="small" @click="viewRecipe(favorite.recipeId)" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- 페이지네이션 -->
-        <div v-if="filteredFavorites.length > 0" class="flex justify-content-center mt-4">
-            <Paginator v-model:first="first" :rows="rows" :totalRecords="totalFilteredFavorites" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
+                <!-- footer : 페이지네이션 -->
+                <div class="flex justify-center mt-4">
+                    <Paginator v-model:first="first" :rows="rows" :totalRecords="totalFavorites" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
+                </div>
+            </div>
+
+            <!-- 빈 상태 -->
+            <div v-else class="text-center py-8">
+                <i class="pi pi-heart text-6xl text-300 mb-4"></i>
+                <h3 class="text-2xl font-semibold text-gray-600 mb-2">찜한 레시피가 없습니다</h3>
+                <p class="text-gray-600 mb-4">마음에 드는 레시피를 찜해보세요!</p>
+                <Button label="레시피 둘러보기" @click="browseRecipes" />
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
+import { httpJson } from '@/utils/http';
+import { fetchMemberInfo } from '@/utils/auth';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
-import Checkbox from 'primevue/checkbox';
-import Dialog from 'primevue/dialog';
 import Paginator from 'primevue/paginator';
-import RadioButton from 'primevue/radiobutton';
-import Rating from 'primevue/rating';
+import ProgressSpinner from 'primevue/progressspinner';
 import Tag from 'primevue/tag';
 import { useToast } from 'primevue/usetoast';
 import { computed, onMounted, ref } from 'vue';
@@ -159,196 +119,109 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const toast = useToast();
 
+// API 기본 URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_COOK || 'http://localhost:8082';
+
 // 반응형 데이터
 const favoriteRecipes = ref([]);
-const selectedRecipes = ref([]);
-const showSortDialog = ref(false);
-const selectedSort = ref('date');
-const selectedCategory = ref(null);
+const currentMemberId = ref(null);
 const first = ref(0);
 const rows = ref(12);
-
-const sortOptions = ref([
-    { label: '찜한 날짜순', value: 'date' },
-    { label: '이름순', value: 'name' },
-    { label: '평점순', value: 'rating' },
-    { label: '조리시간순', value: 'time' },
-    { label: '카테고리순', value: 'category' }
-]);
-
-const categories = ref([
-    { name: '한식', value: 'korean' },
-    { name: '중식', value: 'chinese' },
-    { name: '일식', value: 'japanese' },
-    { name: '양식', value: 'western' },
-    { name: '디저트', value: 'dessert' }
-]);
+const loading = ref(false);
+const error = ref(null);
 
 // 계산된 속성
 const totalFavorites = computed(() => favoriteRecipes.value.length);
 
-const categoryCount = computed(() => {
-    const uniqueCategories = new Set(favoriteRecipes.value.map((recipe) => recipe.category));
-    return uniqueCategories.size;
-});
-
-const filteredFavorites = computed(() => {
-    let filtered = favoriteRecipes.value;
-
-    // 카테고리 필터
-    if (selectedCategory.value) {
-        filtered = filtered.filter((recipe) => recipe.category === selectedCategory.value);
-    }
-
-    // 정렬
-    switch (selectedSort.value) {
-        case 'name':
-            filtered = filtered.sort((a, b) => a.title.localeCompare(b.title));
-            break;
-        case 'rating':
-            filtered = filtered.sort((a, b) => b.rating - a.rating);
-            break;
-        case 'time':
-            filtered = filtered.sort((a, b) => a.cookingTime - b.cookingTime);
-            break;
-        case 'category':
-            filtered = filtered.sort((a, b) => a.category.localeCompare(b.category));
-            break;
-        case 'date':
-        default:
-            filtered = filtered.sort((a, b) => new Date(b.favoriteDate) - new Date(a.favoriteDate));
-            break;
-    }
-
-    return filtered.slice(first.value, first.value + rows.value);
-});
-
-const totalFilteredFavorites = computed(() => {
-    let filtered = favoriteRecipes.value;
-    if (selectedCategory.value) {
-        filtered = filtered.filter((recipe) => recipe.category === selectedCategory.value);
-    }
-    return filtered.length;
+const displayFavorites = computed(() => {
+    return favoriteRecipes.value.slice(first.value, first.value + rows.value);
 });
 
 // 메서드
-const loadFavorites = () => {
-    // 실제로는 API 호출
-    favoriteRecipes.value = [
-        {
-            id: 1,
-            title: '김치찌개',
-            description: '매콤하고 시원한 김치찌개입니다.',
-            image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400',
-            category: 'korean',
-            cookingTime: 30,
-            servings: 2,
-            rating: 4.5,
-            favoriteDate: '2024-01-15'
-        },
-        {
-            id: 2,
-            title: '파스타',
-            description: '크림소스가 일품인 파스타입니다.',
-            image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400',
-            category: 'western',
-            cookingTime: 25,
-            servings: 2,
-            rating: 4.2,
-            favoriteDate: '2024-01-14'
-        },
-        {
-            id: 3,
-            title: '초밥',
-            description: '신선한 생선으로 만든 초밥입니다.',
-            image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400',
-            category: 'japanese',
-            cookingTime: 45,
-            servings: 4,
-            rating: 4.8,
-            favoriteDate: '2024-01-13'
-        },
-        {
-            id: 4,
-            title: '치즈케이크',
-            description: '부드럽고 달콤한 치즈케이크입니다.',
-            image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400',
-            category: 'dessert',
-            cookingTime: 90,
-            servings: 8,
-            rating: 4.7,
-            favoriteDate: '2024-01-12'
-        },
-        {
-            id: 5,
-            title: '불고기',
-            description: '달콤한 양념의 불고기입니다.',
-            image: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400',
-            category: 'korean',
-            cookingTime: 15,
-            servings: 3,
-            rating: 4.4,
-            favoriteDate: '2024-01-11'
-        }
-    ];
+const loadFavorites = async () => {
+    if (!currentMemberId.value) {
+        error.value = '로그인이 필요합니다.';
+        return;
+    }
+
+    try {
+        loading.value = true;
+        error.value = null;
+
+        const response = await httpJson(
+            API_BASE_URL,
+            `/api/recipe/favorites/${currentMemberId.value}`,
+            { method: 'GET' }
+        );
+
+        favoriteRecipes.value = response || [];
+        console.log('찜 목록 : ', favoriteRecipes.value)
+
+        toast.add({
+            severity: 'success',
+            summary: '찜 목록 로드 완료',
+            detail: `${favoriteRecipes.value.length}개의 찜한 레시피를 불러왔습니다.`,
+            life: 3000
+        });
+    } catch (err) {
+        console.error('찜 목록 로드 실패:', err);
+        error.value = err.message || '찜 목록을 불러오는데 실패했습니다.';
+        favoriteRecipes.value = [];
+
+        toast.add({
+            severity: 'error',
+            summary: '로드 실패',
+            detail: '찜 목록을 불러올 수 없습니다.',
+            life: 3000
+        });
+    } finally {
+        loading.value = false;
+    }
 };
 
 const refreshFavorites = () => {
     loadFavorites();
-    toast.add({ severity: 'success', summary: '새로고침', detail: '찜 목록이 업데이트되었습니다.', life: 3000 });
 };
 
-const applySort = () => {
-    showSortDialog.value = false;
-    first.value = 0;
-    toast.add({ severity: 'info', summary: '정렬 적용', detail: '선택한 기준으로 정렬되었습니다.', life: 3000 });
-};
-
-const filterByCategory = (category) => {
-    selectedCategory.value = category;
-    first.value = 0;
-};
-
-const removeFavorite = (recipeId) => {
-    const index = favoriteRecipes.value.findIndex((recipe) => recipe.id === recipeId);
-    if (index > -1) {
-        favoriteRecipes.value.splice(index, 1);
-        toast.add({ severity: 'success', summary: '찜 해제', detail: '찜 목록에서 제거되었습니다.', life: 3000 });
+const removeFavorite = async (recipeId) => {
+    if (!currentMemberId.value) {
+        toast.add({ severity: 'error', summary: '오류', detail: '로그인이 필요합니다.', life: 3000 });
+        return;
     }
-};
 
-const deleteSelected = () => {
-    if (selectedRecipes.value.length > 0) {
-        favoriteRecipes.value = favoriteRecipes.value.filter((recipe) => !selectedRecipes.value.includes(recipe.id));
-        selectedRecipes.value = [];
-        toast.add({ severity: 'success', summary: '삭제 완료', detail: '선택한 레시피가 삭제되었습니다.', life: 3000 });
+    try {
+        await httpJson(
+            API_BASE_URL,
+            `/api/recipe/favorites?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
+            { method: 'DELETE' }
+        );
+
+        // 로컬 상태에서 제거
+        favoriteRecipes.value = favoriteRecipes.value.filter((fav) => fav.recipeId !== recipeId);
+
+        toast.add({ 
+            severity: 'success', 
+            summary: '찜 해제', 
+            detail: '찜 목록에서 제거되었습니다.', 
+            life: 3000 
+        });
+    } catch (err) {
+        console.error('찜 삭제 실패:', err);
+        toast.add({ 
+            severity: 'error', 
+            summary: '삭제 실패', 
+            detail: '찜 목록에서 제거할 수 없습니다.', 
+            life: 3000 
+        });
     }
 };
 
 const viewRecipe = (recipeId) => {
-    router.push(`/recipe/detail/${recipeId}`);
-};
-
-const bookmarkRecipe = (recipeId) => {
-    toast.add({ severity: 'info', summary: '북마크', detail: '레시피가 북마크되었습니다.', life: 3000 });
-};
-
-const shareRecipe = (recipe) => {
-    if (navigator.share) {
-        navigator.share({
-            title: recipe.title,
-            text: recipe.description,
-            url: window.location.origin + `/recipe/detail/${recipe.id}`
-        });
-    } else {
-        // 클립보드에 복사
-        navigator.clipboard.writeText(window.location.origin + `/recipe/detail/${recipe.id}`);
-        toast.add({ severity: 'info', summary: '링크 복사', detail: '레시피 링크가 클립보드에 복사되었습니다.', life: 3000 });
-    }
+    router.push(`/recipe/${recipeId}`);
 };
 
 const browseRecipes = () => {
-    router.push('/recommend/today');
+    router.push('/recipe/category');
 };
 
 const formatDate = (dateString) => {
@@ -361,9 +234,50 @@ const onPageChange = (event) => {
     rows.value = event.rows;
 };
 
+// cookingTips에서 요리 시간 추출
+const getCookingTime = (recipe) => {
+    if (!recipe || !recipe.cookingTips || !Array.isArray(recipe.cookingTips)) {
+        return null;
+    }
+    const cookingTimeTip = recipe.cookingTips.find((tip) => tip.codeId === 'COOKING_TIME');
+    return cookingTimeTip?.detailName || null;
+};
+
+// cookingTips에서 인분 수 추출
+const getServings = (recipe) => {
+    if (!recipe || !recipe.cookingTips || !Array.isArray(recipe.cookingTips)) {
+        return null;
+    }
+    const servingTip = recipe.cookingTips.find((tip) => tip.codeId === 'SERVINGS');
+    return servingTip?.detailName || null;
+};
+
+// 카테고리 이름 추출
+const getCategoryName = (recipe) => {
+    if (!recipe || !recipe.categories || !Array.isArray(recipe.categories) || recipe.categories.length === 0) {
+        return null;
+    }
+    const keywordCategory = recipe.categories.find((cat) => cat.codeId === 'COOKING_KEYWORD');
+    const target = keywordCategory || recipe.categories[0];
+    return target?.detailName || target?.codeName || null;
+};
+
 // 생명주기
-onMounted(() => {
-    loadFavorites();
+onMounted(async () => {
+    // 사용자 정보 가져오기
+    const memberInfo = await fetchMemberInfo();
+    if (memberInfo && memberInfo.id) {
+        currentMemberId.value = memberInfo.id;
+        await loadFavorites();
+    } else {
+        error.value = '로그인이 필요합니다.';
+        toast.add({
+            severity: 'warn',
+            summary: '로그인 필요',
+            detail: '찜 목록을 보려면 로그인해주세요.',
+            life: 3000
+        });
+    }
 });
 </script>
 
@@ -381,14 +295,31 @@ onMounted(() => {
     color: rgba(255, 255, 255, 0.8) !important;
 }
 
-.favorite-card {
-    transition:
-        transform 0.2s,
-        box-shadow 0.2s;
+.recipe-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--surface-border);
 }
 
-.favorite-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+.recipe-list-item {
+    border-bottom: 1px solid var(--surface-border);
+    cursor: pointer;
+}
+
+.recipe-list-item:last-child {
+    border-bottom: none;
+}
+
+.recipe-thumbnail {
+    width: 120px;
+    height: 120px;
+    min-width: 120px;
+    min-height: 120px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 8px;
+    display: block;
+    flex-shrink: 0;
+    cursor: pointer;
 }
 </style>
