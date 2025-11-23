@@ -219,13 +219,13 @@
             <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
                     <i class="pi pi-comments mr-3 text-purple-500"></i>
-                    댓글 ({{ recipe.stats?.totalComments || 0 }})
+                    댓글 ({{ comments.length + comments.reduce((sum, c) => sum + (c.replies?.length || 0), 0) }})
                 </h2>
                 
                 <!-- 댓글 작성 -->
                 <div class="mb-6">
                     <div class="flex space-x-4">
-                        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
                             <i class="pi pi-user text-gray-600"></i>
                         </div>
                         <div class="flex-1">
@@ -239,7 +239,7 @@
                                 <button 
                                     @click="submitComment"
                                     :disabled="!newComment.trim()"
-                                    class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     댓글 작성
                                 </button>
@@ -251,20 +251,177 @@
                 <!-- 댓글 목록 -->
                 <div class="space-y-4">
                     <div 
-                        v-for="comment in recipe.comments" 
+                        v-for="comment in comments" 
                         :key="comment.id"
-                        class="flex space-x-4 p-4 bg-gray-50 rounded-lg"
+                        class="space-y-4"
                     >
-                        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                            <i class="pi pi-user text-gray-600"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-2 mb-2">
-                                <span class="font-medium text-gray-800">{{ comment.memberName }}</span>
-                                <span class="text-sm text-gray-500">{{ formatDate(comment.createdAt) }}</span>
+                        <!-- 최상위 댓글 -->
+                        <div class="flex space-x-4 p-4 bg-gray-50 rounded-lg">
+                            <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="pi pi-user text-gray-600"></i>
                             </div>
-                            <p class="text-gray-700">{{ comment.content }}</p>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="font-medium text-gray-800">
+                                            {{ comment.memberNickname || comment.memberName }}
+                                        </span>
+                                        <span class="text-sm text-gray-500">{{ formatDate(comment.createdAt) }}</span>
+                                        <span v-if="comment.updatedAt && comment.updatedAt !== comment.createdAt" class="text-xs text-gray-400">(수정됨)</span>
+                                    </div>
+                                    <div v-if="isMyComment(comment)" class="flex space-x-2">
+                                        <button 
+                                            @click="startEditComment(comment)"
+                                            class="text-sm text-blue-500 hover:text-blue-700"
+                                        >
+                                            수정
+                                        </button>
+                                        <button 
+                                            @click="deleteComment(comment.id)"
+                                            class="text-sm text-red-500 hover:text-red-700"
+                                        >
+                                            삭제
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- 댓글 내용 (수정 모드) -->
+                                <div v-if="editingCommentId === comment.id">
+                                    <textarea 
+                                        v-model="editingContent"
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none mb-2"
+                                        rows="2"
+                                    ></textarea>
+                                    <div class="flex justify-end space-x-2">
+                                        <button 
+                                            @click="cancelEditComment"
+                                            class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                        >
+                                            취소
+                                        </button>
+                                        <button 
+                                            @click="updateComment(comment.id)"
+                                            :disabled="!editingContent.trim()"
+                                            class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            수정 완료
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- 댓글 내용 (일반 모드) -->
+                                <p v-else class="text-gray-700 mb-2 whitespace-pre-wrap">{{ comment.content }}</p>
+                                
+                                <!-- 답글 버튼 -->
+                                <button 
+                                    v-if="editingCommentId !== comment.id"
+                                    @click="toggleReplyForm(comment.id)"
+                                    class="text-sm text-blue-500 hover:text-blue-700 font-medium"
+                                >
+                                    <i class="pi pi-reply mr-1"></i>
+                                    답글 {{ comment.replies?.length > 0 ? `(${comment.replies.length})` : '' }}
+                                </button>
+                            </div>
                         </div>
+
+                        <!-- 답글 작성 폼 -->
+                        <div v-if="replyingToCommentId === comment.id" class="ml-14 flex space-x-4 p-4 bg-blue-50 rounded-lg">
+                            <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="pi pi-user text-gray-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <textarea 
+                                    v-model="replyContent"
+                                    placeholder="답글을 작성해주세요..."
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                    rows="2"
+                                ></textarea>
+                                <div class="flex justify-end space-x-2 mt-2">
+                                    <button 
+                                        @click="cancelReply"
+                                        class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                    >
+                                        취소
+                                    </button>
+                                    <button 
+                                        @click="submitReply(comment.id)"
+                                        :disabled="!replyContent.trim()"
+                                        class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        답글 작성
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 답글 목록 -->
+                        <div v-if="comment.replies && comment.replies.length > 0" class="ml-14 space-y-4">
+                            <div 
+                                v-for="reply in comment.replies" 
+                                :key="reply.id"
+                                class="flex space-x-4 p-4 bg-gray-100 rounded-lg"
+                            >
+                                <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="pi pi-user text-gray-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="font-medium text-gray-800">
+                                                {{ reply.memberNickname || reply.memberName }}
+                                            </span>
+                                            <span class="text-sm text-gray-500">{{ formatDate(reply.createdAt) }}</span>
+                                            <span v-if="reply.updatedAt && reply.updatedAt !== reply.createdAt" class="text-xs text-gray-400">(수정됨)</span>
+                                        </div>
+                                        <div v-if="isMyComment(reply)" class="flex space-x-2">
+                                            <button 
+                                                @click="startEditComment(reply)"
+                                                class="text-sm text-blue-500 hover:text-blue-700"
+                                            >
+                                                수정
+                                            </button>
+                                            <button 
+                                                @click="deleteComment(reply.id)"
+                                                class="text-sm text-red-500 hover:text-red-700"
+                                            >
+                                                삭제
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 답글 내용 (수정 모드) -->
+                                    <div v-if="editingCommentId === reply.id">
+                                        <textarea 
+                                            v-model="editingContent"
+                                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none mb-2"
+                                            rows="2"
+                                        ></textarea>
+                                        <div class="flex justify-end space-x-2">
+                                            <button 
+                                                @click="cancelEditComment"
+                                                class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                            >
+                                                취소
+                                            </button>
+                                            <button 
+                                                @click="updateComment(reply.id)"
+                                                :disabled="!editingContent.trim()"
+                                                class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                수정 완료
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- 답글 내용 (일반 모드) -->
+                                    <p v-else class="text-gray-700 whitespace-pre-wrap">{{ reply.content }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 댓글이 없는 경우 -->
+                    <div v-if="comments.length === 0" class="text-center py-12">
+                        <i class="pi pi-comments text-gray-300 text-5xl mb-4"></i>
+                        <p class="text-gray-500">첫 번째 댓글을 작성해보세요!</p>
                     </div>
                 </div>
             </div>
@@ -337,6 +494,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { httpJson } from '@/utils/http';
+import { fetchMemberInfo } from '@/utils/auth';
 
 const route = useRoute();
 const router = useRouter();
@@ -345,11 +503,20 @@ const router = useRouter();
 const loading = ref(true);
 const error = ref<string | null>(null);
 const recipe = ref<any>(null);
+const comments = ref<any[]>([]);
 const newComment = ref('');
+const replyContent = ref('');
+const replyingToCommentId = ref<number | null>(null);
+const editingCommentId = ref<number | null>(null);
+const editingContent = ref('');
 const isLiked = ref(false);
 const showImageModal = ref(false);
 const selectedImage = ref<any>(null);
 const selectedImageIndex = ref(0);
+
+// 현재 로그인한 사용자 ID (TODO: 실제로는 auth store에서 가져와야 함)
+const currentMemberInfo = ref<any | null>(null);
+const currentMemberId = ref<number | null>(null);
 
 // 계산된 속성
 const mainImage = computed(() => {
@@ -388,11 +555,29 @@ const fetchRecipeDetail = async () => {
         );
         
         recipe.value = response;
+        
+        // 댓글 목록 불러오기
+        await fetchComments();
     } catch (err) {
         error.value = '레시피를 불러오는 중 오류가 발생했습니다.';
         console.error('Recipe detail fetch error:', err);
     } finally {
         loading.value = false;
+    }
+};
+
+const fetchComments = async () => {
+    try {
+        const recipeId = route.params.id;
+        const response = await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/recipe/comments/${recipeId}`,
+            { method: 'GET' }
+        );
+        
+        comments.value = response;
+    } catch (err) {
+        console.error('Comments fetch error:', err);
     }
 };
 
@@ -419,12 +604,135 @@ const shareRecipe = () => {
     }
 };
 
-const submitComment = () => {
+const submitComment = async () => {
     if (!newComment.value.trim()) return;
     
-    // TODO: 댓글 작성 API 호출
-    console.log('New comment:', newComment.value);
-    newComment.value = '';
+    try {
+        const recipeId = route.params.id;
+        await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/recipe/comments/${recipeId}`,
+            {
+                method: 'POST',
+                body: JSON.stringify({
+                    memberId: currentMemberId.value,
+                    content: newComment.value,
+                    parentId: null
+                })
+            }
+        );
+        
+        newComment.value = '';
+        
+        // 댓글 목록 다시 불러오기
+        await fetchComments();
+    } catch (err) {
+        console.error('Comment submission error:', err);
+        alert('댓글 작성 중 오류가 발생했습니다.');
+    }
+};
+
+const submitReply = async (parentId: number) => {
+    if (!replyContent.value.trim()) return;
+    
+    try {
+        const recipeId = route.params.id;
+        await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/recipe/comments/${recipeId}`,
+            {
+                method: 'POST',
+                body: JSON.stringify({
+                    memberId: currentMemberId.value,
+                    content: replyContent.value,
+                    parentId: parentId
+                })
+            }
+        );
+        
+        replyContent.value = '';
+        replyingToCommentId.value = null;
+        
+        // 댓글 목록 다시 불러오기
+        await fetchComments();
+    } catch (err) {
+        console.error('Reply submission error:', err);
+        alert('답글 작성 중 오류가 발생했습니다.');
+    }
+};
+
+const toggleReplyForm = (commentId: number) => {
+    if (replyingToCommentId.value === commentId) {
+        replyingToCommentId.value = null;
+        replyContent.value = '';
+    } else {
+        replyingToCommentId.value = commentId;
+        replyContent.value = '';
+    }
+};
+
+const cancelReply = () => {
+    replyingToCommentId.value = null;
+    replyContent.value = '';
+};
+
+const startEditComment = (comment: any) => {
+    editingCommentId.value = comment.id;
+    editingContent.value = comment.content;
+};
+
+const cancelEditComment = () => {
+    editingCommentId.value = null;
+    editingContent.value = '';
+};
+
+const updateComment = async (commentId: number) => {
+    if (!editingContent.value.trim()) return;
+    
+    try {
+        await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/recipe/comments/${commentId}`,
+            {
+                method: 'PUT',
+                body: JSON.stringify({
+                    memberId: currentMemberId.value,
+                    content: editingContent.value
+                })
+            }
+        );
+        
+        editingCommentId.value = null;
+        editingContent.value = '';
+        
+        // 댓글 목록 다시 불러오기
+        await fetchComments();
+    } catch (err) {
+        console.error('Comment update error:', err);
+        alert('댓글 수정 중 오류가 발생했습니다.');
+    }
+};
+
+const deleteComment = async (commentId: number) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+    
+    try {
+        await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/recipe/comments/${commentId}?memberId=${currentMemberId.value}`,
+            { method: 'DELETE' }
+        );
+        
+        // 댓글 목록 다시 불러오기
+        await fetchComments();
+    } catch (err) {
+        console.error('Comment deletion error:', err);
+        alert('댓글 삭제 중 오류가 발생했습니다.');
+    }
+};
+
+const isMyComment = (comment: any) => {
+    return comment.memberId === currentMemberId.value;
 };
 
 const openImageModal = (image: any, index: number) => {
@@ -451,6 +759,12 @@ const formatDate = (dateString: string) => {
 // 생명주기
 onMounted(() => {
     fetchRecipeDetail();
+    fetchMemberInfo().then((memberInfo) => {
+        if (memberInfo) {
+            currentMemberInfo.value = memberInfo;
+            currentMemberId.value = memberInfo.id;
+        }
+    });
 });
 </script>
 

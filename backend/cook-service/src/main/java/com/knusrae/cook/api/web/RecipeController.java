@@ -2,8 +2,10 @@ package com.knusrae.cook.api.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.knusrae.cook.api.dto.RecipeCommentDto;
 import com.knusrae.cook.api.dto.RecipeDto;
 import com.knusrae.cook.api.dto.RecipeDetailDto;
+import com.knusrae.cook.api.domain.service.RecipeCommentService;
 import com.knusrae.cook.api.domain.service.RecipeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,13 +18,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/recipe")
 @RequiredArgsConstructor
 @Slf4j
 public class RecipeController {
-
     private final RecipeService recipeService;
 
     // CREATE - 레시피 생성 (이미지 포함)
