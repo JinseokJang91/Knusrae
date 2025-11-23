@@ -1,0 +1,85 @@
+package com.knusrae.cook.api.web;
+
+import com.knusrae.cook.api.domain.service.RecipeCommentService;
+import com.knusrae.cook.api.dto.RecipeCommentDto;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/recipe/comments")
+@RequiredArgsConstructor
+@Slf4j
+public class RecipeCommentController {
+
+    private final RecipeCommentService recipeCommentService;
+
+    // CREATE - 댓글 작성
+    @PostMapping("/{recipeId}")
+    public ResponseEntity<RecipeCommentDto> createComment(
+            @PathVariable Long recipeId,
+            @RequestBody Map<String, Object> request
+    ) {
+        Long memberId = Long.valueOf(request.get("memberId").toString());
+        String content = request.get("content").toString();
+        Long parentId = request.get("parentId") != null ? Long.valueOf(request.get("parentId").toString()) : null;
+
+        log.info("[LOG][INPUT] Creating comment for recipe {}: memberId={}, content={}, parentId={}",
+                recipeId, memberId, content, parentId);
+
+        RecipeCommentDto comment = recipeCommentService.createComment(recipeId, memberId, content, parentId);
+        log.info("[LOG][OUTPUT] Created comment: {}", comment);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(comment);
+    }
+
+    // READ - 특정 레시피의 댓글 목록 조회
+    @GetMapping("/{recipeId}")
+    public ResponseEntity<List<RecipeCommentDto>> getCommentsByRecipeId(@PathVariable Long recipeId) {
+        log.info("[LOG][INPUT] Fetching comments for recipe: {}", recipeId);
+        List<RecipeCommentDto> comments = recipeCommentService.getCommentsByRecipeId(recipeId);
+        log.info("[LOG][OUTPUT] Found {} comments", comments.size());
+        return ResponseEntity.ok(comments);
+    }
+
+    // UPDATE - 댓글 수정
+    @PutMapping("/{commentId}")
+    public ResponseEntity<RecipeCommentDto> updateComment(
+            @PathVariable Long commentId,
+            @RequestBody Map<String, Object> request
+    ) {
+        Long memberId = Long.valueOf(request.get("memberId").toString());
+        String content = request.get("content").toString();
+
+        log.info("[LOG][INPUT] Updating comment {}: memberId={}, content={}", commentId, memberId, content);
+
+        RecipeCommentDto comment = recipeCommentService.updateComment(commentId, memberId, content);
+        log.info("[LOG][OUTPUT] Updated comment: {}", comment);
+
+        return ResponseEntity.ok(comment);
+    }
+
+    // DELETE - 댓글 삭제
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long commentId,
+            @RequestParam Long memberId
+    ) {
+        log.info("[LOG][INPUT] Deleting comment {}: memberId={}", commentId, memberId);
+        recipeCommentService.deleteComment(commentId, memberId);
+        log.info("[LOG][OUTPUT] Deleted comment: {}", commentId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // READ - 특정 레시피의 댓글 개수 조회
+    @GetMapping("/{recipeId}/count")
+    public ResponseEntity<Long> getCommentCount(@PathVariable Long recipeId) {
+        long count = recipeCommentService.getCommentCount(recipeId);
+        return ResponseEntity.ok(count);
+    }
+}
