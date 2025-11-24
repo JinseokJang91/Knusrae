@@ -150,6 +150,6 @@ public class Recipe {
     }
 
     public void setThumbnailUrl(String thumbnailUrl) {
-        this.thumbnail = "/test/" + thumbnailUrl;
+        this.thumbnail = thumbnailUrl;
     }
 }

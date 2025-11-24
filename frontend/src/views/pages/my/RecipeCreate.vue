@@ -203,6 +203,7 @@
 
 <script setup lang="ts">
 import { httpForm, httpJson } from '@/utils/http';
+import { fetchMemberInfo } from '@/utils/auth';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -255,7 +256,7 @@ const form = reactive<RecipeDraft>({
     description: '',
     status: 'DRAFT',
     visibility: 'PUBLIC',
-    memberId: 1,
+    memberId: 0,
     thumbnailFile: null,
     thumbnailPreview: '',
     steps: [],
@@ -274,6 +275,7 @@ const isValid = computed(() => {
 onMounted(() => {
     loadCategoryOptions();
     loadCookingTipsOptions();
+    loadMemberInfo();
 });
 
 async function loadCategoryOptions() {
@@ -326,6 +328,11 @@ async function loadCookingTipsOptions() {
     } finally {
         cookingTipsLoading.value = false;
     }
+}
+
+async function loadMemberInfo() {
+    const memberInfo = await fetchMemberInfo();
+    form.memberId = memberInfo.id;
 }
 
 function addStep() {
