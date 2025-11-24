@@ -67,6 +67,7 @@ public class RecipeService {
         }
 
         // 2) 이미지 저장 및 메타 정보 저장
+        String mainImageUrl = null; // 메인 이미지 URL 저장용
         if(images != null && !images.isEmpty()) {
             int detailAssignIndex = 0; // 메인 이미지를 제외한 이미지를 단계에 순서대로 매핑하기 위한 인덱스
             for(int i = 0; i < images.size(); i++) {
@@ -80,6 +81,7 @@ public class RecipeService {
                 ImageStorage.UploadResponse uploadResponse = imageStorage.upload(file, relativeDir);
 
                 // 3) 이미지 메타데이터 DB 저장
+                boolean isMain = (mainImageIndex != null && mainImageIndex == i);
                 RecipeImage img = RecipeImage.builder()
                         .recipe(savedRecipe)
                         .url(uploadResponse.url())        // 예: http://localhost:8080/media/recipes/1/2025-10-10/uuid.jpg
@@ -88,13 +90,17 @@ public class RecipeService {
                         .contentType(file.getContentType())
                         .size(file.getSize())
                         .sortOrder(i)
-                        .isMainImage(mainImageIndex != null && mainImageIndex == i)
+                        .isMainImage(isMain)
                         .build();
                 recipeImageRepository.save(img);
 
+                // 메인 이미지 URL 저장
+                if (isMain) {
+                    mainImageUrl = uploadResponse.url();
+                }
+
                 // 메인 이미지를 제외한 나머지 이미지를 단계 이미지로 매핑
                 if (!savedDetails.isEmpty()) {
-                    boolean isMain = (mainImageIndex != null && mainImageIndex == i);
                     if (!isMain && detailAssignIndex < savedDetails.size()) {
                         RecipeDetail targetDetail = savedDetails.get(detailAssignIndex);
                         targetDetail.updateDetail(targetDetail.getDescription(), uploadResponse.url());
@@ -102,6 +108,12 @@ public class RecipeService {
                         detailAssignIndex++;
                     }
                 }
+            }
+            
+            // 3) 메인 이미지가 지정된 경우 Recipe의 thumbnail 필드 업데이트
+            if (mainImageUrl != null) {
+                savedRecipe.setThumbnailUrl(mainImageUrl);
+                recipeRepository.save(savedRecipe);
             }
         }
 
@@ -289,6 +301,7 @@ public class RecipeService {
         }
 
         // 8) 이미지 처리: 새 이미지가 있으면 기존 이미지 삭제 후 새 이미지 저장, 없으면 기존 이미지 유지
+        String mainImageUrl = null; // 메인 이미지 URL 저장용
         if(images != null && !images.isEmpty()) {
             // 새 이미지가 있으면 기존 이미지 삭제
             for(RecipeImage image : existingImages) {
@@ -309,6 +322,7 @@ public class RecipeService {
                 ImageStorage.UploadResponse uploadResponse = imageStorage.upload(file, relativeDir);
 
                 // 3) 이미지 메타데이터 DB 저장
+                boolean isMain = (mainImageIndex != null && mainImageIndex == i);
                 RecipeImage img = RecipeImage.builder()
                         .recipe(recipe)
                         .url(uploadResponse.url())        // 예: http://localhost:8080/media/recipes/1/2025-10-10/uuid.jpg
@@ -317,13 +331,17 @@ public class RecipeService {
                         .contentType(file.getContentType())
                         .size(file.getSize())
                         .sortOrder(i)
-                        .isMainImage(mainImageIndex != null && mainImageIndex == i)
+                        .isMainImage(isMain)
                         .build();
                 recipeImageRepository.save(img);
 
+                // 메인 이미지 URL 저장
+                if (isMain) {
+                    mainImageUrl = uploadResponse.url();
+                }
+
                 // 메인 이미지를 제외한 나머지 이미지를 단계 이미지로 매핑
                 if (!savedDetails.isEmpty()) {
-                    boolean isMain = (mainImageIndex != null && mainImageIndex == i);
                     if (!isMain && detailAssignIndex < savedDetails.size()) {
                         RecipeDetail targetDetail = savedDetails.get(detailAssignIndex);
                         targetDetail.updateDetail(targetDetail.getDescription(), uploadResponse.url());
@@ -331,6 +349,11 @@ public class RecipeService {
                         detailAssignIndex++;
                     }
                 }
+            }
+            
+            // 메인 이미지가 지정된 경우 Recipe의 thumbnail 필드 업데이트
+            if (mainImageUrl != null) {
+                recipe.setThumbnailUrl(mainImageUrl);
             }
         } else {
             // 새 이미지가 없으면 기존 이미지를 단계에 매핑
@@ -345,6 +368,15 @@ public class RecipeService {
                         detailIndex++;
                     }
                 }
+            }
+            
+            // 기존 이미지 유지 시 메인 이미지 확인 및 thumbnail 업데이트
+            RecipeImage mainImage = existingImages.stream()
+                    .filter(RecipeImage::isMainImage)
+                    .findFirst()
+                    .orElse(existingImages.isEmpty() ? null : existingImages.get(0));
+            if (mainImage != null) {
+                recipe.setThumbnailUrl(mainImage.getUrl());
             }
         }
 

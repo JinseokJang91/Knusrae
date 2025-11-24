@@ -166,6 +166,7 @@
 
 <script setup>
 import { httpJson } from '@/utils/http';
+import { fetchMemberInfo } from '@/utils/auth';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Dialog from 'primevue/dialog';
@@ -197,6 +198,10 @@ const first = ref(0);
 const rows = ref(12);
 const loading = ref(false);
 const error = ref(null);
+
+// 현재 로그인한 사용자 정보
+const currentMemberInfo = ref(null);
+const currentMemberId = ref(null);
 
 // API 기본 URL
 // TODO 테스트는 로컬로 진행, 추후 분기처리로 EC2 연결 예정
@@ -334,6 +339,33 @@ const loadRecipes = async () => {
         });
 
         const data = response.data || response || [];
+        
+        // 사용자가 찜한 레시피 목록 가져오기
+        let favoriteRecipeIds = [];
+        if (currentMemberId.value) {
+            try {
+                // 백엔드 API: GET /api/recipe/favorites/{memberId}
+                const favoritesResponse = await httpJson(
+                    import.meta.env.VITE_API_BASE_URL_COOK,
+                    `/api/recipe/favorites/${currentMemberId.value}`,
+                    { method: 'GET' }
+                );
+                
+                console.log('찜 목록 API 응답:', favoritesResponse);
+                
+                // API 응답이 배열인지 확인하고 recipeId 추출
+                if (Array.isArray(favoritesResponse)) {
+                    favoriteRecipeIds = favoritesResponse.map((fav) => fav.recipeId);
+                } else if (favoritesResponse.data && Array.isArray(favoritesResponse.data)) {
+                    favoriteRecipeIds = favoritesResponse.data.map((fav) => fav.recipeId);
+                }
+                
+                console.log('찜한 레시피 ID 목록:', favoriteRecipeIds);
+            } catch (err) {
+                console.log('찜 목록을 가져올 수 없습니다:', err);
+            }
+        }
+        
         recipes.value = data.map((recipe) => {
             // cookingTips에서 SERVING과 COOKING_TIME 추출
             const cookingTime = extractCookingTime(recipe.cookingTips);
@@ -344,13 +376,21 @@ const loadRecipes = async () => {
                 ? recipe.reviews.reduce((sum, review) => sum + (review.rating || 0), 0) / recipe.reviews.length
                 : null;
 
+            const isFavorite = favoriteRecipeIds.includes(recipe.id);
+            
+            // 디버깅: 찜 상태 로그
+            if (isFavorite) {
+                console.log(`레시피 ID ${recipe.id} (${recipe.title})는 찜 목록에 있습니다.`);
+            }
+
             return {
                 ...recipe,
                 category: derivePrimaryCategory(recipe),
                 cookingTime,
                 servings,
                 rating: averageRating,
-                hasReviews: recipe.reviews && recipe.reviews.length > 0
+                hasReviews: recipe.reviews && recipe.reviews.length > 0,
+                isFavorite
             };
         });
 
@@ -479,15 +519,44 @@ const getCategoryName = (categoryValue) => {
 };
 
 // Function > Button > 찜 목록 추가
-// TODO 찜 목록 데이터로 관리 시 API 연결 필요
-const toggleFavorite = (recipeId) => {
-    const recipe = recipes.value.find((r) => r.id === recipeId);
-    if (recipe) {
-        recipe.isFavorite = !recipe.isFavorite;
+const toggleFavorite = async (recipeId) => {
+    // 로그인 확인
+    if (!currentMemberId.value) {
+        toast.add({
+            severity: 'warn',
+            summary: '로그인 필요',
+            detail: '찜 기능을 사용하려면 로그인이 필요합니다.',
+            life: 3000
+        });
+        return;
+    }
+
+    try {
+        const recipe = recipes.value.find((r) => r.id === recipeId);
+        if (!recipe) return;
+
+        // API 호출
+        const response = await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/recipe/favorites/toggle?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
+            { method: 'PUT' }
+        );
+
+        // 상태 업데이트
+        recipe.isFavorite = response.isFavorite;
+
         toast.add({
             severity: 'success',
             summary: recipe.isFavorite ? '찜 추가' : '찜 해제',
             detail: recipe.isFavorite ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.',
+            life: 3000
+        });
+    } catch (err) {
+        console.error('찜 토글 실패:', err);
+        toast.add({
+            severity: 'error',
+            summary: '오류 발생',
+            detail: '찜 기능을 사용할 수 없습니다.',
             life: 3000
         });
     }
@@ -517,6 +586,17 @@ watch(selectedCategory, (newCategory) => {
 
 // 생명주기
 onMounted(async () => {
+    // 사용자 정보 가져오기
+    try {
+        const memberInfo = await fetchMemberInfo();
+        if (memberInfo) {
+            currentMemberInfo.value = memberInfo;
+            currentMemberId.value = memberInfo.id;
+        }
+    } catch (err) {
+        console.log('사용자 정보를 가져올 수 없습니다:', err);
+    }
+
     await loadCategories();
     await loadRecipes();
 });
