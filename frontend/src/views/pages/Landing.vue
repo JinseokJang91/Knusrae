@@ -1,23 +1,14 @@
 <script setup lang="ts">
-import FeaturesWidget from '@/components/landing/FeaturesWidget.vue';
-import FooterWidget from '@/components/landing/FooterWidget.vue';
-import HeroWidget from '@/components/landing/HeroWidget.vue';
-import HighlightsWidget from '@/components/landing/HighlightsWidget.vue';
-import PricingWidget from '@/components/landing/PricingWidget.vue';
-import TopbarWidget from '@/components/landing/TopbarWidget.vue';
+// TODO: Landing 페이지 컴포넌트 구현
 </script>
 
 <template>
     <div class="bg-surface-0 dark:bg-surface-900">
         <div id="home" class="landing-wrapper overflow-hidden">
-            <div class="py-6 px-6 mx-0 md:mx-12 lg:mx-20 lg:px-20 flex items-center justify-between relative lg:static">
-                <TopbarWidget />
+            <div class="py-6 px-6 mx-0 md:mx-12 lg:mx-20 lg:px-20">
+                <h1 class="text-3xl font-bold text-center">Landing Page</h1>
+                <p class="text-center mt-4">TODO: 랜딩 페이지 컴포넌트를 여기에 구현합니다.</p>
             </div>
-            <HeroWidget />
-            <FeaturesWidget />
-            <HighlightsWidget />
-            <PricingWidget />
-            <FooterWidget />
         </div>
     </div>
 </template>

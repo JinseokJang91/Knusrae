@@ -1,10 +1,9 @@
 <script setup>
 import logoText from '@/assets/images/logo-text.png';
 import { useLayout } from '@/layout/composables/layout';
-import { isLoggedIn } from '@/utils/auth';
+import { isLoggedIn, fetchMemberInfo } from '@/utils/auth';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { httpJson } from '@/utils/http';
 
 const router = useRouter();
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
@@ -23,19 +22,12 @@ const clearSearch = () => {
     searchQuery.value = '';
 };
 
-const fetchMemberInfo = async () => {
+const getMemberInfo = async () => {
     try {
-        // member-service의 BASE URL 사용 (환경 변수가 있으면 사용, 없으면 기본값)
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_MEMBER;
-        const memberInfo = await httpJson(API_BASE_URL, '/api/member/me', {
-            method: 'GET'
-        });
-
-        // API 응답에서 사용자 닉네임 추출 (nickname 우선, 없으면 name 사용)
+        const memberInfo = await fetchMemberInfo();
         memberName.value = memberInfo.nickname || memberInfo.name || '사용자';
     } catch (error) {
         console.error('사용자 정보 조회 실패:', error);
-        // API 호출 실패 시 기본값 설정
         memberName.value = '사용자';
     }
 };
@@ -43,8 +35,7 @@ const fetchMemberInfo = async () => {
 const updateLoginState = async () => {
     isLoggedInState.value = isLoggedIn();
     if (isLoggedInState.value) {
-        // 로그인 상태일 때 사용자 정보 API 호출
-        await fetchMemberInfo();
+        await getMemberInfo();
     } else {
         memberName.value = '';
     }
@@ -114,21 +105,6 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="layout-topbar-actions">
-            <!-- <div class="layout-config-menu">
-                <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
-                    <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>
-                </button>
-                <div class="relative">
-                    <button
-                        v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }"
-                        type="button"
-                        class="layout-topbar-action layout-topbar-action-highlight"
-                    >
-                        <i class="pi pi-palette"></i>
-                    </button>
-                    <AppConfigurator />
-                </div>
-            </div> -->
             <div class="layout-config-menu" v-if="isLoggedInState">
                 <span class="layout-topbar-welcome">{{ memberName }}님 환영합니다.</span>
             </div>

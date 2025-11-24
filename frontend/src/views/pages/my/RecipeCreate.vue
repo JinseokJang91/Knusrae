@@ -332,7 +332,9 @@ async function loadCookingTipsOptions() {
 
 async function loadMemberInfo() {
     const memberInfo = await fetchMemberInfo();
-    form.memberId = memberInfo.id;
+    if (memberInfo) {
+        form.memberId = memberInfo.id;
+    }
 }
 
 function addStep() {

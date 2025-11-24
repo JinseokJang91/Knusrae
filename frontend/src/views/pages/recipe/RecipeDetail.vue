@@ -514,7 +514,6 @@ const showImageModal = ref(false);
 const selectedImage = ref<any>(null);
 const selectedImageIndex = ref(0);
 
-// 현재 로그인한 사용자 ID (TODO: 실제로는 auth store에서 가져와야 함)
 const currentMemberInfo = ref<any | null>(null);
 const currentMemberId = ref<number | null>(null);
 
@@ -620,12 +619,6 @@ const toggleLike = async () => {
         );
         
         isLiked.value = response.isFavorite;
-        
-        if (response.isFavorite) {
-            // 찜 추가됨
-        } else {
-            // 찜 해제됨
-        }
     } catch (err) {
         console.error('찜 토글 실패:', err);
         alert('찜 기능을 사용할 수 없습니다.');
