@@ -2,30 +2,26 @@ spring:
   config:
     import: optional:classpath:application-common.yml
   application:
-    name : cook-service
+    name: cook-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/knusrae_db
-    username: knusrae_user
-    password: CookRecipes999!@#
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/knusrae_db}
+    username: ${DB_USERNAME:knusrae_user}
+    password: ${DB_PASSWORD:CookRecipes999!@#}
   jpa:
     hibernate:
-      ddl-auto: update # dev : update, prd : validate or none
+      ddl-auto: ${JPA_DDL_AUTO:update}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-#        format_sql: true
-#        highlight_sql: true
-#        use_sql_comments: true
-#    show-sql: true
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 50MB
+      max-file-size: ${MAX_FILE_SIZE:10MB}
+      max-request-size: ${MAX_REQUEST_SIZE:50MB}
 app:
   storage:
     local:
-      base-dir: C:/JangJinSeok/test/uploads         # ← 실제 저장 폴더
-      public-base-url: http://localhost:8082/uploads # ← 브라우저에서 접근할 URL
+      base-dir: ${STORAGE_BASE_DIR:C:/JangJinSeok/test/uploads}
+      public-base-url: ${STORAGE_PUBLIC_BASE_URL:http://localhost:8082/uploads}
 
 server:
   port: 8082

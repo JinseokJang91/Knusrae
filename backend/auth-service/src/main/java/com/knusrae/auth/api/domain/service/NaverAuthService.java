@@ -57,7 +57,7 @@ public class NaverAuthService {
                             .email(naverUserDTO.getEmail())
                             .isActive(Active.TRUE)
                             .birth(Strings.concat(naverUserDTO.getBirthyear(), StringUtils.replaceChars(naverUserDTO.getBirthday(), "-", "")))
-                            .gender("M".equals(naverUserDTO.getGender()) ? Gender.FEMALE : "F".equals(naverUserDTO.getGender()) ? Gender.MALE : Gender.UNKNOWN)
+                            .gender("M".equals(naverUserDTO.getGender()) ? Gender.MALE : "F".equals(naverUserDTO.getGender()) ? Gender.FEMALE : Gender.UNKNOWN)
                             .socialRole(SocialRole.NAVER)
                             .createdAt(LocalDateTime.now())
                             .updatedAt(LocalDateTime.now())

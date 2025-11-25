@@ -104,6 +104,4 @@ public class RecipeController {
         recipeService.deleteRecipe(id);
         return ResponseEntity.noContent().build();
     }
-
-    // TODO 비활성화: 검색/통계/인기/페이징/사용자별 등 확장 API는 현재 미사용
 }

@@ -76,7 +76,7 @@ public class RecipeService {
                 // 1) 유효성 검사
                 validateImage(file);
 
-                // 2) 스토리지 업로드(로컬, TODO S3)
+                // 2) 스토리지 업로드
                 String relativeDir = "recipes/%d/%s".formatted(savedRecipe.getId(), LocalDate.now());
                 ImageStorage.UploadResponse uploadResponse = imageStorage.upload(file, relativeDir);
 
@@ -126,25 +126,9 @@ public class RecipeService {
         }
 
         for (RecipeCategoryDto categoryDto : categories) {
-            if (categoryDto.getCodeId() == null || categoryDto.getDetailCodeId() == null) {
-                continue;
-            }
-
-            CommonCodeDetailId id = new CommonCodeDetailId(
-                    categoryDto.getCodeId(),
-                    categoryDto.getDetailCodeId()
-            );
-
-            CommonCodeDetail detail = commonCodeDetailRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공통 코드 상세입니다: " + id));
-
-            // codeGroup 검증
-            if (ObjectUtils.isEmpty(detail.getCode()) && !CommonConstants.COMMON_CODE_GROUP_CATEGORY.equals(detail.getCode().getCodeGroup())) {
-                throw new IllegalArgumentException("카테고리는 codeGroup이 'CATEGORY'여야 합니다: " + detail.getCode().getCodeGroup());
-            }
-
-            RecipeCategory recipeCategory = RecipeCategory.of(recipe, detail);
-            recipe.addRecipeCategory(recipeCategory);
+            saveRecipeCommonCode(recipe, categoryDto.getCodeId(), categoryDto.getDetailCodeId(), 
+                    CommonConstants.COMMON_CODE_GROUP_CATEGORY, "카테고리", 
+                    recipe::addRecipeCategory);
         }
     }
 
@@ -154,26 +138,29 @@ public class RecipeService {
         }
 
         for (RecipeCookingTipDto cookingTipDto : cookingTips) {
-            if (cookingTipDto.getCodeId() == null || cookingTipDto.getDetailCodeId() == null) {
-                continue;
-            }
-
-            CommonCodeDetailId id = new CommonCodeDetailId(
-                    cookingTipDto.getCodeId(),
-                    cookingTipDto.getDetailCodeId()
-            );
-
-            CommonCodeDetail detail = commonCodeDetailRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공통 코드 상세입니다: " + id));
-
-            // codeGroup 검증
-            if (ObjectUtils.isEmpty(detail.getCode()) && !CommonConstants.COMMON_CODE_GROUP_COOKINGTIP.equals(detail.getCode().getCodeGroup())) {
-                throw new IllegalArgumentException("요리팁은 codeGroup이 'COOKINGTIP'이어야 합니다: " + detail.getCode().getCodeGroup());
-            }
-
-            RecipeCategory recipeCategory = RecipeCategory.of(recipe, detail);
-            recipe.addRecipeCookingTip(recipeCategory);
+            saveRecipeCommonCode(recipe, cookingTipDto.getCodeId(), cookingTipDto.getDetailCodeId(), 
+                    CommonConstants.COMMON_CODE_GROUP_COOKINGTIP, "요리팁", 
+                    recipe::addRecipeCookingTip);
         }
+    }
+
+    private void saveRecipeCommonCode(Recipe recipe, String codeId, String detailCodeId, 
+            String expectedCodeGroup, String categoryName, java.util.function.Consumer<RecipeCategory> addFunction) {
+        if (codeId == null || detailCodeId == null) {
+            return;
+        }
+
+        CommonCodeDetailId id = new CommonCodeDetailId(codeId, detailCodeId);
+
+        CommonCodeDetail detail = commonCodeDetailRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 공통 코드 상세입니다: " + id));
+
+        if (ObjectUtils.isEmpty(detail.getCode()) && !expectedCodeGroup.equals(detail.getCode().getCodeGroup())) {
+            throw new IllegalArgumentException(categoryName + "는 codeGroup이 '" + expectedCodeGroup + "'여야 합니다: " + detail.getCode().getCodeGroup());
+        }
+
+        RecipeCategory recipeCategory = RecipeCategory.of(recipe, detail);
+        addFunction.accept(recipeCategory);
     }
 
     private void validateImage(MultipartFile file) {
@@ -184,49 +171,29 @@ public class RecipeService {
         }
     }
 
-    // READ - 전체 레시피 목록 조회 (QueryDsl 사용: PUBLISHED & PUBLIC만 조회)
     public List<RecipeDto> listAllRecipes() {
         List<Recipe> recipeList = recipeRepository.findPublishedPublicRecipes();
-        List<RecipeDto> recipeDtoList = recipeList.stream()
-                .map(RecipeDto::new)
-                .toList();
-        
-        // 각 레시피의 메인 이미지를 조회하여 썸네일로 설정
-        for (RecipeDto dto : recipeDtoList) {
-            Recipe recipe = recipeRepository.findById(dto.getId())
-                    .orElse(null);
-            if (recipe != null) {
-                List<RecipeImage> images = recipeImageRepository.findAllByRecipe(recipe);
-                RecipeImage mainImage = images.stream()
-                        .filter(RecipeImage::isMainImage)
-                        .findFirst()
-                        .orElse(images.isEmpty() ? null : images.getFirst()); // 메인 이미지가 없으면 첫 번째 이미지
-                if (mainImage != null) {
-                    dto.setThumbnail(mainImage.getUrl());
-                }
-            }
-        }
-        
-        return recipeDtoList;
+        return setThumbnailsForRecipeList(recipeList);
     }
 
-    // READ - 전체 레시피 목록 조회 (로그인 유저가 생성한 레시피 전체 조회)
     public List<RecipeDto> listMemberRecipes(Long memberId) {
         List<Recipe> recipeList = recipeRepository.findMemberRecipes(memberId);
+        return setThumbnailsForRecipeList(recipeList);
+    }
+
+    private List<RecipeDto> setThumbnailsForRecipeList(List<Recipe> recipeList) {
         List<RecipeDto> recipeDtoList = recipeList.stream()
                 .map(RecipeDto::new)
                 .toList();
 
-        // 각 레시피의 메인 이미지를 조회하여 썸네일로 설정
         for (RecipeDto dto : recipeDtoList) {
-            Recipe recipe = recipeRepository.findById(dto.getId())
-                    .orElse(null);
+            Recipe recipe = recipeRepository.findById(dto.getId()).orElse(null);
             if (recipe != null) {
                 List<RecipeImage> images = recipeImageRepository.findAllByRecipe(recipe);
                 RecipeImage mainImage = images.stream()
                         .filter(RecipeImage::isMainImage)
                         .findFirst()
-                        .orElse(images.isEmpty() ? null : images.getFirst()); // 메인 이미지가 없으면 첫 번째 이미지
+                        .orElse(images.isEmpty() ? null : images.getFirst());
                 if (mainImage != null) {
                     dto.setThumbnail(mainImage.getUrl());
                 }
@@ -317,7 +284,7 @@ public class RecipeService {
                 // 1) 유효성 검사
                 validateImage(file);
 
-                // 2) 스토리지 업로드(로컬, TODO S3)
+                // 2) 스토리지 업로드
                 String relativeDir = "recipes/%d/%s".formatted(recipe.getId(), LocalDate.now());
                 ImageStorage.UploadResponse uploadResponse = imageStorage.upload(file, relativeDir);
 
@@ -396,8 +363,4 @@ public class RecipeService {
 
         recipeRepository.delete(recipe);
     }
-
-    // 비활성화: 논리삭제는 현재 미사용
-
-    // 비활성화: 검색/통계/페이징/레거시 메서드들은 현재 미사용
 }

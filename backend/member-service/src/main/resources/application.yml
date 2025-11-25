@@ -2,14 +2,14 @@ spring:
   config:
     import: optional:classpath:application-common.yml
   application:
-    name : member-service
+    name: member-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/knusrae_db
-    username: knusrae_user
-    password: CookRecipes999!@#
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/knusrae_db}
+    username: ${DB_USERNAME:knusrae_user}
+    password: ${DB_PASSWORD:CookRecipes999!@#}
   jpa:
     hibernate:
-      ddl-auto: update # dev : update, prd : validate or none
+      ddl-auto: ${JPA_DDL_AUTO:update}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect

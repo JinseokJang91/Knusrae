@@ -33,7 +33,8 @@ public class AuthController {
     @Value("${app.test-login.enabled:false}")
     private boolean testLoginEnabled;
 
-    private static final String API_BASE_URL = "http://localhost:5173"; // TODO 로컬 삭제
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
 
     private static final String NAVER_REDIRECT_URI = "/auth/naver/callback";
     private static final String GOOGLE_REDIRECT_URI = "/auth/google/callback";
@@ -45,7 +46,7 @@ public class AuthController {
         try {
             TokenResponse tokenResponse = naverAuthService.naverLoginProcess(code, state);
 
-            String redirectUrl = API_BASE_URL + NAVER_REDIRECT_URI + "?success=true";
+            String redirectUrl = frontendUrl + NAVER_REDIRECT_URI + "?success=true";
 
             return buildSuccessResponse(redirectUrl, tokenResponse)
                     .header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
@@ -53,7 +54,7 @@ public class AuthController {
                     .build();
         } catch (Exception e) {
             log.error("네이버 로그인 처리 중 오류", e);
-            return getErrorRedirectResponse(API_BASE_URL + NAVER_REDIRECT_URI);
+            return getErrorRedirectResponse(frontendUrl + NAVER_REDIRECT_URI);
         }
     }
 
@@ -62,16 +63,15 @@ public class AuthController {
         try {
             TokenResponse tokenResponse = googleAuthService.googleLoginProcess(code);
 
-            String redirectUrl = API_BASE_URL + GOOGLE_REDIRECT_URI + "?success=true";
+            String redirectUrl = frontendUrl + GOOGLE_REDIRECT_URI + "?success=true";
 
-            // GOOGLE은 COOP, COEP header 설정 추가
             return buildSuccessResponse(redirectUrl, tokenResponse)
                     .header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
                     .header("Cross-Origin-Embedder-Policy", "unsafe-none")
                     .build();
         } catch (Exception e) {
             log.error("구글 로그인 처리 중 오류", e);
-            return getErrorRedirectResponse(API_BASE_URL + GOOGLE_REDIRECT_URI);
+            return getErrorRedirectResponse(frontendUrl + GOOGLE_REDIRECT_URI);
         }
     }
 
@@ -80,28 +80,20 @@ public class AuthController {
         try {
             TokenResponse tokenResponse = kakaoAuthService.kakaoLoginProcess(code);
 
-            String redirectUrl = API_BASE_URL + KAKAO_REDIRECT_URI + "?success=true";
+            String redirectUrl = frontendUrl + KAKAO_REDIRECT_URI + "?success=true";
 
             return buildSuccessResponse(redirectUrl, tokenResponse).build();
         } catch (Exception e) {
             log.error("카카오 로그인 처리 중 오류", e);
-            return getErrorRedirectResponse(API_BASE_URL + KAKAO_REDIRECT_URI);
+            return getErrorRedirectResponse(frontendUrl + KAKAO_REDIRECT_URI);
         }
     }
 
-    /**
-     * 로그인 성공 시 쿠키에 토큰을 설정하고 리다이렉트합니다.
-     * 보안을 위해 쿠키에만 토큰을 저장하고 URL에는 포함하지 않습니다.
-     * 
-     * @param redirectUrl 리다이렉트 URL
-     * @param tokenResponse 토큰 응답 (Access Token, Refresh Token 포함)
-     * @return ResponseEntity builder
-     */
     private ResponseEntity.HeadersBuilder<?> buildSuccessResponse(String redirectUrl, TokenResponse tokenResponse) {
         // Access Token 쿠키 설정 (HttpOnly, Secure, SameSite)
         ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
                 .httpOnly(true)
-                .secure(false) // 개발 환경에서는 false, 프로덕션에서는 true
+                .secure(false)
                 .path("/")
                 .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
                 .sameSite("Lax")
@@ -112,14 +104,13 @@ public class AuthController {
         if (tokenResponse.refreshToken() != null) {
             refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
                     .httpOnly(true)
-                    .secure(false) // 개발 환경에서는 false, 프로덕션에서는 true
+                    .secure(false)
                     .path("/")
                     .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
                     .sameSite("Lax")
                     .build();
         }
 
-        // URL에는 토큰을 포함하지 않음 (보안 강화)
         ResponseEntity.HeadersBuilder<?> responseBuilder = ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, redirectUrl)
                 .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
@@ -144,22 +135,13 @@ public class AuthController {
         }
     }
 
-    /**
-     * 로그아웃 처리: Access Token과 Refresh Token을 무효화하고 쿠키를 삭제합니다.
-     * 
-     * @param accessToken 쿠키에서 받은 Access Token
-     * @param refreshToken 쿠키에서 받은 Refresh Token
-     * @return 성공 메시지
-     */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(
             @CookieValue(value = "accessToken", required = false) String accessToken,
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
         try {
-            // 로그아웃 처리
             tokenService.logout(accessToken, refreshToken);
             
-            // 쿠키 삭제
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", "")
                     .httpOnly(true)
                     .secure(false)
@@ -187,31 +169,20 @@ public class AuthController {
         }
     }
 
-    /**
-     * Refresh Token을 사용하여 새로운 Access Token과 Refresh Token을 발행합니다.
-     * 
-     * @param refreshToken 쿠키에서 받은 Refresh Token
-     * @return TokenResponse (새 Access Token, 새 Refresh Token, 만료 시간 포함)
-     */
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
         try {
-            // 쿠키에서 Refresh Token 추출
-            String refreshTokenValue = refreshToken;
-            
-            if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
+            if (refreshToken == null || refreshToken.isBlank()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "REFRESH_TOKEN_REQUIRED", "message", "Refresh Token이 필요합니다."));
             }
 
-            // 토큰 갱신
-            TokenResponse tokenResponse = tokenService.refreshAccessToken(refreshTokenValue);
+            TokenResponse tokenResponse = tokenService.refreshAccessToken(refreshToken);
 
-            // 새 토큰을 쿠키에 설정
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
                     .httpOnly(true)
-                    .secure(false) // 개발 환경에서는 false, 프로덕션에서는 true
+                    .secure(false)
                     .path("/")
                     .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
                     .sameSite("Lax")
@@ -219,7 +190,7 @@ public class AuthController {
 
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
                     .httpOnly(true)
-                    .secure(false) // 개발 환경에서는 false, 프로덕션에서는 true
+                    .secure(false)
                     .path("/")
                     .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
                     .sameSite("Lax")
@@ -240,7 +211,7 @@ public class AuthController {
         }
     }
 
-    // TODO 토큰 발급 TEST EndPoint
+    // TODO 토큰 발급 TEST EndPoint - 개발용
     @GetMapping("/jwt/token")
     public ResponseEntity<String> getJwtToken(@RequestParam("user_id") Long userId, @RequestParam("user_name") String userName) {
         try {
@@ -255,17 +226,8 @@ public class AuthController {
         }
     }
 
-    /**
-     * 개발/테스트용 로그인 엔드포인트
-     * 이메일만으로 로그인하여 JWT 토큰을 발급받습니다.
-     * 프로덕션 환경에서는 비활성화되어야 합니다.
-     * 
-     * @param request 테스트 로그인 요청 (이메일)
-     * @return 로그인 성공 시 쿠키에 토큰 설정 및 사용자 정보 반환
-     */
     @PostMapping("/test/login")
     public ResponseEntity<?> testLogin(@Valid @RequestBody TestLoginRequest request) {
-        // 테스트 로그인이 비활성화된 경우
         if (!testLoginEnabled) {
             log.warn("테스트 로그인 시도가 차단되었습니다. (비활성화됨)");
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -273,22 +235,19 @@ public class AuthController {
         }
         
         try {
-            // 테스트 계정으로 로그인 처리
             TokenResponse tokenResponse = tokenService.loginWithTestAccount(request.getEmail());
 
-            // Access Token 쿠키 설정
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
                     .httpOnly(true)
-                    .secure(false) // 개발 환경
+                    .secure(false)
                     .path("/")
                     .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
                     .sameSite("Lax")
                     .build();
 
-            // Refresh Token 쿠키 설정
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
                     .httpOnly(true)
-                    .secure(false) // 개발 환경
+                    .secure(false)
                     .path("/")
                     .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
                     .sameSite("Lax")
@@ -316,15 +275,8 @@ public class AuthController {
         }
     }
 
-    /**
-     * 사용 가능한 테스트 계정 목록 조회
-     * 개발/테스트 환경에서만 사용
-     * 
-     * @return 테스트 계정 목록
-     */
     @GetMapping("/test/accounts")
     public ResponseEntity<?> getTestAccounts() {
-        // 테스트 로그인이 비활성화된 경우
         if (!testLoginEnabled) {
             log.warn("테스트 계정 조회 시도가 차단되었습니다. (비활성화됨)");
             return ResponseEntity.status(HttpStatus.FORBIDDEN)

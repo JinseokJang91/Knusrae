@@ -132,15 +132,6 @@ public class Recipe {
         recipeCategory.setRecipe(this);
     }
 
-    public void clearRecipeCategories() {
-        this.recipeCategories.clear();
-    }
-    
-    public void clearRecipeCookingTips() {
-        this.recipeCookingTips.clear();
-    }
-    
-    // 카테고리 관련 메서드 (별칭)
     public void clearCategories() {
         this.recipeCategories.clear();
     }

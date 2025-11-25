@@ -25,14 +25,6 @@ public class CorsFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // CORS 헤더 설정
-        httpResponse.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-        httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        httpResponse.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
-        httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
-        httpResponse.setHeader("Access-Control-Max-Age", "3600");
-
-        // (GOOGLE) Cross-Origin 정책 헤더 설정
         final String path = httpRequest.getRequestURI();
         if (path.startsWith("/api/auth/google") || path.startsWith("/oauth2/callback/google")
                 || path.startsWith("/login/oauth2/code/")) {
@@ -40,10 +32,8 @@ public class CorsFilter implements Filter {
             httpResponse.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
         }
 
-        // Referrer 정책 설정
         httpResponse.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
 
-        // OPTIONS 요청 처리
         if ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod())) {
             httpResponse.setStatus(HttpServletResponse.SC_OK);
             return;

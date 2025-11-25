@@ -2,42 +2,43 @@ spring:
   config:
     import: optional:classpath:application-common.yml
   application:
-    name : auth-service
+    name: auth-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/knusrae_db
-    username: knusrae_user
-    password: CookRecipes999!@#
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/knusrae_db}
+    username: ${DB_USERNAME:knusrae_user}
+    password: ${DB_PASSWORD:CookRecipes999!@#}
   jpa:
     hibernate:
-      ddl-auto: update # dev : update, prd : validate or none
+      ddl-auto: ${JPA_DDL_AUTO:update}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 server:
   port: 8081
 
-# 앱 설정
 app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:5173}
   test-login:
-    enabled: true # 개발 환경에서는 true, 프로덕션에서는 false로 설정
+    enabled: ${TEST_LOGIN_ENABLED:true}
 
 naver:
   client:
-    id: xo6t_k8iBnzCW3jp0oR_
-    secret: ZUT6PZtCVe
+    id: ${NAVER_CLIENT_ID:xo6t_k8iBnzCW3jp0oR_}
+    secret: ${NAVER_CLIENT_SECRET:ZUT6PZtCVe}
   redirect:
-    uri: http://localhost:8081/api/auth/naver/callback
+    uri: ${NAVER_REDIRECT_URI:http://localhost:8081/api/auth/naver/callback}
 
 google:
   client:
-    id: 42444115561-ilr40o74pd0f60ac27os9j7onmt7pb2s.apps.googleusercontent.com
-    secret: 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
+    id: ${GOOGLE_CLIENT_ID:42444115561-ilr40o74pd0f60ac27os9j7onmt7pb2s.apps.googleusercontent.com}
+    secret: ${GOOGLE_CLIENT_SECRET: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}
   redirect:
-    uri: http://localhost:8081/api/auth/google/callback
+    uri: ${GOOGLE_REDIRECT_URI:http://localhost:8081/api/auth/google/callback}
 
 kakao:
   client:
-    id: 0cb16dca75f806b9858d30b6ccab08df
-    secret: aTu843GReAb2ut4kyJLJIr50cdC9pVtg
+    id: ${KAKAO_CLIENT_ID:0cb16dca75f806b9858d30b6ccab08df}
+    secret: ${KAKAO_CLIENT_SECRET:aTu843GReAb2ut4kyJLJIr50cdC9pVtg}
   redirect:
-    uri: http://localhost:8081/api/auth/kakao/callback
+    uri: ${KAKAO_REDIRECT_URI:http://localhost:8081/api/auth/kakao/callback}

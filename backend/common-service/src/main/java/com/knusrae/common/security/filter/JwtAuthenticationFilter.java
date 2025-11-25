@@ -34,19 +34,13 @@ import java.util.Optional;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider tokenProvider;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    
-    // TokenBlacklistRepository는 auth-service에 있으므로 선택적 주입
-    // auth-service가 아닌 다른 서비스에서는 null이 될 수 있음
-    // 리플렉션을 사용하여 동적으로 호출
     private final org.springframework.beans.factory.BeanFactory beanFactory;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // 쿠키에서 토큰 추출
         String token = extractTokenFromCookie(request);
         
         if (StringUtils.hasText(token)) {
-            // 1. 블랙리스트 확인 (auth-service에서만 동작)
             if (isTokenBlacklisted(token)) {
                 handleJwtException(response, HttpServletResponse.SC_UNAUTHORIZED, "TOKEN_BLACKLISTED", "로그아웃된 토큰입니다.");
                 return;
@@ -84,12 +78,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * 쿠키에서 토큰을 추출합니다.
-     * 
-     * @param request HTTP 요청
-     * @return 토큰 문자열 (없으면 null)
-     */
     private String extractTokenFromCookie(HttpServletRequest request) {
         jakarta.servlet.http.Cookie[] cookies = request.getCookies();
         if (cookies != null) {
@@ -104,19 +92,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
-    /**
-     * 토큰이 블랙리스트에 있는지 확인합니다.
-     * auth-service가 아닌 다른 서비스에서는 항상 false를 반환합니다.
-     * 
-     * @param token 확인할 토큰
-     * @return 블랙리스트에 있으면 true, 없으면 false
-     */
     private boolean isTokenBlacklisted(String token) {
         try {
-            // TokenBlacklistRepository가 존재하는지 확인 (auth-service에서만 존재)
             Object repository = beanFactory.getBean("tokenBlacklistRepository");
             if (!ObjectUtils.isEmpty(repository)) {
-                // 리플렉션을 사용하여 findByToken 메서드 호출
                 Method method = repository.getClass().getMethod("findByToken", String.class);
                 Object result = method.invoke(repository, token);
                 if (result instanceof Optional) {
@@ -124,8 +103,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            // Bean이 존재하지 않거나 메서드 호출 실패 시 false 반환 (다른 서비스에서는 정상)
-            // 로그는 남기지 않음 (다른 서비스에서는 정상적인 상황)
         }
         return false;
     }

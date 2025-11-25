@@ -34,24 +34,20 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // Session Stateless 적용
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // 인증 허용/필수 대상 URL 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/recipe/**").permitAll() // TODO 임시 세팅
+                        .requestMatchers(HttpMethod.GET, "/api/recipe/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/common-codes/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/test/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                // 예외 처리
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(handlers.authenticationEntryPoint())
                         .accessDeniedHandler(handlers.accessDeniedHandler())
                 )
-                // Jwt Token Filter 순서 적용
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                // HTTP Basic 인증 방식 적용
                 .httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
@@ -61,7 +57,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://localhost:8080",
+                "http://localhost:8081",
+                "http://localhost:8082",
+                "http://localhost:8083"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of(
                 "Authorization",
@@ -73,7 +76,8 @@ public class SecurityConfig {
         config.setExposedHeaders(List.of(
                 "Authorization",
                 "Cross-Origin-Opener-Policy",
-                "Cross-Origin-Embedder-Policy"
+                "Cross-Origin-Embedder-Policy",
+                "Set-Cookie"
         ));
         config.setMaxAge(3600L);
 

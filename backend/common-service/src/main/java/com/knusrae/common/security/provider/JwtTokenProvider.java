@@ -39,13 +39,6 @@ public class JwtTokenProvider {
         this.refreshTokenTtl = refreshTokenTtl;
     }
 
-    /**
-     * Access Token을 생성합니다.
-     * 
-     * @param subject 사용자 ID
-     * @param claims 추가 클레임 (role, username 등)
-     * @return Access Token
-     */
     public String createAccessToken(String subject, Map<String, Object> claims) {
         Instant now = Instant.now();
         Map<String, Object> tokenClaims = new HashMap<>(claims);
@@ -60,12 +53,6 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    /**
-     * Refresh Token을 생성합니다.
-     * 
-     * @param subject 사용자 ID
-     * @return Refresh Token
-     */
     public String createRefreshToken(String subject) {
         Instant now = Instant.now();
         Map<String, Object> claims = new HashMap<>();
@@ -80,13 +67,6 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    /**
-     * Access Token을 파싱합니다.
-     * 
-     * @param token Access Token
-     * @return 파싱된 Claims
-     * @throws io.jsonwebtoken.JwtException 토큰이 유효하지 않을 경우
-     */
     public Jws<Claims> parseAccessToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(accessTokenKey)
@@ -94,13 +74,6 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token);
     }
 
-    /**
-     * Refresh Token을 파싱합니다.
-     * 
-     * @param token Refresh Token
-     * @return 파싱된 Claims
-     * @throws io.jsonwebtoken.JwtException 토큰이 유효하지 않을 경우
-     */
     public Jws<Claims> parseRefreshToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(refreshTokenKey)
@@ -108,34 +81,4 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token);
     }
 
-    /**
-     * 레거시 호환성을 위한 메서드 (기존 코드와의 호환성 유지)
-     * Access Token을 생성합니다.
-     * 
-     * @deprecated createAccessToken 메서드를 사용하세요.
-     */
-    @Deprecated
-    public String createToken(String subject, Map<String, Object> claims) {
-        return createAccessToken(subject, claims);
-    }
-
-    /**
-     * 레거시 호환성을 위한 메서드 (기존 코드와의 호환성 유지)
-     * Access Token을 파싱합니다.
-     * 
-     * @deprecated parseAccessToken 메서드를 사용하세요.
-     */
-    @Deprecated
-    public Jws<Claims> parse(String token) {
-        return parseAccessToken(token);
-    }
-
-    /**
-     * 레거시 호환성을 위한 메서드
-     * @deprecated getAccessTokenTtl 메서드를 사용하세요.
-     */
-    @Deprecated
-    public long getTtl() {
-        return accessTokenTtl;
-    }
 }
