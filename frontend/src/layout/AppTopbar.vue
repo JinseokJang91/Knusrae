@@ -1,12 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import logoText from '@/assets/images/logo-text.png';
 import { useLayout } from '@/layout/composables/layout';
 import { isLoggedIn, fetchMemberInfo } from '@/utils/auth';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useConfirm } from 'primevue/useconfirm';
 
 const router = useRouter();
-const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
+const confirm = useConfirm();
+const { toggleMenu } = useLayout();
 
 const searchQuery = ref('');
 const isLoggedInState = ref(isLoggedIn());
@@ -41,8 +43,39 @@ const updateLoginState = async () => {
     }
 };
 
+const handleMyMenuClick = (path: string, event: Event) => {
+    event.preventDefault();
+    
+    if (!isLoggedInState.value) {
+        confirm.require({
+            message: '로그인 후 이용 가능합니다.',
+            header: '안내',
+            icon: 'pi pi-info-circle',
+            rejectProps: {
+                label: '취소',
+                severity: 'secondary',
+                outlined: true
+            },
+            acceptProps: {
+                label: '로그인'
+            },
+            accept: () => {
+                router.push({
+                    path: '/auth/login',
+                    query: { redirect: path }
+                });
+            },
+            reject: () => {
+                // 취소 시 아무것도 하지 않음
+            }
+        });
+    } else {
+        router.push(path);
+    }
+};
+
 const handleLogout = async () => {
-    if (confirm('로그아웃 하시겠습니까?')) {
+    if (window.confirm('로그아웃 하시겠습니까?')) {
         try {
             // 백엔드 로그아웃 API 호출 (쿠키 삭제)
             const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
@@ -121,30 +154,30 @@ onBeforeUnmount(() => {
                             <span>Profile</span>
                         </button>
                         <div class="hidden absolute right-0 mt-2 w-56 card p-2 z-50">
-                            <router-link to="/my/profile" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
+                            <a href="/my/profile" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/profile', $event)">
                                 <i class="pi pi-id-card"></i>
                                 <span>내 정보 수정</span>
-                            </router-link>
-                            <router-link to="/my/recipes" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
+                            </a>
+                            <a href="/my/recipes" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/recipes', $event)">
                                 <i class="pi pi-book"></i>
                                 <span>레시피 관리</span>
-                            </router-link>
-                            <router-link to="/my/comments" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
+                            </a>
+                            <a href="/my/comments" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/comments', $event)">
                                 <i class="pi pi-comments"></i>
                                 <span>댓글 관리</span>
-                            </router-link>
-                            <router-link to="/my/reviews" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
+                            </a>
+                            <a href="/my/reviews" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/reviews', $event)">
                                 <i class="pi pi-star"></i>
                                 <span>후기 관리</span>
-                            </router-link>
-                            <router-link to="/my/inquiries" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
+                            </a>
+                            <a href="/my/inquiries" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/inquiries', $event)">
                                 <i class="pi pi-inbox"></i>
                                 <span>1:1 문의 내역</span>
-                            </router-link>
-                            <router-link to="/recipe/favorites" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
+                            </a>
+                            <a href="/my/favorites" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/favorites', $event)">
                                 <i class="pi pi-heart"></i>
                                 <span>찜 목록</span>
-                            </router-link>
+                            </a>
                             <div class="my-2 border-t"></div>
                             <router-link v-if="!isLoggedInState" to="/auth/login" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
                                 <i class="pi pi-sign-in"></i>

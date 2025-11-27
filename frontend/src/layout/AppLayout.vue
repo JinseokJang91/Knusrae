@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useLayout } from '@/layout/composables/layout';
 import { computed, ref, watch } from 'vue';
 import AppFooter from './AppFooter.vue';
@@ -7,7 +7,7 @@ import AppTopbar from './AppTopbar.vue';
 
 const { layoutConfig, layoutState, isSidebarActive } = useLayout();
 
-const outsideClickListener = ref(null);
+const outsideClickListener = ref<((event: MouseEvent) => void) | null>(null);
 
 watch(isSidebarActive, (newVal) => {
     if (newVal) {
@@ -29,7 +29,7 @@ const containerClass = computed(() => {
 
 function bindOutsideClickListener() {
     if (!outsideClickListener.value) {
-        outsideClickListener.value = (event) => {
+        outsideClickListener.value = (event: MouseEvent) => {
             if (isOutsideClicked(event)) {
                 layoutState.overlayMenuActive = false;
                 layoutState.staticMenuMobileActive = false;
@@ -42,16 +42,18 @@ function bindOutsideClickListener() {
 
 function unbindOutsideClickListener() {
     if (outsideClickListener.value) {
-        document.removeEventListener('click', outsideClickListener);
+        document.removeEventListener('click', outsideClickListener.value);
         outsideClickListener.value = null;
     }
 }
 
-function isOutsideClicked(event) {
+function isOutsideClicked(event: MouseEvent) {
     const sidebarEl = document.querySelector('.layout-sidebar');
     const topbarEl = document.querySelector('.layout-menu-button');
 
-    return !(sidebarEl.isSameNode(event.target) || sidebarEl.contains(event.target) || topbarEl.isSameNode(event.target) || topbarEl.contains(event.target));
+    if (!sidebarEl || !topbarEl) return false;
+
+    return !(sidebarEl.isSameNode(event.target as Node) || sidebarEl.contains(event.target as Node) || topbarEl.isSameNode(event.target as Node) || topbarEl.contains(event.target as Node));
 }
 </script>
 

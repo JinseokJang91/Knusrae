@@ -1,6 +1,5 @@
 import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
-import { isLoggedIn } from '@/utils/auth';
 
 const routes: RouteRecordRaw[] = [
     {
@@ -66,9 +65,9 @@ const routes: RouteRecordRaw[] = [
             },
             // 레시피 메뉴
             {
-                path: '/recipe/favorites',
+                path: '/my/favorites',
                 name: 'favorites',
-                component: () => import('@/views/pages/recipe/Favorites.vue')
+                component: () => import('@/views/pages/my/Favorites.vue')
             },
             {
                 path: '/recipe/category',
@@ -163,27 +162,6 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
     history: createWebHistory(),
     routes
-});
-
-// 로그인 필요 경로 가드: /my/** 경로는 비로그인 시 로그인 페이지로 리다이렉트
-router.beforeEach((to, _from, next) => {
-    try {
-        const requiresAuth = to.path.startsWith('/my');
-        // HttpOnly 쿠키 방식으로 변경되어 localStorage의 isLoggedIn 플래그를 확인
-        // 실제 인증은 백엔드의 JwtAuthenticationFilter가 쿠키에서 처리
-        const loggedIn = isLoggedIn();
-
-        if (requiresAuth && !loggedIn) {
-            next({
-                path: '/auth/login',
-                query: { redirect: to.fullPath }
-            });
-            return;
-        }
-    } catch (e) {
-        // 문제가 있어도 네비게이션은 진행
-    }
-    next();
 });
 
 export default router;
