@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor
@@ -76,7 +77,7 @@ public class RecipeService {
                 // 1) 유효성 검사
                 validateImage(file);
 
-                // 2) 스토리지 업로드
+                // 2) 스토리지 업로드 // 로컬 TODO S3 변경
                 String relativeDir = "recipes/%d/%s".formatted(savedRecipe.getId(), LocalDate.now());
                 ImageStorage.UploadResponse uploadResponse = imageStorage.upload(file, relativeDir);
 
@@ -145,7 +146,7 @@ public class RecipeService {
     }
 
     private void saveRecipeCommonCode(Recipe recipe, String codeId, String detailCodeId, 
-            String expectedCodeGroup, String categoryName, java.util.function.Consumer<RecipeCategory> addFunction) {
+            String expectedCodeGroup, String categoryName, Consumer<RecipeCategory> addFunction) {
         if (codeId == null || detailCodeId == null) {
             return;
         }
@@ -284,7 +285,7 @@ public class RecipeService {
                 // 1) 유효성 검사
                 validateImage(file);
 
-                // 2) 스토리지 업로드
+                // 2) 스토리지 업로드 // 로컬 TODO S3 변경
                 String relativeDir = "recipes/%d/%s".formatted(recipe.getId(), LocalDate.now());
                 ImageStorage.UploadResponse uploadResponse = imageStorage.upload(file, relativeDir);
 

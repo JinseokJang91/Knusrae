@@ -4,9 +4,9 @@ spring:
   security:
     jwt:
       secret: ${JWT_SECRET:xA0sn7p9tB6cR3eMkG4vzS5uQ2W1yNpLqZoPsIdUjKxBlVuTwQ1FgHsDnPmCkRtL}
-      accessTokenTtlSeconds: ${JWT_ACCESS_TOKEN_TTL:3600}
+      accessTokenTtlSeconds: ${JWT_ACCESS_TOKEN_TTL:3600} # 1시간
       refreshTokenSecret: ${JWT_REFRESH_SECRET:rF9kL2mN5pQ8sT1vW4xY7zA0bC3dE6fH9iJ2lM5oP8qR1tU4wX7yZ0aB3cD6e}
-      refreshTokenTtlSeconds: ${JWT_REFRESH_TOKEN_TTL:604800}
+      refreshTokenTtlSeconds: ${JWT_REFRESH_TOKEN_TTL:604800} # 7일
   servlet:
     multipart:
       max-file-size: ${MAX_FILE_SIZE:10MB}
@@ -15,5 +15,5 @@ spring:
 app:
   storage:
     local:
-      base-dir: ${STORAGE_BASE_DIR:C:/JangJinSeok/test/uploads}
-      public-base-url: ${STORAGE_PUBLIC_BASE_URL:http://localhost:8082/uploads}
+      base-dir: ${STORAGE_BASE_DIR:C:/JangJinSeok/test/uploads} # 실제 저장 디렉토리
+      public-base-url: ${STORAGE_PUBLIC_BASE_URL:http://localhost:8082/uploads} # 브라우저에서 접근할 URL

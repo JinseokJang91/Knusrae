@@ -41,7 +41,7 @@ public class TokenService {
 
         String accessToken = tokenProvider.createAccessToken(
                 String.valueOf(userId),
-                Map.of("role", role, "username", username)
+                Map.of("role", role, "username", username) // TODO Claim 추가
         );
 
         String refreshToken = tokenProvider.createRefreshToken(String.valueOf(userId));
@@ -161,6 +161,7 @@ public class TokenService {
         }
     }
 
+    // TODO 테스트 계정 로그인
     @Transactional
     public TokenResponse loginWithTestAccount(String email) {
         Member member = memberRepository.findByEmail(email);
@@ -172,6 +173,7 @@ public class TokenService {
         return loginWithSocialUser(member.getId(), member.getName(), member.getSocialRole().name());
     }
 
+    // TODO 테스트 계정 로그인
     public List<Map<String, Object>> getTestAccounts() {
         List<Member> testMembers = memberRepository.findAll().stream()
                 .filter(member -> member.getEmail() != null && member.getEmail().startsWith("test"))

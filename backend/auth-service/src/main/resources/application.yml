@@ -9,7 +9,7 @@ spring:
     password: ${DB_PASSWORD:CookRecipes999!@#}
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update}
+      ddl-auto: ${JPA_DDL_AUTO:update} # TODO dev : update, prd : validate or none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -20,7 +20,7 @@ app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:5173}
   test-login:
-    enabled: ${TEST_LOGIN_ENABLED:true}
+    enabled: ${TEST_LOGIN_ENABLED:true} # TODO dev : true, prd : false
 
 naver:
   client:

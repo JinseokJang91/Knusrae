@@ -9,6 +9,7 @@ import com.knusrae.auth.api.web.response.TokenResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -93,7 +94,7 @@ public class AuthController {
         // Access Token 쿠키 설정 (HttpOnly, Secure, SameSite)
         ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
                 .httpOnly(true)
-                .secure(false)
+                .secure(false) // TODO DEV - false / PROD - true
                 .path("/")
                 .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
                 .sameSite("Lax")
@@ -104,7 +105,7 @@ public class AuthController {
         if (tokenResponse.refreshToken() != null) {
             refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(false) // TODO DEV - false / PROD - true
                     .path("/")
                     .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
                     .sameSite("Lax")
@@ -144,7 +145,7 @@ public class AuthController {
             
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", "")
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(false) // TODO DEV - false / PROD - true
                     .path("/")
                     .maxAge(0)
                     .sameSite("Lax")
@@ -152,7 +153,7 @@ public class AuthController {
             
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(false) // TODO DEV - false / PROD - true
                     .path("/")
                     .maxAge(0)
                     .sameSite("Lax")
@@ -173,7 +174,7 @@ public class AuthController {
     public ResponseEntity<?> refreshToken(
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
         try {
-            if (refreshToken == null || refreshToken.isBlank()) {
+            if (StringUtils.isBlank(refreshToken) || refreshToken.isBlank()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "REFRESH_TOKEN_REQUIRED", "message", "Refresh Token이 필요합니다."));
             }
@@ -182,7 +183,7 @@ public class AuthController {
 
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(false) // TODO DEV - false / PROD - true
                     .path("/")
                     .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
                     .sameSite("Lax")
@@ -190,7 +191,7 @@ public class AuthController {
 
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(false) // TODO DEV - false / PROD - true
                     .path("/")
                     .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
                     .sameSite("Lax")
@@ -239,7 +240,7 @@ public class AuthController {
 
             ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(false) // TODO DEV - false / PROD - true
                     .path("/")
                     .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
                     .sameSite("Lax")
@@ -247,7 +248,7 @@ public class AuthController {
 
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(false) // TODO DEV - false / PROD - true
                     .path("/")
                     .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
                     .sameSite("Lax")
