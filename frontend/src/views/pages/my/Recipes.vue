@@ -132,10 +132,12 @@ import { httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useConfirm } from 'primevue/useconfirm';
 
 // API 호출을 위한 기본 URL 및 공용 HTTP 유틸
 const API_COOK_BASE_URL = import.meta.env.VITE_API_BASE_URL_COOK;
 const router = useRouter();
+const confirm = useConfirm();
 
 // 레시피 타입 정의
 interface Recipe {
@@ -197,20 +199,36 @@ const handleEditRecipe = async (recipe: Recipe) => {
 
 // 레시피 삭제
 const handleDeleteRecipe = async (id: number) => {
-    if (confirm('정말로 이 레시피를 삭제하시겠습니까?')) {
-        loading.value = true;
-        error.value = null;
-        try {
-            await deleteRecipe(id);
-            // 삭제 후 목록 새로고침
-            await loadRecipes();
-        } catch (err) {
-            error.value = '레시피 삭제 중 오류가 발생했습니다.';
-            console.error('레시피 삭제 오류:', err);
-        } finally {
-            loading.value = false;
+    confirm.require({
+        message: '정말로 이 레시피를 삭제하시겠습니까?',
+        header: '안내',
+        icon: 'pi pi-info-circle',
+        rejectProps: {
+            label: '취소',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: '확인'
+        },
+        accept: async () => {
+            loading.value = true;
+            error.value = null;
+            try {
+                await deleteRecipe(id);
+                // 삭제 후 목록 새로고침
+                await loadRecipes();
+            } catch (err) {
+                error.value = '레시피 삭제 중 오류가 발생했습니다.';
+                console.error('레시피 삭제 오류:', err);
+            } finally {
+                loading.value = false;
+            }
+        },
+        reject: () => {
+            // 취소 시 아무것도 하지 않음
         }
-    }
+    });
 };
 
 // 레시피 상세 모달 닫기

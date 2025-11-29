@@ -495,9 +495,11 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
+import { useConfirm } from 'primevue/useconfirm';
 
 const route = useRoute();
 const router = useRouter();
+const confirm = useConfirm();
 
 // 반응형 데이터
 const loading = ref(true);
@@ -749,21 +751,41 @@ const updateComment = async (commentId: number) => {
 };
 
 const deleteComment = async (commentId: number) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
-    
-    try {
-        await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
-            `/api/recipe/comments/${commentId}?memberId=${currentMemberId.value}`,
-            { method: 'DELETE' }
-        );
-        
-        // 댓글 목록 다시 불러오기
-        await fetchComments();
-    } catch (err) {
-        console.error('Comment deletion error:', err);
-        alert('댓글 삭제 중 오류가 발생했습니다.');
-    }
+    confirm.require({
+        message: '정말 삭제하시겠습니까?',
+        header: '안내',
+        icon: 'pi pi-info-circle',
+        rejectProps: {
+            label: '취소',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: '확인'
+        },
+        accept: async () => {
+            loading.value = true;
+            error.value = null;
+            try {
+                await httpJson(
+                    import.meta.env.VITE_API_BASE_URL_COOK,
+                    `/api/recipe/comments/${commentId}?memberId=${currentMemberId.value}`,
+                    { method: 'DELETE' }
+                );
+                
+                // 댓글 목록 다시 불러오기
+                await fetchComments();
+            } catch (err) {
+                console.error('Comment deletion error:', err);
+                alert('댓글 삭제 중 오류가 발생했습니다.');
+            } finally {
+                loading.value = false;
+            }
+        },
+        reject: () => {
+            // 취소 시 아무것도 하지 않음
+        }
+    });
 };
 
 const isMyComment = (comment: any) => {

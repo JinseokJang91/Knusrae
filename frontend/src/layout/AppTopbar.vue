@@ -75,23 +75,39 @@ const handleMyMenuClick = (path: string, event: Event) => {
 };
 
 const handleLogout = async () => {
-    if (window.confirm('로그아웃 하시겠습니까?')) {
-        try {
-            // 백엔드 로그아웃 API 호출 (쿠키 삭제)
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
-            await fetch(`${API_BASE_URL}/api/auth/logout`, {
-                method: 'POST',
-                credentials: 'include' // 쿠키 전송
-            });
-        } catch (error) {
-            console.error('로그아웃 API 호출 실패:', error);
-        }
+    confirm.require({
+        message: '로그아웃 하시겠습니까?',
+        header: '안내',
+        icon: 'pi pi-info-circle',
+        rejectProps: {
+            label: '취소',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: '확인'
+        },
+        accept: () => {
+            try {
+                // 백엔드 로그아웃 API 호출 (쿠키 삭제)
+                const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+                fetch(`${API_BASE_URL}/api/auth/logout`, {
+                    method: 'POST',
+                    credentials: 'include' // 쿠키 전송
+                });
+            } catch (error) {
+                console.error('로그아웃 API 호출 실패:', error);
+            }
 
-        // localStorage 플래그 제거
-        localStorage.removeItem('isLoggedIn');
-        updateLoginState();
-        router.push('/');
-    }
+            // localStorage 플래그 제거
+            localStorage.removeItem('isLoggedIn');
+            updateLoginState();
+            router.push('/');
+        },
+        reject: () => {
+            // 취소 시 아무것도 하지 않음
+        }
+    });
 };
 
 onMounted(() => {
