@@ -37,6 +37,8 @@ public class RecipeDto {
 
     @NotNull(message = "회원 ID는 필수입니다.")
     private Long memberId;
+    
+    private Long commentCount;
 
     private String memberName;
     private String memberNickname;
@@ -61,6 +63,10 @@ public class RecipeDto {
 
     public void setMemberProfileImage(String memberProfileImage) {
         this.memberProfileImage = memberProfileImage;
+    }
+
+    public void setCommentCount(Long commentCount) {
+        this.commentCount = commentCount;
     }
 
     public RecipeDto(Recipe recipe) {

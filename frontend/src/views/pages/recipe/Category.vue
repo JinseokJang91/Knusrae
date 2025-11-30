@@ -79,6 +79,10 @@
                                         </div>
                                         <Tag :value="getCategoryName(recipe.category)" severity="info" class="recipe-category-tag" />
                                     </div>
+                                    <!-- 조회수 표시 (이미지 우측 하단) -->
+                                    <div v-if="formatCount(recipe.hits)" class="recipe-hits-overlay">
+                                        조회수 {{ formatCount(recipe.hits) }}
+                                    </div>
                                 </div>
                             </template>
                             <template #content>
@@ -90,10 +94,6 @@
                                             <span class="rating-text">{{ recipe.rating.toFixed(1) }}</span>
                                         </div>
                                         <div class="recipe-info">
-                                            <div v-if="recipe.hits !== null && recipe.hits !== undefined" class="info-item">
-                                                <i class="pi pi-eye"></i>
-                                                <span>{{ recipe.hits.toLocaleString() }}</span>
-                                            </div>
                                             <div v-if="recipe.cookingTime" class="info-item">
                                                 <i class="pi pi-clock"></i>
                                                 <span>{{ recipe.cookingTime }}</span>
@@ -115,6 +115,12 @@
                                             </div>
                                             <span class="text-sm text-gray-600">{{ recipe.memberNickname || recipe.memberName }}</span>
                                         </div>
+                                        <!-- 댓글 개수 표시 (닉네임 하단, 좌측 정렬) -->
+                                        <div v-if="formatCount(recipe.commentCount)" class="recipe-comment-count mt-1">
+                                            <span class="text-sm text-gray-600 cursor-pointer hover:text-primary" @click.stop="scrollToComments(recipe.id)">
+                                                댓글 {{ formatCount(recipe.commentCount) }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
@@ -133,10 +139,6 @@
                             <div class="flex-1">
                                 <h4 class="text-lg font-semibold text-gray-900 m-0 mb-1">{{ recipe.title }}</h4>
                                 <div class="flex items-center gap-3 text-sm text-gray-500">
-                                    <div v-if="recipe.hits !== null && recipe.hits !== undefined" class="flex items-center gap-1">
-                                        <i class="pi pi-eye"></i>
-                                        <span>{{ recipe.hits.toLocaleString() }}</span>
-                                    </div>
                                     <div v-if="recipe.cookingTime" class="flex items-center gap-1">
                                         <i class="pi pi-clock"></i>
                                         <span>{{ recipe.cookingTime }}</span>
@@ -150,6 +152,14 @@
                                         <span>{{ recipe.rating.toFixed(1) }}</span>
                                     </div>
                                     <Tag :value="getCategoryName(recipe.category)" severity="info" />
+                                    <!-- 조회수 표시 (키워드 태그 우측) -->
+                                    <span v-if="formatCount(recipe.hits)" class="text-sm text-gray-600">
+                                        조회수 {{ formatCount(recipe.hits) }}
+                                    </span>
+                                    <!-- 댓글 개수 표시 (조회수 우측) -->
+                                    <span v-if="formatCount(recipe.commentCount)" class="text-sm text-gray-600 cursor-pointer hover:text-primary" @click.stop="scrollToComments(recipe.id)">
+                                        댓글 {{ formatCount(recipe.commentCount) }}
+                                    </span>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
@@ -416,7 +426,8 @@ const loadRecipes = async () => {
                 servings,
                 rating: averageRating,
                 hasReviews: recipe.reviews && recipe.reviews.length > 0,
-                isFavorite
+                isFavorite,
+                commentCount: recipe.commentCount || 0
             };
         });
 
@@ -442,7 +453,8 @@ const loadRecipes = async () => {
                 hits: 1250,
                 rating: 4.5,
                 hasReviews: true,
-                isFavorite: false
+                isFavorite: false,
+                commentCount: 173
             },
             {
                 id: 2,
@@ -454,7 +466,8 @@ const loadRecipes = async () => {
                 hits: 980,
                 rating: 4.3,
                 hasReviews: true,
-                isFavorite: false
+                isFavorite: false,
+                commentCount: 45
             },
             {
                 id: 3,
@@ -466,7 +479,8 @@ const loadRecipes = async () => {
                 hits: 2100,
                 rating: 4.8,
                 hasReviews: true,
-                isFavorite: false
+                isFavorite: false,
+                commentCount: 1435
             },
             {
                 id: 4,
@@ -478,7 +492,8 @@ const loadRecipes = async () => {
                 hits: 1560,
                 rating: 4.2,
                 hasReviews: true,
-                isFavorite: true
+                isFavorite: true,
+                commentCount: 0
             },
             {
                 id: 5,
@@ -490,7 +505,8 @@ const loadRecipes = async () => {
                 hits: 890,
                 rating: null,
                 hasReviews: false,
-                isFavorite: true
+                isFavorite: true,
+                commentCount: 12
             },
             {
                 id: 6,
@@ -502,7 +518,8 @@ const loadRecipes = async () => {
                 hits: 1750,
                 rating: null,
                 hasReviews: false,
-                isFavorite: false
+                isFavorite: false,
+                commentCount: 89
             }
         ];
 
@@ -542,6 +559,43 @@ const selectCategory = (categoryValue) => {
 const getCategoryName = (categoryValue) => {
     const category = categories.value.find((cat) => cat.value === categoryValue);
     return category ? category.name : categoryValue;
+};
+
+// Function > 조회수/댓글 개수 포맷팅 (만/억 단위 처리)
+const formatCount = (count) => {
+    if (!count || count === 0) return null;
+    
+    // 1억 이상인 경우
+    if (count >= 100000000) {
+        const eok = count / 100000000;
+        // 백만 자리에서 반올림 (소수점 첫째 자리까지)
+        const rounded = Math.round(eok * 10) / 10;
+        // 소수점이 0이면 정수로 표시
+        if (rounded % 1 === 0) {
+            return `${Math.round(rounded)}억`;
+        }
+        return `${rounded}억`;
+    }
+    
+    // 1만 이상인 경우
+    if (count >= 10000) {
+        const man = count / 10000;
+        // 백의 자리에서 반올림 (소수점 첫째 자리까지)
+        const rounded = Math.round(man * 10) / 10;
+        // 소수점이 0이면 정수로 표시
+        if (rounded % 1 === 0) {
+            return `${Math.round(rounded)}만`;
+        }
+        return `${rounded}만`;
+    }
+    
+    // 1만 미만인 경우
+    return count.toLocaleString();
+};
+
+// Function > 레시피 상세 페이지 댓글 영역으로 이동
+const scrollToComments = (recipeId) => {
+    router.push(`/recipe/${recipeId}#comments`);
 };
 
 // Function > Button > 찜 목록 추가
@@ -836,6 +890,27 @@ onMounted(async () => {
 
 .recipe-category-tag {
     align-self: flex-start;
+}
+
+
+.recipe-hits-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 0.85rem;
+    border-radius: 8px 0 0 0;
+    z-index: 1;
+}
+
+.recipe-comment-count {
+    text-align: left;
+}
+
+.recipe-info-tag {
+    font-size: 0.85rem;
 }
 
 /* 레시피 콘텐츠 스타일 */

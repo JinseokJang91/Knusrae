@@ -222,7 +222,7 @@
             </div>
 
             <!-- 댓글 섹션 -->
-            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8" id="comments">
                 <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
                     <i class="pi pi-comments mr-3 text-purple-500"></i>
                     댓글 ({{ comments.length + comments.reduce((sum, c) => sum + (c.replies?.length || 0), 0) }})

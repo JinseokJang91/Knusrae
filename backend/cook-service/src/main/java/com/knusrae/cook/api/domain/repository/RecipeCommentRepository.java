@@ -3,6 +3,7 @@ package com.knusrae.cook.api.domain.repository;
 import com.knusrae.cook.api.domain.entity.Recipe;
 import com.knusrae.cook.api.domain.entity.RecipeComment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,7 +19,8 @@ public interface RecipeCommentRepository extends JpaRepository<RecipeComment, Lo
     // 특정 댓글의 대댓글 조회
     List<RecipeComment> findAllByParentIdOrderByCreatedAtAsc(Long parentId);
     
-    // 특정 레시피의 댓글 개수
+    // 특정 레시피의 댓글 개수(대댓글 제외)
+    @Query("SELECT count(rc.id) FROM RecipeComment rc WHERE rc.recipe = :recipe AND rc.parentId IS NULL")
     long countByRecipe(Recipe recipe);
     
     // 특정 사용자가 작성한 댓글 조회

@@ -16,6 +16,7 @@ import com.knusrae.cook.api.domain.repository.CommonCodeDetailRepository;
 import com.knusrae.cook.api.dto.*;
 import com.knusrae.cook.api.domain.repository.RecipeImageRepository;
 import com.knusrae.cook.api.domain.repository.RecipeRepository;
+import com.knusrae.cook.api.domain.repository.RecipeCommentRepository;
 import com.knusrae.common.domain.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class RecipeService {
     private final CommonCodeDetailRepository commonCodeDetailRepository;
     private final MemberRepository memberRepository;
     private final EntityManager entityManager;
+    private final RecipeCommentRepository recipeCommentRepository;
 
     // CREATE - 레시피 생성
     @Transactional
@@ -206,6 +208,10 @@ public class RecipeService {
                     dto.setMemberNickname(member.getNickname());
                     dto.setMemberProfileImage(member.getProfileImage());
                 }
+                
+                // 댓글 개수 조회 및 설정
+                long commentCount = recipeCommentRepository.countByRecipe(recipe);
+                dto.setCommentCount(commentCount);
             }
         }
 
