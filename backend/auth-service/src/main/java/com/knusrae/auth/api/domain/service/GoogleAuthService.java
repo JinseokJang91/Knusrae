@@ -10,6 +10,7 @@ import com.knusrae.common.domain.enums.Active;
 import com.knusrae.common.domain.enums.SocialRole;
 import com.knusrae.common.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GoogleAuthService {
     @Value("${google.client.id}")
     private String clientId;
@@ -43,6 +45,7 @@ public class GoogleAuthService {
         String accessToken = getAccessToken(code);
         // 사용자 정보 요청
         GoogleUserDTO googleUserDTO = getUserInfo(accessToken);
+        log.info("googleUserDTO: {}", googleUserDTO.toString());
 
         // 1. DB에서 사용자 조회/없으면 생성
         Member member = memberRepository.findByEmail(googleUserDTO.getEmail());

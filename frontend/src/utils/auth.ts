@@ -1,16 +1,27 @@
 import { httpJson } from '@/utils/http';
+
 /**
- * 로그인 상태 확인
- * HttpOnly 쿠키는 JavaScript로 읽을 수 없으므로 localStorage의 플래그를 확인
- * 실제 인증은 백엔드의 JwtAuthenticationFilter가 쿠키에서 처리
- * 
- * 참고: 로그인 성공 시 localStorage에 'isLoggedIn' 플래그가 저장됨
+ * Token Refresh API 호출
+ * RefreshToken이 유효한 경우 AccessToken을 재발급받음
+ * @returns 성공 시 true, 실패 시 false
  */
-export function isLoggedIn(): boolean {
-    // HttpOnly 쿠키는 JavaScript로 읽을 수 없으므로 localStorage의 플래그 확인
-    // 실제 인증은 백엔드에서 쿠키를 통해 처리됨
-    const isLoggedInFlag = localStorage.getItem('isLoggedIn');
-    return isLoggedInFlag === 'true';
+export async function refreshToken(): Promise<boolean> {
+    try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+        const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include' // HttpOnly 쿠키 전송
+        });
+
+        if (response.ok) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.error('Token Refresh 실패:', error);
+        return false;
+    }
 }
 
 export async function fetchMemberInfo(): Promise<any> {

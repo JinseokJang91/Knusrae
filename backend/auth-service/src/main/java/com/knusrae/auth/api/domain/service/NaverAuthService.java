@@ -11,6 +11,7 @@ import com.knusrae.common.domain.enums.SocialRole;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.auth.api.web.response.TokenResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NaverAuthService {
     @Value("${naver.client.id}")
     private String clientId;
@@ -44,6 +46,7 @@ public class NaverAuthService {
 
         // 사용자 정보 요청
         NaverUserDTO naverUserDTO = getUserInfo(accessToken);
+        log.info("naverUserDTO: {}", naverUserDTO.toString());
 
         // 1. DB에서 사용자 조회/없으면 생성
         Member member = memberRepository.findByEmail(naverUserDTO.getEmail());

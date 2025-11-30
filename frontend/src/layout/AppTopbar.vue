@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import logoText from '@/assets/images/logo-text.png';
 import { useLayout } from '@/layout/composables/layout';
-import { isLoggedIn, fetchMemberInfo } from '@/utils/auth';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { useAuthStore } from '@/stores/authStore';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 
 const router = useRouter();
 const confirm = useConfirm();
 const { toggleMenu } = useLayout();
+const authStore = useAuthStore();
 
 const searchQuery = ref('');
-const isLoggedInState = ref(isLoggedIn());
-const memberName = ref('');
 
 const handleSearch = () => {
     if (searchQuery.value.trim()) {
@@ -24,29 +23,10 @@ const clearSearch = () => {
     searchQuery.value = '';
 };
 
-const getMemberInfo = async () => {
-    try {
-        const memberInfo = await fetchMemberInfo();
-        memberName.value = memberInfo.nickname || memberInfo.name || '사용자';
-    } catch (error) {
-        console.error('사용자 정보 조회 실패:', error);
-        memberName.value = '사용자';
-    }
-};
-
-const updateLoginState = async () => {
-    isLoggedInState.value = isLoggedIn();
-    if (isLoggedInState.value) {
-        await getMemberInfo();
-    } else {
-        memberName.value = '';
-    }
-};
-
 const handleMyMenuClick = (path: string, event: Event) => {
     event.preventDefault();
     
-    if (!isLoggedInState.value) {
+    if (!authStore.isLoggedIn) {
         confirm.require({
             message: '로그인 후 이용 가능합니다.',
             header: '안내',
@@ -87,21 +67,8 @@ const handleLogout = async () => {
         acceptProps: {
             label: '확인'
         },
-        accept: () => {
-            try {
-                // 백엔드 로그아웃 API 호출 (쿠키 삭제)
-                const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
-                fetch(`${API_BASE_URL}/api/auth/logout`, {
-                    method: 'POST',
-                    credentials: 'include' // 쿠키 전송
-                });
-            } catch (error) {
-                console.error('로그아웃 API 호출 실패:', error);
-            }
-
-            // localStorage 플래그 제거
-            localStorage.removeItem('isLoggedIn');
-            updateLoginState();
+        accept: async () => {
+            await authStore.logout();
             router.push('/');
         },
         reject: () => {
@@ -111,24 +78,24 @@ const handleLogout = async () => {
 };
 
 onMounted(() => {
-    updateLoginState();
-    window.addEventListener('storage', updateLoginState);
-    window.addEventListener('message', (event) => {
+    // OAuth 로그인 성공 시 메시지 수신하여 로그인 상태 업데이트
+    window.addEventListener('message', async (event) => {
         if (event.data && (
             event.data.type === 'NAVER_LOGIN_SUCCESS' ||
-            event.data.type === 'NAVER_LOGIN_ERROR' ||
             event.data.type === 'GOOGLE_LOGIN_SUCCESS' ||
+            event.data.type === 'KAKAO_LOGIN_SUCCESS'
+        )) {
+            // OAuth 로그인 성공 시 로그인 상태 업데이트
+            await authStore.login();
+        } else if (event.data && (
+            event.data.type === 'NAVER_LOGIN_ERROR' ||
             event.data.type === 'GOOGLE_LOGIN_ERROR' ||
-            event.data.type === 'KAKAO_LOGIN_SUCCESS' ||
             event.data.type === 'KAKAO_LOGIN_ERROR'
         )) {
-            updateLoginState();
+            // 로그인 실패 시 상태 초기화
+            authStore.reset();
         }
     });
-});
-
-onBeforeUnmount(() => {
-    window.removeEventListener('storage', updateLoginState);
 });
 </script>
 
@@ -154,8 +121,8 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="layout-topbar-actions">
-            <div class="layout-config-menu" v-if="isLoggedInState">
-                <span class="layout-topbar-welcome">{{ memberName }}님 환영합니다.</span>
+            <div class="layout-config-menu" v-if="authStore.isLoggedIn">
+                <span class="layout-topbar-welcome">{{ authStore.memberName }}님 환영합니다.</span>
             </div>
 
             <div class="layout-topbar-menu hidden lg:block">
@@ -195,7 +162,7 @@ onBeforeUnmount(() => {
                                 <span>찜 목록</span>
                             </a>
                             <div class="my-2 border-t"></div>
-                            <router-link v-if="!isLoggedInState" to="/auth/login" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
+                            <router-link v-if="!authStore.isLoggedIn" to="/auth/login" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
                                 <i class="pi pi-sign-in"></i>
                                 <span>로그인</span>
                             </router-link>

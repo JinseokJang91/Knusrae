@@ -7,28 +7,11 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    Button: typeof import('primevue/button')['default']
-    Checkbox: typeof import('primevue/checkbox')['default']
-    FeaturesWidget: typeof import('./src/components/landing/FeaturesWidget.vue')['default']
-    FloatingConfigurator: typeof import('./src/components/FloatingConfigurator.vue')['default']
-    Fluid: typeof import('primevue/fluid')['default']
-    FooterWidget: typeof import('./src/components/landing/FooterWidget.vue')['default']
-    HeroWidget: typeof import('./src/components/landing/HeroWidget.vue')['default']
-    HighlightsWidget: typeof import('./src/components/landing/HighlightsWidget.vue')['default']
-    InputText: typeof import('primevue/inputtext')['default']
-    Password: typeof import('primevue/password')['default']
-    PricingWidget: typeof import('./src/components/landing/PricingWidget.vue')['default']
-    ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    Select: typeof import('primevue/select')['default']
-    SelectButton: typeof import('primevue/selectbutton')['default']
-    Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
-    TopbarWidget: typeof import('./src/components/landing/TopbarWidget.vue')['default']
   }
   export interface ComponentCustomProperties {
     StyleClass: typeof import('primevue/styleclass')['default']
-    Tooltip: typeof import('primevue/tooltip')['default']
   }
 }

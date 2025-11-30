@@ -4,8 +4,10 @@ import logoImage from '@/assets/images/logo-text.png';
 import { openOAuthPopup } from '@/utils/oauth';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const isDevelopment = import.meta.env.DEV;
 const showTestAccounts = ref(false);
@@ -78,7 +80,7 @@ async function loginWithTestAccount(email: string) {
         
         if (response.ok) {
             alert(`${email} 계정으로 로그인되었습니다!`);
-            localStorage.setItem('isLoggedIn', 'true');
+            await authStore.login();
             
             goHome();
         } else {

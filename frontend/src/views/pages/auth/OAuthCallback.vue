@@ -44,8 +44,8 @@ onMounted(() => {
 
 function handleSuccess() {
     try {
-        localStorage.setItem('isLoggedIn', 'true');
-
+        // Token은 HttpOnly Cookie로 저장되므로 별도 처리 불필요
+        // 부모 창에 메시지 전송하여 로그인 상태 업데이트
         sendMessageToParent({
             type: providerConfig[props.provider].successType
         });
