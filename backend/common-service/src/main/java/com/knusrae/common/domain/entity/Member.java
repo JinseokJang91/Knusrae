@@ -54,11 +54,40 @@ public class Member {
     @Column(name = "social_role", nullable = false) // "NAVER | KAKAO | GOOGLE"
     private SocialRole socialRole;
 
+    @Column(length = 500)
+    private String profileImage;
+
+    @Column(length = 500)
+    private String bio;
+
+    @Builder.Default
+    @Column(name = "follower_count")
+    private Long followerCount = 0L;
+
+    @Builder.Default
+    @Column(name = "following_count")
+    private Long followingCount = 0L;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    public void updateProfile(String name, String nickname, String bio, String profileImage) {
+        if (name != null && !name.trim().isEmpty()) {
+            this.name = name;
+        }
+        if (nickname != null && !nickname.trim().isEmpty()) {
+            this.nickname = nickname;
+        }
+        if (bio != null) {
+            this.bio = bio;
+        }
+        if (profileImage != null) {
+            this.profileImage = profileImage;
+        }
+    }
 }
 

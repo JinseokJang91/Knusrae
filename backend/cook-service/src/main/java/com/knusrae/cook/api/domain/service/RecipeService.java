@@ -198,6 +198,14 @@ public class RecipeService {
                 if (mainImage != null) {
                     dto.setThumbnail(mainImage.getUrl());
                 }
+
+                // Member 정보 조회 및 설정
+                Member member = memberRepository.findById(recipe.getMemberId()).orElse(null);
+                if (member != null) {
+                    dto.setMemberName(member.getName());
+                    dto.setMemberNickname(member.getNickname());
+                    dto.setMemberProfileImage(member.getProfileImage());
+                }
             }
         }
 
@@ -214,11 +222,18 @@ public class RecipeService {
         recipe.increaseHits();
         
         // Member 정보 조회
-        String memberName = memberRepository.findById(recipe.getMemberId())
-                .map(Member::getName)
-                .orElse("작성자"); // Member를 찾을 수 없는 경우 기본값
+        Member member = memberRepository.findById(recipe.getMemberId())
+                .orElse(null);
         
-        return RecipeDetailDto.fromEntity(recipe, memberName);
+        String memberName = member != null ? member.getName() : "작성자";
+        String memberNickname = member != null ? member.getNickname() : null;
+        String memberProfileImage = member != null ? member.getProfileImage() : null;
+        
+        RecipeDetailDto dto = RecipeDetailDto.fromEntity(recipe, memberName);
+        dto.setMemberNickname(memberNickname);
+        dto.setMemberProfileImage(memberProfileImage);
+        
+        return dto;
     }
 
     // UPDATE - 레시피 수정

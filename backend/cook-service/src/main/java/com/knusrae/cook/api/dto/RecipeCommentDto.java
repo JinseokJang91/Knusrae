@@ -19,11 +19,12 @@ public class RecipeCommentDto {
     private Long memberId;
     private String memberName;
     private String memberNickname;
+    private String memberProfileImage;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<RecipeCommentDto> replies;
 
-    public static RecipeCommentDto fromEntity(RecipeComment recipeComment, String memberName, String memberNickname) {
+    public static RecipeCommentDto fromEntity(RecipeComment recipeComment, String memberName, String memberNickname, String memberProfileImage) {
         return RecipeCommentDto.builder()
                 .id(recipeComment.getId())
                 .parentId(recipeComment.getParentId())
@@ -31,9 +32,14 @@ public class RecipeCommentDto {
                 .memberId(recipeComment.getMemberId())
                 .memberName(memberName)
                 .memberNickname(memberNickname)
+                .memberProfileImage(memberProfileImage)
                 .createdAt(recipeComment.getCreatedAt())
                 .updatedAt(recipeComment.getUpdatedAt())
                 .build();
+    }
+    
+    public static RecipeCommentDto fromEntity(RecipeComment recipeComment, String memberName, String memberNickname) {
+        return fromEntity(recipeComment, memberName, memberNickname, null);
     }
     
     public static RecipeCommentDto fromEntity(RecipeComment recipeComment) {

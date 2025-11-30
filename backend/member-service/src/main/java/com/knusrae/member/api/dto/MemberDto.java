@@ -18,5 +18,9 @@ public class MemberDto {
     private String nickname;
     private String email;
     private String phone;
+    private String profileImage;
+    private String bio;
+    private Long followerCount;
+    private Long followingCount;
 }
 

@@ -20,6 +20,8 @@ public class RecipeSimpleDto {
     private Long hits;
     private Long memberId;
     private String memberName;
+    private String memberNickname;
+    private String memberProfileImage;
     private String visibility;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

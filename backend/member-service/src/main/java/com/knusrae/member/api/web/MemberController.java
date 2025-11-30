@@ -2,15 +2,16 @@ package com.knusrae.member.api.web;
 
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
+import com.knusrae.member.api.domain.service.MemberService;
 import com.knusrae.member.api.dto.MemberDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 회원 정보 조회 컨트롤러
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberController {
 
     private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
     /**
      * 현재 로그인한 회원 정보 조회
@@ -59,6 +61,10 @@ public class MemberController {
                     .nickname(member.getNickname())
                     .email(member.getEmail())
                     .phone(member.getPhone())
+                    .profileImage(member.getProfileImage())
+                    .bio(member.getBio())
+                    .followerCount(member.getFollowerCount())
+                    .followingCount(member.getFollowingCount())
                     .build();
 
             return ResponseEntity.ok(memberDto);
@@ -70,6 +76,50 @@ public class MemberController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (Exception e) {
             log.error("GET /api/member/me - 예상치 못한 오류 발생", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 프로필 정보 업데이트
+     * 
+     * @param authentication Spring Security Authentication 객체
+     * @param name 이름
+     * @param nickname 닉네임
+     * @param bio 자기소개
+     * @param profileImage 프로필 이미지 파일
+     * @return 업데이트된 회원 정보
+     */
+    @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MemberDto> updateProfile(
+            Authentication authentication,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String nickname,
+            @RequestParam(required = false) String bio,
+            @RequestParam(required = false) MultipartFile profileImage
+    ) {
+        try {
+            if (authentication == null || authentication.getPrincipal() == null) {
+                log.error("PUT /api/member/profile - 인증 정보가 없습니다.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            String memberIdStr = authentication.getPrincipal().toString();
+            Long memberId = Long.parseLong(memberIdStr);
+
+            log.info("PUT /api/member/profile - 회원 ID: {}", memberId);
+
+            MemberDto updatedMember = memberService.updateProfile(memberId, name, nickname, bio, profileImage);
+
+            return ResponseEntity.ok(updatedMember);
+        } catch (NumberFormatException e) {
+            log.error("PUT /api/member/profile - 회원 ID 파싱 오류: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException e) {
+            log.error("PUT /api/member/profile - 프로필 업데이트 실패: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            log.error("PUT /api/member/profile - 예상치 못한 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

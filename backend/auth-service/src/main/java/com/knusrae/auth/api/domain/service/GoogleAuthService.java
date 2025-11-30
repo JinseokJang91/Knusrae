@@ -56,6 +56,7 @@ public class GoogleAuthService {
                             .name(googleUserDTO.getName())
                             .nickname(googleUserDTO.getName())
                             .email(googleUserDTO.getEmail())
+                            .profileImage(googleUserDTO.getPicture())
                             .isActive(Active.TRUE)
                             .socialRole(SocialRole.GOOGLE)
                             .createdAt(LocalDateTime.now())

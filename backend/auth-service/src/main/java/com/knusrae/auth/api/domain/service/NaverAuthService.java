@@ -58,6 +58,7 @@ public class NaverAuthService {
                             .nickname(naverUserDTO.getNickname())
                             .phone( StringUtils.replaceChars(naverUserDTO.getMobile(), "-", ""))
                             .email(naverUserDTO.getEmail())
+                            .profileImage(naverUserDTO.getProfileImage())
                             .isActive(Active.TRUE)
                             .birth(Strings.concat(naverUserDTO.getBirthyear(), StringUtils.replaceChars(naverUserDTO.getBirthday(), "-", "")))
                             .gender("M".equals(naverUserDTO.getGender()) ? Gender.MALE : "F".equals(naverUserDTO.getGender()) ? Gender.FEMALE : Gender.UNKNOWN)
