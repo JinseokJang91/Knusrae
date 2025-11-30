@@ -4,15 +4,25 @@
         <div class="grid grid-cols-12 gap-6">
             <div class="col-span-12 md:col-span-4">
                 <div class="p-4 border rounded-md flex flex-col items-center gap-4">
-                    <div class="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-3xl text-gray-500">{{ initials }}</div>
-                    <div class="text-center">
-                        <div class="font-semibold">{{ form.name || '사용자' }}</div>
-                        <div class="text-sm text-gray-500">{{ form.email || 'email@example.com' }}</div>
+                    <input 
+                        ref="profileImageInputRef" 
+                        type="file" 
+                        accept="image/*" 
+                        @change="onProfileImageChange" 
+                        class="hidden" 
+                    />
+                    <div 
+                        class="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                        @click="() => profileImageInputRef?.click()"
+                    >
+                        <img 
+                            v-if="form.profileImage" 
+                            :src="form.profileImage" 
+                            alt="프로필 이미지" 
+                            class="w-full h-full object-cover"
+                        />
+                        <span v-else class="text-3xl text-gray-500">{{ initials }}</span>
                     </div>
-                    <button type="button" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                        <span class="pi pi-upload mr-2"></span>
-                        <span>프로필 이미지 변경</span>
-                    </button>
                 </div>
             </div>
             <div class="col-span-12 md:col-span-8">
@@ -29,27 +39,30 @@
                         <label class="block text-sm mb-2">이메일</label>
                         <input v-model="form.email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 opacity-80" disabled />
                     </div>
-                </div>
-
-                <!-- <div class="mt-6 p-4 border rounded-md">
-                    <h3 class="font-semibold mb-4">비밀번호 변경</h3>
-                    <div class="grid grid-cols-12 gap-4">
-                        <div class="col-span-12 md:col-span-6">
-                            <label class="block text-sm mb-2">새 비밀번호</label>
-                            <input v-model="form.newPassword" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="새 비밀번호" />
-                        </div>
-                        <div class="col-span-12 md:col-span-6">
-                            <label class="block text-sm mb-2">새 비밀번호 확인</label>
-                            <input v-model="form.newPasswordConfirm" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="새 비밀번호 확인" />
+                    <div class="col-span-12">
+                        <label class="block text-sm mb-2">자기소개</label>
+                        <textarea 
+                            v-model="form.bio" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" 
+                            placeholder="자기소개를 입력해주세요"
+                            rows="4"
+                        ></textarea>
+                    </div>
+                    <div class="col-span-12 md:col-span-6">
+                        <label class="block text-sm mb-2">팔로워</label>
+                        <div class="px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                            {{ form.followerCount || 0 }}
                         </div>
                     </div>
-                </div> -->
+                    <div class="col-span-12 md:col-span-6">
+                        <label class="block text-sm mb-2">팔로잉</label>
+                        <div class="px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                            {{ form.followingCount || 0 }}
+                        </div>
+                    </div>
+                </div>
 
                 <div class="mt-6 flex gap-2 justify-end">
-                    <button type="button" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50" @click="onReset">
-                        <span class="pi pi-refresh mr-2"></span>
-                        <span>초기화</span>
-                    </button>
                     <button type="button" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" @click="onSave">
                         <span class="pi pi-save mr-2"></span>
                         <span>저장</span>
@@ -58,61 +71,120 @@
             </div>
         </div>
     </div>
-    <div v-if="toast" class="mt-3 text-green-600 text-sm">{{ toast }}</div>
-    <div v-if="error" class="mt-3 text-red-600 text-sm">{{ error }}</div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
+import { httpForm } from '@/utils/http';
+import { fetchMemberInfo } from '@/utils/auth';
+import { useToast } from 'primevue/usetoast';
+import { useAuthStore } from '@/stores/authStore';
 
 interface ProfileFormState {
     name: string;
     nickname: string;
     email: string;
-    newPassword: string;
-    newPasswordConfirm: string;
+    bio: string;
+    profileImage: string;
+    followerCount: number;
+    followingCount: number;
 }
 
+const toast = useToast();
+const authStore = useAuthStore();
 const form = reactive<ProfileFormState>({
-    name: '홍길동',
-    nickname: '길동이',
-    email: 'gildong@example.com',
-    newPassword: '',
-    newPasswordConfirm: ''
+    name: '',
+    nickname: '',
+    email: '',
+    bio: '',
+    profileImage: '',
+    followerCount: 0,
+    followingCount: 0
 });
 
-const toast = ref<string>('');
-const error = ref<string>('');
+const profileImageInputRef = ref<HTMLInputElement | null>(null);
+const profileImageFile = ref<File | null>(null);
+const loading = ref(false);
 
 const initials = computed(() => {
     const base = form.name?.trim() || '사용자';
     return base.substring(0, 1);
 });
 
-const onReset = () => {
-    form.name = '홍길동';
-    form.nickname = '길동이';
-    form.newPassword = '';
-    form.newPasswordConfirm = '';
-    toast.value = '';
-    error.value = '';
+const onProfileImageChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files[0]) {
+        profileImageFile.value = target.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            form.profileImage = e.target?.result as string;
+        };
+        reader.readAsDataURL(target.files[0]);
+    }
 };
 
-const onSave = () => {
-    toast.value = '';
-    error.value = '';
-    if (form.newPassword || form.newPasswordConfirm) {
-        if (form.newPassword.length < 8) {
-            error.value = '비밀번호는 8자 이상이어야 합니다.';
-            return;
+const onSave = async () => {
+    try {
+        loading.value = true;
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_MEMBER || 'http://localhost:8083';
+        
+        const formData = new FormData();
+        if (form.name) formData.append('name', form.name);
+        if (form.nickname) formData.append('nickname', form.nickname);
+        if (form.bio !== undefined) formData.append('bio', form.bio);
+        if (profileImageFile.value) {
+            formData.append('profileImage', profileImageFile.value);
         }
-        if (form.newPassword !== form.newPasswordConfirm) {
-            error.value = '비밀번호가 일치하지 않습니다.';
-            return;
-        }
+
+        await httpForm(API_BASE_URL, '/api/member/profile', formData, {
+            method: 'PUT'
+        });
+
+        toast.add({
+            severity: 'success',
+            summary: '성공',
+            detail: '프로필 정보가 저장되었습니다.',
+            life: 3000
+        });
+
+        // 프로필 정보 다시 불러오기
+        await loadMemberInfo();
+        // authStore의 회원 정보도 업데이트하여 AppTopbar에 즉시 반영
+        await authStore.loadMemberInfo();
+        profileImageFile.value = null;
+    } catch (error) {
+        console.error('프로필 저장 실패:', error);
+        toast.add({
+            severity: 'error',
+            summary: '오류',
+            detail: '프로필 저장에 실패했습니다.',
+            life: 3000
+        });
+    } finally {
+        loading.value = false;
     }
-    toast.value = '프로필 정보가 저장되었습니다. (모의)';
 };
+
+const loadMemberInfo = async () => {
+    try {
+        const memberInfo = await fetchMemberInfo();
+        if (memberInfo) {
+            form.name = memberInfo.name || '';
+            form.nickname = memberInfo.nickname || '';
+            form.email = memberInfo.email || '';
+            form.bio = memberInfo.bio || '';
+            form.profileImage = memberInfo.profileImage || '';
+            form.followerCount = memberInfo.followerCount || 0;
+            form.followingCount = memberInfo.followingCount || 0;
+        }
+    } catch (error) {
+        console.error('회원 정보 조회 실패:', error);
+    }
+};
+
+onMounted(() => {
+    loadMemberInfo();
+});
 </script>
 
 <style scoped></style>

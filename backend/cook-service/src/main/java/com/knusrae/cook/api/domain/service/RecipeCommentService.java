@@ -60,8 +60,9 @@ public class RecipeCommentService {
         Member member = memberRepository.findById(memberId).orElse(null);
         String memberName = member != null ? member.getName() : "사용자";
         String memberNickname = member != null ? member.getNickname() : null;
+        String memberProfileImage = member != null ? member.getProfileImage() : null;
 
-        return RecipeCommentDto.fromEntity(savedComment, memberName, memberNickname);
+        return RecipeCommentDto.fromEntity(savedComment, memberName, memberNickname, memberProfileImage);
     }
 
     /**
@@ -91,7 +92,8 @@ public class RecipeCommentService {
                             Member member = memberMap.get(comment.getMemberId());
                             String memberName = member != null ? member.getName() : "사용자";
                             String memberNickname = member != null ? member.getNickname() : null;
-                            return RecipeCommentDto.fromEntity(comment, memberName, memberNickname);
+                            String memberProfileImage = member != null ? member.getProfileImage() : null;
+                            return RecipeCommentDto.fromEntity(comment, memberName, memberNickname, memberProfileImage);
                         }
                 ));
 
@@ -147,8 +149,9 @@ public class RecipeCommentService {
         Member member = memberRepository.findById(memberId).orElse(null);
         String memberName = member != null ? member.getName() : "사용자";
         String memberNickname = member != null ? member.getNickname() : null;
+        String memberProfileImage = member != null ? member.getProfileImage() : null;
 
-        return RecipeCommentDto.fromEntity(comment, memberName, memberNickname);
+        return RecipeCommentDto.fromEntity(comment, memberName, memberNickname, memberProfileImage);
     }
 
     /**

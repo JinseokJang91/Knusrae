@@ -23,6 +23,11 @@ export const useAuthStore = defineStore('auth', () => {
         return memberInfo.value.nickname || memberInfo.value.name || '사용자';
     });
 
+    const memberProfileImage = computed(() => {
+        if (!memberInfo.value) return '';
+        return memberInfo.value.profileImage || '';
+    });
+
     // Actions
     /**
      * Token Refresh를 통해 로그인 상태 확인 및 갱신
@@ -112,6 +117,7 @@ export const useAuthStore = defineStore('auth', () => {
         // Getters
         isLoggedIn,
         memberName,
+        memberProfileImage,
         // Actions
         checkAuth,
         loadMemberInfo,

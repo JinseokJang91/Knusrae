@@ -103,6 +103,18 @@
                                                 <span>{{ recipe.servings }}</span>
                                             </div>
                                         </div>
+                                        <div v-if="recipe.memberNickname || recipe.memberName" class="recipe-author mt-2 flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                <img 
+                                                    v-if="recipe.memberProfileImage" 
+                                                    :src="recipe.memberProfileImage" 
+                                                    alt="작성자 프로필" 
+                                                    class="w-full h-full object-cover"
+                                                />
+                                                <i v-else class="pi pi-user text-gray-600 text-xs"></i>
+                                            </div>
+                                            <span class="text-sm text-gray-600">{{ recipe.memberNickname || recipe.memberName }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
@@ -140,9 +152,23 @@
                                     <Tag :value="getCategoryName(recipe.category)" severity="info" />
                                 </div>
                             </div>
-                            <div class="flex flex-col gap-2">
-                                <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
-                                <Button label="상세보기" size="small" @click="viewRecipe(recipe.id)" />
+                            <div class="flex items-center gap-3">
+                                <div v-if="recipe.memberNickname || recipe.memberName" class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                        <img 
+                                            v-if="recipe.memberProfileImage" 
+                                            :src="recipe.memberProfileImage" 
+                                            alt="작성자 프로필" 
+                                            class="w-full h-full object-cover"
+                                        />
+                                        <i v-else class="pi pi-user text-gray-600 text-xs"></i>
+                                    </div>
+                                    <span class="text-sm text-gray-600">{{ recipe.memberNickname || recipe.memberName }}</span>
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
+                                    <Button label="상세보기" size="small" @click="viewRecipe(recipe.id)" />
+                                </div>
                             </div>
                         </div>
                     </div>

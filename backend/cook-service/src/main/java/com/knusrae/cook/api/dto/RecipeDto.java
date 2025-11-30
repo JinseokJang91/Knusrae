@@ -38,6 +38,10 @@ public class RecipeDto {
     @NotNull(message = "회원 ID는 필수입니다.")
     private Long memberId;
 
+    private String memberName;
+    private String memberNickname;
+    private String memberProfileImage;
+
     private List<RecipeStepDto> steps;
 
     private LocalDateTime createdAt;
@@ -45,6 +49,18 @@ public class RecipeDto {
 
     public void setThumbnail(String thumbnail) {
         this.thumbnail = thumbnail;
+    }
+
+    public void setMemberName(String memberName) {
+        this.memberName = memberName;
+    }
+
+    public void setMemberNickname(String memberNickname) {
+        this.memberNickname = memberNickname;
+    }
+
+    public void setMemberProfileImage(String memberProfileImage) {
+        this.memberProfileImage = memberProfileImage;
     }
 
     public RecipeDto(Recipe recipe) {

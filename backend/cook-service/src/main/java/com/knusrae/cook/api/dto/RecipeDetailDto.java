@@ -25,6 +25,8 @@ public class RecipeDetailDto {
     private Long hits;
     private Long memberId;
     private String memberName; // 작성자 이름
+    private String memberNickname; // 작성자 닉네임
+    private String memberProfileImage; // 작성자 프로필 이미지
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
@@ -87,5 +89,13 @@ public class RecipeDetailDto {
                                 .orElse(0.0))
                         .build())
                 .build();
+    }
+
+    public void setMemberNickname(String memberNickname) {
+        this.memberNickname = memberNickname;
+    }
+
+    public void setMemberProfileImage(String memberProfileImage) {
+        this.memberProfileImage = memberProfileImage;
     }
 }

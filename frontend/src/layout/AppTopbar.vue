@@ -130,11 +130,17 @@ onMounted(() => {
                     <div class="relative">
                         <button
                             type="button"
-                            class="layout-topbar-action"
+                            class="layout-topbar-action profile-button"
                             v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }"
                         >
-                            <i class="pi pi-user"></i>
-                            <span>Profile</span>
+                            <img 
+                                v-if="authStore.memberProfileImage" 
+                                :src="authStore.memberProfileImage" 
+                                alt="프로필" 
+                                class="profile-image"
+                            />
+                            <i v-else class="pi pi-user"></i>
+                            <span class="hidden">Profile</span>
                         </button>
                         <div class="hidden absolute right-0 mt-2 w-56 card p-2 z-50">
                             <a href="/my/profile" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/profile', $event)">

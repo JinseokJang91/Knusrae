@@ -54,6 +54,7 @@ public class KakaoAuthService {
         Member member = memberRepository.findByEmail(kakaoUserDTO.getEmail());
 
         if(ObjectUtils.isEmpty(member)) {
+            String profileImage = kakaoUserDTO.getProperties() != null ? kakaoUserDTO.getProperties().getProfileImage() : null;
             member = memberRepository.save(
                     Member.builder()
                             .name(kakaoUserDTO.getName())
@@ -61,6 +62,7 @@ public class KakaoAuthService {
                             .phone(StringUtils.replaceChars(kakaoUserDTO.getPhoneNumber(), "+82 ", "0").replace("-", ""))
                             .email(kakaoUserDTO.getEmail())
                             .birth(Strings.concat(kakaoUserDTO.getBirthyear(), kakaoUserDTO.getBirthday()))
+                            .profileImage(profileImage)
                             .isActive(Active.TRUE)
                             .socialRole(SocialRole.KAKAO)
                             .createdAt(LocalDateTime.now())

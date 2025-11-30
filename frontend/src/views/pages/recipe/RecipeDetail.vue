@@ -122,11 +122,17 @@
                     <!-- 작성자 정보 -->
                     <div class="flex items-center justify-between py-4 border-t border-gray-200">
                         <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                                <i class="pi pi-user text-gray-600"></i>
+                            <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                                <img 
+                                    v-if="recipe.memberProfileImage" 
+                                    :src="recipe.memberProfileImage" 
+                                    alt="작성자 프로필" 
+                                    class="w-full h-full object-cover"
+                                />
+                                <i v-else class="pi pi-user text-gray-600"></i>
                             </div>
                             <div>
-                                <div class="font-medium text-gray-800">{{ recipe.memberName }}</div>
+                                <div class="font-medium text-gray-800">{{ recipe.memberNickname || recipe.memberName }}</div>
                                 <div class="text-sm text-gray-500">{{ formatDate(recipe.createdAt) }}</div>
                             </div>
                         </div>
@@ -225,8 +231,14 @@
                 <!-- 댓글 작성 -->
                 <div class="mb-6">
                     <div class="flex space-x-4">
-                        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                            <i class="pi pi-user text-gray-600"></i>
+                        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            <img 
+                                v-if="authStore.memberProfileImage" 
+                                :src="authStore.memberProfileImage" 
+                                alt="프로필" 
+                                class="w-full h-full object-cover"
+                            />
+                            <i v-else class="pi pi-user text-gray-600"></i>
                         </div>
                         <div class="flex-1">
                             <textarea 
@@ -257,8 +269,14 @@
                     >
                         <!-- 최상위 댓글 -->
                         <div class="flex space-x-4 p-4 bg-gray-50 rounded-lg">
-                            <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                                <i class="pi pi-user text-gray-600"></i>
+                            <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                <img 
+                                    v-if="comment.memberProfileImage" 
+                                    :src="comment.memberProfileImage" 
+                                    alt="프로필" 
+                                    class="w-full h-full object-cover"
+                                />
+                                <i v-else class="pi pi-user text-gray-600"></i>
                             </div>
                             <div class="flex-1">
                                 <div class="flex items-center justify-between mb-2">
@@ -325,8 +343,14 @@
 
                         <!-- 답글 작성 폼 -->
                         <div v-if="replyingToCommentId === comment.id" class="ml-14 flex space-x-4 p-4 bg-blue-50 rounded-lg">
-                            <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                                <i class="pi pi-user text-gray-600 text-sm"></i>
+                            <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                <img 
+                                    v-if="authStore.memberProfileImage" 
+                                    :src="authStore.memberProfileImage" 
+                                    alt="프로필" 
+                                    class="w-full h-full object-cover"
+                                />
+                                <i v-else class="pi pi-user text-gray-600 text-sm"></i>
                             </div>
                             <div class="flex-1">
                                 <textarea 
@@ -360,8 +384,14 @@
                                 :key="reply.id"
                                 class="flex space-x-4 p-4 bg-gray-100 rounded-lg"
                             >
-                                <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <i class="pi pi-user text-gray-600 text-sm"></i>
+                                <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                    <img 
+                                        v-if="reply.memberProfileImage" 
+                                        :src="reply.memberProfileImage" 
+                                        alt="프로필" 
+                                        class="w-full h-full object-cover"
+                                    />
+                                    <i v-else class="pi pi-user text-gray-600 text-sm"></i>
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex items-center justify-between mb-2">
@@ -496,10 +526,12 @@ import { useRoute, useRouter } from 'vue-router';
 import { httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
 import { useConfirm } from 'primevue/useconfirm';
+import { useAuthStore } from '@/stores/authStore';
 
 const route = useRoute();
 const router = useRouter();
 const confirm = useConfirm();
+const authStore = useAuthStore();
 
 // 반응형 데이터
 const loading = ref(true);
