@@ -202,7 +202,7 @@
 
 <script setup>
 import { httpJson } from '@/utils/http';
-import { fetchMemberInfo } from '@/utils/auth';
+import { useAuthStore } from '@/stores/authStore';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Dialog from 'primevue/dialog';
@@ -218,6 +218,7 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const toast = useToast();
+const authStore = useAuthStore();
 
 // 반응형 데이터
 const categories = ref([]);
@@ -235,9 +236,10 @@ const rows = ref(12);
 const loading = ref(false);
 const error = ref(null);
 
-// 현재 로그인한 사용자 정보
-const currentMemberInfo = ref(null);
-const currentMemberId = ref(null);
+// 현재 로그인한 사용자 정보 (authStore에서 가져옴)
+const isLoggedIn = computed(() => authStore.isLoggedIn);
+const currentMemberInfo = computed(() => authStore.memberInfo);
+const currentMemberId = computed(() => authStore.memberInfo?.id || null);
 
 // API 기본 URL
 // TODO 테스트는 로컬로 진행, 추후 분기처리로 EC2 연결 예정
@@ -666,17 +668,15 @@ watch(selectedCategory, (newCategory) => {
 
 // 생명주기
 onMounted(async () => {
-    // 사용자 정보 가져오기
-    try {
-        const memberInfo = await fetchMemberInfo();
-        if (memberInfo) {
-            currentMemberInfo.value = memberInfo;
-            currentMemberId.value = memberInfo.id;
-        }
-    } catch (err) {
-        console.log('사용자 정보를 가져올 수 없습니다:', err);
+    // 로그인 상태 확인
+    // authStore는 App.vue에서 이미 초기화되므로 여기서는 상태만 확인
+    if (isLoggedIn.value) {
+        console.log('로그인된 사용자:', currentMemberInfo.value);
+    } else {
+        console.log('비로그인 상태에서 레시피 조회');
     }
 
+    // 로그인 여부와 관계없이 카테고리 및 레시피 조회
     await loadCategories();
     await loadRecipes();
 });

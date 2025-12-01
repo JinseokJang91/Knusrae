@@ -230,7 +230,8 @@
                 
                 <!-- 댓글 작성 -->
                 <div class="mb-6">
-                    <div class="flex space-x-4">
+                    <!-- 로그인 상태: 댓글 작성 폼 -->
+                    <div v-if="isLoggedIn" class="flex space-x-4">
                         <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                             <img 
                                 v-if="authStore.memberProfileImage" 
@@ -257,6 +258,18 @@
                                 </button>
                             </div>
                         </div>
+                    </div>
+                    
+                    <!-- 비로그인 상태: 안내 메시지 -->
+                    <div v-else class="p-6 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                        <i class="pi pi-lock text-gray-400 text-3xl mb-2"></i>
+                        <p class="text-gray-600 mb-3">댓글을 작성하려면 로그인이 필요합니다.</p>
+                        <button 
+                            @click="router.push('/auth/login')"
+                            class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                        >
+                            로그인하기
+                        </button>
                     </div>
                 </div>
 
@@ -524,7 +537,6 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { httpJson } from '@/utils/http';
-import { fetchMemberInfo } from '@/utils/auth';
 import { useConfirm } from 'primevue/useconfirm';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -548,8 +560,10 @@ const showImageModal = ref(false);
 const selectedImage = ref<any>(null);
 const selectedImageIndex = ref(0);
 
-const currentMemberInfo = ref<any | null>(null);
-const currentMemberId = ref<number | null>(null);
+// 현재 로그인한 사용자 정보 (authStore에서 가져옴)
+const isLoggedIn = computed(() => authStore.isLoggedIn);
+const currentMemberInfo = computed(() => authStore.memberInfo);
+const currentMemberId = computed(() => authStore.memberInfo?.id || null);
 
 // 계산된 속성
 const mainImage = computed(() => {
@@ -639,7 +653,8 @@ const goBack = () => {
 };
 
 const toggleLike = async () => {
-    if (!currentMemberId.value) {
+    // 로그인 확인
+    if (!isLoggedIn.value || !currentMemberId.value) {
         alert('로그인이 필요합니다.');
         return;
     }
@@ -676,6 +691,12 @@ const shareRecipe = () => {
 const submitComment = async () => {
     if (!newComment.value.trim()) return;
     
+    // 로그인 확인
+    if (!isLoggedIn.value || !currentMemberId.value) {
+        alert('로그인이 필요합니다.');
+        return;
+    }
+    
     try {
         const recipeId = route.params.id;
         await httpJson(
@@ -704,6 +725,12 @@ const submitComment = async () => {
 const submitReply = async (parentId: number) => {
     if (!replyContent.value.trim()) return;
     
+    // 로그인 확인
+    if (!isLoggedIn.value || !currentMemberId.value) {
+        alert('로그인이 필요합니다.');
+        return;
+    }
+    
     try {
         const recipeId = route.params.id;
         await httpJson(
@@ -731,6 +758,12 @@ const submitReply = async (parentId: number) => {
 };
 
 const toggleReplyForm = (commentId: number) => {
+    // 로그인 확인
+    if (!isLoggedIn.value) {
+        alert('로그인이 필요합니다.');
+        return;
+    }
+    
     if (replyingToCommentId.value === commentId) {
         replyingToCommentId.value = null;
         replyContent.value = '';
@@ -846,14 +879,17 @@ const formatDate = (dateString: string) => {
 };
 
 // 생명주기
-onMounted(() => {
-    fetchRecipeDetail();
-    fetchMemberInfo().then((memberInfo) => {
-        if (memberInfo) {
-            currentMemberInfo.value = memberInfo;
-            currentMemberId.value = memberInfo.id;
-        }
-    });
+onMounted(async () => {
+    // 로그인 상태 확인
+    // authStore는 App.vue에서 이미 초기화되므로 여기서는 상태만 확인
+    if (isLoggedIn.value) {
+        console.log('로그인된 사용자:', currentMemberInfo.value);
+    } else {
+        console.log('비로그인 상태에서 레시피 조회');
+    }
+    
+    // 로그인 여부와 관계없이 레시피 상세 조회
+    await fetchRecipeDetail();
 });
 </script>
 
