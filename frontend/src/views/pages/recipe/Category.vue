@@ -668,14 +668,6 @@ watch(selectedCategory, (newCategory) => {
 
 // 생명주기
 onMounted(async () => {
-    // 로그인 상태 확인
-    // authStore는 App.vue에서 이미 초기화되므로 여기서는 상태만 확인
-    if (isLoggedIn.value) {
-        console.log('로그인된 사용자:', currentMemberInfo.value);
-    } else {
-        console.log('비로그인 상태에서 레시피 조회');
-    }
-
     // 로그인 여부와 관계없이 카테고리 및 레시피 조회
     await loadCategories();
     await loadRecipes();

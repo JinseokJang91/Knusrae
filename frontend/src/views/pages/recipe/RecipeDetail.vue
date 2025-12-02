@@ -222,7 +222,7 @@
             </div>
 
             <!-- 댓글 섹션 -->
-            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8" id="comments">
+            <div id="comments" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
                     <i class="pi pi-comments mr-3 text-purple-500"></i>
                     댓글 ({{ comments.length + comments.reduce((sum, c) => sum + (c.replies?.length || 0), 0) }})
@@ -534,7 +534,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { httpJson } from '@/utils/http';
 import { useConfirm } from 'primevue/useconfirm';
@@ -880,16 +880,40 @@ const formatDate = (dateString: string) => {
 
 // 생명주기
 onMounted(async () => {
-    // 로그인 상태 확인
-    // authStore는 App.vue에서 이미 초기화되므로 여기서는 상태만 확인
-    if (isLoggedIn.value) {
-        console.log('로그인된 사용자:', currentMemberInfo.value);
-    } else {
-        console.log('비로그인 상태에서 레시피 조회');
-    }
+    // 페이지 진입 즉시 맨 위로 스크롤 (데이터 로딩 전)
+    window.scrollTo({ top: 0, behavior: 'instant' });
     
     // 로그인 여부와 관계없이 레시피 상세 조회
     await fetchRecipeDetail();
+    
+    // 레시피 로딩 완료 후 해시가 있으면 해당 위치로 스크롤
+    if (route.hash) {
+        // DOM 렌더링 완료 대기 (이미지 포함)
+        await nextTick();
+        
+        // 이미지와 레이아웃이 완전히 로드될 때까지 추가 대기
+        // requestAnimationFrame을 두 번 호출해서 브라우저의 레이아웃 계산 완료 보장
+        await new Promise(resolve => {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setTimeout(resolve, 100); // 추가 100ms 여유
+                });
+            });
+        });
+        
+        const element = document.querySelector(route.hash);
+        if (element) {
+            // 요소의 절대 위치를 구해서 고정된 offset만큼 빼고 스크롤
+            // 이렇게 하면 댓글 개수와 상관없이 항상 같은 위치에서 보임
+            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - 80; // 상단 여백 80px
+            
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+    }
 });
 </script>
 
