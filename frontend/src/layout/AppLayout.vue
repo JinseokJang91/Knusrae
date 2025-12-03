@@ -50,6 +50,14 @@ function unbindOutsideClickListener() {
 function isOutsideClicked(event: MouseEvent) {
     const sidebarEl = document.querySelector('.layout-sidebar');
     const topbarEl = document.querySelector('.layout-menu-button');
+    const modalEl = (event.target as HTMLElement)?.closest('[data-modal]');
+    
+    // 모달이 열려있으면 사이드바 외부 클릭 처리를 하지 않음
+    if (modalEl) return false;
+    
+    // document에 모달이 있는지 확인 (모달이 열려있는지 체크)
+    const anyModal = document.querySelector('[data-modal]');
+    if (anyModal) return false;
 
     if (!sidebarEl || !topbarEl) return false;
 

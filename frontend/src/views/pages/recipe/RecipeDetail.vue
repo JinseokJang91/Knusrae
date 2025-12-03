@@ -206,7 +206,7 @@
                     <div 
                         v-for="(image, index) in recipe.images" 
                         :key="image.id"
-                        @click="openImageModal(image, index)"
+                        @click.stop="openImageModal(image, index)"
                         class="relative group cursor-pointer overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
                     >
                         <img 
@@ -511,12 +511,17 @@
         </div>
 
         <!-- 이미지 모달 -->
-        <div 
-            v-if="showImageModal" 
-            @click="closeImageModal"
-            class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
-        >
-            <div class="relative max-w-4xl max-h-full p-4">
+        <Teleport to="body">
+            <div 
+                v-if="showImageModal" 
+                @click="closeImageModal"
+                class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1000]"
+                data-modal="image-modal"
+            >
+            <div 
+                class="relative max-w-4xl max-h-full p-4"
+                @click.stop
+            >
                 <button 
                     @click="closeImageModal"
                     class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10"
@@ -530,6 +535,7 @@
                 />
             </div>
         </div>
+        </Teleport>
     </div>
 </template>
 
@@ -857,16 +863,26 @@ const isMyComment = (comment: any) => {
     return comment.memberId === currentMemberId.value;
 };
 
-const openImageModal = (image: any, index: number) => {
+const openImageModal = (image: any, index: number, event?: Event) => {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
     selectedImage.value = image;
     selectedImageIndex.value = index;
     showImageModal.value = true;
+    
+    // 모달이 열릴 때 body 스크롤 방지
+    document.body.style.overflow = 'hidden';
 };
 
 const closeImageModal = () => {
     showImageModal.value = false;
     selectedImage.value = null;
     selectedImageIndex.value = 0;
+    
+    // 모달이 닫힐 때 body 스크롤 복원
+    document.body.style.overflow = '';
 };
 
 const formatDate = (dateString: string) => {
