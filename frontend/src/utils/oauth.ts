@@ -66,9 +66,15 @@ export function openOAuthPopup(
 
         if (event.data.type === config.successType) {
             alert(`${provider} 로그인이 성공했습니다!`);
-            window.location.href = '/';
+            
+            // localStorage에서 redirect 경로 가져오기
+            const redirectPath = localStorage.getItem('oauth_redirect') || '/';
+            localStorage.removeItem('oauth_redirect'); // 사용 후 삭제
+            
+            window.location.href = redirectPath;
         } else if (event.data.type === config.errorType) {
             alert(`${provider} 로그인 중 오류가 발생했습니다: ${event.data.error}`);
+            localStorage.removeItem('oauth_redirect'); // 에러 시에도 삭제
         }
     };
 

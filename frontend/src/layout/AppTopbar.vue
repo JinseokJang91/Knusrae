@@ -87,6 +87,13 @@ onMounted(() => {
         )) {
             // OAuth 로그인 성공 시 로그인 상태 업데이트
             await authStore.login();
+            
+            // redirect 경로가 있으면 해당 경로로 이동
+            const redirectPath = localStorage.getItem('oauth_redirect');
+            if (redirectPath) {
+                localStorage.removeItem('oauth_redirect');
+                router.push(redirectPath);
+            }
         } else if (event.data && (
             event.data.type === 'NAVER_LOGIN_ERROR' ||
             event.data.type === 'GOOGLE_LOGIN_ERROR' ||
@@ -94,6 +101,7 @@ onMounted(() => {
         )) {
             // 로그인 실패 시 상태 초기화
             authStore.reset();
+            localStorage.removeItem('oauth_redirect'); // 에러 시에도 삭제
         }
     });
 });

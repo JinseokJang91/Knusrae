@@ -3,10 +3,11 @@ import loginIconNaver from '@/assets/images/login-icon-naver.png';
 import logoImage from '@/assets/images/logo-text.png';
 import { openOAuthPopup } from '@/utils/oauth';
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 
 const isDevelopment = import.meta.env.DEV;
@@ -14,7 +15,23 @@ const showTestAccounts = ref(false);
 const testAccounts = ref<any[]>([]);
 const loadingTestAccounts = ref(false);
 
+// redirect 경로 가져오기 (쿼리 파라미터 또는 기본값)
+const getRedirectPath = (): string => {
+    const redirect = route.query.redirect as string;
+    return redirect || '/';
+};
+
+// 로그인 후 이동할 경로로 리다이렉트
+function redirectAfterLogin() {
+    const redirectPath = getRedirectPath();
+    router.push(redirectPath);
+}
+
 function handleNaverLogin() {
+    // redirect 경로를 localStorage에 저장 (OAuth 팝업에서 사용)
+    const redirectPath = getRedirectPath();
+    localStorage.setItem('oauth_redirect', redirectPath);
+    
     openOAuthPopup(
         'naver',
         import.meta.env.VITE_NAVER_CLIENT_ID,
@@ -23,6 +40,10 @@ function handleNaverLogin() {
 }
 
 function handleGoogleLogin() {
+    // redirect 경로를 localStorage에 저장 (OAuth 팝업에서 사용)
+    const redirectPath = getRedirectPath();
+    localStorage.setItem('oauth_redirect', redirectPath);
+    
     openOAuthPopup(
         'google',
         import.meta.env.VITE_GOOGLE_CLIENT_ID,
@@ -32,6 +53,10 @@ function handleGoogleLogin() {
 }
 
 function handleKakaoLogin() {
+    // redirect 경로를 localStorage에 저장 (OAuth 팝업에서 사용)
+    const redirectPath = getRedirectPath();
+    localStorage.setItem('oauth_redirect', redirectPath);
+    
     openOAuthPopup(
         'kakao',
         import.meta.env.VITE_KAKAO_CLIENT_ID,
@@ -82,7 +107,8 @@ async function loginWithTestAccount(email: string) {
             alert(`${email} 계정으로 로그인되었습니다!`);
             await authStore.login();
             
-            goHome();
+            // redirect 경로로 이동
+            redirectAfterLogin();
         } else {
             const error = await response.json();
             alert(`로그인 실패: ${error.message || '알 수 없는 오류'}`);
