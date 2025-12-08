@@ -38,8 +38,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // /api/auth/refresh 엔드포인트는 accessToken 검증을 건너뜀 (refreshToken만 필요)
+        String requestURI = request.getRequestURI();
+        if (requestURI != null && requestURI.equals("/api/auth/refresh")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = extractTokenFromCookie(request);
-        
+
         if (StringUtils.hasText(token)) {
             if (isTokenBlacklisted(token)) {
                 handleJwtException(response, HttpServletResponse.SC_UNAUTHORIZED, "TOKEN_BLACKLISTED", "로그아웃된 토큰입니다.");
