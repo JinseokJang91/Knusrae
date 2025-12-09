@@ -162,12 +162,6 @@
                         :key="step.id"
                         class="bg-gray-50 rounded-xl p-6"
                     >
-                        <div class="mb-4 flex items-center gap-3">
-                            <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg font-bold">
-                                {{ index + 1 }}
-                            </div>
-                        </div>
-
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                             <!-- 좌측: 이미지 -->
                             <div>
@@ -186,9 +180,14 @@
 
                             <!-- 우측: 설명 -->
                             <div>
-                                <p class="text-gray-800 text-lg leading-relaxed whitespace-pre-line">
-                                    {{ step.description }}
-                                </p>
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0">
+                                        {{ index + 1 }}
+                                    </div>
+                                    <p class="text-gray-800 text-lg leading-relaxed whitespace-pre-line">
+                                        {{ step.description }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -545,11 +544,13 @@ import { useRoute, useRouter } from 'vue-router';
 import { httpJson } from '@/utils/http';
 import { useConfirm } from 'primevue/useconfirm';
 import { useAuthStore } from '@/stores/authStore';
+import { useToast } from 'primevue/usetoast';
 
 const route = useRoute();
 const router = useRouter();
 const confirm = useConfirm();
 const authStore = useAuthStore();
+const toast = useToast();
 
 // 반응형 데이터
 const loading = ref(true);
@@ -661,7 +662,12 @@ const goBack = () => {
 const toggleLike = async () => {
     // 로그인 확인
     if (!isLoggedIn.value || !currentMemberId.value) {
-        alert('로그인이 필요합니다.');
+        toast.add({
+            severity: 'warn',
+            summary: '로그인 필요',
+            detail: '찜 기능을 사용하려면 로그인이 필요합니다.',
+            life: 3000
+        });
         return;
     }
     
@@ -690,6 +696,12 @@ const shareRecipe = () => {
     } else {
         // 클립보드에 URL 복사
         navigator.clipboard.writeText(window.location.href);
+        toast.add({
+            severity: 'info',
+            summary: '링크 복사',
+            detail: '링크가 클립보드에 복사되었습니다.',
+            life: 3000
+        });
         alert('링크가 클립보드에 복사되었습니다.');
     }
 };
@@ -699,7 +711,12 @@ const submitComment = async () => {
     
     // 로그인 확인
     if (!isLoggedIn.value || !currentMemberId.value) {
-        alert('로그인이 필요합니다.');
+        toast.add({
+            severity: 'warn',
+            summary: '로그인 필요',
+            detail: '댓글 기능을 사용하려면 로그인이 필요합니다.',
+            life: 3000
+        });
         return;
     }
     
@@ -733,7 +750,12 @@ const submitReply = async (parentId: number) => {
     
     // 로그인 확인
     if (!isLoggedIn.value || !currentMemberId.value) {
-        alert('로그인이 필요합니다.');
+        toast.add({
+            severity: 'warn',
+            summary: '로그인 필요',
+            detail: '댓글 기능을 사용하려면 로그인이 필요합니다.',
+            life: 3000
+        });
         return;
     }
     
@@ -766,7 +788,12 @@ const submitReply = async (parentId: number) => {
 const toggleReplyForm = (commentId: number) => {
     // 로그인 확인
     if (!isLoggedIn.value) {
-        alert('로그인이 필요합니다.');
+        toast.add({
+            severity: 'warn',
+            summary: '로그인 필요',
+            detail: '댓글 기능을 사용하려면 로그인이 필요합니다.',
+            life: 3000
+        });
         return;
     }
     

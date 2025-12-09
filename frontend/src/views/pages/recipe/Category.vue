@@ -41,7 +41,7 @@
         <div class="recipe-section">
             <div class="flex justify-between items-center mb-3">
                 <h2 class="text-2xl font-semibold text-gray-900 m-0">
-                    {{ selectedCategory ? getCategoryName(selectedCategory) + ' 레시피' : '전체 레시피' }}
+                    {{ (selectedCategory ? getCategoryName(selectedCategory) + ' 레시피' : '전체 레시피') + '(' + totalDisplayRecipes + ')' }}
                 </h2>
                 <div class="flex gap-2">
                     <Button icon="pi pi-th-large" :class="viewMode === 'grid' ? 'p-button-primary' : 'p-button-secondary'" size="small" @click="viewMode = 'grid'" />
@@ -389,16 +389,12 @@ const loadRecipes = async () => {
                     { method: 'GET' }
                 );
                 
-                console.log('찜 목록 API 응답:', favoritesResponse);
-                
                 // API 응답이 배열인지 확인하고 recipeId 추출
                 if (Array.isArray(favoritesResponse)) {
                     favoriteRecipeIds = favoritesResponse.map((fav) => fav.recipeId);
                 } else if (favoritesResponse.data && Array.isArray(favoritesResponse.data)) {
                     favoriteRecipeIds = favoritesResponse.data.map((fav) => fav.recipeId);
                 }
-                
-                console.log('찜한 레시피 ID 목록:', favoriteRecipeIds);
             } catch (err) {
                 console.log('찜 목록을 가져올 수 없습니다:', err);
             }

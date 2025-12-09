@@ -68,6 +68,10 @@ function goHome() {
     router.push('/');
 }
 
+function goBack() {
+    router.go(-1);
+}
+
 async function loadTestAccounts() {
     if (!isDevelopment) return;
     
@@ -123,11 +127,24 @@ async function loginWithTestAccount(email: string) {
 <template>
     <div class="bg-gray-50 dark:bg-gray-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden relative">
         <!-- 홈 아이콘 -->
-        <button @click="goHome" class="absolute top-6 left-6 p-3 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors z-10" title="홈으로 돌아가기">
-            <svg class="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-            </svg>
-        </button>
+        <div class="absolute top-6 left-6 z-10">
+            <Button 
+                @click="goHome"
+                icon="pi pi-home"
+                size="large"
+                rounded
+                title="홈으로 돌아가기" />
+        </div>
+
+        <!-- 뒤로가기 버튼 -->
+        <div class="absolute top-6 left-20 z-10">
+            <Button 
+                @click="goBack"
+                icon="pi pi-arrow-left"
+                size="large"
+                rounded
+                title="이전 페이지로 돌아가기" />
+        </div>
 
         <div class="flex flex-col items-center justify-center">
             <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 50%)">
