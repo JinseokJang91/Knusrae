@@ -59,7 +59,79 @@
                 </div>
             </div>
 
-            <!-- 두 번째 영역: 카테고리, 요리팁 -->
+            <!-- 두 번째 영역: 준비물 -->
+            <div class="border border-gray-200 rounded-lg p-5 bg-white">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-green-600">준비물</h3>
+                    <Button label="그룹 추가" icon="pi pi-plus" @click="addIngredientGroup" :disabled="submitting" />
+                </div>
+                <div v-if="form.ingredientGroups.length === 0" class="p-3 text-gray-500 border rounded">아직 준비물 그룹이 없습니다. '그룹 추가'를 눌러 시작하세요.</div>
+
+                <div v-for="(group, groupIndex) in form.ingredientGroups" :key="group.id" class="border rounded p-4 mb-4 bg-gray-50">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="font-medium text-gray-700">그룹 {{ groupIndex + 1 }}</div>
+                            <div class="flex-1 max-w-xs">
+                                <Select 
+                                    v-model="group.type" 
+                                    :options="ingredientTypeOptions" 
+                                    optionLabel="label" 
+                                    optionValue="value"
+                                    placeholder="주제를 선택하세요"
+                                    class="w-full"
+                                />
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveIngredientGroupUp(groupIndex)" :disabled="groupIndex === 0 || submitting" />
+                            <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveIngredientGroupDown(groupIndex)" :disabled="groupIndex === form.ingredientGroups.length - 1 || submitting" />
+                            <Button icon="pi pi-trash" severity="danger" size="small" @click="removeIngredientGroup(groupIndex)" :disabled="submitting" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <Button label="항목 추가" icon="pi pi-plus" size="small" @click="addIngredientItem(groupIndex)" :disabled="submitting" />
+                    </div>
+
+                    <div v-if="group.items.length === 0" class="p-2 text-sm text-gray-400 border border-dashed rounded mb-2">
+                        이 그룹에 항목이 없습니다. '항목 추가'를 눌러 추가하세요.
+                    </div>
+
+                    <div v-for="(item, itemIndex) in group.items" :key="item.id" class="border rounded p-3 mb-2 bg-white">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-sm text-gray-600">항목 {{ itemIndex + 1 }}</div>
+                            <div class="flex gap-2">
+                                <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveIngredientItemUp(groupIndex, itemIndex)" :disabled="itemIndex === 0 || submitting" />
+                                <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveIngredientItemDown(groupIndex, itemIndex)" :disabled="itemIndex === group.items.length - 1 || submitting" />
+                                <Button icon="pi pi-trash" severity="danger" size="small" @click="removeIngredientItem(groupIndex, itemIndex)" :disabled="submitting" />
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block mb-2 text-sm">이름</label>
+                                <InputText v-model.trim="item.name" placeholder="재료명을 입력하세요" class="w-full" />
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm">수량</label>
+                                <InputNumber v-model="item.quantity" placeholder="수량을 입력하세요" class="w-full" :min="0" :maxFractionDigits="2" />
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm">단위</label>
+                                <Select 
+                                    v-model="item.unit" 
+                                    :options="unitOptions" 
+                                    optionLabel="label" 
+                                    optionValue="value"
+                                    placeholder="단위를 선택하세요"
+                                    class="w-full"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 세 번째 영역: 카테고리, 요리팁 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <h3 class="text-lg font-semibold mb-4 text-green-600">분류 정보</h3>
                 <div class="flex flex-col gap-6">
@@ -115,7 +187,7 @@
                 </div>
             </div>
 
-            <!-- 세 번째 영역: 조리 순서 -->
+            <!-- 네 번째 영역: 조리 순서 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-green-600">조리 순서</h3>
@@ -174,7 +246,7 @@
                 </div>
             </div>
 
-            <!-- 네 번째 영역: 공개 여부, 상태, 저장 버튼 -->
+            <!-- 다섯 번째 영역: 공개 여부, 상태, 저장 버튼 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <h3 class="text-lg font-semibold mb-4 text-green-600">설정 및 저장</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -214,6 +286,7 @@ import { fetchMemberInfo } from '@/utils/auth';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from 'primevue/button';
+import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
 import Select from 'primevue/select';
@@ -226,6 +299,19 @@ interface RecipeStepDraft {
     file?: File | null;
     previewUrl?: string;
     text: string;
+}
+
+interface IngredientItemDraft {
+    id: string;
+    name: string;
+    quantity: number | null;
+    unit: string;
+}
+
+interface IngredientGroupDraft {
+    id: string;
+    type: string;
+    items: IngredientItemDraft[];
 }
 
 interface CommonCodeDetailOption {
@@ -248,6 +334,7 @@ interface RecipeDraft {
     thumbnailFile?: File | null;
     thumbnailPreview?: string;
     steps: RecipeStepDraft[];
+    ingredientGroups: IngredientGroupDraft[];
     categories: Record<string, string>;
     cookingTips: Record<string, string>;
 }
@@ -273,6 +360,36 @@ const statusOptions = [
     { label: '발행', value: 'PUBLISHED' }
 ];
 
+// 더미 주제 타입 데이터 (추후 공통코드로 대체 예정)
+const ingredientTypeOptions = [
+    { label: '재료', value: 'INGREDIENT' },
+    { label: '양념', value: 'SEASONING' },
+    { label: '조리도구', value: 'TOOL' },
+    { label: '기타', value: 'OTHER' }
+];
+
+// 더미 단위 데이터 (추후 공통코드로 대체 예정)
+const unitOptions = [
+    { label: 'g (그램)', value: 'g' },
+    { label: 'kg (킬로그램)', value: 'kg' },
+    { label: 'ml (밀리리터)', value: 'ml' },
+    { label: 'L (리터)', value: 'L' },
+    { label: '개', value: '개' },
+    { label: '마리', value: '마리' },
+    { label: '잔', value: '잔' },
+    { label: '큰술', value: '큰술' },
+    { label: '작은술', value: '작은술' },
+    { label: '컵', value: '컵' },
+    { label: '봉지', value: '봉지' },
+    { label: '팩', value: '팩' },
+    { label: '줄기', value: '줄기' },
+    { label: '쪽', value: '쪽' },
+    { label: '장', value: '장' },
+    { label: '조각', value: '조각' },
+    { label: '토막', value: '토막' },
+    { label: '적당량', value: '적당량' }
+];
+
 const form = reactive<RecipeDraft>({
     title: '',
     description: '',
@@ -282,6 +399,7 @@ const form = reactive<RecipeDraft>({
     thumbnailFile: null,
     thumbnailPreview: '',
     steps: [],
+    ingredientGroups: [],
     categories: {},
     cookingTips: {}
 });
@@ -357,6 +475,67 @@ async function loadMemberInfo() {
     if (memberInfo) {
         form.memberId = memberInfo.id;
     }
+}
+
+function addIngredientGroup() {
+    form.ingredientGroups.push({ 
+        id: crypto.randomUUID(), 
+        type: '',
+        items: []
+    });
+}
+
+function removeIngredientGroup(groupIndex: number) {
+    form.ingredientGroups.splice(groupIndex, 1);
+}
+
+function moveIngredientGroupUp(groupIndex: number) {
+    if (groupIndex <= 0) return;
+    const tmp = form.ingredientGroups[groupIndex - 1];
+    form.ingredientGroups[groupIndex - 1] = form.ingredientGroups[groupIndex];
+    form.ingredientGroups[groupIndex] = tmp;
+}
+
+function moveIngredientGroupDown(groupIndex: number) {
+    if (groupIndex >= form.ingredientGroups.length - 1) return;
+    const tmp = form.ingredientGroups[groupIndex + 1];
+    form.ingredientGroups[groupIndex + 1] = form.ingredientGroups[groupIndex];
+    form.ingredientGroups[groupIndex] = tmp;
+}
+
+function addIngredientItem(groupIndex: number) {
+    const group = form.ingredientGroups[groupIndex];
+    if (group) {
+        group.items.push({ 
+            id: crypto.randomUUID(), 
+            name: '', 
+            quantity: null, 
+            unit: '' 
+        });
+    }
+}
+
+function removeIngredientItem(groupIndex: number, itemIndex: number) {
+    const group = form.ingredientGroups[groupIndex];
+    if (group) {
+        group.items.splice(itemIndex, 1);
+    }
+}
+
+function moveIngredientItemUp(groupIndex: number, itemIndex: number) {
+    const group = form.ingredientGroups[groupIndex];
+    if (!group || itemIndex <= 0) return;
+    const tmp = group.items[itemIndex - 1];
+    group.items[itemIndex - 1] = group.items[itemIndex];
+    group.items[itemIndex] = tmp;
+}
+
+function moveIngredientItemDown(groupIndex: number, itemIndex: number) {
+    const group = form.ingredientGroups[groupIndex];
+    if (!group || itemIndex >= group.items.length - 1) return;
+    const tmp = group.items[itemIndex + 1];
+    group.items[itemIndex + 1] = group.items[itemIndex];
+    group.items[itemIndex] = tmp;
 }
 
 function addStep() {
@@ -460,6 +639,21 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
         }))
         .filter((cookingTip) => Boolean(cookingTip.detailCodeId));
 
+    const ingredientGroups = form.ingredientGroups
+        .filter((group) => group.type && group.items.length > 0)
+        .map((group) => ({
+            type: group.type,
+            items: group.items
+                .filter((item) => item.name.trim() && item.quantity !== null && item.quantity > 0 && item.unit)
+                .map((item, idx) => ({
+                    order: idx + 1,
+                    name: item.name.trim(),
+                    quantity: item.quantity!,
+                    unit: item.unit
+                }))
+        }))
+        .filter((group) => group.items.length > 0);
+
     return {
         title: form.title,
         description: form.description,
@@ -468,6 +662,7 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
         memberId: form.memberId,
         categories,
         cookingTips,
+        ingredientGroups,
         steps: form.steps.map((s, idx) => ({ order: idx + 1, text: s.text.trim() }))
     };
 }
@@ -544,3 +739,4 @@ async function submit() {
     overflow-y: auto;
 }
 </style>
+
