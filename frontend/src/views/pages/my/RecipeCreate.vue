@@ -203,7 +203,9 @@
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-green-600">조리 순서</h3>
-                    <Button label="단계 추가" icon="pi pi-plus" @click="addStep" :disabled="submitting" />
+                    <div data-step-add-button>
+                        <Button label="단계 추가" icon="pi pi-plus" @click="addStep" :disabled="submitting" />
+                    </div>
                 </div>
                 <div v-if="form.steps.length === 0" class="p-3 text-gray-500 border rounded">
                     아직 단계가 없습니다. '단계 추가'를 눌러 시작하세요.
@@ -456,36 +458,48 @@ function clearValidationError(key: string): void {
     }
 }
 
-function validateForm(): { valid: boolean; firstErrorField?: string } {
+function validateForm(): { valid: boolean; firstErrorField?: string; firstErrorFieldName?: string } {
     validationErrors.value = {};
 
     if (!form.title.trim()) {
         validationErrors.value.title = true;
-        return { valid: false, firstErrorField: 'title' };
+        return { valid: false, firstErrorField: 'title', firstErrorFieldName: '제목' };
     }
 
     if (form.steps.length === 0) {
-        return { valid: false, firstErrorField: 'steps' };
+        return { valid: false, firstErrorField: 'steps', firstErrorFieldName: '조리 순서' };
     }
 
     for (let i = 0; i < form.steps.length; i++) {
         if (!form.steps[i].text.trim()) {
             validationErrors.value[`step-text-${i}`] = true;
-            return { valid: false, firstErrorField: `step-text-${i}` };
+            return { 
+                valid: false, 
+                firstErrorField: `step-text-${i}`, 
+                firstErrorFieldName: `조리 순서 ${i + 1}단계 설명` 
+            };
         }
     }
 
     for (const option of categoryOptions.value) {
         if (!form.categories[option.codeId]) {
             validationErrors.value[`category-${option.codeId}`] = true;
-            return { valid: false, firstErrorField: `category-${option.codeId}` };
+            return { 
+                valid: false, 
+                firstErrorField: `category-${option.codeId}`, 
+                firstErrorFieldName: `카테고리 - ${option.codeName}` 
+            };
         }
     }
 
     for (const option of cookingTipsOptions.value) {
         if (!form.cookingTips[option.codeId]) {
             validationErrors.value[`cookingTip-${option.codeId}`] = true;
-            return { valid: false, firstErrorField: `cookingTip-${option.codeId}` };
+            return { 
+                valid: false, 
+                firstErrorField: `cookingTip-${option.codeId}`, 
+                firstErrorFieldName: `요리팁 - ${option.codeName}` 
+            };
         }
     }
 
@@ -505,10 +519,17 @@ function focusFirstError(field: string): void {
             }
         });
     } else if (field === 'steps') {
-        const stepsSection = document.querySelector('[data-step-index]')?.closest('.border');
-        if (stepsSection) {
-            stepsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        nextTick(() => {
+            // steps가 없을 때는 "단계 추가" 버튼에 focus
+            const addStepButton = document.querySelector('[data-step-add-button]') as HTMLElement;
+            if (addStepButton) {
+                addStepButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const buttonElement = addStepButton.querySelector('button') as HTMLElement;
+                if (buttonElement && typeof buttonElement.focus === 'function') {
+                    buttonElement.focus();
+                }
+            }
+        });
     } else if (field.startsWith('step-text-')) {
         const stepIndex = parseInt(field.split('-')[2]);
         const stepElement = document.querySelector(`[data-step-index="${stepIndex}"]`);
@@ -518,19 +539,41 @@ function focusFirstError(field: string): void {
             stepElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     } else if (field.startsWith('category-')) {
-        const categoryElement = document.querySelector(`[data-category-id="${field}"]`);
-        if (categoryElement) {
-            categoryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            const select = categoryElement.querySelector('select, .p-select') as HTMLElement;
-            select?.focus();
-        }
+        nextTick(() => {
+            const categoryElement = document.querySelector(`[data-category-id="${field}"]`);
+            if (categoryElement) {
+                categoryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // PrimeVue Select의 input 요소 찾기
+                const selectInput = categoryElement.querySelector('.p-select .p-inputtext, .p-select input') as HTMLElement;
+                if (selectInput && typeof selectInput.focus === 'function') {
+                    selectInput.focus();
+                } else {
+                    // input을 찾지 못한 경우 Select 컨테이너 클릭으로 드롭다운 열기
+                    const selectContainer = categoryElement.querySelector('.p-select') as HTMLElement;
+                    if (selectContainer) {
+                        selectContainer.click();
+                    }
+                }
+            }
+        });
     } else if (field.startsWith('cookingTip-')) {
-        const cookingTipElement = document.querySelector(`[data-cooking-tip-id="${field}"]`);
-        if (cookingTipElement) {
-            cookingTipElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            const select = cookingTipElement.querySelector('select, .p-select') as HTMLElement;
-            select?.focus();
-        }
+        nextTick(() => {
+            const cookingTipElement = document.querySelector(`[data-cooking-tip-id="${field}"]`);
+            if (cookingTipElement) {
+                cookingTipElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // PrimeVue Select의 input 요소 찾기
+                const selectInput = cookingTipElement.querySelector('.p-select .p-inputtext, .p-select input') as HTMLElement;
+                if (selectInput && typeof selectInput.focus === 'function') {
+                    selectInput.focus();
+                } else {
+                    // input을 찾지 못한 경우 Select 컨테이너 클릭으로 드롭다운 열기
+                    const selectContainer = cookingTipElement.querySelector('.p-select') as HTMLElement;
+                    if (selectContainer) {
+                        selectContainer.click();
+                    }
+                }
+            }
+        });
     }
 }
 
@@ -806,10 +849,12 @@ async function saveAsDraft(): Promise<void> {
 async function submit(): Promise<void> {
     const validation = validateForm();
     if (!validation.valid) {
+        const fieldName = validation.firstErrorFieldName || '필수 항목';
+        
         toast.add({ 
             severity: 'error', 
             summary: '입력 오류', 
-            detail: '필수 항목을 모두 입력해주세요.', 
+            detail: `${fieldName}을(를) 입력해주세요.`, 
             life: 3000 
         });
         if (validation.firstErrorField) {
