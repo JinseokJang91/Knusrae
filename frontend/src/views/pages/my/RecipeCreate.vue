@@ -7,17 +7,11 @@
             </div>
         </div>
 
-        <!-- 에러 메시지 표시 -->
-        <Message v-if="error" severity="error" :closable="false" class="mb-4">
-            {{ error }}
-        </Message>
-
         <div class="flex flex-col gap-6">
-            <!-- 첫 번째 영역: 대표 사진, 제목, 소개 -->
+            <!-- 기본 정보: 대표 사진, 제목, 소개 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <h3 class="text-lg font-semibold mb-4 text-green-600">기본 정보</h3>
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <!-- 썸네일 업로드 (좌측) -->
                     <div class="md:col-span-2">
                         <label class="block mb-2 font-medium"><b>대표 사진</b></label>
                         <input ref="thumbnailInputRef" type="file" accept="image/*" @change="onThumbnailChange" :disabled="submitting" class="hidden" />
@@ -45,11 +39,17 @@
                         <p class="text-sm text-gray-500 mt-1">등록 시 썸네일이 대표 이미지로 사용됩니다.</p>
                     </div>
 
-                    <!-- 제목 및 소개 (우측) -->
                     <div class="md:col-span-3 flex flex-col gap-4">
                         <div>
                             <label class="block mb-2 font-medium"><b>제목</b></label>
-                            <InputText v-model.trim="form.title" placeholder="레시피 제목을 입력하세요" class="w-full" />
+                            <InputText 
+                                ref="titleInputRef"
+                                v-model.trim="form.title" 
+                                placeholder="레시피 제목을 입력하세요" 
+                                class="w-full"
+                                :class="{ 'border-red-500': validationErrors.title }"
+                                @input="clearValidationError('title')"
+                            />
                         </div>
                         <div class="flex-1">
                             <label class="block mb-2 font-medium"><b>소개</b></label>
@@ -59,13 +59,15 @@
                 </div>
             </div>
 
-            <!-- 두 번째 영역: 준비물 -->
+            <!-- 준비물 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-green-600">준비물</h3>
                     <Button label="그룹 추가" icon="pi pi-plus" @click="addIngredientGroup" :disabled="submitting" />
                 </div>
-                <div v-if="form.ingredientGroups.length === 0" class="p-3 text-gray-500 border rounded">아직 준비물 그룹이 없습니다. '그룹 추가'를 눌러 시작하세요.</div>
+                <div v-if="form.ingredientGroups.length === 0" class="p-3 text-gray-500 border rounded">
+                    아직 준비물 그룹이 없습니다. '그룹 추가'를 눌러 시작하세요.
+                </div>
 
                 <div v-for="(group, groupIndex) in form.ingredientGroups" :key="group.id" class="border rounded p-4 mb-4 bg-gray-50">
                     <div class="flex items-center justify-between mb-4">
@@ -79,6 +81,9 @@
                                     optionValue="value"
                                     placeholder="주제를 선택하세요"
                                     class="w-full"
+                                    :class="{ 'border-red-500': validationErrors[`group-type-${group.id}`] }"
+                                    @change="clearValidationError(`group-type-${group.id}`)"
+                                    filter
                                 />
                             </div>
                         </div>
@@ -124,6 +129,9 @@
                                     optionValue="value"
                                     placeholder="단위를 선택하세요"
                                     class="w-full"
+                                    :class="{ 'border-red-500': validationErrors[`item-unit-${item.id}`] }"
+                                    @change="clearValidationError(`item-unit-${item.id}`)"
+                                    filter
                                 />
                             </div>
                         </div>
@@ -131,7 +139,7 @@
                 </div>
             </div>
 
-            <!-- 세 번째 영역: 카테고리, 요리팁 -->
+            <!-- 분류 정보: 카테고리, 요리팁 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <h3 class="text-lg font-semibold mb-4 text-green-600">분류 정보</h3>
                 <div class="flex flex-col gap-6">
@@ -145,15 +153,17 @@
                                 카테고리 정보를 불러오는 중입니다...
                             </div>
                             <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div v-for="option in categoryOptions" :key="option.codeId" class="flex flex-col gap-2">
+                                <div v-for="option in categoryOptions" :key="option.codeId" class="flex flex-col gap-2" :data-category-id="`category-${option.codeId}`">
                                     <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>
                                     <Select 
                                         v-model="form.categories[option.codeId]" 
-                                        :options="getCategoryDetailOptions(option)" 
+                                        :options="getCommonCodeDetailOptions(option)" 
                                         optionLabel="label" 
                                         optionValue="value"
                                         placeholder="선택하세요"
                                         class="w-full"
+                                        :class="{ 'border-red-500': validationErrors[`category-${option.codeId}`] }"
+                                        @change="clearValidationError(`category-${option.codeId}`)"
                                     />
                                 </div>
                             </div>
@@ -170,15 +180,17 @@
                                 요리팁 정보를 불러오는 중입니다...
                             </div>
                             <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div v-for="option in cookingTipsOptions" :key="option.codeId" class="flex flex-col gap-2">
+                                <div v-for="option in cookingTipsOptions" :key="option.codeId" class="flex flex-col gap-2" :data-cooking-tip-id="`cookingTip-${option.codeId}`">
                                     <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>
                                     <Select 
                                         v-model="form.cookingTips[option.codeId]" 
-                                        :options="getCookingTipDetailOptions(option)" 
+                                        :options="getCommonCodeDetailOptions(option)" 
                                         optionLabel="label" 
                                         optionValue="value"
                                         placeholder="선택하세요"
                                         class="w-full"
+                                        :class="{ 'border-red-500': validationErrors[`cookingTip-${option.codeId}`] }"
+                                        @change="clearValidationError(`cookingTip-${option.codeId}`)"
                                     />
                                 </div>
                             </div>
@@ -187,15 +199,17 @@
                 </div>
             </div>
 
-            <!-- 네 번째 영역: 조리 순서 -->
+            <!-- 조리 순서 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-green-600">조리 순서</h3>
                     <Button label="단계 추가" icon="pi pi-plus" @click="addStep" :disabled="submitting" />
                 </div>
-                <div v-if="form.steps.length === 0" class="p-3 text-gray-500 border rounded">아직 단계가 없습니다. '단계 추가'를 눌러 시작하세요.</div>
+                <div v-if="form.steps.length === 0" class="p-3 text-gray-500 border rounded">
+                    아직 단계가 없습니다. '단계 추가'를 눌러 시작하세요.
+                </div>
 
-                <div v-for="(step, index) in form.steps" :key="step.id" class="border rounded p-3 mb-3 bg-gray-50">
+                <div v-for="(step, index) in form.steps" :key="step.id" class="border rounded p-3 mb-3 bg-gray-50" :data-step-index="index">
                     <div class="flex items-center justify-between mb-3">
                         <div class="font-medium">단계 {{ index + 1 }}</div>
                         <div class="flex gap-2">
@@ -240,13 +254,20 @@
                         </div>
                         <div class="md:col-span-3">
                             <label class="block mb-2">설명</label>
-                            <Textarea v-model.trim="step.text" placeholder="이 단계에서의 설명을 작성하세요" class="w-full" :rows="9"  />
+                            <Textarea 
+                                v-model.trim="step.text" 
+                                placeholder="이 단계에서의 설명을 작성하세요" 
+                                class="w-full" 
+                                :class="{ 'border-red-500': validationErrors[`step-text-${index}`] }"
+                                :rows="9"
+                                @input="clearValidationError(`step-text-${index}`)"
+                            />
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 다섯 번째 영역: 공개 여부, 상태, 저장 버튼 -->
+            <!-- 설정 및 저장 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <h3 class="text-lg font-semibold mb-4 text-green-600">설정 및 저장</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -273,7 +294,7 @@
                 </div>
                 <div class="flex justify-end gap-2">
                     <Button label="초안 저장" icon="pi pi-save" severity="secondary" @click="saveAsDraft" :disabled="submitting" />
-                    <Button label="등록" icon="pi pi-check" severity="success" @click="submit" :disabled="submitting || !isValid" />
+                    <Button label="등록" icon="pi pi-check" severity="success" @click="submit" :disabled="submitting" />
                 </div>
             </div>
         </div>
@@ -283,7 +304,7 @@
 <script setup lang="ts">
 import { httpForm, httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { nextTick, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from 'primevue/button';
 import InputNumber from 'primevue/inputnumber';
@@ -291,9 +312,12 @@ import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
+import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
+const toast = useToast();
 
+// 타입 정의
 interface RecipeStepDraft {
     id: string;
     file?: File | null;
@@ -339,8 +363,8 @@ interface RecipeDraft {
     cookingTips: Record<string, string>;
 }
 
+// 반응형 상태
 const submitting = ref(false);
-const error = ref<string | null>(null);
 const categoriesLoading = ref(false);
 const categoriesError = ref<string | null>(null);
 const categoryOptions = ref<CommonCodeOption[]>([]);
@@ -349,7 +373,10 @@ const cookingTipsError = ref<string | null>(null);
 const cookingTipsOptions = ref<CommonCodeOption[]>([]);
 const thumbnailInputRef = ref<HTMLInputElement | null>(null);
 const stepInputRefs = ref<Record<string, HTMLInputElement>>({});
+const titleInputRef = ref<InstanceType<typeof InputText> | null>(null);
+const validationErrors = ref<Record<string, boolean>>({});
 
+// 옵션 데이터
 const visibilityOptions = [
     { label: '공개', value: 'PUBLIC' },
     { label: '비공개', value: 'PRIVATE' }
@@ -360,7 +387,6 @@ const statusOptions = [
     { label: '발행', value: 'PUBLISHED' }
 ];
 
-// 더미 주제 타입 데이터 (추후 공통코드로 대체 예정)
 const ingredientTypeOptions = [
     { label: '재료', value: 'INGREDIENT' },
     { label: '양념', value: 'SEASONING' },
@@ -368,7 +394,6 @@ const ingredientTypeOptions = [
     { label: '기타', value: 'OTHER' }
 ];
 
-// 더미 단위 데이터 (추후 공통코드로 대체 예정)
 const unitOptions = [
     { label: 'g (그램)', value: 'g' },
     { label: 'kg (킬로그램)', value: 'kg' },
@@ -404,110 +429,208 @@ const form = reactive<RecipeDraft>({
     cookingTips: {}
 });
 
-const isValid = computed(() => {
-    const basicValid = Boolean(form.title.trim());
-    const stepsValid = form.steps.length > 0 && form.steps.every((s) => s.text.trim());
-    const categoriesValid = categoryOptions.value.length === 0 || categoryOptions.value.every((option) => !!form.categories[option.codeId]);
-    const cookingTipsValid = cookingTipsOptions.value.length === 0 || cookingTipsOptions.value.every((option) => !!form.cookingTips[option.codeId]);
-    return basicValid && stepsValid && categoriesValid && cookingTipsValid;
-});
+// 유틸리티 함수
+function generateId(): string {
+    return crypto.randomUUID();
+}
 
-onMounted(() => {
-    loadCategoryOptions();
-    loadCookingTipsOptions();
-    loadMemberInfo();
-});
+function swapArrayItems<T>(array: T[], index1: number, index2: number): void {
+    if (index1 < 0 || index2 < 0 || index1 >= array.length || index2 >= array.length) return;
+    [array[index1], array[index2]] = [array[index2], array[index1]];
+}
 
-async function loadCategoryOptions() {
+function handleImageFile(file: File | undefined, currentPreview: string | undefined): string {
+    if (!file) return currentPreview || '';
+    if (currentPreview) URL.revokeObjectURL(currentPreview);
+    return URL.createObjectURL(file);
+}
+
+function clearImagePreview(previewUrl: string | undefined): void {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+}
+
+// 검증 관련
+function clearValidationError(key: string): void {
+    if (validationErrors.value[key]) {
+        delete validationErrors.value[key];
+    }
+}
+
+function validateForm(): { valid: boolean; firstErrorField?: string } {
+    validationErrors.value = {};
+
+    if (!form.title.trim()) {
+        validationErrors.value.title = true;
+        return { valid: false, firstErrorField: 'title' };
+    }
+
+    if (form.steps.length === 0) {
+        return { valid: false, firstErrorField: 'steps' };
+    }
+
+    for (let i = 0; i < form.steps.length; i++) {
+        if (!form.steps[i].text.trim()) {
+            validationErrors.value[`step-text-${i}`] = true;
+            return { valid: false, firstErrorField: `step-text-${i}` };
+        }
+    }
+
+    for (const option of categoryOptions.value) {
+        if (!form.categories[option.codeId]) {
+            validationErrors.value[`category-${option.codeId}`] = true;
+            return { valid: false, firstErrorField: `category-${option.codeId}` };
+        }
+    }
+
+    for (const option of cookingTipsOptions.value) {
+        if (!form.cookingTips[option.codeId]) {
+            validationErrors.value[`cookingTip-${option.codeId}`] = true;
+            return { valid: false, firstErrorField: `cookingTip-${option.codeId}` };
+        }
+    }
+
+    return { valid: true };
+}
+
+function focusFirstError(field: string): void {
+    if (field === 'title') {
+        nextTick(() => {
+            if (titleInputRef.value) {
+                const component = titleInputRef.value as any;
+                const inputElement = component.$el?.querySelector('input') || component.$el;
+                if (inputElement && typeof inputElement.focus === 'function') {
+                    inputElement.focus();
+                    inputElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    } else if (field === 'steps') {
+        const stepsSection = document.querySelector('[data-step-index]')?.closest('.border');
+        if (stepsSection) {
+            stepsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    } else if (field.startsWith('step-text-')) {
+        const stepIndex = parseInt(field.split('-')[2]);
+        const stepElement = document.querySelector(`[data-step-index="${stepIndex}"]`);
+        if (stepElement) {
+            const textarea = stepElement.querySelector('textarea');
+            textarea?.focus();
+            stepElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    } else if (field.startsWith('category-')) {
+        const categoryElement = document.querySelector(`[data-category-id="${field}"]`);
+        if (categoryElement) {
+            categoryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const select = categoryElement.querySelector('select, .p-select') as HTMLElement;
+            select?.focus();
+        }
+    } else if (field.startsWith('cookingTip-')) {
+        const cookingTipElement = document.querySelector(`[data-cooking-tip-id="${field}"]`);
+        if (cookingTipElement) {
+            cookingTipElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const select = cookingTipElement.querySelector('select, .p-select') as HTMLElement;
+            select?.focus();
+        }
+    }
+}
+
+// 공통 코드 로딩
+async function loadCommonCodes(codeGroup: 'CATEGORY' | 'COOKINGTIP'): Promise<CommonCodeOption[]> {
+    try {
+        const response = await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/common-codes?codeGroup=${codeGroup}`,
+            { method: 'GET' }
+        );
+        return Array.isArray(response) ? response : [];
+    } catch (e) {
+        console.error(`${codeGroup} 정보를 불러오지 못했습니다.`, e);
+        throw e;
+    }
+}
+
+async function loadCategoryOptions(): Promise<void> {
     categoriesLoading.value = true;
     categoriesError.value = null;
     try {
-        const response = await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/common-codes?codeGroup=CATEGORY', {
-            method: 'GET'
+        categoryOptions.value = await loadCommonCodes('CATEGORY');
+        categoryOptions.value.forEach((option) => {
+            if (form.categories[option.codeId] === undefined) {
+                form.categories[option.codeId] = '';
+            }
         });
-
-        if (Array.isArray(response)) {
-            categoryOptions.value = response;
-            categoryOptions.value.forEach((option) => {
-                if (form.categories[option.codeId] === undefined) {
-                    form.categories[option.codeId] = '';
-                }
-            });
-        } else {
-            categoryOptions.value = [];
-        }
     } catch (e) {
-        console.error('카테고리 정보를 불러오지 못했습니다.', e);
         categoriesError.value = '카테고리 정보를 불러오지 못했습니다.';
     } finally {
         categoriesLoading.value = false;
     }
 }
 
-async function loadCookingTipsOptions() {
+async function loadCookingTipsOptions(): Promise<void> {
     cookingTipsLoading.value = true;
     cookingTipsError.value = null;
     try {
-        const response = await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/common-codes?codeGroup=COOKINGTIP', {
-            method: 'GET'
+        cookingTipsOptions.value = await loadCommonCodes('COOKINGTIP');
+        cookingTipsOptions.value.forEach((option) => {
+            if (form.cookingTips[option.codeId] === undefined) {
+                form.cookingTips[option.codeId] = '';
+            }
         });
-
-        if (Array.isArray(response)) {
-            cookingTipsOptions.value = response;
-            cookingTipsOptions.value.forEach((option) => {
-                if (form.cookingTips[option.codeId] === undefined) {
-                    form.cookingTips[option.codeId] = '';
-                }
-            });
-        } else {
-            cookingTipsOptions.value = [];
-        }
     } catch (e) {
-        console.error('요리팁 정보를 불러오지 못했습니다.', e);
         cookingTipsError.value = '요리팁 정보를 불러오지 못했습니다.';
     } finally {
         cookingTipsLoading.value = false;
     }
 }
 
-async function loadMemberInfo() {
+async function loadMemberInfo(): Promise<void> {
     const memberInfo = await fetchMemberInfo();
     if (memberInfo) {
         form.memberId = memberInfo.id;
     }
 }
 
-function addIngredientGroup() {
+// 공통 코드 옵션 변환
+function getCommonCodeDetailOptions(option: CommonCodeOption) {
+    return [
+        { label: '선택하세요', value: '' },
+        ...option.details.map(detail => ({
+            label: detail.codeName,
+            value: detail.detailCodeId
+        }))
+    ];
+}
+
+// 준비물 관련 함수
+function addIngredientGroup(): void {
     form.ingredientGroups.push({ 
-        id: crypto.randomUUID(), 
+        id: generateId(), 
         type: '',
         items: []
     });
 }
 
-function removeIngredientGroup(groupIndex: number) {
+function removeIngredientGroup(groupIndex: number): void {
     form.ingredientGroups.splice(groupIndex, 1);
 }
 
-function moveIngredientGroupUp(groupIndex: number) {
-    if (groupIndex <= 0) return;
-    const tmp = form.ingredientGroups[groupIndex - 1];
-    form.ingredientGroups[groupIndex - 1] = form.ingredientGroups[groupIndex];
-    form.ingredientGroups[groupIndex] = tmp;
+function moveIngredientGroupUp(groupIndex: number): void {
+    if (groupIndex > 0) {
+        swapArrayItems(form.ingredientGroups, groupIndex - 1, groupIndex);
+    }
 }
 
-function moveIngredientGroupDown(groupIndex: number) {
-    if (groupIndex >= form.ingredientGroups.length - 1) return;
-    const tmp = form.ingredientGroups[groupIndex + 1];
-    form.ingredientGroups[groupIndex + 1] = form.ingredientGroups[groupIndex];
-    form.ingredientGroups[groupIndex] = tmp;
+function moveIngredientGroupDown(groupIndex: number): void {
+    if (groupIndex < form.ingredientGroups.length - 1) {
+        swapArrayItems(form.ingredientGroups, groupIndex, groupIndex + 1);
+    }
 }
 
-function addIngredientItem(groupIndex: number) {
+function addIngredientItem(groupIndex: number): void {
     const group = form.ingredientGroups[groupIndex];
     if (group) {
         group.items.push({ 
-            id: crypto.randomUUID(), 
+            id: generateId(), 
             name: '', 
             quantity: null, 
             unit: '' 
@@ -515,72 +638,77 @@ function addIngredientItem(groupIndex: number) {
     }
 }
 
-function removeIngredientItem(groupIndex: number, itemIndex: number) {
+function removeIngredientItem(groupIndex: number, itemIndex: number): void {
     const group = form.ingredientGroups[groupIndex];
     if (group) {
         group.items.splice(itemIndex, 1);
     }
 }
 
-function moveIngredientItemUp(groupIndex: number, itemIndex: number) {
+function moveIngredientItemUp(groupIndex: number, itemIndex: number): void {
     const group = form.ingredientGroups[groupIndex];
-    if (!group || itemIndex <= 0) return;
-    const tmp = group.items[itemIndex - 1];
-    group.items[itemIndex - 1] = group.items[itemIndex];
-    group.items[itemIndex] = tmp;
+    if (group && itemIndex > 0) {
+        swapArrayItems(group.items, itemIndex - 1, itemIndex);
+    }
 }
 
-function moveIngredientItemDown(groupIndex: number, itemIndex: number) {
+function moveIngredientItemDown(groupIndex: number, itemIndex: number): void {
     const group = form.ingredientGroups[groupIndex];
-    if (!group || itemIndex >= group.items.length - 1) return;
-    const tmp = group.items[itemIndex + 1];
-    group.items[itemIndex + 1] = group.items[itemIndex];
-    group.items[itemIndex] = tmp;
+    if (group && itemIndex < group.items.length - 1) {
+        swapArrayItems(group.items, itemIndex, itemIndex + 1);
+    }
 }
 
-function addStep() {
-    form.steps.push({ id: crypto.randomUUID(), file: null, text: '', previewUrl: '' });
+// 조리 순서 관련 함수
+function addStep(): void {
+    form.steps.push({ 
+        id: generateId(), 
+        file: null, 
+        text: '', 
+        previewUrl: '' 
+    });
 }
 
-function removeStep(index: number) {
+function removeStep(index: number): void {
     const [removed] = form.steps.splice(index, 1);
-    if (removed && removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+    if (removed?.previewUrl) {
+        clearImagePreview(removed.previewUrl);
+    }
 }
 
-function moveStepUp(index: number) {
-    if (index <= 0) return;
-    const tmp = form.steps[index - 1];
-    form.steps[index - 1] = form.steps[index];
-    form.steps[index] = tmp;
+function moveStepUp(index: number): void {
+    if (index > 0) {
+        swapArrayItems(form.steps, index - 1, index);
+    }
 }
 
-function moveStepDown(index: number) {
-    if (index >= form.steps.length - 1) return;
-    const tmp = form.steps[index + 1];
-    form.steps[index + 1] = form.steps[index];
-    form.steps[index] = tmp;
+function moveStepDown(index: number): void {
+    if (index < form.steps.length - 1) {
+        swapArrayItems(form.steps, index, index + 1);
+    }
 }
 
-function onStepImageChange(e: Event, step: RecipeStepDraft) {
+// 이미지 처리 함수
+function onStepImageChange(e: Event, step: RecipeStepDraft): void {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+    
     step.file = file;
-    if (step.previewUrl) URL.revokeObjectURL(step.previewUrl);
-    step.previewUrl = URL.createObjectURL(file);
+    step.previewUrl = handleImageFile(file, step.previewUrl);
 }
 
-function onThumbnailChange(e: Event) {
+function onThumbnailChange(e: Event): void {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+    
     form.thumbnailFile = file;
-    if (form.thumbnailPreview) URL.revokeObjectURL(form.thumbnailPreview);
-    form.thumbnailPreview = URL.createObjectURL(file);
+    form.thumbnailPreview = handleImageFile(file, form.thumbnailPreview);
 }
 
-function clearThumbnail() {
-    if (form.thumbnailPreview) URL.revokeObjectURL(form.thumbnailPreview);
+function clearThumbnail(): void {
+    clearImagePreview(form.thumbnailPreview);
     form.thumbnailPreview = '';
     form.thumbnailFile = null;
     if (thumbnailInputRef.value) {
@@ -588,8 +716,8 @@ function clearThumbnail() {
     }
 }
 
-function clearStepImage(step: RecipeStepDraft) {
-    if (step.previewUrl) URL.revokeObjectURL(step.previewUrl);
+function clearStepImage(step: RecipeStepDraft): void {
+    clearImagePreview(step.previewUrl);
     step.previewUrl = '';
     step.file = null;
     const inputRef = stepInputRefs.value[step.id];
@@ -598,36 +726,13 @@ function clearStepImage(step: RecipeStepDraft) {
     }
 }
 
-function goBack() {
-    router.push('/my/recipes');
-}
-
-function getCategoryDetailOptions(option: CommonCodeOption) {
-    return [
-        { label: '선택하세요', value: '' },
-        ...option.details.map(detail => ({
-            label: detail.codeName,
-            value: detail.detailCodeId
-        }))
-    ];
-}
-
-function getCookingTipDetailOptions(option: CommonCodeOption) {
-    return [
-        { label: '선택하세요', value: '' },
-        ...option.details.map(detail => ({
-            label: detail.codeName,
-            value: detail.detailCodeId
-        }))
-    ];
-}
-
+// 폼 제출 관련
 function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
     const categories = categoryOptions.value
         .map((option) => ({
             codeId: option.codeId,
             detailCodeId: form.categories[option.codeId],
-            codeGroup: 'CATEGORY'
+            codeGroup: 'CATEGORY' as const
         }))
         .filter((category) => Boolean(category.detailCodeId));
 
@@ -635,7 +740,7 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
         .map((option) => ({
             codeId: option.codeId,
             detailCodeId: form.cookingTips[option.codeId],
-            codeGroup: 'COOKINGTIP'
+            codeGroup: 'COOKINGTIP' as const
         }))
         .filter((cookingTip) => Boolean(cookingTip.detailCodeId));
 
@@ -663,13 +768,15 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
         categories,
         cookingTips,
         ingredientGroups,
-        steps: form.steps.map((s, idx) => ({ order: idx + 1, text: s.text.trim() }))
+        steps: form.steps.map((s, idx) => ({ 
+            order: idx + 1, 
+            text: s.text.trim() 
+        }))
     };
 }
 
-async function saveAsDraft() {
+async function saveAsDraft(): Promise<void> {
     submitting.value = true;
-    error.value = null;
     try {
         const payload = buildRecipePayload('DRAFT');
         await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe/draft', {
@@ -677,60 +784,99 @@ async function saveAsDraft() {
             body: JSON.stringify(payload)
         });
 
-        alert('초안이 저장되었습니다.');
+        toast.add({
+            severity: 'success',
+            summary: '저장 완료',
+            detail: '초안이 저장되었습니다.',
+            life: 3000
+        });
     } catch (e) {
         console.error(e);
-        error.value = '초안 저장 중 오류가 발생했습니다.';
+        toast.add({
+            severity: 'error',
+            summary: '저장 실패',
+            detail: '초안 저장 중 오류가 발생했습니다.',
+            life: 3000
+        });
     } finally {
         submitting.value = false;
     }
 }
 
-async function submit() {
-    if (!isValid.value) {
-        error.value = '필수 항목을 모두 입력해주세요.';
+async function submit(): Promise<void> {
+    const validation = validateForm();
+    if (!validation.valid) {
+        toast.add({ 
+            severity: 'error', 
+            summary: '입력 오류', 
+            detail: '필수 항목을 모두 입력해주세요.', 
+            life: 3000 
+        });
+        if (validation.firstErrorField) {
+            setTimeout(() => {
+                focusFirstError(validation.firstErrorField!);
+            }, 100);
+        }
         return;
     }
+
     submitting.value = true;
-    error.value = null;
     try {
-        // HttpOnly 쿠키를 통해 인증이 자동으로 처리되므로 토큰 검증 불필요
-
-        // 멀티파트 폼 구성 (이미지 + 텍스트 단계)
         const formData = new FormData();
-
         const recipePayload = buildRecipePayload();
 
-        // Blob을 사용하여 명시적으로 MIME 타입 설정
         const recipeBlob = new Blob([JSON.stringify(recipePayload)], {
             type: 'application/json; charset=utf-8'
         });
         formData.append('recipe', recipeBlob, 'recipe.json');
 
-        // 썸네일이 있다면 먼저 추가 (대표 이미지가 됨)
         if (form.thumbnailFile) {
             formData.append('images', form.thumbnailFile, 'thumbnail.png');
         }
 
         form.steps.forEach((s, idx) => {
-            if (s.file) formData.append('images', s.file, `step-${idx + 1}.png`);
+            if (s.file) {
+                formData.append('images', s.file, `step-${idx + 1}.png`);
+            }
         });
 
-        // 대표 이미지 인덱스 설정: 썸네일이 있으면 0, 없으면 첫 번째 이미지(0)
         formData.append('mainImageIndex', '0');
 
-        // 실제 API 엔드포인트로 전송 (토큰 자동 첨부)
-        await httpForm(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe', formData, { method: 'POST' });
+        await httpForm(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe', formData, { 
+            method: 'POST' 
+        });
 
-        alert('등록이 완료되었습니다.');
+        toast.add({
+            severity: 'success',
+            summary: '등록 완료',
+            detail: '등록이 완료되었습니다.',
+            life: 3000
+        });
+
         router.push('/my/recipes');
     } catch (e) {
         console.error(e);
-        error.value = e instanceof Error ? e.message : '레시피 등록 중 오류가 발생했습니다.';
+        toast.add({
+            severity: 'error',
+            summary: '등록 실패',
+            detail: e instanceof Error ? e.message : '레시피 등록 중 오류가 발생했습니다.',
+            life: 3000
+        });
     } finally {
         submitting.value = false;
     }
 }
+
+function goBack(): void {
+    router.push('/my/recipes');
+}
+
+// 초기화
+onMounted(() => {
+    loadCategoryOptions();
+    loadCookingTipsOptions();
+    loadMemberInfo();
+});
 </script>
 
 <style scoped>
@@ -738,5 +884,12 @@ async function submit() {
     resize: none;
     overflow-y: auto;
 }
-</style>
 
+:deep(.p-autocomplete.border-red-500 .p-inputtext),
+:deep(.p-inputtext.border-red-500),
+:deep(.p-textarea.border-red-500),
+:deep(.p-select.border-red-500 .p-inputtext) {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.2) !important;
+}
+</style>
