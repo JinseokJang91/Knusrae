@@ -329,7 +329,6 @@ import Message from 'primevue/message';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
 import { useToast } from 'primevue/usetoast';
-import { Image } from 'primevue';
 
 const router = useRouter();
 const toast = useToast();
@@ -863,6 +862,8 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
                 }))
         }))
         .filter((group) => group.items.length > 0);
+
+    console.log('최종 ingredientGroups:', ingredientGroups);
 
     return {
         title: form.title,

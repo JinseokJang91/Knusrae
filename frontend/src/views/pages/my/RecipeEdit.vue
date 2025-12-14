@@ -64,6 +64,106 @@
                 </div>
             </div>
 
+            <!-- 준비물 -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="font-medium"><b>준비물</b></label>
+                    <button class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50" @click="addIngredientGroup" :disabled="submitting">
+                        <span class="pi pi-plus mr-2"></span>
+                        <span>그룹 추가</span>
+                    </button>
+                </div>
+                <div v-if="form.ingredientGroups.length === 0" class="p-3 text-gray-500 border rounded">
+                    아직 준비물 그룹이 없습니다. '그룹 추가'를 눌러 시작하세요.
+                </div>
+
+                <div v-for="(group, groupIndex) in form.ingredientGroups" :key="group.id" class="border rounded p-4 mb-4 bg-gray-50">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3 flex-1">
+                            <div class="font-medium text-gray-700">그룹 {{ groupIndex + 1 }}</div>
+                            <div class="flex-1 max-w-xs">
+                                <div v-if="ingredientTypesError" class="mb-2 p-2 bg-red-100 border border-red-400 text-red-700 text-xs rounded">
+                                    {{ ingredientTypesError }}
+                                </div>
+                                <div v-else-if="ingredientTypesLoading" class="p-2 text-sm text-gray-500">
+                                    로딩 중...
+                                </div>
+                                <select v-else v-model="group.type" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                                    <option value="">주제를 선택하세요</option>
+                                    <option v-for="opt in getIngredientTypeOptions()" :key="opt.value" :value="opt.value">
+                                        {{ opt.label }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded text-sm" @click="moveIngredientGroupUp(groupIndex)" :disabled="groupIndex === 0 || submitting">
+                                <span class="pi pi-arrow-up"></span>
+                            </button>
+                            <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded text-sm" @click="moveIngredientGroupDown(groupIndex)" :disabled="groupIndex === form.ingredientGroups.length - 1 || submitting">
+                                <span class="pi pi-arrow-down"></span>
+                            </button>
+                            <button class="px-2 py-1 text-red-600 hover:bg-red-100 rounded text-sm" @click="removeIngredientGroup(groupIndex)" :disabled="submitting">
+                                <span class="pi pi-trash"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <button class="px-3 py-1 bg-green-500 text-white text-sm rounded-md hover:bg-green-600" @click="addIngredientItem(groupIndex)" :disabled="submitting">
+                            <span class="pi pi-plus mr-1"></span>
+                            <span>항목 추가</span>
+                        </button>
+                    </div>
+
+                    <div v-if="group.items.length === 0" class="p-2 text-sm text-gray-400 border border-dashed rounded mb-2">
+                        이 그룹에 항목이 없습니다. '항목 추가'를 눌러 추가하세요.
+                    </div>
+
+                    <div v-for="(item, itemIndex) in group.items" :key="item.id" class="border rounded p-3 mb-2 bg-white">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-sm text-gray-600">항목 {{ itemIndex + 1 }}</div>
+                            <div class="flex gap-2">
+                                <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded text-xs" @click="moveIngredientItemUp(groupIndex, itemIndex)" :disabled="itemIndex === 0 || submitting">
+                                    <span class="pi pi-arrow-up"></span>
+                                </button>
+                                <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded text-xs" @click="moveIngredientItemDown(groupIndex, itemIndex)" :disabled="itemIndex === group.items.length - 1 || submitting">
+                                    <span class="pi pi-arrow-down"></span>
+                                </button>
+                                <button class="px-2 py-1 text-red-600 hover:bg-red-100 rounded text-xs" @click="removeIngredientItem(groupIndex, itemIndex)" :disabled="submitting">
+                                    <span class="pi pi-trash"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block mb-2 text-sm">이름</label>
+                                <input v-model.trim="item.name" type="text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" placeholder="재료명을 입력하세요" />
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm">수량</label>
+                                <input v-model.number="item.quantity" type="number" step="0.01" min="0" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" placeholder="수량을 입력하세요" />
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm">단위</label>
+                                <div v-if="unitsError" class="mb-2 p-2 bg-red-100 border border-red-400 text-red-700 text-xs rounded">
+                                    {{ unitsError }}
+                                </div>
+                                <div v-else-if="unitsLoading" class="p-2 text-xs text-gray-500">
+                                    로딩 중...
+                                </div>
+                                <select v-else v-model="item.unit" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                                    <option value="">단위를 선택하세요</option>
+                                    <option v-for="opt in getUnitOptions()" :key="opt.value" :value="opt.value">
+                                        {{ opt.label }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div>
                 <label class="block mb-2 font-medium"><b>카테고리</b></label>
                 <div v-if="categoriesError" class="mb-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -224,6 +324,19 @@ interface RecipeStepDraft {
     existingImageUrl?: string; // 기존 이미지 URL
 }
 
+interface IngredientItemDraft {
+    id: string;
+    name: string;
+    quantity: number | null;
+    unit: string;
+}
+
+interface IngredientGroupDraft {
+    id: string;
+    type: string;
+    items: IngredientItemDraft[];
+}
+
 interface CommonCodeDetailOption {
     detailCodeId: string;
     codeName: string;
@@ -244,6 +357,7 @@ interface RecipeDraft {
     thumbnailFile?: File | null;
     thumbnailPreview?: string;
     steps: RecipeStepDraft[];
+    ingredientGroups: IngredientGroupDraft[];
     categories: Record<string, string>;
     cookingTips: Record<string, string>;
 }
@@ -257,6 +371,12 @@ const categoryOptions = ref<CommonCodeOption[]>([]);
 const cookingTipsLoading = ref(false);
 const cookingTipsError = ref<string | null>(null);
 const cookingTipsOptions = ref<CommonCodeOption[]>([]);
+const ingredientTypesLoading = ref(false);
+const ingredientTypesError = ref<string | null>(null);
+const ingredientTypeOptions = ref<CommonCodeOption[]>([]);
+const unitsLoading = ref(false);
+const unitsError = ref<string | null>(null);
+const unitOptions = ref<CommonCodeOption[]>([]);
 const thumbnailInputRef = ref<HTMLInputElement | null>(null);
 const stepInputRefs = ref<Record<string, HTMLInputElement>>({});
 
@@ -269,6 +389,7 @@ const form = reactive<RecipeDraft>({
     thumbnailFile: null,
     thumbnailPreview: '',
     steps: [],
+    ingredientGroups: [],
     categories: {},
     cookingTips: {}
 });
@@ -286,6 +407,8 @@ onMounted(() => {
         await Promise.all([
             loadCategoryOptions(),
             loadCookingTipsOptions(),
+            loadIngredientsGroupOptions(),
+            loadIngredientsUnitOptions(),
             loadRecipeData()
         ]);
         initialLoading.value = false;
@@ -327,6 +450,20 @@ async function loadRecipeData() {
             response.cookingTips.forEach((tip: any) => {
                 form.cookingTips[tip.codeId] = tip.detailCodeId;
             });
+        }
+
+        // 준비물 설정
+        if (response.ingredientGroups && Array.isArray(response.ingredientGroups)) {
+            form.ingredientGroups = response.ingredientGroups.map((group: any) => ({
+                id: crypto.randomUUID(),
+                type: group.detailCodeId || '',
+                items: Array.isArray(group.items) ? group.items.map((item: any) => ({
+                    id: crypto.randomUUID(),
+                    name: item.name || '',
+                    quantity: item.quantity || null,
+                    unit: item.detailCodeId || ''
+                })) : []
+            }));
         }
 
         // 단계 설정 (각 단계의 이미지 포함)
@@ -396,6 +533,126 @@ async function loadCookingTipsOptions() {
         cookingTipsError.value = '요리팁 정보를 불러오지 못했습니다.';
     } finally {
         cookingTipsLoading.value = false;
+    }
+}
+
+async function loadIngredientsGroupOptions() {
+    ingredientTypesLoading.value = true;
+    ingredientTypesError.value = null;
+    try {
+        const response = await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            '/api/common-codes?codeId=INGREDIENTS_GROUP',
+            { method: 'GET' }
+        );
+        ingredientTypeOptions.value = Array.isArray(response) ? response : [];
+    } catch (e) {
+        ingredientTypesError.value = '재료 타입 정보를 불러오지 못했습니다.';
+    } finally {
+        ingredientTypesLoading.value = false;
+    }
+}
+
+async function loadIngredientsUnitOptions() {
+    unitsLoading.value = true;
+    unitsError.value = null;
+    try {
+        const response = await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            '/api/common-codes?codeId=INGREDIENTS_UNIT',
+            { method: 'GET' }
+        );
+        unitOptions.value = Array.isArray(response) ? response : [];
+    } catch (e) {
+        unitsError.value = '단위 정보를 불러오지 못했습니다.';
+    } finally {
+        unitsLoading.value = false;
+    }
+}
+
+function getIngredientTypeOptions() {
+    if (!ingredientTypeOptions.value || ingredientTypeOptions.value.length === 0) {
+        return [];
+    }
+    return ingredientTypeOptions.value.flatMap(option => 
+        option.details.map(detail => ({
+            label: detail.codeName,
+            value: detail.detailCodeId
+        }))
+    );
+}
+
+function getUnitOptions() {
+    if (!unitOptions.value || unitOptions.value.length === 0) {
+        return [];
+    }
+    return unitOptions.value.flatMap(option => 
+        option.details.map(detail => ({
+            label: detail.codeName,
+            value: detail.detailCodeId
+        }))
+    );
+}
+
+function swapArrayItems<T>(array: T[], index1: number, index2: number): void {
+    if (index1 < 0 || index2 < 0 || index1 >= array.length || index2 >= array.length) return;
+    [array[index1], array[index2]] = [array[index2], array[index1]];
+}
+
+function addIngredientGroup() {
+    form.ingredientGroups.push({ 
+        id: crypto.randomUUID(), 
+        type: '',
+        items: []
+    });
+}
+
+function removeIngredientGroup(groupIndex: number) {
+    form.ingredientGroups.splice(groupIndex, 1);
+}
+
+function moveIngredientGroupUp(groupIndex: number) {
+    if (groupIndex > 0) {
+        swapArrayItems(form.ingredientGroups, groupIndex - 1, groupIndex);
+    }
+}
+
+function moveIngredientGroupDown(groupIndex: number) {
+    if (groupIndex < form.ingredientGroups.length - 1) {
+        swapArrayItems(form.ingredientGroups, groupIndex, groupIndex + 1);
+    }
+}
+
+function addIngredientItem(groupIndex: number) {
+    const group = form.ingredientGroups[groupIndex];
+    if (group) {
+        group.items.push({ 
+            id: crypto.randomUUID(), 
+            name: '', 
+            quantity: null, 
+            unit: '' 
+        });
+    }
+}
+
+function removeIngredientItem(groupIndex: number, itemIndex: number) {
+    const group = form.ingredientGroups[groupIndex];
+    if (group) {
+        group.items.splice(itemIndex, 1);
+    }
+}
+
+function moveIngredientItemUp(groupIndex: number, itemIndex: number) {
+    const group = form.ingredientGroups[groupIndex];
+    if (group && itemIndex > 0) {
+        swapArrayItems(group.items, itemIndex - 1, itemIndex);
+    }
+}
+
+function moveIngredientItemDown(groupIndex: number, itemIndex: number) {
+    const group = form.ingredientGroups[groupIndex];
+    if (group && itemIndex < group.items.length - 1) {
+        swapArrayItems(group.items, itemIndex, itemIndex + 1);
     }
 }
 
@@ -492,6 +749,24 @@ function buildRecipePayload() {
         }))
         .filter((cookingTip) => Boolean(cookingTip.detailCodeId));
 
+    const ingredientGroups = form.ingredientGroups
+        .filter((group) => group.type && group.items.length > 0)
+        .map((group, groupIdx) => ({
+            codeId: 'INGREDIENTS_GROUP',
+            detailCodeId: group.type,
+            order: groupIdx + 1,
+            items: group.items
+                .filter((item) => item.name.trim() && item.quantity !== null && item.quantity > 0 && item.unit)
+                .map((item, idx) => ({
+                    order: idx + 1,
+                    name: item.name.trim(),
+                    quantity: item.quantity!,
+                    codeId: 'INGREDIENTS_UNIT',
+                    detailCodeId: item.unit
+                }))
+        }))
+        .filter((group) => group.items.length > 0);
+
     return {
         title: form.title,
         description: form.description,
@@ -500,6 +775,7 @@ function buildRecipePayload() {
         memberId: form.memberId,
         categories,
         cookingTips,
+        ingredientGroups,
         steps: form.steps.map((s, idx) => ({ order: idx + 1, text: s.text.trim() }))
     };
 }

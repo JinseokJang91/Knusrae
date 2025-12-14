@@ -245,15 +245,6 @@ const currentMemberId = computed(() => authStore.memberInfo?.id || null);
 // TODO 테스트는 로컬로 진행, 추후 분기처리로 EC2 연결 예정
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8082';
 
-// Enum Class - Difficulty (난이도)
-const difficulties = ref([
-    { name: '매우 쉬움', value: 'very easy' },
-    { name: '쉬움', value: 'easy' },
-    { name: '보통', value: 'medium' },
-    { name: '조금 어려움', value: 'little hard' },
-    { name: '어려움', value: 'hard' }
-]);
-
 // 카테고리 header > 표시된 레시피 > 개수
 const filteredRecipes = computed(() => {
     let filtered = recipes.value;
