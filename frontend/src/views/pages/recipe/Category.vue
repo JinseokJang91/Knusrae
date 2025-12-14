@@ -41,7 +41,7 @@
         <div class="recipe-section">
             <div class="flex justify-between items-center mb-3">
                 <h2 class="text-2xl font-semibold text-gray-900 m-0">
-                    {{ (selectedCategory ? getCategoryName(selectedCategory) + ' 레시피' : '전체 레시피') + '(' + totalDisplayRecipes + ')' }}
+                    {{ getCategoryTitle() + '(' + totalDisplayRecipes + ')' }}
                 </h2>
                 <div class="flex gap-2">
                     <Button icon="pi pi-th-large" :class="viewMode === 'grid' ? 'p-button-primary' : 'p-button-secondary'" size="small" @click="viewMode = 'grid'" />
@@ -77,7 +77,7 @@
                                             <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="large" rounded @click.stop="toggleFavorite(recipe.id)" />
                                             <Button icon="pi pi-bookmark" severity="secondary" size="large" rounded @click.stop="bookmarkRecipe(recipe.id)" />
                                         </div>
-                                        <Tag :value="getCategoryName(recipe.category)" severity="info" class="recipe-category-tag" />
+                                        <Tag v-if="getCategoryName(recipe.category)" :value="getCategoryName(recipe.category)" severity="info" class="recipe-category-tag" />
                                     </div>
                                     <!-- 조회수 표시 (이미지 우측 하단) -->
                                     <div v-if="formatCount(recipe.hits)" class="recipe-hits-overlay">
@@ -151,7 +151,7 @@
                                         <i class="pi pi-star-fill text-yellow-500"></i>
                                         <span>{{ recipe.rating.toFixed(1) }}</span>
                                     </div>
-                                    <Tag :value="getCategoryName(recipe.category)" severity="info" />
+                                    <Tag v-if="getCategoryName(recipe.category)" :value="getCategoryName(recipe.category)" severity="info" />
                                     <!-- 조회수 표시 (키워드 태그 우측) -->
                                     <span v-if="formatCount(recipe.hits)" class="text-sm text-gray-600">
                                         조회수 {{ formatCount(recipe.hits) }}
@@ -256,10 +256,26 @@ const difficulties = ref([
 
 // 카테고리 header > 표시된 레시피 > 개수
 const filteredRecipes = computed(() => {
+    let filtered = recipes.value;
+    
+    // 서브 카테고리가 선택된 경우 해당 서브 카테고리로 필터링
     if (selectedCategory.value) {
-        return recipes.value.filter((recipe) => recipe.category === selectedCategory.value);
+        filtered = filtered.filter((recipe) => {
+            // categoryKeys 배열에 선택된 카테고리가 포함되어 있는지 확인
+            // categoryKeys는 "codeId-detailCodeId" 형식의 문자열 배열
+            const selectedKey = `${selectedMainCategory.value}-${selectedCategory.value}`;
+            return recipe.categoryKeys && recipe.categoryKeys.includes(selectedKey);
+        });
     }
-    return recipes.value;
+    // 메인 카테고리만 선택되고 서브 카테고리가 선택되지 않은 경우, 해당 메인 카테고리의 모든 서브 카테고리로 필터링
+    else if (selectedMainCategory.value) {
+        filtered = filtered.filter((recipe) => {
+            // categoryKeys 중에서 선택된 메인 카테고리로 시작하는 항목이 있는지 확인
+            return recipe.categoryKeys && recipe.categoryKeys.some(key => key.startsWith(`${selectedMainCategory.value}-`));
+        });
+    }
+    
+    return filtered;
 });
 
 // 카테고리 body > 레시피
@@ -299,18 +315,23 @@ const loadCategories = async () => {
             details: code.details || []
         }));
 
-        // 기존 categories 배열도 유지 (하위 호환성)
-        const keywordGroup = codes.find((code) => code.codeId === 'COOKING_KEYWORD');
-        if (keywordGroup && Array.isArray(keywordGroup.details)) {
-            categories.value = keywordGroup.details.map((detail) => ({
-                value: detail.detailCodeId,
-                name: detail.codeName,
-                description: `${detail.codeName} 관련 레시피`,
-                icon: 'pi pi-tag',
-                color: '#3B82F6',
-                recipeCount: 0
-            }));
-        }
+        // 모든 메인 카테고리의 서브 카테고리를 categories 배열에 저장
+        categories.value = [];
+        codes.forEach((code) => {
+            if (Array.isArray(code.details)) {
+                code.details.forEach((detail) => {
+                    categories.value.push({
+                        value: detail.detailCodeId,
+                        name: detail.codeName,
+                        description: `${detail.codeName} 관련 레시피`,
+                        icon: 'pi pi-tag',
+                        color: '#3B82F6',
+                        recipeCount: 0,
+                        mainCategoryId: code.codeId // 메인 카테고리 ID 추가
+                    });
+                });
+            }
+        });
 
         // 첫 번째 메인 카테고리를 기본 선택
         if (mainCategories.value.length > 0) {
@@ -340,13 +361,24 @@ const loadCategories = async () => {
 };
 
 // Function > onMounted > 레시피 조회
-const derivePrimaryCategory = (recipe) => {
+// 레시피의 모든 카테고리 키(codeId-detailCodeId)들을 추출하는 함수
+const extractCategoryKeys = (recipe) => {
     if (!recipe || !recipe.categories || recipe.categories.length === 0) {
-        return null;
+        return [];
     }
-    const keywordCategory = recipe.categories.find((category) => category.codeId === 'COOKING_KEYWORD');
-    const target = keywordCategory || recipe.categories[0];
-    return target?.detailCodeId || target?.codeId || null;
+    // 모든 카테고리의 "codeId-detailCodeId" 형식 문자열을 배열로 반환
+    return recipe.categories
+        .filter((category) => category.codeId && category.detailCodeId)
+        .map((category) => `${category.codeId}-${category.detailCodeId}`);
+};
+
+// 레시피의 모든 카테고리 detailCodeId들을 추출하는 함수 (표시용)
+const extractCategoryIds = (recipe) => {
+    if (!recipe || !recipe.categories || recipe.categories.length === 0) {
+        return [];
+    }
+    // 모든 카테고리의 detailCodeId를 배열로 반환
+    return recipe.categories.map((category) => category.detailCodeId || category.codeId).filter(Boolean);
 };
 
 // Function > cookingTips에서 요리 시간 추출
@@ -396,7 +428,7 @@ const loadRecipes = async () => {
                     favoriteRecipeIds = favoritesResponse.data.map((fav) => fav.recipeId);
                 }
             } catch (err) {
-                console.log('찜 목록을 가져올 수 없습니다:', err);
+                console.error('찜 목록을 가져올 수 없습니다:', err);
             }
         }
         
@@ -412,14 +444,19 @@ const loadRecipes = async () => {
 
             const isFavorite = favoriteRecipeIds.includes(recipe.id);
             
-            // 디버깅: 찜 상태 로그
-            if (isFavorite) {
-                console.log(`레시피 ID ${recipe.id} (${recipe.title})는 찜 목록에 있습니다.`);
-            }
+            // 레시피의 모든 카테고리 키(codeId-detailCodeId) 추출
+            const categoryKeys = extractCategoryKeys(recipe);
+            // 레시피의 모든 카테고리 ID 추출 (표시용)
+            const categoryIds = extractCategoryIds(recipe);
+            // 표시용 대표 카테고리 (첫 번째 카테고리 또는 COOKING_KEYWORD 우선)
+            const keywordCategory = recipe.categories?.find((cat) => cat.codeId === 'COOKING_KEYWORD');
+            const primaryCategoryId = keywordCategory?.detailCodeId || categoryIds[0] || null;
 
             return {
                 ...recipe,
-                category: derivePrimaryCategory(recipe),
+                categoryKeys, // 모든 카테고리 키 배열 (필터링용, "codeId-detailCodeId" 형식)
+                categoryIds, // 모든 카테고리 ID 배열 (표시용)
+                category: primaryCategoryId, // 표시용 대표 카테고리
                 cookingTime,
                 servings,
                 rating: averageRating,
@@ -446,6 +483,8 @@ const loadRecipes = async () => {
                 title: '김치찌개',
                 thumbnail: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400',
                 category: 'korean',
+                categoryIds: ['korean'],
+                categoryKeys: ['COOKING_KEYWORD-korean'],
                 cookingTime: '30분',
                 servings: '2인분',
                 hits: 1250,
@@ -459,6 +498,8 @@ const loadRecipes = async () => {
                 title: '짜장면',
                 thumbnail: 'https://images.unsplash.com/photo-1563379091339-03246963d4d8?w=400',
                 category: 'chinese',
+                categoryIds: ['chinese'],
+                categoryKeys: ['COOKING_KEYWORD-chinese'],
                 cookingTime: '20분',
                 servings: '2인분',
                 hits: 980,
@@ -472,6 +513,8 @@ const loadRecipes = async () => {
                 title: '초밥',
                 thumbnail: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400',
                 category: 'japanese',
+                categoryIds: ['japanese'],
+                categoryKeys: ['COOKING_KEYWORD-japanese'],
                 cookingTime: '45분',
                 servings: '4인분',
                 hits: 2100,
@@ -485,6 +528,8 @@ const loadRecipes = async () => {
                 title: '파스타',
                 thumbnail: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400',
                 category: 'western',
+                categoryIds: ['western'],
+                categoryKeys: ['COOKING_KEYWORD-western'],
                 cookingTime: '25분',
                 servings: '2인분',
                 hits: 1560,
@@ -498,6 +543,8 @@ const loadRecipes = async () => {
                 title: '치즈케이크',
                 thumbnail: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400',
                 category: 'dessert',
+                categoryIds: ['dessert'],
+                categoryKeys: ['COOKING_KEYWORD-dessert'],
                 cookingTime: '90분',
                 servings: '8인분',
                 hits: 890,
@@ -511,6 +558,8 @@ const loadRecipes = async () => {
                 title: '불고기',
                 thumbnail: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400',
                 category: 'korean',
+                categoryIds: ['korean'],
+                categoryKeys: ['COOKING_KEYWORD-korean'],
                 cookingTime: '15분',
                 servings: '3인분',
                 hits: 1750,
@@ -538,11 +587,18 @@ const selectMainCategory = (codeId) => {
     selectedCategory.value = null; // 메인 카테고리 변경 시 서브 카테고리 선택 해제
     searchResults.value = [];
     first.value = 0;
+    
+    // 선택된 메인 카테고리의 서브 카테고리 목록 출력
+    const mainCategory = mainCategories.value.find((cat) => cat.codeId === codeId);
 };
 
 // Function > Button > body 카테고리 선택 시 목록 필터링
 const selectCategory = (categoryValue) => {
     selectedCategory.value = selectedCategory.value === categoryValue ? null : categoryValue;
+    
+    // 필터링된 레시피 개수 출력
+    const mainCategoryDetailIds = selectedMainCategoryDetails.value.map(detail => detail.detailCodeId);
+    
     searchResults.value = [];
     first.value = 0;
 };
@@ -553,10 +609,34 @@ const selectCategory = (categoryValue) => {
 //     first.value = 0;
 // };
 
-// Function > header 현재 카테고리 값 동기화
+// Function > header 현재 카테고리 값 동기화 (COOKING_KEYWORD인 경우만 반환)
 const getCategoryName = (categoryValue) => {
-    const category = categories.value.find((cat) => cat.value === categoryValue);
-    return category ? category.name : categoryValue;
+    // COOKING_KEYWORD 메인 카테고리에 속한 카테고리만 반환
+    const category = categories.value.find((cat) => cat.value === categoryValue && cat.mainCategoryId === 'COOKING_KEYWORD');
+    return category ? category.name : null;
+};
+
+// Function > header 타이틀 생성 (메인 카테고리 + 서브 카테고리)
+const getCategoryTitle = () => {
+    // 아무것도 선택되지 않은 경우
+    if (!selectedMainCategory.value) {
+        return '전체 레시피';
+    }
+    
+    // 서브 카테고리가 선택되지 않은 경우: 전체 레시피로 표시
+    if (!selectedCategory.value) {
+        return '전체 레시피';
+    }
+    
+    // 서브 카테고리가 선택된 경우: 메인 > 서브 형식으로 표시
+    // 메인 카테고리 이름 찾기
+    const mainCategory = mainCategories.value.find((cat) => cat.codeId === selectedMainCategory.value);
+    const mainCategoryName = mainCategory ? mainCategory.codeName : selectedMainCategory.value;
+    
+    // selectedMainCategoryDetails에서 서브 카테고리 찾기
+    const subCategory = selectedMainCategoryDetails.value.find((detail) => detail.detailCodeId === selectedCategory.value);
+    const subCategoryName = subCategory ? subCategory.codeName : selectedCategory.value;
+    return `${mainCategoryName} > ${subCategoryName}`;
 };
 
 // Function > 조회수/댓글 개수 포맷팅 (만/억 단위 처리)
@@ -658,15 +738,18 @@ const onPageChange = (event) => {
 };
 
 // 카테고리 선택 감시
-watch(selectedCategory, (newCategory) => {
+watch(selectedCategory, (newCategory, oldCategory) => {
     first.value = 0; // 페이지 초기화
 });
 
 // 생명주기
-onMounted(async () => {
+onMounted(() => {
     // 로그인 여부와 관계없이 카테고리 및 레시피 조회
-    await loadCategories();
-    await loadRecipes();
+    const initializeData = async () => {
+        await loadCategories();
+        await loadRecipes();
+    };
+    initializeData();
 });
 </script>
 

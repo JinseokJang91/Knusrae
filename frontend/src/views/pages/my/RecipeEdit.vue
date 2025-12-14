@@ -281,13 +281,16 @@ const isValid = computed(() => {
     return basicValid && stepsValid && categoriesValid && cookingTipsValid;
 });
 
-onMounted(async () => {
-    await Promise.all([
-        loadCategoryOptions(),
-        loadCookingTipsOptions(),
-        loadRecipeData()
-    ]);
-    initialLoading.value = false;
+onMounted(() => {
+    const initializeRecipeEdit = async () => {
+        await Promise.all([
+            loadCategoryOptions(),
+            loadCookingTipsOptions(),
+            loadRecipeData()
+        ]);
+        initialLoading.value = false;
+    };
+    initializeRecipeEdit();
 });
 
 async function loadRecipeData() {

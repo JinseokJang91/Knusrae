@@ -263,21 +263,24 @@ const getCategoryName = (recipe) => {
 };
 
 // 생명주기
-onMounted(async () => {
-    // 사용자 정보 가져오기
-    const memberInfo = await fetchMemberInfo();
-    if (memberInfo && memberInfo.id) {
-        currentMemberId.value = memberInfo.id;
-        await loadFavorites();
-    } else {
-        error.value = '로그인이 필요합니다.';
-        toast.add({
-            severity: 'warn',
-            summary: '로그인 필요',
-            detail: '찜 목록을 보려면 로그인해주세요.',
-            life: 3000
-        });
-    }
+onMounted(() => {
+    const initializeFavorites = async () => {
+        // 사용자 정보 가져오기
+        const memberInfo = await fetchMemberInfo();
+        if (memberInfo && memberInfo.id) {
+            currentMemberId.value = memberInfo.id;
+            await loadFavorites();
+        } else {
+            error.value = '로그인이 필요합니다.';
+            toast.add({
+                severity: 'warn',
+                summary: '로그인 필요',
+                detail: '찜 목록을 보려면 로그인해주세요.',
+                life: 3000
+            });
+        }
+    };
+    initializeFavorites();
 });
 </script>
 

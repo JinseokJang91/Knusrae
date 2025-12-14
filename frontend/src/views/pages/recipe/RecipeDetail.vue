@@ -149,6 +149,52 @@
                 </div>
             </div>
 
+            <!-- 준비물 섹션 -->
+            <div v-if="recipe.ingredientGroups && recipe.ingredientGroups.length > 0" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
+                    <i class="pi pi-shopping-cart mr-3 text-orange-500"></i>
+                    준비물
+                </h2>
+                
+                <div class="space-y-6">
+                    <div 
+                        v-for="(group, groupIndex) in recipe.ingredientGroups" 
+                        :key="group.id"
+                        class="bg-gray-50 rounded-xl p-6"
+                    >
+                        <!-- 그룹 제목 -->
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mr-3">
+                                {{ groupIndex + 1 }}
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-800">
+                                {{ group.detailName || '재료' }}
+                            </h3>
+                        </div>
+
+                        <!-- 항목 목록 -->
+                        <div v-if="group.items && group.items.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div 
+                                v-for="item in group.items" 
+                                :key="item.id"
+                                class="flex items-center p-3 bg-white rounded-lg border border-gray-200"
+                            >
+                                <i class="pi pi-circle-fill text-orange-400 text-xs mr-3"></i>
+                                <span class="text-gray-800 text-lg font-medium flex-1">{{ item.name }}</span>
+                                <span class="text-gray-600 text-lg ml-2">
+                                    {{ item.quantity }}{{ item.detailName }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- 항목이 없는 경우 -->
+                        <div v-else class="text-gray-500 text-center py-4">
+                            항목이 없습니다.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 조리 단계 섹션 -->
             <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
@@ -922,41 +968,44 @@ const formatDate = (dateString: string) => {
 };
 
 // 생명주기
-onMounted(async () => {
-    // 페이지 진입 즉시 맨 위로 스크롤 (데이터 로딩 전)
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    
-    // 로그인 여부와 관계없이 레시피 상세 조회
-    await fetchRecipeDetail();
-    
-    // 레시피 로딩 완료 후 해시가 있으면 해당 위치로 스크롤
-    if (route.hash) {
-        // DOM 렌더링 완료 대기 (이미지 포함)
-        await nextTick();
+onMounted(() => {
+    const initializePage = async () => {
+        // 페이지 진입 즉시 맨 위로 스크롤 (데이터 로딩 전)
+        window.scrollTo({ top: 0, behavior: 'instant' });
         
-        // 이미지와 레이아웃이 완전히 로드될 때까지 추가 대기
-        // requestAnimationFrame을 두 번 호출해서 브라우저의 레이아웃 계산 완료 보장
-        await new Promise(resolve => {
-            requestAnimationFrame(() => {
+        // 로그인 여부와 관계없이 레시피 상세 조회
+        await fetchRecipeDetail();
+        
+        // 레시피 로딩 완료 후 해시가 있으면 해당 위치로 스크롤
+        if (route.hash) {
+            // DOM 렌더링 완료 대기 (이미지 포함)
+            await nextTick();
+            
+            // 이미지와 레이아웃이 완전히 로드될 때까지 추가 대기
+            // requestAnimationFrame을 두 번 호출해서 브라우저의 레이아웃 계산 완료 보장
+            await new Promise(resolve => {
                 requestAnimationFrame(() => {
-                    setTimeout(resolve, 100); // 추가 100ms 여유
+                    requestAnimationFrame(() => {
+                        setTimeout(resolve, 100); // 추가 100ms 여유
+                    });
                 });
             });
-        });
-        
-        const element = document.querySelector(route.hash);
-        if (element) {
-            // 요소의 절대 위치를 구해서 고정된 offset만큼 빼고 스크롤
-            // 이렇게 하면 댓글 개수와 상관없이 항상 같은 위치에서 보임
-            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-            const offsetPosition = elementPosition - 80; // 상단 여백 80px
             
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-            });
+            const element = document.querySelector(route.hash);
+            if (element) {
+                // 요소의 절대 위치를 구해서 고정된 offset만큼 빼고 스크롤
+                // 이렇게 하면 댓글 개수와 상관없이 항상 같은 위치에서 보임
+                const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+                const offsetPosition = elementPosition - 80; // 상단 여백 80px
+                
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
         }
-    }
+    };
+    initializePage();
 });
 </script>
 

@@ -619,7 +619,7 @@ async function loadCookingTipsOptions(): Promise<void> {
     }
 }
 
-async function loadIngredientTypeOptions(): Promise<void> {
+async function loadIngredientsGroupOptions(): Promise<void> {
     ingredientTypesLoading.value = true;
     ingredientTypesError.value = null;
     try {
@@ -638,7 +638,7 @@ async function loadIngredientTypeOptions(): Promise<void> {
     }
 }
 
-async function loadUnitOptions(): Promise<void> {
+async function loadIngredientsUnitOptions(): Promise<void> {
     unitsLoading.value = true;
     unitsError.value = null;
     try {
@@ -982,8 +982,8 @@ function goBack(): void {
 onMounted(() => {
     loadCategoryOptions();
     loadCookingTipsOptions();
-    loadIngredientTypeOptions();
-    loadUnitOptions();
+    loadIngredientsGroupOptions();
+    loadIngredientsUnitOptions();
     loadMemberInfo();
 });
 </script>
