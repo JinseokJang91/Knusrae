@@ -19,6 +19,7 @@ public class RecipeDetailDto {
     private String introduction;
     private List<RecipeCategoryDto> categories;
     private List<RecipeCookingTipDto> cookingTips;
+    private List<RecipeIngredientGroupDto> ingredientGroups;
     private String status;
     private String visibility;
     private String thumbnail;
@@ -59,6 +60,9 @@ public class RecipeDetailDto {
                         .collect(Collectors.toList()))
                 .cookingTips(recipe.getRecipeCookingTips().stream()
                         .map(RecipeCookingTipDto::fromEntity)
+                        .collect(Collectors.toList()))
+                .ingredientGroups(recipe.getRecipeIngredientGroups().stream()
+                        .map(RecipeIngredientGroupDto::fromEntity)
                         .collect(Collectors.toList()))
                 .status(recipe.getStatus().name())
                 .visibility(recipe.getVisibility().name())

@@ -5,6 +5,8 @@ import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.utils.constants.CommonConstants;
 import com.knusrae.cook.api.domain.entity.CommonCodeDetail;
 import com.knusrae.cook.api.domain.entity.CommonCodeDetailId;
+import com.knusrae.cook.api.domain.entity.RecipeIngredientGroup;
+import com.knusrae.cook.api.domain.entity.RecipeIngredientItem;
 import com.knusrae.cook.api.domain.entity.Recipe;
 import com.knusrae.cook.api.domain.entity.RecipeCategory;
 import com.knusrae.cook.api.domain.entity.RecipeDetail;
@@ -13,6 +15,7 @@ import com.knusrae.cook.api.domain.enums.Status;
 import com.knusrae.cook.api.domain.enums.Visibility;
 import com.knusrae.cook.api.domain.repository.RecipeStepRepository;
 import com.knusrae.cook.api.domain.repository.CommonCodeDetailRepository;
+import com.knusrae.cook.api.domain.repository.RecipeIngredientGroupRepository;
 import com.knusrae.cook.api.dto.*;
 import com.knusrae.cook.api.domain.repository.RecipeImageRepository;
 import com.knusrae.cook.api.domain.repository.RecipeRepository;
@@ -45,6 +48,7 @@ public class RecipeService {
     private final MemberRepository memberRepository;
     private final EntityManager entityManager;
     private final RecipeCommentRepository recipeCommentRepository;
+    private final RecipeIngredientGroupRepository recipeIngredientGroupRepository;
 
     // CREATE - 레시피 생성
     @Transactional
@@ -52,9 +56,12 @@ public class RecipeService {
         Recipe recipe = recipeDto.toEntity();
         Recipe savedRecipe = recipeRepository.save(recipe);
 
-        // 0) 카테고리 저장
+        // 0) 카테고리 및 요리팁 저장
         saveRecipeCategories(savedRecipe, recipeDto.getCategories());
         saveRecipeCookingTips(savedRecipe, recipeDto.getCookingTips());
+
+        // 0-1) 준비물 저장
+        saveIngredientGroups(savedRecipe, recipeDto.getIngredientGroups());
 
         // 1) 조리 단계 저장 및 순서 목록 확보
         List<RecipeDetail> savedDetails = new ArrayList<>();
@@ -166,6 +173,59 @@ public class RecipeService {
         addFunction.accept(recipeCategory);
     }
 
+    private void saveIngredientGroups(Recipe recipe, List<RecipeIngredientGroupDto> ingredientGroupDtos) {
+        if (ingredientGroupDtos == null || ingredientGroupDtos.isEmpty()) {
+            return;
+        }
+
+        for (RecipeIngredientGroupDto groupDto : ingredientGroupDtos) {
+            // 그룹 타입에 대한 CommonCodeDetail 조회
+            CommonCodeDetail typeDetail = null;
+            if (groupDto.getDetailCodeId() != null && !groupDto.getDetailCodeId().isEmpty()) {
+                // 프론트엔드에서 전달된 detailCodeId를 사용
+                CommonCodeDetailId typeId = new CommonCodeDetailId(groupDto.getCodeId(), groupDto.getDetailCodeId());
+                
+                typeDetail = commonCodeDetailRepository.findById(typeId)
+                        .orElseThrow(() -> new IllegalArgumentException(
+                            "존재하지 않는 재료 타입입니다. codeId: " + groupDto.getCodeId() + ", detailCodeId: " + groupDto.getDetailCodeId()));
+            }
+
+            // RecipeIngredientGroup 생성
+            RecipeIngredientGroup group = RecipeIngredientGroup.builder()
+                    .typeDetail(typeDetail)
+                    .groupOrder(groupDto.getOrder())
+                    .build();
+            
+            recipe.addRecipeIngredientGroup(group);
+            recipeIngredientGroupRepository.save(group);
+
+            // RecipeIngredientItem 저장
+            if (groupDto.getItems() != null && !groupDto.getItems().isEmpty()) {
+                for (RecipeIngredientItemDto itemDto : groupDto.getItems()) {
+                    // 단위에 대한 CommonCodeDetail 조회
+                    CommonCodeDetail unitDetail = null;
+                    if (itemDto.getDetailCodeId() != null && !itemDto.getDetailCodeId().isEmpty()) {
+                        // 프론트엔드에서 전달된 detailCodeId를 사용
+                        CommonCodeDetailId unitId = new CommonCodeDetailId(itemDto.getCodeId(), itemDto.getDetailCodeId());
+                        unitDetail = commonCodeDetailRepository.findById(unitId)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                    "존재하지 않는 단위입니다. codeId: " + itemDto.getCodeId() + ", detailCodeId: " + itemDto.getDetailCodeId()));
+                    }
+
+                    // RecipeIngredientItem 생성
+                    RecipeIngredientItem item = RecipeIngredientItem.builder()
+                            .name(itemDto.getName())
+                            .quantity(itemDto.getQuantity())
+                            .unitDetail(unitDetail)
+                            .itemOrder(itemDto.getOrder())
+                            .build();
+                    
+                    group.addItem(item);
+                }
+            }
+        }
+    }
+
     private void validateImage(MultipartFile file) {
         long max = 10 * 1024 * 1024; // 10MB
         if (file.getSize() > max) throw new IllegalArgumentException("파일이 너무 큽니다.");
@@ -255,10 +315,11 @@ public class RecipeService {
         // 3) 기존 조리 단계 삭제
         recipeStepRepository.deleteAllByRecipe(recipe);
 
-        // 4) 기존 카테고리 및 요리팁 삭제
+        // 4) 기존 카테고리, 요리팁, 준비물 삭제
         // orphanRemoval=true가 제대로 작동하도록 명시적으로 clear 후 flush
         recipe.clearCategories();
         recipe.clearCookingTips();
+        recipe.clearRecipeIngredientGroups();
         entityManager.flush(); // 영속성 컨텍스트를 DB에 동기화하여 삭제 완료
 
         // 5) 레시피 기본 정보 업데이트
@@ -272,9 +333,10 @@ public class RecipeService {
                 visibilityValue
         );
 
-        // 6) 카테고리 저장
+        // 6) 카테고리, 요리팁, 준비물 저장
         saveRecipeCategories(recipe, recipeDto.getCategories());
         saveRecipeCookingTips(recipe, recipeDto.getCookingTips());
+        saveIngredientGroups(recipe, recipeDto.getIngredientGroups());
 
         // 7) 조리 단계 저장 및 순서 목록 확보
         java.util.List<RecipeDetail> savedDetails = new java.util.ArrayList<>();

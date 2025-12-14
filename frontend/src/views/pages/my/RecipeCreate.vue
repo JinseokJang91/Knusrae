@@ -74,9 +74,15 @@
                         <div class="flex items-center gap-3 flex-1">
                             <div class="font-medium text-gray-700">그룹 {{ groupIndex + 1 }}</div>
                             <div class="flex-1 max-w-xs">
-                                <Select 
+                                <Message v-if="ingredientTypesError" severity="error" :closable="false" class="mb-2">
+                                    {{ ingredientTypesError }}
+                                </Message>
+                                <div v-else-if="ingredientTypesLoading" class="p-2 text-sm text-gray-500">
+                                    로딩 중...
+                                </div>
+                                <Select v-else
                                     v-model="group.type" 
-                                    :options="ingredientTypeOptions" 
+                                    :options="getIngredientTypeOptions()" 
                                     optionLabel="label" 
                                     optionValue="value"
                                     placeholder="주제를 선택하세요"
@@ -84,6 +90,7 @@
                                     :class="{ 'border-red-500': validationErrors[`group-type-${group.id}`] }"
                                     @change="clearValidationError(`group-type-${group.id}`)"
                                     filter
+                                    showClear
                                 />
                             </div>
                         </div>
@@ -122,9 +129,15 @@
                             </div>
                             <div>
                                 <label class="block mb-2 text-sm">단위</label>
-                                <Select 
+                                <Message v-if="unitsError" severity="error" :closable="false" class="mb-2 text-xs">
+                                    {{ unitsError }}
+                                </Message>
+                                <div v-else-if="unitsLoading" class="p-2 text-xs text-gray-500">
+                                    로딩 중...
+                                </div>
+                                <Select v-else
                                     v-model="item.unit" 
-                                    :options="unitOptions" 
+                                    :options="getUnitOptions()" 
                                     optionLabel="label" 
                                     optionValue="value"
                                     placeholder="단위를 선택하세요"
@@ -132,6 +145,7 @@
                                     :class="{ 'border-red-500': validationErrors[`item-unit-${item.id}`] }"
                                     @change="clearValidationError(`item-unit-${item.id}`)"
                                     filter
+                                    showClear
                                 />
                             </div>
                         </div>
@@ -315,6 +329,7 @@ import Message from 'primevue/message';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
 import { useToast } from 'primevue/usetoast';
+import { Image } from 'primevue';
 
 const router = useRouter();
 const toast = useToast();
@@ -373,6 +388,12 @@ const categoryOptions = ref<CommonCodeOption[]>([]);
 const cookingTipsLoading = ref(false);
 const cookingTipsError = ref<string | null>(null);
 const cookingTipsOptions = ref<CommonCodeOption[]>([]);
+const ingredientTypesLoading = ref(false);
+const ingredientTypesError = ref<string | null>(null);
+const ingredientTypeOptions = ref<CommonCodeOption[]>([]);
+const unitsLoading = ref(false);
+const unitsError = ref<string | null>(null);
+const unitOptions = ref<CommonCodeOption[]>([]);
 const thumbnailInputRef = ref<HTMLInputElement | null>(null);
 const stepInputRefs = ref<Record<string, HTMLInputElement>>({});
 const titleInputRef = ref<InstanceType<typeof InputText> | null>(null);
@@ -387,34 +408,6 @@ const visibilityOptions = [
 const statusOptions = [
     { label: '초안', value: 'DRAFT' },
     { label: '발행', value: 'PUBLISHED' }
-];
-
-const ingredientTypeOptions = [
-    { label: '재료', value: 'INGREDIENT' },
-    { label: '양념', value: 'SEASONING' },
-    { label: '조리도구', value: 'TOOL' },
-    { label: '기타', value: 'OTHER' }
-];
-
-const unitOptions = [
-    { label: 'g (그램)', value: 'g' },
-    { label: 'kg (킬로그램)', value: 'kg' },
-    { label: 'ml (밀리리터)', value: 'ml' },
-    { label: 'L (리터)', value: 'L' },
-    { label: '개', value: '개' },
-    { label: '마리', value: '마리' },
-    { label: '잔', value: '잔' },
-    { label: '큰술', value: '큰술' },
-    { label: '작은술', value: '작은술' },
-    { label: '컵', value: '컵' },
-    { label: '봉지', value: '봉지' },
-    { label: '팩', value: '팩' },
-    { label: '줄기', value: '줄기' },
-    { label: '쪽', value: '쪽' },
-    { label: '장', value: '장' },
-    { label: '조각', value: '조각' },
-    { label: '토막', value: '토막' },
-    { label: '적당량', value: '적당량' }
 ];
 
 const form = reactive<RecipeDraft>({
@@ -578,7 +571,7 @@ function focusFirstError(field: string): void {
 }
 
 // 공통 코드 로딩
-async function loadCommonCodes(codeGroup: 'CATEGORY' | 'COOKINGTIP'): Promise<CommonCodeOption[]> {
+async function loadCommonCodes(codeGroup: 'CATEGORY' | 'COOKINGTIP' | 'INGREDIENTS_GROUP' | 'INGREDIENTS_UNIT'): Promise<CommonCodeOption[]> {
     try {
         const response = await httpJson(
             import.meta.env.VITE_API_BASE_URL_COOK,
@@ -626,6 +619,44 @@ async function loadCookingTipsOptions(): Promise<void> {
     }
 }
 
+async function loadIngredientTypeOptions(): Promise<void> {
+    ingredientTypesLoading.value = true;
+    ingredientTypesError.value = null;
+    try {
+        // codeId 파라미터로 INGREDIENTS으로 시작하는 코드들을 조회
+        const response = await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/common-codes?codeId=INGREDIENTS_GROUP`,
+            { method: 'GET' }
+        );
+        ingredientTypeOptions.value = Array.isArray(response) ? response : [];
+        console.log('재료 타입 옵션:', ingredientTypeOptions.value);
+    } catch (e) {
+        ingredientTypesError.value = '재료 타입 정보를 불러오지 못했습니다.';
+    } finally {
+        ingredientTypesLoading.value = false;
+    }
+}
+
+async function loadUnitOptions(): Promise<void> {
+    unitsLoading.value = true;
+    unitsError.value = null;
+    try {
+        // codeId 파라미터로 INGREDIEN으로 시작하는 단위 코드들을 조회
+        const response = await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/common-codes?codeId=INGREDIENTS_UNIT`,
+            { method: 'GET' }
+        );
+        unitOptions.value = Array.isArray(response) ? response : [];
+        console.log('단위 옵션:', unitOptions.value);
+    } catch (e) {
+        unitsError.value = '단위 정보를 불러오지 못했습니다.';
+    } finally {
+        unitsLoading.value = false;
+    }
+}
+
 async function loadMemberInfo(): Promise<void> {
     const memberInfo = await fetchMemberInfo();
     if (memberInfo) {
@@ -642,6 +673,34 @@ function getCommonCodeDetailOptions(option: CommonCodeOption) {
             value: detail.detailCodeId
         }))
     ];
+}
+
+// 재료 타입 옵션 변환
+function getIngredientTypeOptions() {
+    if (!ingredientTypeOptions.value || ingredientTypeOptions.value.length === 0) {
+        return [];
+    }
+    // 모든 code를 평탄화하여 옵션으로 변환
+    return ingredientTypeOptions.value.flatMap(option => 
+        option.details.map(detail => ({
+            label: detail.codeName,
+            value: detail.detailCodeId // detail의 고유 ID를 사용해야 함
+        }))
+    );
+}
+
+// 단위 옵션 변환
+function getUnitOptions() {
+    if (!unitOptions.value || unitOptions.value.length === 0) {
+        return [];
+    }
+    // 모든 code를 평탄화하여 옵션으로 변환
+    return unitOptions.value.flatMap(option => 
+        option.details.map(detail => ({
+            label: detail.codeName,
+            value: detail.detailCodeId // detail의 고유 ID를 사용해야 함
+        }))
+    );
 }
 
 // 준비물 관련 함수
@@ -789,15 +848,18 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
 
     const ingredientGroups = form.ingredientGroups
         .filter((group) => group.type && group.items.length > 0)
-        .map((group) => ({
-            type: group.type,
+        .map((group, groupIdx) => ({
+            codeId: 'INGREDIENTS_GROUP',
+            detailCodeId: group.type,
+            order: groupIdx + 1,
             items: group.items
                 .filter((item) => item.name.trim() && item.quantity !== null && item.quantity > 0 && item.unit)
                 .map((item, idx) => ({
                     order: idx + 1,
                     name: item.name.trim(),
                     quantity: item.quantity!,
-                    unit: item.unit
+                    codeId: 'INGREDIENTS_UNIT',
+                    detailCodeId: item.unit
                 }))
         }))
         .filter((group) => group.items.length > 0);
@@ -920,6 +982,8 @@ function goBack(): void {
 onMounted(() => {
     loadCategoryOptions();
     loadCookingTipsOptions();
+    loadIngredientTypeOptions();
+    loadUnitOptions();
     loadMemberInfo();
 });
 </script>

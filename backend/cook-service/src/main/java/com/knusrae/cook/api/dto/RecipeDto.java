@@ -29,6 +29,8 @@ public class RecipeDto {
     
     private List<RecipeCookingTipDto> cookingTips = new java.util.ArrayList<>();
 
+    private List<RecipeIngredientGroupDto> ingredientGroups = new java.util.ArrayList<>();
+
     private String status;
     private String visibility;
     private String thumbnail;
@@ -89,6 +91,9 @@ public class RecipeDto {
         this.cookingTips = recipe.getRecipeCookingTips().stream()
                 .map(RecipeCookingTipDto::fromEntity)
                 .toList();
+        this.ingredientGroups = recipe.getRecipeIngredientGroups().stream()
+                .map(RecipeIngredientGroupDto::fromEntity)
+                .toList();
     }
 
     @Builder
@@ -126,6 +131,13 @@ public class RecipeDto {
             categories = new java.util.ArrayList<>();
         }
         return categories;
+    }
+
+    public List<RecipeIngredientGroupDto> getIngredientGroups() {
+        if (ingredientGroups == null) {
+            ingredientGroups = new java.util.ArrayList<>();
+        }
+        return ingredientGroups;
     }
 
     // 생성용 DTO

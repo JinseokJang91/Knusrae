@@ -21,5 +21,13 @@ public class CommonConstants {
      * 공통코드 - 코드그룹 : COOKINGTIP
      */
     public static final String COMMON_CODE_GROUP_COOKINGTIP = "COOKINGTIP";
+    /**
+     * 공통코드 - 코드ID : INGREDIENTS_GROUP
+     */
+    public static final String COMMON_CODE_ID_INGREDIENTS_GROUP = "INGREDIENTS_GROUP";
+    /**
+     * 공통코드 - 코드ID : INGREDIENTS_UNIT
+     */
+    public static final String COMMON_CODE_ID_INGREDIENTS_UNIT = "INGREDIENTS_UNIT";
 
 }

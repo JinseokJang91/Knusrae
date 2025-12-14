@@ -1,10 +1,7 @@
 package com.knusrae.cook.api.dto;
 
 import com.knusrae.cook.api.domain.entity.CommonCode;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import com.knusrae.cook.api.domain.entity.CommonCodeDetail;
 
@@ -15,6 +12,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class CommonCodeResponse {
 
     private String codeId;

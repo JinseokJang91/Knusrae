@@ -88,6 +88,11 @@ public class Recipe {
     @Builder.Default
     private List<RecipeCategory> recipeCookingTips = new ArrayList<>();
 
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("groupOrder ASC")
+    @Builder.Default
+    private List<RecipeIngredientGroup> recipeIngredientGroups = new ArrayList<>();
+
     // 업데이트 메서드
     public void updateRecipe(String title, String description, Status status, Visibility visibility) {
         this.title = title;
@@ -138,6 +143,15 @@ public class Recipe {
     
     public void clearCookingTips() {
         this.recipeCookingTips.clear();
+    }
+
+    public void addRecipeIngredientGroup(RecipeIngredientGroup recipeIngredientGroup) {
+        this.recipeIngredientGroups.add(recipeIngredientGroup);
+        recipeIngredientGroup.setRecipe(this);
+    }
+
+    public void clearRecipeIngredientGroups() {
+        this.recipeIngredientGroups.clear();
     }
 
     public void setThumbnailUrl(String thumbnailUrl) {
