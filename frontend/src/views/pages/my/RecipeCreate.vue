@@ -7,10 +7,21 @@
             </div>
         </div>
 
+        <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r">
+            <p class="text-gray-700 italic">
+                셰프님이 누군가를 위해 정성들인 이 요리처럼, 레시피에서도 셰프님의 따뜻한 정성을 보여주세요.
+            </p>
+        </div>
+
         <div class="flex flex-col gap-6">
             <!-- 기본 정보: 대표 사진, 제목, 소개 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
-                <h3 class="text-lg font-semibold mb-4 text-green-600">기본 정보</h3>
+                <div class="flex items-center gap-1 mb-1">
+                    <h3 class="text-xl font-semibold text-green-600">
+                        <span class="mr-1">기본 정보</span>
+                        <i class="pi pi-question-circle help-button" @click="showGuide('basic')" style="cursor: pointer;"/>
+                    </h3>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div class="md:col-span-2">
                         <label class="block mb-2 font-medium"><b>대표 사진</b></label>
@@ -23,17 +34,15 @@
                                 <span class="pi pi-image text-4xl block mb-2"></span>
                                 <span class="text-sm">이미지를 클릭하여 추가하세요</span>
                             </div>
-                            <div v-else class="relative w-full h-full">
+                            <div v-else class="group relative w-full h-full">
                                 <img :src="form.thumbnailPreview" alt="thumbnail preview" class="w-full h-full object-cover rounded-md" />
-                                <Button 
-                                    icon="pi pi-times"
-                                    severity="danger"
-                                    rounded
-                                    size="small"
-                                    class="absolute top-2 right-2"
+                                <button 
+                                    class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                     @click.stop="clearThumbnail"
                                     :disabled="submitting"
-                                />
+                                >
+                                    <span class="pi pi-times"></span>
+                                </button>
                             </div>
                         </div>
                         <p class="text-sm text-gray-500 mt-1">등록 시 썸네일이 대표 이미지로 사용됩니다.</p>
@@ -62,7 +71,12 @@
             <!-- 준비물 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-green-600">준비물</h3>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-xl font-semibold text-green-600">
+                            <span class="mr-1">준비물</span>
+                            <i class="pi pi-question-circle help-button" @click="showGuide('ingredients')" style="cursor: pointer;"/>
+                        </h3>
+                    </div>
                     <Button label="그룹 추가" icon="pi pi-plus" @click="addIngredientGroup" :disabled="submitting" />
                 </div>
                 <div v-if="form.ingredientGroups.length === 0" class="p-3 text-gray-500 border rounded">
@@ -155,7 +169,12 @@
 
             <!-- 분류 정보: 카테고리, 요리팁 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
-                <h3 class="text-lg font-semibold mb-4 text-green-600">분류 정보</h3>
+                <div class="flex items-center gap-1 mb-1">
+                    <h3 class="text-xl font-semibold text-green-600">
+                        <span class="mr-1">분류 정보</span>
+                        <i class="pi pi-question-circle help-button" @click="showGuide('classification')" style="cursor: pointer;"/>
+                    </h3>
+                </div>
                 <div class="flex flex-col gap-6">
                     <div>
                         <label class="block mb-2 font-medium"><b>카테고리</b></label>
@@ -216,7 +235,12 @@
             <!-- 조리 순서 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-green-600">조리 순서</h3>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-xl font-semibold text-green-600">
+                            <span class="mr-1">조리 순서</span>
+                            <i class="pi pi-question-circle help-button" @click="showGuide('steps')" style="cursor: pointer;"/>
+                        </h3>
+                    </div>
                     <div data-step-add-button>
                         <Button label="단계 추가" icon="pi pi-plus" @click="addStep" :disabled="submitting" />
                     </div>
@@ -254,17 +278,15 @@
                                     <span class="pi pi-image text-4xl block mb-2"></span>
                                     <span class="text-sm">이미지를 클릭하여 추가하세요</span>
                                 </div>
-                                <div v-else class="relative w-full h-full">
+                                <div v-else class="group relative w-full h-full">
                                     <img :src="step.previewUrl" alt="step preview" class="w-full h-full object-cover rounded-md" />
-                                    <Button 
-                                        icon="pi pi-times"
-                                        severity="danger"
-                                        rounded
-                                        size="small"
-                                        class="absolute top-2 right-2"
+                                    <button 
+                                        class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                         @click.stop="clearStepImage(step)"
                                         :disabled="submitting"
-                                    />
+                                    >
+                                        <span class="pi pi-times"></span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -285,7 +307,12 @@
 
             <!-- 설정 및 저장 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
-                <h3 class="text-lg font-semibold mb-4 text-green-600">설정 및 저장</h3>
+                <div class="flex items-center gap-1 mb-1">
+                    <h3 class="text-xl font-semibold text-green-600">
+                        <span class="mr-1">설정 및 저장</span>
+                        <i class="pi pi-question-circle help-button" @click="showGuide('settings')" style="cursor: pointer;"/>
+                    </h3>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                         <label class="block mb-2 font-medium"><b>공개 여부</b></label>
@@ -309,7 +336,6 @@
                     </div>
                 </div>
                 <div class="flex justify-end gap-2">
-                    <Button label="초안 저장" icon="pi pi-save" severity="secondary" @click="saveAsDraft" :disabled="submitting" />
                     <Button label="등록" icon="pi pi-check" severity="success" @click="submit" :disabled="submitting" />
                 </div>
             </div>
@@ -320,8 +346,8 @@
 <script setup lang="ts">
 import { httpForm, httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
-import { nextTick, onMounted, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import Button from 'primevue/button';
 import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
@@ -329,9 +355,11 @@ import Message from 'primevue/message';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
 import { useToast } from 'primevue/usetoast';
+import { useConfirm } from 'primevue/useconfirm';
 
 const router = useRouter();
 const toast = useToast();
+const confirm = useConfirm();
 
 // 타입 정의
 interface RecipeStepDraft {
@@ -397,6 +425,8 @@ const thumbnailInputRef = ref<HTMLInputElement | null>(null);
 const stepInputRefs = ref<Record<string, HTMLInputElement>>({});
 const titleInputRef = ref<InstanceType<typeof InputText> | null>(null);
 const validationErrors = ref<Record<string, boolean>>({});
+const hasUnsavedChanges = ref(false);
+const isSubmitSuccessful = ref(false);
 
 // 옵션 데이터
 const visibilityOptions = [
@@ -881,34 +911,6 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
     };
 }
 
-async function saveAsDraft(): Promise<void> {
-    submitting.value = true;
-    try {
-        const payload = buildRecipePayload('DRAFT');
-        await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe/draft', {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
-
-        toast.add({
-            severity: 'success',
-            summary: '저장 완료',
-            detail: '초안이 저장되었습니다.',
-            life: 3000
-        });
-    } catch (e) {
-        console.error(e);
-        toast.add({
-            severity: 'error',
-            summary: '저장 실패',
-            detail: '초안 저장 중 오류가 발생했습니다.',
-            life: 3000
-        });
-    } finally {
-        submitting.value = false;
-    }
-}
-
 async function submit(): Promise<void> {
     const validation = validateForm();
     if (!validation.valid) {
@@ -954,6 +956,9 @@ async function submit(): Promise<void> {
             method: 'POST' 
         });
 
+        // 등록 성공 시 페이지 이탈 방지 해제
+        isSubmitSuccessful.value = true;
+
         toast.add({
             severity: 'success',
             summary: '등록 완료',
@@ -979,6 +984,66 @@ function goBack(): void {
     router.push('/my/recipes');
 }
 
+// 가이드 표시 (추후 구현)
+function showGuide(section: 'basic' | 'ingredients' | 'classification' | 'steps' | 'settings'): void {
+    console.log('Show guide for:', section);
+    // TODO: 모달/팝업으로 가이드 표시
+}
+
+// 페이지 이탈 방지
+watch(
+    () => [
+        form.title,
+        form.description,
+        form.thumbnailFile,
+        form.steps.length,
+        form.ingredientGroups.length,
+        JSON.stringify(form.categories),
+        JSON.stringify(form.cookingTips)
+    ],
+    () => {
+        // 어떤 필드라도 변경되면 unsaved changes로 표시
+        if (form.title || form.description || form.thumbnailFile || 
+            form.steps.length > 0 || form.ingredientGroups.length > 0 ||
+            Object.values(form.categories).some(v => v) ||
+            Object.values(form.cookingTips).some(v => v)) {
+            hasUnsavedChanges.value = true;
+        }
+    },
+    { deep: true }
+);
+
+// 브라우저 새로고침/닫기 방지
+function handleBeforeUnload(e: BeforeUnloadEvent): void {
+    if (hasUnsavedChanges.value && !isSubmitSuccessful.value) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+}
+
+// Vue Router 페이지 이탈 방지
+onBeforeRouteLeave((_to, _from, next) => {
+    if (!hasUnsavedChanges.value || isSubmitSuccessful.value) {
+        next();
+        return;
+    }
+
+    confirm.require({
+        message: '작성 중인 내용이 있습니다. 페이지를 나가시겠습니까?',
+        header: '레시피 등록 나가기',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: '취소',
+        acceptLabel: '나가기',
+        acceptClass: 'p-button-danger',
+        accept: () => {
+            next();
+        },
+        reject: () => {
+            next(false);
+        }
+    });
+});
+
 // 초기화
 onMounted(() => {
     loadCategoryOptions();
@@ -986,6 +1051,14 @@ onMounted(() => {
     loadIngredientsGroupOptions();
     loadIngredientsUnitOptions();
     loadMemberInfo();
+    
+    // beforeunload 이벤트 리스너 등록
+    window.addEventListener('beforeunload', handleBeforeUnload);
+});
+
+onBeforeUnmount(() => {
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>
 
@@ -1001,5 +1074,15 @@ onMounted(() => {
 :deep(.p-select.border-red-500 .p-inputtext) {
     border-color: #ef4444 !important;
     box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.2) !important;
+}
+
+.help-button {
+    color: #16a34a;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.help-button:hover {
+    opacity: 1;
 }
 </style>

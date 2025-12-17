@@ -22,6 +22,11 @@
         </div>
 
         <div v-else class="grid grid-cols-1 gap-4">
+            <div class="mb-4 p-4 bg-green-50 border-l-4 border-green-500 rounded-r">
+                <p class="text-gray-700 italic">
+                    셰프님이 누군가를 위해 정성들인 이 요리처럼, 레시피에서도 셰프님의 따뜻한 정성을 보여주세요.
+                </p>
+            </div>
 
             <!-- 썸네일 및 기본 정보 -->
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -309,12 +314,14 @@
 
 <script setup lang="ts">
 import { httpForm, httpJson } from '@/utils/http';
-import { computed, onMounted, reactive, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
+import { useConfirm } from 'primevue/useconfirm';
 
 const router = useRouter();
 const route = useRoute();
 const recipeId = computed(() => Number(route.params.id));
+const confirm = useConfirm();
 
 interface RecipeStepDraft {
     id: string;
@@ -379,6 +386,9 @@ const unitsError = ref<string | null>(null);
 const unitOptions = ref<CommonCodeOption[]>([]);
 const thumbnailInputRef = ref<HTMLInputElement | null>(null);
 const stepInputRefs = ref<Record<string, HTMLInputElement>>({});
+const hasUnsavedChanges = ref(false);
+const isSubmitSuccessful = ref(false);
+const originalFormData = ref<string>('');
 
 const form = reactive<RecipeDraft>({
     title: '',
@@ -414,6 +424,9 @@ onMounted(() => {
         initialLoading.value = false;
     };
     initializeRecipeEdit();
+    
+    // beforeunload 이벤트 리스너 등록
+    window.addEventListener('beforeunload', handleBeforeUnload);
 });
 
 async function loadRecipeData() {
@@ -478,6 +491,19 @@ async function loadRecipeData() {
                 };
             });
         }
+
+        // 원본 데이터 저장 (변경 감지용)
+        originalFormData.value = JSON.stringify({
+            title: form.title,
+            description: form.description,
+            status: form.status,
+            visibility: form.visibility,
+            thumbnailPreview: form.thumbnailPreview,
+            steps: form.steps.map(s => ({ text: s.text, existingImageUrl: s.existingImageUrl })),
+            ingredientGroups: form.ingredientGroups,
+            categories: form.categories,
+            cookingTips: form.cookingTips
+        });
     } catch (e) {
         console.error('레시피 정보를 불러오지 못했습니다.', e);
         error.value = '레시피 정보를 불러오지 못했습니다.';
@@ -854,6 +880,9 @@ async function submit() {
         // 실제 API 엔드포인트로 전송 (토큰 자동 첨부) - PUT 메서드로 수정
         await httpForm(import.meta.env.VITE_API_BASE_URL_COOK, `/api/recipe/${recipeId.value}`, formData, { method: 'PUT' });
 
+        // 수정 성공 시 페이지 이탈 방지 해제
+        isSubmitSuccessful.value = true;
+
         alert('수정이 완료되었습니다.');
         router.push('/my/recipes');
     } catch (e) {
@@ -863,6 +892,81 @@ async function submit() {
         submitting.value = false;
     }
 }
+
+// 페이지 이탈 방지
+watch(
+    () => [
+        form.title,
+        form.description,
+        form.status,
+        form.visibility,
+        form.thumbnailFile,
+        form.steps.length,
+        form.ingredientGroups.length,
+        JSON.stringify(form.categories),
+        JSON.stringify(form.cookingTips)
+    ],
+    () => {
+        // 초기 로딩이 완료되고 원본 데이터가 있을 때만 비교
+        if (originalFormData.value && !initialLoading.value) {
+            const original = JSON.parse(originalFormData.value);
+            
+            // 파일 변경 감지
+            const hasFileChange = Boolean(form.thumbnailFile) || form.steps.some(s => s.file);
+            
+            // 데이터 변경 감지
+            const hasDataChange = 
+                form.title !== original.title ||
+                form.description !== original.description ||
+                form.status !== original.status ||
+                form.visibility !== original.visibility ||
+                JSON.stringify(form.categories) !== JSON.stringify(original.categories) ||
+                JSON.stringify(form.cookingTips) !== JSON.stringify(original.cookingTips) ||
+                JSON.stringify(form.ingredientGroups) !== JSON.stringify(original.ingredientGroups) ||
+                form.steps.length !== original.steps.length ||
+                form.steps.some((s, i) => s.text !== original.steps[i]?.text);
+            
+            hasUnsavedChanges.value = hasFileChange || hasDataChange;
+        }
+    },
+    { deep: true }
+);
+
+// 브라우저 새로고침/닫기 방지
+function handleBeforeUnload(e: BeforeUnloadEvent): void {
+    if (hasUnsavedChanges.value && !isSubmitSuccessful.value) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+}
+
+// Vue Router 페이지 이탈 방지
+onBeforeRouteLeave((_to, _from, next) => {
+    if (!hasUnsavedChanges.value || isSubmitSuccessful.value) {
+        next();
+        return;
+    }
+
+    confirm.require({
+        message: '수정 중인 내용이 있습니다. 페이지를 나가시겠습니까?',
+        header: '레시피 수정 나가기',
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: '취소',
+        acceptLabel: '나가기',
+        acceptClass: 'p-button-danger',
+        accept: () => {
+            next();
+        },
+        reject: () => {
+            next(false);
+        }
+    });
+});
+
+onBeforeUnmount(() => {
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+});
 
 </script>
 
