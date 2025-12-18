@@ -22,12 +22,12 @@
             <!-- 헤더 섹션 -->
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
                 <!-- 메인 이미지 -->
-                <div class="relative w-full bg-gray-500">
+                <div class="relative w-full h-96 bg-white">
                     <img 
                         v-if="mainImage" 
                         :src="mainImage.url" 
                         :alt="recipe.title"
-                        class="w-3/4 mx-auto h-full object-cover py-4"
+                        class="w-full mx-auto h-full object-cover"
                     />
                     <div v-else class="flex items-center justify-center h-full text-white text-6xl">
                         🍳
@@ -74,47 +74,44 @@
                                 </span>
                             </div>
 
-                            <!-- 요리 정보 (cookingTips) -->
-                            <div v-if="cookingTipsData.servings || cookingTipsData.cookingTime || cookingTipsData.difficulty" class="flex flex-wrap gap-6 mb-4 p-4 bg-gray-50 rounded-lg">
-                                <!-- 인분 수 -->
-                                <div v-if="cookingTipsData.servings" class="flex items-center space-x-2">
-                                    <i class="pi pi-users text-blue-600 text-xl"></i>
-                                    <span class="text-gray-700 font-medium">{{ cookingTipsData.servings }}</span>
-                                </div>
-                                
-                                <!-- 요리 시간 -->
-                                <div v-if="cookingTipsData.cookingTime" class="flex items-center space-x-2">
-                                    <i class="pi pi-clock text-green-600 text-xl"></i>
-                                    <span class="text-gray-700 font-medium">{{ cookingTipsData.cookingTime }}</span>
-                                </div>
-                                
-                                <!-- 난이도 -->
-                                <div v-if="cookingTipsData.difficulty" class="flex items-center space-x-2">
-                                    <i class="pi pi-star text-yellow-600 text-xl"></i>
-                                    <div class="flex items-center space-x-1">
-                                        <i 
-                                            v-for="star in 5" 
-                                            :key="star"
-                                            :class="star <= (cookingTipsData.difficulty || 0) ? 'pi pi-star-fill text-yellow-400' : 'pi pi-star text-gray-300'"
-                                        ></i>
+                            <!-- 레시피 상세 정보-->
+                            <div v-if="cookingTipsData.servings || cookingTipsData.cookingTime || cookingTipsData.difficulty" class="flex items-center justify-between gap-6 mb-4 p-4 bg-gray-50 rounded-lg">
+                                <!-- 요리 정보 (cookingTips) -->
+                                <div class="flex flex-wrap gap-6">
+                                    <!-- 인분 수 -->
+                                    <div v-if="cookingTipsData.servings" class="flex items-center space-x-2">
+                                        <i class="pi pi-users text-blue-600 text-xl"></i>
+                                        <span class="text-gray-700 font-medium">{{ cookingTipsData.servings }}</span>
+                                    </div>
+                                    
+                                    <!-- 요리 시간 -->
+                                    <div v-if="cookingTipsData.cookingTime" class="flex items-center space-x-2">
+                                        <i class="pi pi-clock text-green-600 text-xl"></i>
+                                        <span class="text-gray-700 font-medium">{{ cookingTipsData.cookingTime }}</span>
+                                    </div>
+                                    
+                                    <!-- 난이도 -->
+                                    <div v-if="cookingTipsData.difficulty" class="flex items-center space-x-2">
+                                        <i class="pi pi-star text-yellow-600 text-xl"></i>
+                                        <span class="text-gray-700 font-medium">{{ cookingTipsData.difficulty }}</span>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- 통계 정보 -->
-                        <div class="flex items-center space-x-6 text-gray-600">
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-blue-600">{{ recipe.hits }}</div>
-                                <div class="text-sm">조회수</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-green-600">{{ recipe.stats?.totalComments || 0 }}</div>
-                                <div class="text-sm">댓글</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-yellow-600">{{ recipe.stats?.averageRating?.toFixed(1) || '0.0' }}</div>
-                                <div class="text-sm">평점</div>
+                                <!-- 통계 정보 -->
+                                <div class="flex items-center space-x-6 text-gray-600">
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-blue-600">{{ recipe.hits }}</div>
+                                        <div class="text-sm">조회수</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-green-600">{{ recipe.stats?.totalComments || 0 }}</div>
+                                        <div class="text-sm">댓글</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-yellow-600">{{ recipe.stats?.averageRating?.toFixed(1) || '0.0' }}</div>
+                                        <div class="text-sm">평점</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -122,7 +119,7 @@
                     <!-- 작성자 정보 -->
                     <div class="flex items-center justify-between py-4 border-t border-gray-200">
                         <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                            <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
                                 <img 
                                     v-if="recipe.memberProfileImage" 
                                     :src="recipe.memberProfileImage" 
@@ -132,8 +129,8 @@
                                 <i v-else class="pi pi-user text-gray-600"></i>
                             </div>
                             <div>
-                                <div class="font-medium text-gray-800">{{ recipe.memberNickname || recipe.memberName }}</div>
-                                <div class="text-sm text-gray-500">{{ formatDate(recipe.createdAt) }}</div>
+                                <div class="text-lg font-medium text-gray-800">{{ recipe.memberNickname || recipe.memberName }}</div>
+                                <!-- <div class="text-sm text-gray-500">{{ formatDate(recipe.createdAt) }}</div> -->
                             </div>
                         </div>
                         
@@ -613,6 +610,9 @@ const showImageModal = ref(false);
 const selectedImage = ref<any>(null);
 const selectedImageIndex = ref(0);
 
+// 난이도 공통코드
+const difficultyCodes = ref<Map<string, string>>(new Map());
+
 // 현재 로그인한 사용자 정보 (authStore에서 가져옴)
 const isLoggedIn = computed(() => authStore.isLoggedIn);
 const currentMemberInfo = computed(() => authStore.memberInfo);
@@ -634,12 +634,42 @@ const cookingTipsData = computed(() => {
     const cookingTimeTip = recipe.value.cookingTips.find((tip: any) => tip.codeId === 'COOKING_TIME');
     const difficultyTip = recipe.value.cookingTips.find((tip: any) => tip.codeId === 'DIFFICULTY');
     
+    // 난이도는 detailCodeId를 사용하여 공통코드에서 codeName을 찾음
+    let difficultyText = null;
+    if (difficultyTip) {
+        const detailCodeId = difficultyTip.detailCodeId || difficultyTip.detailName;
+        difficultyText = difficultyCodes.value.get(detailCodeId) || detailCodeId;
+    }
+    
     return {
         servings: servingsTip?.detailName || null,
         cookingTime: cookingTimeTip?.detailName || null,
-        difficulty: difficultyTip ? parseInt(difficultyTip.detailName || '0', 10) : null
+        difficulty: difficultyText
     };
 });
+
+// 난이도 공통코드 로드
+const loadDifficultyCodes = async () => {
+    try {
+        const response = await httpJson(
+            import.meta.env.VITE_API_BASE_URL_COOK,
+            `/api/common-codes?codeGroup=COOKINGTIP`,
+            { method: 'GET' }
+        );
+        
+        const codes = Array.isArray(response) ? response : [];
+        const difficultyCode = codes.find((code: any) => code.codeId === 'DIFFICULTY');
+        
+        if (difficultyCode && difficultyCode.details) {
+            difficultyCodes.value.clear();
+            difficultyCode.details.forEach((detail: any) => {
+                difficultyCodes.value.set(detail.detailCodeId, detail.codeName);
+            });
+        }
+    } catch (err) {
+        console.error('난이도 공통코드 로드 실패:', err);
+    }
+};
 
 // 메서드
 const fetchRecipeDetail = async () => {
@@ -972,6 +1002,9 @@ onMounted(() => {
     const initializePage = async () => {
         // 페이지 진입 즉시 맨 위로 스크롤 (데이터 로딩 전)
         window.scrollTo({ top: 0, behavior: 'instant' });
+        
+        // 난이도 공통코드 로드
+        await loadDifficultyCodes();
         
         // 로그인 여부와 관계없이 레시피 상세 조회
         await fetchRecipeDetail();
