@@ -28,6 +28,12 @@ public class RecipeComment {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "image_storage_key")
+    private String imageStorageKey;
+
     @NotNull
     @Column(nullable = false, name = "member_id")
     private Long memberId;
@@ -47,6 +53,12 @@ public class RecipeComment {
     // 비즈니스 메서드
     public void updateContent(String content) {
         this.content = content;
+    }
+
+    public void updateContentAndImage(String content, String imageUrl, String imageStorageKey) {
+        this.content = content;
+        this.imageUrl = imageUrl;
+        this.imageStorageKey = imageStorageKey;
     }
 
     // 연관관계 편의 메서드

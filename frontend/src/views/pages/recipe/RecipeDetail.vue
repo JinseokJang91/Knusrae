@@ -290,7 +290,35 @@
                                 class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                                 rows="3"
                             ></textarea>
-                            <div class="flex justify-end mt-2">
+                            
+                            <!-- 이미지 미리보기 -->
+                            <div v-if="newCommentImagePreview" class="mt-2 relative inline-block">
+                                <img 
+                                    :src="newCommentImagePreview" 
+                                    alt="미리보기" 
+                                    class="w-24 h-24 object-cover rounded-lg border border-gray-300"
+                                />
+                                <button 
+                                    @click="removeCommentImage"
+                                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                                >
+                                    <i class="pi pi-times text-xs"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="flex justify-between items-center mt-2">
+                                <label class="cursor-pointer">
+                                    <input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        @change="handleCommentImageSelect"
+                                        class="hidden"
+                                    />
+                                    <div class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                                        <i class="pi pi-image"></i>
+                                        <span>이미지 첨부</span>
+                                    </div>
+                                </label>
                                 <button 
                                     @click="submitComment"
                                     :disabled="!newComment.trim()"
@@ -333,7 +361,7 @@
                                 />
                                 <i v-else class="pi pi-user text-gray-600"></i>
                             </div>
-                            <div class="flex-1">
+                            <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center space-x-2">
                                         <span class="font-medium text-gray-800">
@@ -365,24 +393,68 @@
                                         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none mb-2"
                                         rows="2"
                                     ></textarea>
-                                    <div class="flex justify-end space-x-2">
+                                    
+                                    <!-- 이미지 미리보기 (수정 모드) -->
+                                    <div v-if="editingImagePreview" class="mb-2 relative inline-block">
+                                        <img 
+                                            :src="editingImagePreview" 
+                                            alt="미리보기" 
+                                            class="w-24 h-24 object-cover rounded-lg border border-gray-300"
+                                        />
                                         <button 
-                                            @click="cancelEditComment"
-                                            class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                            @click="removeEditImage"
+                                            class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
                                         >
-                                            취소
+                                            <i class="pi pi-times text-xs"></i>
                                         </button>
-                                        <button 
-                                            @click="updateComment(comment.id)"
-                                            :disabled="!editingContent.trim()"
-                                            class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                        >
-                                            수정 완료
-                                        </button>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center">
+                                        <label class="cursor-pointer">
+                                            <input 
+                                                type="file" 
+                                                accept="image/*" 
+                                                @change="handleEditImageSelect"
+                                                class="hidden"
+                                            />
+                                            <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
+                                                <i class="pi pi-image text-sm"></i>
+                                                <span>이미지 변경</span>
+                                            </div>
+                                        </label>
+                                        <div class="flex space-x-2">
+                                            <button 
+                                                @click="cancelEditComment"
+                                                class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                            >
+                                                취소
+                                            </button>
+                                            <button 
+                                                @click="updateComment(comment.id)"
+                                                :disabled="!editingContent.trim()"
+                                                class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                수정 완료
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 <!-- 댓글 내용 (일반 모드) -->
-                                <p v-else class="text-gray-700 mb-2 whitespace-pre-wrap">{{ comment.content }}</p>
+                                <div v-else class="flex items-start gap-4">
+                                    <p class="text-gray-700 mb-2 whitespace-pre-wrap flex-1">{{ comment.content }}</p>
+                                    <!-- 댓글 이미지 -->
+                                    <div 
+                                        v-if="comment.imageUrl" 
+                                        @click="openImageModal({url: comment.imageUrl}, 0)"
+                                        class="w-20 h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity"
+                                    >
+                                        <img 
+                                            :src="comment.imageUrl" 
+                                            alt="댓글 이미지" 
+                                            class="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                </div>
                                 
                                 <!-- 답글 버튼 -->
                                 <button 
@@ -414,20 +486,50 @@
                                     class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                                     rows="2"
                                 ></textarea>
-                                <div class="flex justify-end space-x-2 mt-2">
+                                
+                                <!-- 이미지 미리보기 (답글) -->
+                                <div v-if="replyImagePreview" class="mt-2 relative inline-block">
+                                    <img 
+                                        :src="replyImagePreview" 
+                                        alt="미리보기" 
+                                        class="w-24 h-24 object-cover rounded-lg border border-gray-300"
+                                    />
                                     <button 
-                                        @click="cancelReply"
-                                        class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                        @click="removeReplyImage"
+                                        class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
                                     >
-                                        취소
+                                        <i class="pi pi-times text-xs"></i>
                                     </button>
-                                    <button 
-                                        @click="submitReply(comment.id)"
-                                        :disabled="!replyContent.trim()"
-                                        class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        답글 작성
-                                    </button>
+                                </div>
+                                
+                                <div class="flex justify-between items-center mt-2">
+                                    <label class="cursor-pointer">
+                                        <input 
+                                            type="file" 
+                                            accept="image/*" 
+                                            @change="handleReplyImageSelect"
+                                            class="hidden"
+                                        />
+                                        <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-white text-gray-700 rounded hover:bg-gray-100 transition-colors border border-gray-300">
+                                            <i class="pi pi-image text-sm"></i>
+                                            <span>이미지 첨부</span>
+                                        </div>
+                                    </label>
+                                    <div class="flex space-x-2">
+                                        <button 
+                                            @click="cancelReply"
+                                            class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                        >
+                                            취소
+                                        </button>
+                                        <button 
+                                            @click="submitReply(comment.id)"
+                                            :disabled="!replyContent.trim()"
+                                            class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            답글 작성
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -448,7 +550,7 @@
                                     />
                                     <i v-else class="pi pi-user text-gray-600 text-sm"></i>
                                 </div>
-                                <div class="flex-1">
+                                <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="flex items-center space-x-2">
                                             <span class="font-medium text-gray-800">
@@ -480,24 +582,68 @@
                                             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none mb-2"
                                             rows="2"
                                         ></textarea>
-                                        <div class="flex justify-end space-x-2">
+                                        
+                                        <!-- 이미지 미리보기 (수정 모드) -->
+                                        <div v-if="editingImagePreview" class="mb-2 relative inline-block">
+                                            <img 
+                                                :src="editingImagePreview" 
+                                                alt="미리보기" 
+                                                class="w-24 h-24 object-cover rounded-lg border border-gray-300"
+                                            />
                                             <button 
-                                                @click="cancelEditComment"
-                                                class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                                @click="removeEditImage"
+                                                class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
                                             >
-                                                취소
+                                                <i class="pi pi-times text-xs"></i>
                                             </button>
-                                            <button 
-                                                @click="updateComment(reply.id)"
-                                                :disabled="!editingContent.trim()"
-                                                class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                            >
-                                                수정 완료
-                                            </button>
+                                        </div>
+                                        
+                                        <div class="flex justify-between items-center">
+                                            <label class="cursor-pointer">
+                                                <input 
+                                                    type="file" 
+                                                    accept="image/*" 
+                                                    @change="handleEditImageSelect"
+                                                    class="hidden"
+                                                />
+                                                <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
+                                                    <i class="pi pi-image text-sm"></i>
+                                                    <span>이미지 변경</span>
+                                                </div>
+                                            </label>
+                                            <div class="flex space-x-2">
+                                                <button 
+                                                    @click="cancelEditComment"
+                                                    class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                                >
+                                                    취소
+                                                </button>
+                                                <button 
+                                                    @click="updateComment(reply.id)"
+                                                    :disabled="!editingContent.trim()"
+                                                    class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    수정 완료
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     <!-- 답글 내용 (일반 모드) -->
-                                    <p v-else class="text-gray-700 whitespace-pre-wrap">{{ reply.content }}</p>
+                                    <div v-else class="flex items-start gap-4">
+                                        <p class="text-gray-700 whitespace-pre-wrap flex-1">{{ reply.content }}</p>
+                                        <!-- 답글 이미지 -->
+                                        <div 
+                                            v-if="reply.imageUrl" 
+                                            @click="openImageModal({url: reply.imageUrl}, 0)"
+                                            class="w-20 h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity"
+                                        >
+                                            <img 
+                                                :src="reply.imageUrl" 
+                                                alt="답글 이미지" 
+                                                class="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -584,7 +730,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { httpJson } from '@/utils/http';
+import { httpJson, httpForm } from '@/utils/http';
 import { useConfirm } from 'primevue/useconfirm';
 import { useAuthStore } from '@/stores/authStore';
 import { useToast } from 'primevue/usetoast';
@@ -601,10 +747,17 @@ const error = ref<string | null>(null);
 const recipe = ref<any>(null);
 const comments = ref<any[]>([]);
 const newComment = ref('');
+const newCommentImage = ref<File | null>(null);
+const newCommentImagePreview = ref<string | null>(null);
 const replyContent = ref('');
+const replyImage = ref<File | null>(null);
+const replyImagePreview = ref<string | null>(null);
 const replyingToCommentId = ref<number | null>(null);
 const editingCommentId = ref<number | null>(null);
 const editingContent = ref('');
+const editingImage = ref<File | null>(null);
+const editingImagePreview = ref<string | null>(null);
+const editingRemoveImage = ref(false);
 const isLiked = ref(false);
 const showImageModal = ref(false);
 const selectedImage = ref<any>(null);
@@ -615,7 +768,6 @@ const difficultyCodes = ref<Map<string, string>>(new Map());
 
 // 현재 로그인한 사용자 정보 (authStore에서 가져옴)
 const isLoggedIn = computed(() => authStore.isLoggedIn);
-const currentMemberInfo = computed(() => authStore.memberInfo);
 const currentMemberId = computed(() => authStore.memberInfo?.id || null);
 
 // 계산된 속성
@@ -782,6 +934,43 @@ const shareRecipe = () => {
     }
 };
 
+const handleCommentImageSelect = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (file) {
+        if (!file.type.startsWith('image/')) {
+            toast.add({
+                severity: 'error',
+                summary: '파일 형식 오류',
+                detail: '이미지 파일만 업로드할 수 있습니다.',
+                life: 3000
+            });
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            toast.add({
+                severity: 'error',
+                summary: '파일 크기 초과',
+                detail: '이미지 크기는 5MB 이하여야 합니다.',
+                life: 3000
+            });
+            return;
+        }
+        
+        newCommentImage.value = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            newCommentImagePreview.value = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const removeCommentImage = () => {
+    newCommentImage.value = null;
+    newCommentImagePreview.value = null;
+};
+
 const submitComment = async () => {
     if (!newComment.value.trim()) return;
     
@@ -798,20 +987,39 @@ const submitComment = async () => {
     
     try {
         const recipeId = route.params.id;
-        await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
-            `/api/recipe/comments/${recipeId}`,
-            {
-                method: 'POST',
-                body: JSON.stringify({
-                    memberId: currentMemberId.value,
-                    content: newComment.value,
-                    parentId: null
-                })
-            }
-        );
+        
+        // 이미지가 있으면 multipart/form-data로 전송
+        if (newCommentImage.value) {
+            const formData = new FormData();
+            formData.append('memberId', currentMemberId.value.toString());
+            formData.append('content', newComment.value);
+            formData.append('image', newCommentImage.value);
+            
+            await httpForm(
+                import.meta.env.VITE_API_BASE_URL_COOK,
+                `/api/recipe/comments/${recipeId}/with-image`,
+                formData,
+                { method: 'POST' }
+            );
+        } else {
+            // 이미지가 없으면 JSON으로 전송
+            await httpJson(
+                import.meta.env.VITE_API_BASE_URL_COOK,
+                `/api/recipe/comments/${recipeId}`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        memberId: currentMemberId.value,
+                        content: newComment.value,
+                        parentId: null
+                    })
+                }
+            );
+        }
         
         newComment.value = '';
+        newCommentImage.value = null;
+        newCommentImagePreview.value = null;
         
         // 댓글 목록 다시 불러오기
         await fetchComments();
@@ -819,6 +1027,43 @@ const submitComment = async () => {
         console.error('Comment submission error:', err);
         alert('댓글 작성 중 오류가 발생했습니다.');
     }
+};
+
+const handleReplyImageSelect = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (file) {
+        if (!file.type.startsWith('image/')) {
+            toast.add({
+                severity: 'error',
+                summary: '파일 형식 오류',
+                detail: '이미지 파일만 업로드할 수 있습니다.',
+                life: 3000
+            });
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            toast.add({
+                severity: 'error',
+                summary: '파일 크기 초과',
+                detail: '이미지 크기는 5MB 이하여야 합니다.',
+                life: 3000
+            });
+            return;
+        }
+        
+        replyImage.value = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            replyImagePreview.value = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const removeReplyImage = () => {
+    replyImage.value = null;
+    replyImagePreview.value = null;
 };
 
 const submitReply = async (parentId: number) => {
@@ -837,20 +1082,40 @@ const submitReply = async (parentId: number) => {
     
     try {
         const recipeId = route.params.id;
-        await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
-            `/api/recipe/comments/${recipeId}`,
-            {
-                method: 'POST',
-                body: JSON.stringify({
-                    memberId: currentMemberId.value,
-                    content: replyContent.value,
-                    parentId: parentId
-                })
-            }
-        );
+        
+        // 이미지가 있으면 multipart/form-data로 전송
+        if (replyImage.value) {
+            const formData = new FormData();
+            formData.append('memberId', currentMemberId.value.toString());
+            formData.append('content', replyContent.value);
+            formData.append('parentId', parentId.toString());
+            formData.append('image', replyImage.value);
+            
+            await httpForm(
+                import.meta.env.VITE_API_BASE_URL_COOK,
+                `/api/recipe/comments/${recipeId}/with-image`,
+                formData,
+                { method: 'POST' }
+            );
+        } else {
+            // 이미지가 없으면 JSON으로 전송
+            await httpJson(
+                import.meta.env.VITE_API_BASE_URL_COOK,
+                `/api/recipe/comments/${recipeId}`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        memberId: currentMemberId.value,
+                        content: replyContent.value,
+                        parentId: parentId
+                    })
+                }
+            );
+        }
         
         replyContent.value = '';
+        replyImage.value = null;
+        replyImagePreview.value = null;
         replyingToCommentId.value = null;
         
         // 댓글 목록 다시 불러오기
@@ -885,36 +1150,104 @@ const toggleReplyForm = (commentId: number) => {
 const cancelReply = () => {
     replyingToCommentId.value = null;
     replyContent.value = '';
+    replyImage.value = null;
+    replyImagePreview.value = null;
 };
 
 const startEditComment = (comment: any) => {
     editingCommentId.value = comment.id;
     editingContent.value = comment.content;
+    editingImagePreview.value = comment.imageUrl || null;
+    editingRemoveImage.value = false;
 };
 
 const cancelEditComment = () => {
     editingCommentId.value = null;
     editingContent.value = '';
+    editingImage.value = null;
+    editingImagePreview.value = null;
+    editingRemoveImage.value = false;
+};
+
+const handleEditImageSelect = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (file) {
+        if (!file.type.startsWith('image/')) {
+            toast.add({
+                severity: 'error',
+                summary: '파일 형식 오류',
+                detail: '이미지 파일만 업로드할 수 있습니다.',
+                life: 3000
+            });
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            toast.add({
+                severity: 'error',
+                summary: '파일 크기 초과',
+                detail: '이미지 크기는 5MB 이하여야 합니다.',
+                life: 3000
+            });
+            return;
+        }
+        
+        editingImage.value = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            editingImagePreview.value = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+        editingRemoveImage.value = false;
+    }
+};
+
+const removeEditImage = () => {
+    editingImage.value = null;
+    editingImagePreview.value = null;
+    editingRemoveImage.value = true;
 };
 
 const updateComment = async (commentId: number) => {
     if (!editingContent.value.trim()) return;
     
     try {
-        await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
-            `/api/recipe/comments/${commentId}`,
-            {
-                method: 'PUT',
-                body: JSON.stringify({
-                    memberId: currentMemberId.value,
-                    content: editingContent.value
-                })
+        // 이미지가 변경되었거나 제거된 경우
+        if (editingImage.value || editingRemoveImage.value) {
+            const formData = new FormData();
+            formData.append('memberId', currentMemberId.value!.toString());
+            formData.append('content', editingContent.value);
+            formData.append('removeImage', editingRemoveImage.value.toString());
+            if (editingImage.value) {
+                formData.append('image', editingImage.value);
             }
-        );
+            
+            await httpForm(
+                import.meta.env.VITE_API_BASE_URL_COOK,
+                `/api/recipe/comments/${commentId}/with-image`,
+                formData,
+                { method: 'PUT' }
+            );
+        } else {
+            // 이미지가 변경되지 않은 경우
+            await httpJson(
+                import.meta.env.VITE_API_BASE_URL_COOK,
+                `/api/recipe/comments/${commentId}`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        memberId: currentMemberId.value,
+                        content: editingContent.value
+                    })
+                }
+            );
+        }
         
         editingCommentId.value = null;
         editingContent.value = '';
+        editingImage.value = null;
+        editingImagePreview.value = null;
+        editingRemoveImage.value = false;
         
         // 댓글 목록 다시 불러오기
         await fetchComments();

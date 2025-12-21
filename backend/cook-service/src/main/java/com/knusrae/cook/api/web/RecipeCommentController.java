@@ -5,8 +5,10 @@ import com.knusrae.cook.api.dto.RecipeCommentDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +21,7 @@ public class RecipeCommentController {
 
     private final RecipeCommentService recipeCommentService;
 
-    // CREATE - 댓글 작성
+    // CREATE - 댓글 작성 (JSON)
     @PostMapping("/{recipeId}")
     public ResponseEntity<RecipeCommentDto> createComment(
             @PathVariable Long recipeId,
@@ -38,6 +40,24 @@ public class RecipeCommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
 
+    // CREATE - 댓글 작성 (이미지 포함, multipart/form-data)
+    @PostMapping(value = "/{recipeId}/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<RecipeCommentDto> createCommentWithImage(
+            @PathVariable Long recipeId,
+            @RequestParam Long memberId,
+            @RequestParam String content,
+            @RequestParam(required = false) Long parentId,
+            @RequestPart(required = false) MultipartFile image
+    ) {
+        log.info("[LOG][INPUT] Creating comment with image for recipe {}: memberId={}, content={}, parentId={}, hasImage={}",
+                recipeId, memberId, content, parentId, image != null && !image.isEmpty());
+
+        RecipeCommentDto comment = recipeCommentService.createCommentWithImage(recipeId, memberId, content, parentId, image);
+        log.info("[LOG][OUTPUT] Created comment: {}", comment);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(comment);
+    }
+
     // READ - 특정 레시피의 댓글 목록 조회
     @GetMapping("/{recipeId}")
     public ResponseEntity<List<RecipeCommentDto>> getCommentsByRecipeId(@PathVariable Long recipeId) {
@@ -47,7 +67,7 @@ public class RecipeCommentController {
         return ResponseEntity.ok(comments);
     }
 
-    // UPDATE - 댓글 수정
+    // UPDATE - 댓글 수정 (JSON)
     @PutMapping("/{commentId}")
     public ResponseEntity<RecipeCommentDto> updateComment(
             @PathVariable Long commentId,
@@ -59,6 +79,24 @@ public class RecipeCommentController {
         log.info("[LOG][INPUT] Updating comment {}: memberId={}, content={}", commentId, memberId, content);
 
         RecipeCommentDto comment = recipeCommentService.updateComment(commentId, memberId, content);
+        log.info("[LOG][OUTPUT] Updated comment: {}", comment);
+
+        return ResponseEntity.ok(comment);
+    }
+
+    // UPDATE - 댓글 수정 (이미지 포함, multipart/form-data)
+    @PutMapping(value = "/{commentId}/with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<RecipeCommentDto> updateCommentWithImage(
+            @PathVariable Long commentId,
+            @RequestParam Long memberId,
+            @RequestParam String content,
+            @RequestParam(defaultValue = "false") boolean removeImage,
+            @RequestPart(required = false) MultipartFile image
+    ) {
+        log.info("[LOG][INPUT] Updating comment {} with image: memberId={}, content={}, removeImage={}, hasImage={}",
+                commentId, memberId, content, removeImage, image != null && !image.isEmpty());
+
+        RecipeCommentDto comment = recipeCommentService.updateCommentWithImage(commentId, memberId, content, image, removeImage);
         log.info("[LOG][OUTPUT] Updated comment: {}", comment);
 
         return ResponseEntity.ok(comment);

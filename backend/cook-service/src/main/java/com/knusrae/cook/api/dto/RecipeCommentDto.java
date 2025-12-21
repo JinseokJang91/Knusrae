@@ -16,6 +16,7 @@ public class RecipeCommentDto {
     private Long id;
     private Long parentId;
     private String content;
+    private String imageUrl;
     private Long memberId;
     private String memberName;
     private String memberNickname;
@@ -29,6 +30,7 @@ public class RecipeCommentDto {
                 .id(recipeComment.getId())
                 .parentId(recipeComment.getParentId())
                 .content(recipeComment.getContent())
+                .imageUrl(recipeComment.getImageUrl())
                 .memberId(recipeComment.getMemberId())
                 .memberName(memberName)
                 .memberNickname(memberNickname)
