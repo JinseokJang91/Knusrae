@@ -685,72 +685,72 @@
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-                        
-                            <!-- 답글에 대한 답글 작성 폼 -->
-                            <div v-if="replyingToCommentId === reply.id" class="flex space-x-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-300 ml-14 mt-4">
-                                <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                    <img 
-                                        v-if="authStore.memberProfileImage" 
-                                        :src="authStore.memberProfileImage" 
-                                        alt="프로필" 
-                                        class="w-full h-full object-cover"
-                                    />
-                                    <i v-else class="pi pi-user text-gray-600 text-sm"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="text-xs text-blue-600 font-medium mb-2">
-                                        <i class="pi pi-at mr-1"></i>{{ replyingToComment?.memberNickname || replyingToComment?.memberName }}님에게 답글 작성
-                                    </div>
-                                    <textarea 
-                                        v-model="replyContent"
-                                        placeholder="답글을 작성해주세요..."
-                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                                        rows="2"
-                                    ></textarea>
-                                    
-                                    <!-- 이미지 미리보기 (답글) -->
-                                    <div v-if="replyImagePreview" class="mt-2 relative inline-block">
+                            
+                                <!-- 답글에 대한 답글 작성 폼 -->
+                                <div v-if="replyingToCommentId === reply.id" class="flex space-x-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-300 mt-4">
+                                    <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                                         <img 
-                                            :src="replyImagePreview" 
-                                            alt="미리보기" 
-                                            class="w-24 h-24 object-cover rounded-lg border border-gray-300"
+                                            v-if="authStore.memberProfileImage" 
+                                            :src="authStore.memberProfileImage" 
+                                            alt="프로필" 
+                                            class="w-full h-full object-cover"
                                         />
-                                        <button 
-                                            @click="removeReplyImage"
-                                            class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                                        >
-                                            <i class="pi pi-times text-xs"></i>
-                                        </button>
+                                        <i v-else class="pi pi-user text-gray-600 text-sm"></i>
                                     </div>
-                                    
-                                    <div class="flex justify-between items-center mt-2">
-                                        <label class="cursor-pointer">
-                                            <input 
-                                                type="file" 
-                                                accept="image/*" 
-                                                @change="handleReplyImageSelect"
-                                                class="hidden"
+                                    <div class="flex-1">
+                                        <div class="text-xs text-blue-600 font-medium mb-2">
+                                            <i class="pi pi-at mr-1"></i>{{ replyingToComment?.memberNickname || replyingToComment?.memberName }}님에게 답글 작성
+                                        </div>
+                                        <textarea 
+                                            v-model="replyContent"
+                                            placeholder="답글을 작성해주세요..."
+                                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                            rows="2"
+                                        ></textarea>
+                                        
+                                        <!-- 이미지 미리보기 (답글) -->
+                                        <div v-if="replyImagePreview" class="mt-2 relative inline-block">
+                                            <img 
+                                                :src="replyImagePreview" 
+                                                alt="미리보기" 
+                                                class="w-24 h-24 object-cover rounded-lg border border-gray-300"
                                             />
-                                            <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-white text-gray-700 rounded hover:bg-gray-100 transition-colors border border-gray-300">
-                                                <i class="pi pi-image text-sm"></i>
-                                                <span>이미지 첨부</span>
+                                            <button 
+                                                @click="removeReplyImage"
+                                                class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                                            >
+                                                <i class="pi pi-times text-xs"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="flex justify-between items-center mt-2">
+                                            <label class="cursor-pointer">
+                                                <input 
+                                                    type="file" 
+                                                    accept="image/*" 
+                                                    @change="handleReplyImageSelect"
+                                                    class="hidden"
+                                                />
+                                                <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-white text-gray-700 rounded hover:bg-gray-100 transition-colors border border-gray-300">
+                                                    <i class="pi pi-image text-sm"></i>
+                                                    <span>이미지 첨부</span>
+                                                </div>
+                                            </label>
+                                            <div class="flex space-x-2">
+                                                <button 
+                                                    @click="cancelReply"
+                                                    class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                                >
+                                                    취소
+                                                </button>
+                                                <button 
+                                                    @click="submitReply(replyingToComment.parentId || replyingToComment.id)"
+                                                    :disabled="!replyContent.trim()"
+                                                    class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    답글 작성
+                                                </button>
                                             </div>
-                                        </label>
-                                        <div class="flex space-x-2">
-                                            <button 
-                                                @click="cancelReply"
-                                                class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-                                            >
-                                                취소
-                                            </button>
-                                            <button 
-                                                @click="submitReply(replyingToComment.parentId || replyingToComment.id)"
-                                                :disabled="!replyContent.trim()"
-                                                class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                            >
-                                                답글 작성
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
