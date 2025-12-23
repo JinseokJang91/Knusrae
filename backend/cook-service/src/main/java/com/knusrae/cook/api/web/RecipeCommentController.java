@@ -66,6 +66,19 @@ public class RecipeCommentController {
         log.info("[LOG][OUTPUT] Found {} comments", comments.size());
         return ResponseEntity.ok(comments);
     }
+    
+    // READ - 특정 레시피의 댓글 목록 조회 (Pagination 지원)
+    @GetMapping("/{recipeId}/page")
+    public ResponseEntity<Map<String, Object>> getCommentsByRecipeIdWithPagination(
+            @PathVariable Long recipeId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        log.info("[LOG][INPUT] Fetching comments for recipe: {} (page: {}, size: {})", recipeId, page, size);
+        Map<String, Object> response = recipeCommentService.getCommentsByRecipeIdWithPagination(recipeId, page, size);
+        log.info("[LOG][OUTPUT] Found {} comments", ((List<?>) response.get("comments")).size());
+        return ResponseEntity.ok(response);
+    }
 
     // UPDATE - 댓글 수정 (JSON)
     @PutMapping("/{commentId}")

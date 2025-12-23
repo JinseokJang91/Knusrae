@@ -10,12 +10,16 @@ import com.knusrae.cook.api.domain.repository.RecipeRepository;
 import com.knusrae.cook.api.dto.RecipeCommentDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,14 +51,24 @@ public class RecipeCommentService {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + recipeId));
 
-        // parentId가 있는 경우 (대댓글), 부모 댓글이 존재하는지 확인
+        // 부모 댓글 작성자 정보
+        Long parentMemberId = null;
+        String parentMemberNickname = null;
+        Long rootParentId = parentId; // 실제로 저장할 parentId (최상위 댓글 ID)
+        
+        // parentId가 있는 경우 (답글), 부모 댓글이 존재하는지 확인
         if (parentId != null) {
             RecipeComment parentComment = recipeCommentRepository.findById(parentId)
                     .orElseThrow(() -> new IllegalArgumentException("Parent comment not found with id: " + parentId));
             
-            // 대댓글의 대댓글은 허용하지 않음 (1-depth만 허용)
+            // 부모 댓글 작성자 정보 조회
+            parentMemberId = parentComment.getMemberId();
+            Member parentMember = memberRepository.findById(parentMemberId).orElse(null);
+            parentMemberNickname = parentMember != null ? parentMember.getNickname() : parentMember != null ? parentMember.getName() : "사용자";
+            
+            // 답글의 답글인 경우, 최상위 댓글 ID를 rootParentId로 설정
             if (parentComment.getParentId() != null) {
-                throw new IllegalArgumentException("대댓글의 대댓글은 작성할 수 없습니다.");
+                rootParentId = parentComment.getParentId();
             }
         }
 
@@ -69,14 +83,14 @@ public class RecipeCommentService {
             imageStorageKey = uploadResponse.key();
         }
 
-        // 댓글 생성
+        // 댓글 생성 (rootParentId 사용하여 모든 답글을 같은 depth로 유지)
         RecipeComment comment = RecipeComment.builder()
                 .recipe(recipe)
                 .memberId(memberId)
                 .content(content)
                 .imageUrl(imageUrl)
                 .imageStorageKey(imageStorageKey)
-                .parentId(parentId)
+                .parentId(rootParentId)
                 .build();
 
         RecipeComment savedComment = recipeCommentRepository.save(comment);
@@ -87,7 +101,12 @@ public class RecipeCommentService {
         String memberNickname = member != null ? member.getNickname() : null;
         String memberProfileImage = member != null ? member.getProfileImage() : null;
 
-        return RecipeCommentDto.fromEntity(savedComment, memberName, memberNickname, memberProfileImage);
+        // DTO 생성 및 부모 댓글 작성자 정보 설정
+        RecipeCommentDto dto = RecipeCommentDto.fromEntity(savedComment, memberName, memberNickname, memberProfileImage);
+        dto.setParentMemberId(parentMemberId);
+        dto.setParentMemberNickname(parentMemberNickname);
+        
+        return dto;
     }
 
     private void validateImage(MultipartFile file) {
@@ -163,6 +182,88 @@ public class RecipeCommentService {
         topLevelComments.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
 
         return topLevelComments;
+    }
+    
+    /**
+     * 특정 레시피의 댓글 조회 (Pagination 지원)
+     */
+    public Map<String, Object> getCommentsByRecipeIdWithPagination(Long recipeId, int page, int size) {
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + recipeId));
+
+        // 최상위 댓글만 페이징 처리하여 조회
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RecipeComment> topLevelCommentsPage = recipeCommentRepository
+                .findAllByRecipeAndParentIdIsNullOrderByCreatedAtDesc(recipe, pageable);
+        
+        List<RecipeComment> topLevelComments = topLevelCommentsPage.getContent();
+        
+        // 최상위 댓글의 ID 목록
+        List<Long> topLevelCommentIds = topLevelComments.stream()
+                .map(RecipeComment::getId)
+                .collect(Collectors.toList());
+        
+        // 해당 최상위 댓글들의 모든 답글 조회
+        List<RecipeComment> allReplies = new ArrayList<>();
+        for (Long commentId : topLevelCommentIds) {
+            allReplies.addAll(recipeCommentRepository.findAllByParentIdOrderByCreatedAtAsc(commentId));
+        }
+        
+        // 모든 댓글(최상위 + 답글)의 Member 정보 일괄 조회
+        List<RecipeComment> allComments = new ArrayList<>(topLevelComments);
+        allComments.addAll(allReplies);
+        
+        List<Long> memberIds = allComments.stream()
+                .map(RecipeComment::getMemberId)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        Map<Long, Member> memberMap = memberRepository.findAllById(memberIds).stream()
+                .collect(Collectors.toMap(Member::getId, m -> m));
+
+        // 댓글을 DTO로 변환
+        Map<Long, RecipeCommentDto> commentMap = allComments.stream()
+                .collect(Collectors.toMap(
+                        RecipeComment::getId,
+                        comment -> {
+                            Member member = memberMap.get(comment.getMemberId());
+                            String memberName = member != null ? member.getName() : "사용자";
+                            String memberNickname = member != null ? member.getNickname() : null;
+                            String memberProfileImage = member != null ? member.getProfileImage() : null;
+                            return RecipeCommentDto.fromEntity(comment, memberName, memberNickname, memberProfileImage);
+                        }
+                ));
+
+        // 최상위 댓글 DTO 목록 생성
+        List<RecipeCommentDto> topLevelCommentDtos = new ArrayList<>();
+        
+        for (RecipeComment topLevelComment : topLevelComments) {
+            RecipeCommentDto commentDto = commentMap.get(topLevelComment.getId());
+            commentDto.setReplies(new ArrayList<>());
+            
+            // 답글 추가
+            for (RecipeComment reply : allReplies) {
+                if (reply.getParentId().equals(topLevelComment.getId())) {
+                    commentDto.getReplies().add(commentMap.get(reply.getId()));
+                }
+            }
+            
+            // 답글 정렬 (오래된 순)
+            commentDto.getReplies().sort((a, b) -> a.getCreatedAt().compareTo(b.getCreatedAt()));
+            
+            topLevelCommentDtos.add(commentDto);
+        }
+        
+        // 응답 데이터 구성
+        Map<String, Object> response = new HashMap<>();
+        response.put("comments", topLevelCommentDtos);
+        response.put("currentPage", page);
+        response.put("totalPages", topLevelCommentsPage.getTotalPages());
+        response.put("totalComments", topLevelCommentsPage.getTotalElements());
+        response.put("hasNext", topLevelCommentsPage.hasNext());
+        response.put("hasPrevious", topLevelCommentsPage.hasPrevious());
+        
+        return response;
     }
 
     /**

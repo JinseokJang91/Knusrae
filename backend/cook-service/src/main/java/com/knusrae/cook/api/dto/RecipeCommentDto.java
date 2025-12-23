@@ -24,6 +24,10 @@ public class RecipeCommentDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<RecipeCommentDto> replies;
+    
+    // 부모 댓글 작성자 정보 (답글 작성 시 표시용)
+    private Long parentMemberId;
+    private String parentMemberNickname;
 
     public static RecipeCommentDto fromEntity(RecipeComment recipeComment, String memberName, String memberNickname, String memberProfileImage) {
         return RecipeCommentDto.builder()

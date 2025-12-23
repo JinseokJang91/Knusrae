@@ -286,8 +286,11 @@
                         <div class="flex-1">
                             <textarea 
                                 v-model="newComment"
-                                placeholder="댓글을 작성해주세요..."
+                                @focus="focusCommentTextarea"
+                                :disabled="isRecipeAuthor"
+                                :placeholder="isRecipeAuthor ? '작성자는 답글만 작성이 가능합니다' : '댓글을 작성해주세요...'"
                                 class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                :class="{ 'bg-gray-100 cursor-not-allowed': isRecipeAuthor }"
                                 rows="3"
                             ></textarea>
                             
@@ -307,11 +310,12 @@
                             </div>
                             
                             <div class="flex justify-between items-center mt-2">
-                                <label class="cursor-pointer">
+                                <label class="cursor-pointer" :class="{ 'opacity-50 cursor-not-allowed': isRecipeAuthor }">
                                     <input 
                                         type="file" 
                                         accept="image/*" 
                                         @change="handleCommentImageSelect"
+                                        :disabled="isRecipeAuthor"
                                         class="hidden"
                                     />
                                     <div class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
@@ -321,7 +325,7 @@
                                 </label>
                                 <button 
                                     @click="submitComment"
-                                    :disabled="!newComment.trim()"
+                                    :disabled="!newComment.trim() || isRecipeAuthor"
                                     class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     댓글 작성
@@ -344,14 +348,14 @@
                 </div>
 
                 <!-- 댓글 목록 -->
-                <div class="space-y-4">
+                <div class="space-y-6">
                     <div 
                         v-for="comment in comments" 
                         :key="comment.id"
                         class="space-y-4"
                     >
                         <!-- 최상위 댓글 -->
-                        <div class="flex space-x-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex space-x-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-500">
                             <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                                 <img 
                                     v-if="comment.memberProfileImage" 
@@ -440,36 +444,49 @@
                                     </div>
                                 </div>
                                 <!-- 댓글 내용 (일반 모드) -->
-                                <div v-else class="flex items-start gap-4">
-                                    <p class="text-gray-700 mb-2 whitespace-pre-wrap flex-1">{{ comment.content }}</p>
-                                    <!-- 댓글 이미지 -->
-                                    <div 
-                                        v-if="comment.imageUrl" 
-                                        @click="openImageModal({url: comment.imageUrl}, 0)"
-                                        class="w-20 h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity"
-                                    >
-                                        <img 
-                                            :src="comment.imageUrl" 
-                                            alt="댓글 이미지" 
-                                            class="w-full h-full object-cover"
-                                        />
+                                <div v-else>
+                                    <div class="flex items-start gap-4">
+                                        <p class="text-gray-700 mb-2 whitespace-pre-wrap flex-1">{{ comment.content }}</p>
+                                        <!-- 댓글 이미지 -->
+                                        <div 
+                                            v-if="comment.imageUrl" 
+                                            @click="openImageModal({url: comment.imageUrl}, 0)"
+                                            class="w-20 h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity"
+                                        >
+                                            <img 
+                                                :src="comment.imageUrl" 
+                                                alt="댓글 이미지" 
+                                                class="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 답글 버튼들 -->
+                                    <div class="flex items-center gap-4 mt-2">
+                                        <button 
+                                            @click="toggleReplyForm(comment)"
+                                            class="text-sm text-blue-500 hover:text-blue-700 font-medium"
+                                        >
+                                            <i class="pi pi-reply mr-1"></i>
+                                            답글
+                                        </button>
+                                        
+                                        <!-- 답글 펼치기/접기 버튼 -->
+                                        <button 
+                                            v-if="comment.replies && comment.replies.length > 0"
+                                            @click="toggleRepliesVisibility(comment.id)"
+                                            class="text-sm text-gray-600 hover:text-gray-800 font-medium"
+                                        >
+                                            <i :class="expandedComments.has(comment.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="mr-1"></i>
+                                            {{ expandedComments.has(comment.id) ? '접기' : `답글 (${comment.replies.length})` }}
+                                        </button>
                                     </div>
                                 </div>
-                                
-                                <!-- 답글 버튼 -->
-                                <button 
-                                    v-if="editingCommentId !== comment.id"
-                                    @click="toggleReplyForm(comment.id)"
-                                    class="text-sm text-blue-500 hover:text-blue-700 font-medium"
-                                >
-                                    <i class="pi pi-reply mr-1"></i>
-                                    답글 {{ comment.replies?.length > 0 ? `(${comment.replies.length})` : '' }}
-                                </button>
                             </div>
                         </div>
 
-                        <!-- 답글 작성 폼 -->
-                        <div v-if="replyingToCommentId === comment.id" class="ml-14 flex space-x-4 p-4 bg-blue-50 rounded-lg">
+                        <!-- 최상위 댓글에 대한 답글 작성 폼 (답글 목록 위) -->
+                        <div v-if="replyingToCommentId === comment.id && !comment.parentId" class="ml-14 flex space-x-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
                             <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                                 <img 
                                     v-if="authStore.memberProfileImage" 
@@ -480,6 +497,9 @@
                                 <i v-else class="pi pi-user text-gray-600 text-sm"></i>
                             </div>
                             <div class="flex-1">
+                                <div class="text-xs text-blue-600 font-medium mb-2">
+                                    <i class="pi pi-at mr-1"></i>{{ replyingToComment?.memberNickname || replyingToComment?.memberName }}님에게 답글 작성
+                                </div>
                                 <textarea 
                                     v-model="replyContent"
                                     placeholder="답글을 작성해주세요..."
@@ -523,7 +543,7 @@
                                             취소
                                         </button>
                                         <button 
-                                            @click="submitReply(comment.id)"
+                                            @click="submitReply(replyingToComment.parentId || replyingToComment.id)"
                                             :disabled="!replyContent.trim()"
                                             class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                         >
@@ -534,8 +554,8 @@
                             </div>
                         </div>
 
-                        <!-- 답글 목록 -->
-                        <div v-if="comment.replies && comment.replies.length > 0" class="ml-14 space-y-4">
+                        <!-- 답글 목록 (펼쳐진 경우에만 표시) -->
+                        <div v-if="comment.replies && comment.replies.length > 0 && expandedComments.has(comment.id)" class="ml-14 space-y-4">
                             <div 
                                 v-for="reply in comment.replies" 
                                 :key="reply.id"
@@ -629,19 +649,108 @@
                                         </div>
                                     </div>
                                     <!-- 답글 내용 (일반 모드) -->
-                                    <div v-else class="flex items-start gap-4">
-                                        <p class="text-gray-700 whitespace-pre-wrap flex-1">{{ reply.content }}</p>
-                                        <!-- 답글 이미지 -->
-                                        <div 
-                                            v-if="reply.imageUrl" 
-                                            @click="openImageModal({url: reply.imageUrl}, 0)"
-                                            class="w-20 h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity"
+                                    <div v-else>
+                                        <div class="flex items-start gap-4">
+                                            <!-- 답글 내용 (닉네임 prefix 강조) -->
+                                            <p class="text-gray-700 whitespace-pre-wrap flex-1">
+                                                <template v-if="reply.content.startsWith('@')">
+                                                    <span class="font-bold text-blue-600">{{ reply.content.split(' ')[0] }}</span>
+                                                    {{ reply.content.substring(reply.content.indexOf(' ')) }}
+                                                </template>
+                                                <template v-else>
+                                                    {{ reply.content }}
+                                                </template>
+                                            </p>
+                                            <!-- 답글 이미지 -->
+                                            <div 
+                                                v-if="reply.imageUrl" 
+                                                @click="openImageModal({url: reply.imageUrl}, 0)"
+                                                class="w-20 h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity"
+                                            >
+                                                <img 
+                                                    :src="reply.imageUrl" 
+                                                    alt="답글 이미지" 
+                                                    class="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 답글의 답글 버튼 -->
+                                        <button 
+                                            @click="toggleReplyForm(reply)"
+                                            class="text-sm text-blue-500 hover:text-blue-700 font-medium mt-2"
                                         >
-                                            <img 
-                                                :src="reply.imageUrl" 
-                                                alt="답글 이미지" 
-                                                class="w-full h-full object-cover"
+                                            <i class="pi pi-reply mr-1"></i>
+                                            답글
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        
+                            <!-- 답글에 대한 답글 작성 폼 -->
+                            <div v-if="replyingToCommentId === reply.id" class="flex space-x-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-300 ml-14 mt-4">
+                                <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                    <img 
+                                        v-if="authStore.memberProfileImage" 
+                                        :src="authStore.memberProfileImage" 
+                                        alt="프로필" 
+                                        class="w-full h-full object-cover"
+                                    />
+                                    <i v-else class="pi pi-user text-gray-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-xs text-blue-600 font-medium mb-2">
+                                        <i class="pi pi-at mr-1"></i>{{ replyingToComment?.memberNickname || replyingToComment?.memberName }}님에게 답글 작성
+                                    </div>
+                                    <textarea 
+                                        v-model="replyContent"
+                                        placeholder="답글을 작성해주세요..."
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                        rows="2"
+                                    ></textarea>
+                                    
+                                    <!-- 이미지 미리보기 (답글) -->
+                                    <div v-if="replyImagePreview" class="mt-2 relative inline-block">
+                                        <img 
+                                            :src="replyImagePreview" 
+                                            alt="미리보기" 
+                                            class="w-24 h-24 object-cover rounded-lg border border-gray-300"
+                                        />
+                                        <button 
+                                            @click="removeReplyImage"
+                                            class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                                        >
+                                            <i class="pi pi-times text-xs"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center mt-2">
+                                        <label class="cursor-pointer">
+                                            <input 
+                                                type="file" 
+                                                accept="image/*" 
+                                                @change="handleReplyImageSelect"
+                                                class="hidden"
                                             />
+                                            <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-white text-gray-700 rounded hover:bg-gray-100 transition-colors border border-gray-300">
+                                                <i class="pi pi-image text-sm"></i>
+                                                <span>이미지 첨부</span>
+                                            </div>
+                                        </label>
+                                        <div class="flex space-x-2">
+                                            <button 
+                                                @click="cancelReply"
+                                                class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                            >
+                                                취소
+                                            </button>
+                                            <button 
+                                                @click="submitReply(replyingToComment.parentId || replyingToComment.id)"
+                                                :disabled="!replyContent.trim()"
+                                                class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                답글 작성
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -653,6 +762,37 @@
                     <div v-if="comments.length === 0" class="text-center py-12">
                         <i class="pi pi-comments text-gray-300 text-5xl mb-4"></i>
                         <p class="text-gray-500">첫 번째 댓글을 작성해보세요!</p>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-8">
+                        <button 
+                            @click="loadPage(currentPage - 1)"
+                            :disabled="currentPage === 0"
+                            class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            <i class="pi pi-chevron-left"></i>
+                        </button>
+                        
+                        <div class="flex gap-2">
+                            <button 
+                                v-for="page in totalPages" 
+                                :key="page"
+                                @click="loadPage(page - 1)"
+                                :class="currentPage === page - 1 ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                                class="px-4 py-2 border border-gray-300 rounded-lg transition-colors"
+                            >
+                                {{ page }}
+                            </button>
+                        </div>
+                        
+                        <button 
+                            @click="loadPage(currentPage + 1)"
+                            :disabled="currentPage === totalPages - 1"
+                            class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            <i class="pi pi-chevron-right"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -753,6 +893,7 @@ const replyContent = ref('');
 const replyImage = ref<File | null>(null);
 const replyImagePreview = ref<string | null>(null);
 const replyingToCommentId = ref<number | null>(null);
+const replyingToComment = ref<any>(null); // 답글 대상 댓글 정보
 const editingCommentId = ref<number | null>(null);
 const editingContent = ref('');
 const editingImage = ref<File | null>(null);
@@ -763,12 +904,26 @@ const showImageModal = ref(false);
 const selectedImage = ref<any>(null);
 const selectedImageIndex = ref(0);
 
+// Pagination 관련
+const currentPage = ref(0);
+const totalPages = ref(0);
+const totalComments = ref(0);
+const pageSize = 10;
+
+// 답글 펼치기/접기 상태
+const expandedComments = ref<Set<number>>(new Set());
+
 // 난이도 공통코드
 const difficultyCodes = ref<Map<string, string>>(new Map());
 
 // 현재 로그인한 사용자 정보 (authStore에서 가져옴)
 const isLoggedIn = computed(() => authStore.isLoggedIn);
 const currentMemberId = computed(() => authStore.memberInfo?.id || null);
+
+// 현재 사용자가 레시피 작성자인지 확인
+const isRecipeAuthor = computed(() => {
+    return recipe.value && currentMemberId.value && recipe.value.memberId === currentMemberId.value;
+});
 
 // 계산된 속성
 const mainImage = computed(() => {
@@ -868,18 +1023,33 @@ const checkFavoriteStatus = async () => {
     }
 };
 
-const fetchComments = async () => {
+const fetchComments = async (page: number = 0) => {
     try {
         const recipeId = route.params.id;
         const response = await httpJson(
             import.meta.env.VITE_API_BASE_URL_COOK,
-            `/api/recipe/comments/${recipeId}`,
+            `/api/recipe/comments/${recipeId}/page?page=${page}&size=${pageSize}`,
             { method: 'GET' }
         );
         
-        comments.value = response;
+        comments.value = response.comments;
+        currentPage.value = response.currentPage;
+        totalPages.value = response.totalPages;
+        totalComments.value = response.totalComments;
     } catch (err) {
         console.error('Comments fetch error:', err);
+    }
+};
+
+const loadPage = async (page: number) => {
+    await fetchComments(page);
+};
+
+const toggleRepliesVisibility = (commentId: number) => {
+    if (expandedComments.value.has(commentId)) {
+        expandedComments.value.delete(commentId);
+    } else {
+        expandedComments.value.add(commentId);
     }
 };
 
@@ -985,6 +1155,12 @@ const submitComment = async () => {
         return;
     }
     
+    // 레시피 작성자는 댓글 작성 불가
+    if (isRecipeAuthor.value) {
+        alert('작성자는 답글만 작성이 가능합니다');
+        return;
+    }
+    
     try {
         const recipeId = route.params.id;
         
@@ -1021,11 +1197,18 @@ const submitComment = async () => {
         newCommentImage.value = null;
         newCommentImagePreview.value = null;
         
-        // 댓글 목록 다시 불러오기
-        await fetchComments();
+        // 댓글 목록 다시 불러오기 (첫 페이지로)
+        await fetchComments(0);
     } catch (err) {
         console.error('Comment submission error:', err);
         alert('댓글 작성 중 오류가 발생했습니다.');
+    }
+};
+
+const focusCommentTextarea = () => {
+    // 레시피 작성자는 댓글 작성 불가
+    if (isRecipeAuthor.value) {
+        alert('작성자는 답글만 작성이 가능합니다');
     }
 };
 
@@ -1083,11 +1266,18 @@ const submitReply = async (parentId: number) => {
     try {
         const recipeId = route.params.id;
         
+        // 부모 댓글 닉네임 prefix 추가
+        let contentWithPrefix = replyContent.value;
+        if (replyingToComment.value) {
+            const parentNickname = replyingToComment.value.memberNickname || replyingToComment.value.memberName;
+            contentWithPrefix = `@${parentNickname} ${replyContent.value}`;
+        }
+        
         // 이미지가 있으면 multipart/form-data로 전송
         if (replyImage.value) {
             const formData = new FormData();
             formData.append('memberId', currentMemberId.value.toString());
-            formData.append('content', replyContent.value);
+            formData.append('content', contentWithPrefix);
             formData.append('parentId', parentId.toString());
             formData.append('image', replyImage.value);
             
@@ -1106,7 +1296,7 @@ const submitReply = async (parentId: number) => {
                     method: 'POST',
                     body: JSON.stringify({
                         memberId: currentMemberId.value,
-                        content: replyContent.value,
+                        content: contentWithPrefix,
                         parentId: parentId
                     })
                 }
@@ -1117,16 +1307,17 @@ const submitReply = async (parentId: number) => {
         replyImage.value = null;
         replyImagePreview.value = null;
         replyingToCommentId.value = null;
+        replyingToComment.value = null;
         
         // 댓글 목록 다시 불러오기
-        await fetchComments();
+        await fetchComments(currentPage.value);
     } catch (err) {
         console.error('Reply submission error:', err);
         alert('답글 작성 중 오류가 발생했습니다.');
     }
 };
 
-const toggleReplyForm = (commentId: number) => {
+const toggleReplyForm = (comment: any) => {
     // 로그인 확인
     if (!isLoggedIn.value) {
         toast.add({
@@ -1138,17 +1329,26 @@ const toggleReplyForm = (commentId: number) => {
         return;
     }
     
-    if (replyingToCommentId.value === commentId) {
+    if (replyingToCommentId.value === comment.id) {
         replyingToCommentId.value = null;
+        replyingToComment.value = null;
         replyContent.value = '';
     } else {
-        replyingToCommentId.value = commentId;
+        replyingToCommentId.value = comment.id;
+        replyingToComment.value = comment;
         replyContent.value = '';
+        
+        // 답글 목록을 펼침
+        const rootCommentId = comment.parentId || comment.id;
+        if (!expandedComments.value.has(rootCommentId)) {
+            expandedComments.value.add(rootCommentId);
+        }
     }
 };
 
 const cancelReply = () => {
     replyingToCommentId.value = null;
+    replyingToComment.value = null;
     replyContent.value = '';
     replyImage.value = null;
     replyImagePreview.value = null;
@@ -1250,7 +1450,7 @@ const updateComment = async (commentId: number) => {
         editingRemoveImage.value = false;
         
         // 댓글 목록 다시 불러오기
-        await fetchComments();
+        await fetchComments(currentPage.value);
     } catch (err) {
         console.error('Comment update error:', err);
         alert('댓글 수정 중 오류가 발생했습니다.');
@@ -1281,7 +1481,7 @@ const deleteComment = async (commentId: number) => {
                 );
                 
                 // 댓글 목록 다시 불러오기
-                await fetchComments();
+                await fetchComments(currentPage.value);
             } catch (err) {
                 console.error('Comment deletion error:', err);
                 alert('댓글 삭제 중 오류가 발생했습니다.');
@@ -1323,11 +1523,13 @@ const closeImageModal = () => {
 
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
 // 생명주기
