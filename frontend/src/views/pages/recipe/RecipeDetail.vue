@@ -108,8 +108,8 @@
                                         <div class="text-sm">댓글</div>
                                     </div>
                                     <div class="text-center">
-                                        <div class="text-2xl font-bold text-yellow-600">{{ recipe.stats?.averageRating?.toFixed(1) || '0.0' }}</div>
-                                        <div class="text-sm">평점</div>
+                                        <div class="text-2xl font-bold text-red-600">{{ recipe.stats?.favoriteCount || 0 }}</div>
+                                        <div class="text-sm">찜</div>
                                     </div>
                                 </div>
                             </div>
@@ -267,7 +267,7 @@
             <div id="comments" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
                     <i class="pi pi-comments mr-3 text-purple-500"></i>
-                    댓글 ({{ comments.length + comments.reduce((sum, c) => sum + (c.replies?.length || 0), 0) }})
+                    댓글 ({{ comments.length }})
                 </h2>
                 
                 <!-- 댓글 작성 -->
@@ -374,18 +374,27 @@
                                         <span class="text-sm text-gray-500">{{ formatDate(comment.createdAt) }}</span>
                                         <span v-if="comment.updatedAt && comment.updatedAt !== comment.createdAt" class="text-xs text-gray-400">(수정됨)</span>
                                     </div>
-                                    <div v-if="isMyComment(comment)" class="flex space-x-2">
+                                    <div class="flex items-center space-x-2">
+                                        <template v-if="isMyComment(comment)">
+                                            <button 
+                                                @click="startEditComment(comment)"
+                                                class="text-sm text-blue-500 hover:text-blue-700"
+                                            >
+                                                수정
+                                            </button>
+                                            <button 
+                                                @click="deleteComment(comment.id)"
+                                                class="text-sm text-red-500 hover:text-red-700"
+                                            >
+                                                삭제
+                                            </button>
+                                        </template>
                                         <button 
-                                            @click="startEditComment(comment)"
-                                            class="text-sm text-blue-500 hover:text-blue-700"
+                                            v-if="!isMyComment(comment)"
+                                            @click="toggleReplyForm(comment)"
+                                            class="text-sm text-gray-800 hover:text-gray-600 font-medium"
                                         >
-                                            수정
-                                        </button>
-                                        <button 
-                                            @click="deleteComment(comment.id)"
-                                            class="text-sm text-red-500 hover:text-red-700"
-                                        >
-                                            삭제
+                                            답글
                                         </button>
                                     </div>
                                 </div>
@@ -461,26 +470,15 @@
                                         </div>
                                     </div>
                                     
-                                    <!-- 답글 버튼들 -->
-                                    <div class="flex items-center gap-4 mt-2">
-                                        <button 
-                                            @click="toggleReplyForm(comment)"
-                                            class="text-sm text-blue-500 hover:text-blue-700 font-medium"
-                                        >
-                                            <i class="pi pi-reply mr-1"></i>
-                                            답글
-                                        </button>
-                                        
-                                        <!-- 답글 펼치기/접기 버튼 -->
-                                        <button 
-                                            v-if="comment.replies && comment.replies.length > 0"
-                                            @click="toggleRepliesVisibility(comment.id)"
-                                            class="text-sm text-gray-600 hover:text-gray-800 font-medium"
-                                        >
-                                            <i :class="expandedComments.has(comment.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="mr-1"></i>
-                                            {{ expandedComments.has(comment.id) ? '접기' : `답글 (${comment.replies.length})` }}
-                                        </button>
-                                    </div>
+                                    <!-- 답글 펼치기/접기 버튼 -->
+                                    <button 
+                                        v-if="comment.replies && comment.replies.length > 0"
+                                        @click="toggleRepliesVisibility(comment.id)"
+                                        class="text-sm text-gray-600 hover:text-gray-800 font-medium mt-2"
+                                    >
+                                        <i :class="expandedComments.has(comment.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="mr-1"></i>
+                                        {{ expandedComments.has(comment.id) ? '접기' : `답글 (${comment.replies.length})` }}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -556,138 +554,142 @@
 
                         <!-- 답글 목록 (펼쳐진 경우에만 표시) -->
                         <div v-if="comment.replies && comment.replies.length > 0 && expandedComments.has(comment.id)" class="ml-14 space-y-4">
+                            <!-- 각 답글을 감싸는 컨테이너 -->
                             <div 
                                 v-for="reply in comment.replies" 
                                 :key="reply.id"
-                                class="flex space-x-4 p-4 bg-gray-100 rounded-lg"
+                                class="space-y-4"
                             >
-                                <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                    <img 
-                                        v-if="reply.memberProfileImage" 
-                                        :src="reply.memberProfileImage" 
-                                        alt="프로필" 
-                                        class="w-full h-full object-cover"
-                                    />
-                                    <i v-else class="pi pi-user text-gray-600 text-sm"></i>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center space-x-2">
-                                            <span class="font-medium text-gray-800">
-                                                {{ reply.memberNickname || reply.memberName }}
-                                            </span>
-                                            <span class="text-sm text-gray-500">{{ formatDate(reply.createdAt) }}</span>
-                                            <span v-if="reply.updatedAt && reply.updatedAt !== reply.createdAt" class="text-xs text-gray-400">(수정됨)</span>
-                                        </div>
-                                        <div v-if="isMyComment(reply)" class="flex space-x-2">
-                                            <button 
-                                                @click="startEditComment(reply)"
-                                                class="text-sm text-blue-500 hover:text-blue-700"
-                                            >
-                                                수정
-                                            </button>
-                                            <button 
-                                                @click="deleteComment(reply.id)"
-                                                class="text-sm text-red-500 hover:text-red-700"
-                                            >
-                                                삭제
-                                            </button>
-                                        </div>
+                                <!-- 답글 내용 -->
+                                <div class="flex space-x-4 p-4 bg-gray-100 rounded-lg">
+                                    <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                        <img 
+                                            v-if="reply.memberProfileImage" 
+                                            :src="reply.memberProfileImage" 
+                                            alt="프로필" 
+                                            class="w-full h-full object-cover"
+                                        />
+                                        <i v-else class="pi pi-user text-gray-600 text-sm"></i>
                                     </div>
-                                    
-                                    <!-- 답글 내용 (수정 모드) -->
-                                    <div v-if="editingCommentId === reply.id">
-                                        <textarea 
-                                            v-model="editingContent"
-                                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none mb-2"
-                                            rows="2"
-                                        ></textarea>
-                                        
-                                        <!-- 이미지 미리보기 (수정 모드) -->
-                                        <div v-if="editingImagePreview" class="mb-2 relative inline-block">
-                                            <img 
-                                                :src="editingImagePreview" 
-                                                alt="미리보기" 
-                                                class="w-24 h-24 object-cover rounded-lg border border-gray-300"
-                                            />
-                                            <button 
-                                                @click="removeEditImage"
-                                                class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                                            >
-                                                <i class="pi pi-times text-xs"></i>
-                                            </button>
-                                        </div>
-                                        
-                                        <div class="flex justify-between items-center">
-                                            <label class="cursor-pointer">
-                                                <input 
-                                                    type="file" 
-                                                    accept="image/*" 
-                                                    @change="handleEditImageSelect"
-                                                    class="hidden"
-                                                />
-                                                <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
-                                                    <i class="pi pi-image text-sm"></i>
-                                                    <span>이미지 변경</span>
-                                                </div>
-                                            </label>
-                                            <div class="flex space-x-2">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="font-medium text-gray-800">
+                                                    {{ reply.memberNickname || reply.memberName }}
+                                                </span>
+                                                <span class="text-sm text-gray-500">{{ formatDate(reply.createdAt) }}</span>
+                                                <span v-if="reply.updatedAt && reply.updatedAt !== reply.createdAt" class="text-xs text-gray-400">(수정됨)</span>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <template v-if="isMyComment(reply)">
+                                                    <button 
+                                                        @click="startEditComment(reply)"
+                                                        class="text-sm text-blue-500 hover:text-blue-700"
+                                                    >
+                                                        수정
+                                                    </button>
+                                                    <button 
+                                                        @click="deleteComment(reply.id)"
+                                                        class="text-sm text-red-500 hover:text-red-700"
+                                                    >
+                                                        삭제
+                                                    </button>
+                                                </template>
                                                 <button 
-                                                    @click="cancelEditComment"
-                                                    class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                                    v-if="!isMyComment(reply)"
+                                                    @click="toggleReplyForm(reply)"
+                                                    class="text-sm text-gray-800 hover:text-gray-600 font-medium"
                                                 >
-                                                    취소
-                                                </button>
-                                                <button 
-                                                    @click="updateComment(reply.id)"
-                                                    :disabled="!editingContent.trim()"
-                                                    class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                                >
-                                                    수정 완료
+                                                    답글
                                                 </button>
                                             </div>
                                         </div>
-                                    </div>
-                                    <!-- 답글 내용 (일반 모드) -->
-                                    <div v-else>
-                                        <div class="flex items-start gap-4">
-                                            <!-- 답글 내용 (닉네임 prefix 강조) -->
-                                            <p class="text-gray-700 whitespace-pre-wrap flex-1">
-                                                <template v-if="reply.content.startsWith('@')">
-                                                    <span class="font-bold text-blue-600">{{ reply.content.split(' ')[0] }}</span>
-                                                    {{ reply.content.substring(reply.content.indexOf(' ')) }}
-                                                </template>
-                                                <template v-else>
-                                                    {{ reply.content }}
-                                                </template>
-                                            </p>
-                                            <!-- 답글 이미지 -->
-                                            <div 
-                                                v-if="reply.imageUrl" 
-                                                @click="openImageModal({url: reply.imageUrl}, 0)"
-                                                class="w-20 h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity"
-                                            >
+                                        
+                                        <!-- 답글 내용 (수정 모드) -->
+                                        <div v-if="editingCommentId === reply.id">
+                                            <textarea 
+                                                v-model="editingContent"
+                                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none mb-2"
+                                                rows="2"
+                                            ></textarea>
+                                            
+                                            <!-- 이미지 미리보기 (수정 모드) -->
+                                            <div v-if="editingImagePreview" class="mb-2 relative inline-block">
                                                 <img 
-                                                    :src="reply.imageUrl" 
-                                                    alt="답글 이미지" 
-                                                    class="w-full h-full object-cover"
+                                                    :src="editingImagePreview" 
+                                                    alt="미리보기" 
+                                                    class="w-24 h-24 object-cover rounded-lg border border-gray-300"
                                                 />
+                                                <button 
+                                                    @click="removeEditImage"
+                                                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                                                >
+                                                    <i class="pi pi-times text-xs"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="flex justify-between items-center">
+                                                <label class="cursor-pointer">
+                                                    <input 
+                                                        type="file" 
+                                                        accept="image/*" 
+                                                        @change="handleEditImageSelect"
+                                                        class="hidden"
+                                                    />
+                                                    <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
+                                                        <i class="pi pi-image text-sm"></i>
+                                                        <span>이미지 변경</span>
+                                                    </div>
+                                                </label>
+                                                <div class="flex space-x-2">
+                                                    <button 
+                                                        @click="cancelEditComment"
+                                                        class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                                                    >
+                                                        취소
+                                                    </button>
+                                                    <button 
+                                                        @click="updateComment(reply.id)"
+                                                        :disabled="!editingContent.trim()"
+                                                        class="px-4 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                    >
+                                                        수정 완료
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                        
-                                        <!-- 답글의 답글 버튼 -->
-                                        <button 
-                                            @click="toggleReplyForm(reply)"
-                                            class="text-sm text-blue-500 hover:text-blue-700 font-medium mt-2"
-                                        >
-                                            <i class="pi pi-reply mr-1"></i>
-                                            답글
-                                        </button>
+                                        <!-- 답글 내용 (일반 모드) -->
+                                        <div v-else>
+                                            <div class="flex items-start gap-4">
+                                                <!-- 답글 내용 (닉네임 prefix 강조) -->
+                                                <p class="text-gray-700 whitespace-pre-wrap flex-1">
+                                                    <template v-if="reply.content.startsWith('@')">
+                                                        <span class="font-bold text-blue-600">{{ reply.content.split(' ')[0] }}</span>
+                                                        {{ reply.content.substring(reply.content.indexOf(' ')) }}
+                                                    </template>
+                                                    <template v-else>
+                                                        {{ reply.content }}
+                                                    </template>
+                                                </p>
+                                                <!-- 답글 이미지 -->
+                                                <div 
+                                                    v-if="reply.imageUrl" 
+                                                    @click="openImageModal({url: reply.imageUrl}, 0)"
+                                                    class="w-20 h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity"
+                                                >
+                                                    <img 
+                                                        :src="reply.imageUrl" 
+                                                        alt="답글 이미지" 
+                                                        class="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             
                                 <!-- 답글에 대한 답글 작성 폼 -->
-                                <div v-if="replyingToCommentId === reply.id" class="flex space-x-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-300 mt-4">
+                                <div v-if="replyingToCommentId === reply.id" class="flex space-x-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
                                     <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                                         <img 
                                             v-if="authStore.memberProfileImage" 

@@ -13,4 +13,5 @@ public class RecipeStatsDto {
     private double averageRating;
     private int totalLikes; // TODO: 좋아요 기능 추가 시
     private boolean isLiked; // TODO: 현재 사용자가 좋아요 했는지
+    private long favoriteCount; // 찜 개수
 }

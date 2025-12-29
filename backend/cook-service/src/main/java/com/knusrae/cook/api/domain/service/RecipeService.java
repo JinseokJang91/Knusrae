@@ -20,6 +20,7 @@ import com.knusrae.cook.api.dto.*;
 import com.knusrae.cook.api.domain.repository.RecipeImageRepository;
 import com.knusrae.cook.api.domain.repository.RecipeRepository;
 import com.knusrae.cook.api.domain.repository.RecipeCommentRepository;
+import com.knusrae.cook.api.domain.repository.RecipeFavoriteRepository;
 import com.knusrae.common.domain.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,7 @@ public class RecipeService {
     private final EntityManager entityManager;
     private final RecipeCommentRepository recipeCommentRepository;
     private final RecipeIngredientGroupRepository recipeIngredientGroupRepository;
+    private final RecipeFavoriteRepository recipeFavoriteRepository;
 
     // CREATE - 레시피 생성
     @Transactional
@@ -298,6 +300,19 @@ public class RecipeService {
         RecipeDetailDto dto = RecipeDetailDto.fromEntity(recipe, memberName);
         dto.setMemberNickname(memberNickname);
         dto.setMemberProfileImage(memberProfileImage);
+        
+        // 찜 개수 조회하여 통계에 포함
+        long favoriteCount = recipeFavoriteRepository.countByRecipeId(id);
+        RecipeStatsDto stats = dto.getStats();
+        RecipeStatsDto updatedStats = RecipeStatsDto.builder()
+                .totalComments(stats.getTotalComments())
+                .totalReviews(stats.getTotalReviews())
+                .averageRating(stats.getAverageRating())
+                .totalLikes(stats.getTotalLikes())
+                .isLiked(stats.isLiked())
+                .favoriteCount(favoriteCount)
+                .build();
+        dto.setStats(updatedStats);
         
         return dto;
     }

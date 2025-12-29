@@ -102,4 +102,8 @@ public class RecipeDetailDto {
     public void setMemberProfileImage(String memberProfileImage) {
         this.memberProfileImage = memberProfileImage;
     }
+    
+    public void setStats(RecipeStatsDto stats) {
+        this.stats = stats;
+    }
 }
