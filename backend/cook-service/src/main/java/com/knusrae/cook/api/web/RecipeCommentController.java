@@ -31,11 +31,10 @@ public class RecipeCommentController {
         String content = request.get("content").toString();
         Long parentId = request.get("parentId") != null ? Long.valueOf(request.get("parentId").toString()) : null;
 
-        log.info("[LOG][INPUT] Creating comment for recipe {}: memberId={}, content={}, parentId={}",
-                recipeId, memberId, content, parentId);
+        log.debug("Creating comment: recipeId={}, memberId={}, parentId={}", recipeId, memberId, parentId);
 
         RecipeCommentDto comment = recipeCommentService.createComment(recipeId, memberId, content, parentId);
-        log.info("[LOG][OUTPUT] Created comment: {}", comment);
+        log.info("Comment created successfully: id={}, recipeId={}", comment.getId(), recipeId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
@@ -49,11 +48,11 @@ public class RecipeCommentController {
             @RequestParam(required = false) Long parentId,
             @RequestPart(required = false) MultipartFile image
     ) {
-        log.info("[LOG][INPUT] Creating comment with image for recipe {}: memberId={}, content={}, parentId={}, hasImage={}",
-                recipeId, memberId, content, parentId, image != null && !image.isEmpty());
+        log.debug("Creating comment with image: recipeId={}, memberId={}, parentId={}, hasImage={}",
+                recipeId, memberId, parentId, image != null && !image.isEmpty());
 
         RecipeCommentDto comment = recipeCommentService.createCommentWithImage(recipeId, memberId, content, parentId, image);
-        log.info("[LOG][OUTPUT] Created comment: {}", comment);
+        log.info("Comment with image created successfully: id={}, recipeId={}", comment.getId(), recipeId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
@@ -61,9 +60,9 @@ public class RecipeCommentController {
     // READ - 특정 레시피의 댓글 목록 조회
     @GetMapping("/{recipeId}")
     public ResponseEntity<List<RecipeCommentDto>> getCommentsByRecipeId(@PathVariable Long recipeId) {
-        log.info("[LOG][INPUT] Fetching comments for recipe: {}", recipeId);
+        log.debug("Fetching comments for recipe: {}", recipeId);
         List<RecipeCommentDto> comments = recipeCommentService.getCommentsByRecipeId(recipeId);
-        log.info("[LOG][OUTPUT] Found {} comments", comments.size());
+        log.info("Retrieved {} comments for recipe: {}", comments.size(), recipeId);
         return ResponseEntity.ok(comments);
     }
     
@@ -74,9 +73,10 @@ public class RecipeCommentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        log.info("[LOG][INPUT] Fetching comments for recipe: {} (page: {}, size: {})", recipeId, page, size);
+        log.debug("Fetching comments with pagination: recipeId={}, page={}, size={}", recipeId, page, size);
         Map<String, Object> response = recipeCommentService.getCommentsByRecipeIdWithPagination(recipeId, page, size);
-        log.info("[LOG][OUTPUT] Found {} comments", ((List<?>) response.get("comments")).size());
+        int commentCount = ((List<?>) response.get("comments")).size();
+        log.info("Retrieved {} comments for recipe: {} (page: {}, size: {})", commentCount, recipeId, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -106,11 +106,11 @@ public class RecipeCommentController {
             @RequestParam(defaultValue = "false") boolean removeImage,
             @RequestPart(required = false) MultipartFile image
     ) {
-        log.info("[LOG][INPUT] Updating comment {} with image: memberId={}, content={}, removeImage={}, hasImage={}",
-                commentId, memberId, content, removeImage, image != null && !image.isEmpty());
+        log.debug("Updating comment with image: id={}, memberId={}, removeImage={}, hasImage={}",
+                commentId, memberId, removeImage, image != null && !image.isEmpty());
 
         RecipeCommentDto comment = recipeCommentService.updateCommentWithImage(commentId, memberId, content, image, removeImage);
-        log.info("[LOG][OUTPUT] Updated comment: {}", comment);
+        log.info("Comment with image updated successfully: id={}", comment.getId());
 
         return ResponseEntity.ok(comment);
     }
@@ -121,9 +121,9 @@ public class RecipeCommentController {
             @PathVariable Long commentId,
             @RequestParam Long memberId
     ) {
-        log.info("[LOG][INPUT] Deleting comment {}: memberId={}", commentId, memberId);
+        log.info("Deleting comment: id={}, memberId={}", commentId, memberId);
         recipeCommentService.deleteComment(commentId, memberId);
-        log.info("[LOG][OUTPUT] Deleted comment: {}", commentId);
+        log.info("Comment deleted successfully: id={}", commentId);
         return ResponseEntity.noContent().build();
     }
 

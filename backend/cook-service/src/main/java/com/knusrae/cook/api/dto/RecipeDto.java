@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.knusrae.cook.api.domain.entity.Recipe;
 import com.knusrae.cook.api.domain.enums.Status;
 import com.knusrae.cook.api.domain.enums.Visibility;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -46,6 +47,7 @@ public class RecipeDto {
     private String memberNickname;
     private String memberProfileImage;
 
+    @Valid
     private List<RecipeStepDto> steps;
 
     private LocalDateTime createdAt;

@@ -3,6 +3,7 @@ package com.knusrae.cook.api.domain.service;
 import com.knusrae.common.custom.storage.ImageStorage;
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
+import com.knusrae.cook.api.domain.constants.RecipeConstants;
 import com.knusrae.cook.api.domain.entity.Recipe;
 import com.knusrae.cook.api.domain.entity.RecipeComment;
 import com.knusrae.cook.api.domain.repository.RecipeCommentRepository;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,13 +111,29 @@ public class RecipeCommentService {
         return dto;
     }
 
+    /**
+     * 댓글 이미지 파일 유효성 검증
+     * @param file 검증할 이미지 파일
+     * @throws IllegalArgumentException 파일 크기, 타입, 확장자가 유효하지 않은 경우
+     */
     private void validateImage(MultipartFile file) {
-        long max = 5 * 1024 * 1024; // 5MB
-        if (file.getSize() > max) {
-            throw new IllegalArgumentException("파일이 너무 큽니다. (최대 5MB)");
+        if (file.getSize() > RecipeConstants.MAX_COMMENT_IMAGE_SIZE) {
+            throw new IllegalArgumentException("파일이 너무 큽니다. 최대 " + (RecipeConstants.MAX_COMMENT_IMAGE_SIZE / (1024 * 1024)) + "MB까지 가능합니다.");
         }
-        if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
+        
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("이미지 파일만 업로드 가능합니다.");
+        }
+        
+        // 허용된 확장자 검증
+        String filename = file.getOriginalFilename();
+        if (filename != null) {
+            String extension = filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+            List<String> allowedExtensions = Arrays.asList(RecipeConstants.ALLOWED_IMAGE_EXTENSIONS);
+            if (!allowedExtensions.contains(extension)) {
+                throw new IllegalArgumentException("지원하지 않는 파일 형식입니다. 허용된 형식: " + String.join(", ", allowedExtensions));
+            }
         }
     }
 

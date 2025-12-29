@@ -139,20 +139,7 @@ const API_COOK_BASE_URL = import.meta.env.VITE_API_BASE_URL_COOK;
 const router = useRouter();
 const confirm = useConfirm();
 
-// 레시피 타입 정의
-interface Recipe {
-    id: number;
-    title: string;
-    status: 'DRAFT' | 'PUBLISHED';
-    visibility: 'PUBLIC' | 'PRIVATE';
-    thumbnail?: string;
-    introduction?: string;
-    ingredients?: string[];
-    instructions?: string[];
-    createdAt?: string;
-    updatedAt?: string;
-    categories?: Array<{ codeId: string; detailCodeId: string; codeName?: string; detailName?: string }>;
-}
+// 타입은 @/types/recipe에서 import
 
 // 1. 레시피 목록 조회 (로그인 유저의 레시피)
 const fetchRecipes = async (): Promise<Recipe[]> => {
@@ -172,7 +159,7 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const showDetailModal = ref(false);
 const detailLoading = ref(false);
-const recipeDetail = ref<any>(null);
+const recipeDetail = ref<Recipe | null>(null);
 
 // 레시피 목록 로드
 const loadRecipes = async () => {

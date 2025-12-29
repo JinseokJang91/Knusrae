@@ -876,6 +876,8 @@ import { httpJson, httpForm } from '@/utils/http';
 import { useConfirm } from 'primevue/useconfirm';
 import { useAuthStore } from '@/stores/authStore';
 import { useToast } from 'primevue/usetoast';
+import type { RecipeDetail, RecipeComment, RecipeImage } from '@/types/recipe';
+import { handleApiCall, handleApiCallVoid } from '@/utils/errorHandler';
 
 const route = useRoute();
 const router = useRouter();
@@ -886,8 +888,8 @@ const toast = useToast();
 // 반응형 데이터
 const loading = ref(true);
 const error = ref<string | null>(null);
-const recipe = ref<any>(null);
-const comments = ref<any[]>([]);
+const recipe = ref<RecipeDetail | null>(null);
+const comments = ref<RecipeComment[]>([]);
 const newComment = ref('');
 const newCommentImage = ref<File | null>(null);
 const newCommentImagePreview = ref<string | null>(null);
@@ -895,7 +897,7 @@ const replyContent = ref('');
 const replyImage = ref<File | null>(null);
 const replyImagePreview = ref<string | null>(null);
 const replyingToCommentId = ref<number | null>(null);
-const replyingToComment = ref<any>(null); // 답글 대상 댓글 정보
+const replyingToComment = ref<RecipeComment | null>(null); // 답글 대상 댓글 정보
 const editingCommentId = ref<number | null>(null);
 const editingContent = ref('');
 const editingImage = ref<File | null>(null);
@@ -903,7 +905,7 @@ const editingImagePreview = ref<string | null>(null);
 const editingRemoveImage = ref(false);
 const isLiked = ref(false);
 const showImageModal = ref(false);
-const selectedImage = ref<any>(null);
+const selectedImage = ref<RecipeImage | null>(null);
 const selectedImageIndex = ref(0);
 
 // Pagination 관련
@@ -930,7 +932,7 @@ const isRecipeAuthor = computed(() => {
 // 계산된 속성
 const mainImage = computed(() => {
     if (!recipe.value?.images) return null;
-    return recipe.value.images.find((img: any) => img.isMainImage) || recipe.value.images[0];
+    return recipe.value.images.find((img) => img.isMainImage) || recipe.value.images[0];
 });
 
 // cookingTips에서 각 항목 추출
@@ -939,9 +941,9 @@ const cookingTipsData = computed(() => {
         return { servings: null, cookingTime: null, difficulty: null };
     }
     
-    const servingsTip = recipe.value.cookingTips.find((tip: any) => tip.codeId === 'SERVINGS');
-    const cookingTimeTip = recipe.value.cookingTips.find((tip: any) => tip.codeId === 'COOKING_TIME');
-    const difficultyTip = recipe.value.cookingTips.find((tip: any) => tip.codeId === 'DIFFICULTY');
+    const servingsTip = recipe.value.cookingTips.find((tip) => tip.codeId === 'SERVINGS');
+    const cookingTimeTip = recipe.value.cookingTips.find((tip) => tip.codeId === 'COOKING_TIME');
+    const difficultyTip = recipe.value.cookingTips.find((tip) => tip.codeId === 'DIFFICULTY');
     
     // 난이도는 detailCodeId를 사용하여 공통코드에서 codeName을 찾음
     let difficultyText = null;
@@ -967,11 +969,11 @@ const loadDifficultyCodes = async () => {
         );
         
         const codes = Array.isArray(response) ? response : [];
-        const difficultyCode = codes.find((code: any) => code.codeId === 'DIFFICULTY');
+        const difficultyCode = codes.find((code: { codeId: string; details?: Array<{ detailCodeId: string; codeName: string }> }) => code.codeId === 'DIFFICULTY');
         
         if (difficultyCode && difficultyCode.details) {
             difficultyCodes.value.clear();
-            difficultyCode.details.forEach((detail: any) => {
+            difficultyCode.details.forEach((detail) => {
                 difficultyCodes.value.set(detail.detailCodeId, detail.codeName);
             });
         }
