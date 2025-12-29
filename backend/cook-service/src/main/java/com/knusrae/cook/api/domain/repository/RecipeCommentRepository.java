@@ -25,6 +25,10 @@ public interface RecipeCommentRepository extends JpaRepository<RecipeComment, Lo
     @Query("SELECT count(rc.id) FROM RecipeComment rc WHERE rc.recipe = :recipe AND rc.parentId IS NULL")
     long countByRecipe(Recipe recipe);
     
+    // 여러 레시피의 댓글 개수를 한 번에 조회 (N+1 문제 해결)
+    @Query("SELECT rc.recipe.id, count(rc.id) FROM RecipeComment rc WHERE rc.recipe IN :recipes AND rc.parentId IS NULL GROUP BY rc.recipe.id")
+    List<Object[]> countByRecipes(List<Recipe> recipes);
+    
     // 특정 사용자가 작성한 댓글 조회
     List<RecipeComment> findAllByMemberIdOrderByCreatedAtDesc(Long memberId);
 }

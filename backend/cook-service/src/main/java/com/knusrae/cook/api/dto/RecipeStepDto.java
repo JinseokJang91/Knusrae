@@ -1,6 +1,7 @@
 package com.knusrae.cook.api.dto;
 
 import com.knusrae.cook.api.domain.entity.RecipeDetail;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Getter
@@ -10,6 +11,8 @@ import lombok.*;
 @ToString
 public class RecipeStepDto {
     private Long order;
+    
+    @NotBlank(message = "조리 단계 설명은 필수입니다.")
     private String text;
 
     public static RecipeStepDto fromEntity(RecipeDetail recipeDetail) {
