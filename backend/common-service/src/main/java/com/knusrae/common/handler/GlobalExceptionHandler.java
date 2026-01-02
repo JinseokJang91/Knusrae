@@ -1,4 +1,4 @@
-package com.knusrae.common.web;
+package com.knusrae.common.handler;
 
 import com.knusrae.common.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;

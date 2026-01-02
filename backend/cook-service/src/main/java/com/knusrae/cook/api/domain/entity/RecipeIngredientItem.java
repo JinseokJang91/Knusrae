@@ -1,5 +1,6 @@
 package com.knusrae.cook.api.domain.entity;
 
+import com.knusrae.common.domain.entity.CommonCodeDetail;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -49,6 +50,10 @@ public class RecipeIngredientItem {
             @JoinColumn(name = "unit_detail_code_id", referencedColumnName = "detail_code_id")
     })
     private CommonCodeDetail unitDetail;
+
+    // 직접 입력한 단위 이름 (unitDetail이 null일 때 사용)
+    @Column(name = "custom_unit_name", length = 20)
+    private String customUnitName;
 
     // 연관관계 편의 메서드
     public void setRecipeIngredientGroup(RecipeIngredientGroup recipeIngredientGroup) {

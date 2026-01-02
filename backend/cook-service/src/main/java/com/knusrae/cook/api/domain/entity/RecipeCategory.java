@@ -1,5 +1,6 @@
 package com.knusrae.cook.api.domain.entity;
 
+import com.knusrae.common.domain.entity.CommonCodeDetail;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

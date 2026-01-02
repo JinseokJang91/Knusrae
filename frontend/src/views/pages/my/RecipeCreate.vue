@@ -107,6 +107,14 @@
                                     showClear
                                 />
                             </div>
+                            <!-- 직접 입력 필드 (type이 'CUSTOM'일 때만 표시) -->
+                            <div v-if="group.type === 'CUSTOM'" class="flex-1 max-w-xs">
+                                <InputText 
+                                    v-model.trim="group.customTypeName"
+                                    placeholder="그룹 타입을 직접 입력하세요"
+                                    class="w-full"
+                                />
+                            </div>
                         </div>
                         <div class="flex gap-2">
                             <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveIngredientGroupUp(groupIndex)" :disabled="groupIndex === 0 || submitting" />
@@ -149,18 +157,27 @@
                                 <div v-else-if="unitsLoading" class="p-2 text-xs text-gray-500">
                                     로딩 중...
                                 </div>
-                                <Select v-else
-                                    v-model="item.unit" 
-                                    :options="getUnitOptions()" 
-                                    optionLabel="label" 
-                                    optionValue="value"
-                                    placeholder="단위를 선택하세요"
-                                    class="w-full"
-                                    :class="{ 'border-red-500': validationErrors[`item-unit-${item.id}`] }"
-                                    @change="clearValidationError(`item-unit-${item.id}`)"
-                                    filter
-                                    showClear
-                                />
+                                <div v-else class="flex flex-col gap-2">
+                                    <Select
+                                        v-model="item.unit" 
+                                        :options="getUnitOptions()" 
+                                        optionLabel="label" 
+                                        optionValue="value"
+                                        placeholder="단위를 선택하세요"
+                                        class="w-full"
+                                        :class="{ 'border-red-500': validationErrors[`item-unit-${item.id}`] }"
+                                        @change="clearValidationError(`item-unit-${item.id}`)"
+                                        filter
+                                        showClear
+                                    />
+                                    <!-- 직접 입력 필드 (unit이 'CUSTOM'일 때만 표시) -->
+                                    <InputText 
+                                        v-if="item.unit === 'CUSTOM'"
+                                        v-model.trim="item.customUnitName"
+                                        placeholder="단위를 직접 입력하세요"
+                                        class="w-full"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -374,11 +391,13 @@ interface IngredientItemDraft {
     name: string;
     quantity: number | null;
     unit: string;
+    customUnitName?: string;  // 직접 입력 단위
 }
 
 interface IngredientGroupDraft {
     id: string;
     type: string;
+    customTypeName?: string;  // 직접 입력 타입
     items: IngredientItemDraft[];
 }
 
@@ -707,29 +726,33 @@ function getCommonCodeDetailOptions(option: CommonCodeOption) {
 // 재료 타입 옵션 변환
 function getIngredientTypeOptions() {
     if (!ingredientTypeOptions.value || ingredientTypeOptions.value.length === 0) {
-        return [];
+        return [{ label: '직접 입력', value: 'CUSTOM' }];
     }
     // 모든 code를 평탄화하여 옵션으로 변환
-    return ingredientTypeOptions.value.flatMap(option => 
+    const options = ingredientTypeOptions.value.flatMap(option => 
         option.details.map(detail => ({
             label: detail.codeName,
             value: detail.detailCodeId // detail의 고유 ID를 사용해야 함
         }))
     );
+    // 직접 입력 옵션 추가
+    return [...options, { label: '직접 입력', value: 'CUSTOM' }];
 }
 
 // 단위 옵션 변환
 function getUnitOptions() {
     if (!unitOptions.value || unitOptions.value.length === 0) {
-        return [];
+        return [{ label: '직접 입력', value: 'CUSTOM' }];
     }
     // 모든 code를 평탄화하여 옵션으로 변환
-    return unitOptions.value.flatMap(option => 
+    const options = unitOptions.value.flatMap(option => 
         option.details.map(detail => ({
             label: detail.codeName,
             value: detail.detailCodeId // detail의 고유 ID를 사용해야 함
         }))
     );
+    // 직접 입력 옵션 추가
+    return [...options, { label: '직접 입력', value: 'CUSTOM' }];
 }
 
 // 준비물 관련 함수
@@ -878,8 +901,9 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
     const ingredientGroups = form.ingredientGroups
         .filter((group) => group.type && group.items.length > 0)
         .map((group, groupIdx) => ({
-            codeId: 'INGREDIENTS_GROUP',
-            detailCodeId: group.type,
+            codeId: group.type !== 'CUSTOM' ? 'INGREDIENTS_GROUP' : null,
+            detailCodeId: group.type !== 'CUSTOM' ? group.type : null,
+            customTypeName: group.type === 'CUSTOM' ? group.customTypeName : null,
             order: groupIdx + 1,
             items: group.items
                 .filter((item) => item.name.trim() && item.quantity !== null && item.quantity > 0 && item.unit)
@@ -887,8 +911,9 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
                     order: idx + 1,
                     name: item.name.trim(),
                     quantity: item.quantity!,
-                    codeId: 'INGREDIENTS_UNIT',
-                    detailCodeId: item.unit
+                    codeId: item.unit !== 'CUSTOM' ? 'INGREDIENTS_UNIT' : null,
+                    detailCodeId: item.unit !== 'CUSTOM' ? item.unit : null,
+                    customUnitName: item.unit === 'CUSTOM' ? item.customUnitName : null
                 }))
         }))
         .filter((group) => group.items.length > 0);

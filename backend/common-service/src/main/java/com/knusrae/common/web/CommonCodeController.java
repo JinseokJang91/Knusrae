@@ -1,7 +1,7 @@
-package com.knusrae.cook.api.web;
+package com.knusrae.common.web;
 
-import com.knusrae.cook.api.domain.service.CommonCodeService;
-import com.knusrae.cook.api.dto.CommonCodeResponse;
+import com.knusrae.common.domain.service.CommonCodeService;
+import com.knusrae.common.dto.CommonCodeResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

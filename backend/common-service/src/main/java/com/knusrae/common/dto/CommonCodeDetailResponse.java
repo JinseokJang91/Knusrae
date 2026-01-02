@@ -1,6 +1,6 @@
-package com.knusrae.cook.api.dto;
+package com.knusrae.common.dto;
 
-import com.knusrae.cook.api.domain.entity.CommonCodeDetail;
+import com.knusrae.common.domain.entity.CommonCodeDetail;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

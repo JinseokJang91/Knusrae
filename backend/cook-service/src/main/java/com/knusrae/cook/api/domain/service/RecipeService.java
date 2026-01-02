@@ -3,8 +3,9 @@ package com.knusrae.cook.api.domain.service;
 import com.knusrae.common.custom.storage.ImageStorage;
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.utils.constants.CommonConstants;
-import com.knusrae.cook.api.domain.entity.CommonCodeDetail;
-import com.knusrae.cook.api.domain.entity.CommonCodeDetailId;
+import com.knusrae.common.domain.entity.CommonCodeDetail;
+import com.knusrae.common.domain.entity.CommonCodeDetailId;
+import com.knusrae.common.domain.repository.CommonCodeDetailRepository;
 import com.knusrae.cook.api.domain.entity.RecipeIngredientGroup;
 import com.knusrae.cook.api.domain.entity.RecipeIngredientItem;
 import com.knusrae.cook.api.domain.entity.Recipe;
@@ -14,7 +15,6 @@ import com.knusrae.cook.api.domain.entity.RecipeImage;
 import com.knusrae.cook.api.domain.enums.Status;
 import com.knusrae.cook.api.domain.enums.Visibility;
 import com.knusrae.cook.api.domain.repository.RecipeStepRepository;
-import com.knusrae.cook.api.domain.repository.CommonCodeDetailRepository;
 import com.knusrae.cook.api.domain.repository.RecipeIngredientGroupRepository;
 import com.knusrae.cook.api.dto.*;
 import com.knusrae.cook.api.domain.repository.RecipeImageRepository;
@@ -211,18 +211,24 @@ public class RecipeService {
         for (RecipeIngredientGroupDto groupDto : ingredientGroupDtos) {
             // 그룹 타입에 대한 CommonCodeDetail 조회
             CommonCodeDetail typeDetail = null;
+            String customTypeName = null;
+            
             if (groupDto.getDetailCodeId() != null && !groupDto.getDetailCodeId().isEmpty()) {
-                // 프론트엔드에서 전달된 detailCodeId를 사용
+                // 프론트엔드에서 전달된 detailCodeId를 사용 (공통코드 사용)
                 CommonCodeDetailId typeId = new CommonCodeDetailId(groupDto.getCodeId(), groupDto.getDetailCodeId());
                 
                 typeDetail = commonCodeDetailRepository.findById(typeId)
                         .orElseThrow(() -> new IllegalArgumentException(
                             "존재하지 않는 재료 타입입니다. codeId: " + groupDto.getCodeId() + ", detailCodeId: " + groupDto.getDetailCodeId()));
+            } else if (groupDto.getCustomTypeName() != null && !groupDto.getCustomTypeName().trim().isEmpty()) {
+                // 직접 입력한 그룹 타입 사용
+                customTypeName = groupDto.getCustomTypeName().trim();
             }
 
             // RecipeIngredientGroup 생성
             RecipeIngredientGroup group = RecipeIngredientGroup.builder()
                     .typeDetail(typeDetail)
+                    .customTypeName(customTypeName)
                     .groupOrder(groupDto.getOrder())
                     .build();
             
@@ -234,12 +240,17 @@ public class RecipeService {
                 for (RecipeIngredientItemDto itemDto : groupDto.getItems()) {
                     // 단위에 대한 CommonCodeDetail 조회
                     CommonCodeDetail unitDetail = null;
+                    String customUnitName = null;
+                    
                     if (itemDto.getDetailCodeId() != null && !itemDto.getDetailCodeId().isEmpty()) {
-                        // 프론트엔드에서 전달된 detailCodeId를 사용
+                        // 프론트엔드에서 전달된 detailCodeId를 사용 (공통코드 사용)
                         CommonCodeDetailId unitId = new CommonCodeDetailId(itemDto.getCodeId(), itemDto.getDetailCodeId());
                         unitDetail = commonCodeDetailRepository.findById(unitId)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                     "존재하지 않는 단위입니다. codeId: " + itemDto.getCodeId() + ", detailCodeId: " + itemDto.getDetailCodeId()));
+                    } else if (itemDto.getCustomUnitName() != null && !itemDto.getCustomUnitName().trim().isEmpty()) {
+                        // 직접 입력한 단위 사용
+                        customUnitName = itemDto.getCustomUnitName().trim();
                     }
 
                     // RecipeIngredientItem 생성
@@ -247,6 +258,7 @@ public class RecipeService {
                             .name(itemDto.getName())
                             .quantity(itemDto.getQuantity())
                             .unitDetail(unitDetail)
+                            .customUnitName(customUnitName)
                             .itemOrder(itemDto.getOrder())
                             .build();
                     

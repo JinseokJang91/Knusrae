@@ -23,6 +23,7 @@ public class RecipeIngredientItemDto {
     private String codeGroup;
     private String codeName;
     private String detailName;
+    private String customUnitName; // 직접 입력한 단위 이름
 
     public static RecipeIngredientItemDto fromEntity(RecipeIngredientItem item) {
         String codeId = null;
@@ -52,6 +53,7 @@ public class RecipeIngredientItemDto {
                 .codeGroup(codeGroup)
                 .codeName(codeName)
                 .detailName(detailName)
+                .customUnitName(item.getCustomUnitName())
                 .build();
     }
 

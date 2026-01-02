@@ -1,6 +1,6 @@
-package com.knusrae.cook.api.domain.repository;
+package com.knusrae.common.domain.repository;
 
-import com.knusrae.cook.api.domain.entity.CommonCode;
+import com.knusrae.common.domain.entity.CommonCode;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -9,9 +9,9 @@ import java.util.List;
 public interface CommonCodeRepository extends JpaRepository<CommonCode, String> {
 
     @EntityGraph(attributePaths = "details")
-    List<CommonCode> findAllByCodeGroupAndUseYnOrderBySortAsc(String codeGroup, String useYn);
+    List<CommonCode> findAllByCodeGroupAndUseYn(String codeGroup, String useYn);
     
     @EntityGraph(attributePaths = "details")
-    List<CommonCode> findAllByCodeIdAndUseYnOrderBySortAsc(String codeId, String useYn);
+    List<CommonCode> findAllByCodeIdAndUseYn(String codeId, String useYn);
 }
 

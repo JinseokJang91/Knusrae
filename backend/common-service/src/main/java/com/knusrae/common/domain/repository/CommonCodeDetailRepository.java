@@ -1,7 +1,7 @@
-package com.knusrae.cook.api.domain.repository;
+package com.knusrae.common.domain.repository;
 
-import com.knusrae.cook.api.domain.entity.CommonCodeDetail;
-import com.knusrae.cook.api.domain.entity.CommonCodeDetailId;
+import com.knusrae.common.domain.entity.CommonCodeDetail;
+import com.knusrae.common.domain.entity.CommonCodeDetailId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

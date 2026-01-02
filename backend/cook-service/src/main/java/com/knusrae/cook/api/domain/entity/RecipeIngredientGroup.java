@@ -1,5 +1,6 @@
 package com.knusrae.cook.api.domain.entity;
 
+import com.knusrae.common.domain.entity.CommonCodeDetail;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -44,6 +45,10 @@ public class RecipeIngredientGroup {
             @JoinColumn(name = "type_detail_code_id", referencedColumnName = "detail_code_id")
     })
     private CommonCodeDetail typeDetail;
+
+    // 직접 입력한 그룹 타입 이름 (typeDetail이 null일 때 사용)
+    @Column(name = "custom_type_name", length = 50)
+    private String customTypeName;
 
     @OneToMany(mappedBy = "recipeIngredientGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("itemOrder ASC")

@@ -165,7 +165,7 @@
                                 {{ groupIndex + 1 }}
                             </div>
                             <h3 class="text-xl font-semibold text-gray-800">
-                                {{ group.detailName || '재료' }}
+                                {{ group.customTypeName || group.detailName || '재료' }}
                             </h3>
                         </div>
 
@@ -179,7 +179,7 @@
                                 <i class="pi pi-circle-fill text-orange-400 text-xs mr-3"></i>
                                 <span class="text-gray-800 text-lg font-medium flex-1">{{ item.name }}</span>
                                 <span class="text-gray-600 text-lg ml-2">
-                                    {{ item.quantity }}{{ item.detailName }}
+                                    {{ item.quantity }}{{ item.customUnitName || item.detailName }}
                                 </span>
                             </div>
                         </div>

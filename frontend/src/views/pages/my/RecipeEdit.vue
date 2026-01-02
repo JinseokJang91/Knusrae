@@ -100,6 +100,15 @@
                                     </option>
                                 </select>
                             </div>
+                            <!-- 직접 입력 필드 (type이 'CUSTOM'일 때만 표시) -->
+                            <div v-if="group.type === 'CUSTOM'" class="flex-1 max-w-xs">
+                                <input 
+                                    v-model.trim="group.customTypeName"
+                                    type="text"
+                                    placeholder="그룹 타입을 직접 입력하세요"
+                                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                />
+                            </div>
                         </div>
                         <div class="flex gap-2">
                             <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded text-sm" @click="moveIngredientGroupUp(groupIndex)" :disabled="groupIndex === 0 || submitting">
@@ -157,12 +166,22 @@
                                 <div v-else-if="unitsLoading" class="p-2 text-xs text-gray-500">
                                     로딩 중...
                                 </div>
-                                <select v-else v-model="item.unit" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
-                                    <option value="">단위를 선택하세요</option>
-                                    <option v-for="opt in getUnitOptions()" :key="opt.value" :value="opt.value">
-                                        {{ opt.label }}
-                                    </option>
-                                </select>
+                                <div v-else class="flex flex-col gap-2">
+                                    <select v-model="item.unit" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                                        <option value="">단위를 선택하세요</option>
+                                        <option v-for="opt in getUnitOptions()" :key="opt.value" :value="opt.value">
+                                            {{ opt.label }}
+                                        </option>
+                                    </select>
+                                    <!-- 직접 입력 필드 (unit이 'CUSTOM'일 때만 표시) -->
+                                    <input 
+                                        v-if="item.unit === 'CUSTOM'"
+                                        v-model.trim="item.customUnitName"
+                                        type="text"
+                                        placeholder="단위를 직접 입력하세요"
+                                        class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -336,11 +355,13 @@ interface IngredientItemDraft {
     name: string;
     quantity: number | null;
     unit: string;
+    customUnitName?: string;  // 직접 입력 단위
 }
 
 interface IngredientGroupDraft {
     id: string;
     type: string;
+    customTypeName?: string;  // 직접 입력 타입
     items: IngredientItemDraft[];
 }
 
@@ -469,12 +490,14 @@ async function loadRecipeData() {
         if (response.ingredientGroups && Array.isArray(response.ingredientGroups)) {
             form.ingredientGroups = response.ingredientGroups.map((group: any) => ({
                 id: crypto.randomUUID(),
-                type: group.detailCodeId || '',
+                type: group.detailCodeId || (group.customTypeName ? 'CUSTOM' : ''),
+                customTypeName: group.customTypeName || '',
                 items: Array.isArray(group.items) ? group.items.map((item: any) => ({
                     id: crypto.randomUUID(),
                     name: item.name || '',
                     quantity: item.quantity || null,
-                    unit: item.detailCodeId || ''
+                    unit: item.detailCodeId || (item.customUnitName ? 'CUSTOM' : ''),
+                    customUnitName: item.customUnitName || ''
                 })) : []
             }));
         }
@@ -598,26 +621,30 @@ async function loadIngredientsUnitOptions() {
 
 function getIngredientTypeOptions() {
     if (!ingredientTypeOptions.value || ingredientTypeOptions.value.length === 0) {
-        return [];
+        return [{ label: '직접 입력', value: 'CUSTOM' }];
     }
-    return ingredientTypeOptions.value.flatMap(option => 
+    const options = ingredientTypeOptions.value.flatMap(option => 
         option.details.map(detail => ({
             label: detail.codeName,
             value: detail.detailCodeId
         }))
     );
+    // 직접 입력 옵션 추가
+    return [...options, { label: '직접 입력', value: 'CUSTOM' }];
 }
 
 function getUnitOptions() {
     if (!unitOptions.value || unitOptions.value.length === 0) {
-        return [];
+        return [{ label: '직접 입력', value: 'CUSTOM' }];
     }
-    return unitOptions.value.flatMap(option => 
+    const options = unitOptions.value.flatMap(option => 
         option.details.map(detail => ({
             label: detail.codeName,
             value: detail.detailCodeId
         }))
     );
+    // 직접 입력 옵션 추가
+    return [...options, { label: '직접 입력', value: 'CUSTOM' }];
 }
 
 function swapArrayItems<T>(array: T[], index1: number, index2: number): void {
@@ -778,8 +805,9 @@ function buildRecipePayload() {
     const ingredientGroups = form.ingredientGroups
         .filter((group) => group.type && group.items.length > 0)
         .map((group, groupIdx) => ({
-            codeId: 'INGREDIENTS_GROUP',
-            detailCodeId: group.type,
+            codeId: group.type !== 'CUSTOM' ? 'INGREDIENTS_GROUP' : null,
+            detailCodeId: group.type !== 'CUSTOM' ? group.type : null,
+            customTypeName: group.type === 'CUSTOM' ? group.customTypeName : null,
             order: groupIdx + 1,
             items: group.items
                 .filter((item) => item.name.trim() && item.quantity !== null && item.quantity > 0 && item.unit)
@@ -787,8 +815,9 @@ function buildRecipePayload() {
                     order: idx + 1,
                     name: item.name.trim(),
                     quantity: item.quantity!,
-                    codeId: 'INGREDIENTS_UNIT',
-                    detailCodeId: item.unit
+                    codeId: item.unit !== 'CUSTOM' ? 'INGREDIENTS_UNIT' : null,
+                    detailCodeId: item.unit !== 'CUSTOM' ? item.unit : null,
+                    customUnitName: item.unit === 'CUSTOM' ? item.customUnitName : null
                 }))
         }))
         .filter((group) => group.items.length > 0);

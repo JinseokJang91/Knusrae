@@ -1,9 +1,8 @@
-package com.knusrae.cook.api.dto;
+package com.knusrae.common.dto;
 
-import com.knusrae.cook.api.domain.entity.CommonCode;
+import com.knusrae.common.domain.entity.CommonCode;
+import com.knusrae.common.domain.entity.CommonCodeDetail;
 import lombok.*;
-
-import com.knusrae.cook.api.domain.entity.CommonCodeDetail;
 
 import java.util.Comparator;
 import java.util.List;

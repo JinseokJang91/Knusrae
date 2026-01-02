@@ -20,6 +20,7 @@ export interface RecipeIngredientItem {
     detailCodeId?: string;
     codeName?: string;
     detailName?: string;
+    customUnitName?: string; // 직접 입력한 단위 이름
 }
 
 export interface RecipeIngredientGroup {
@@ -28,6 +29,7 @@ export interface RecipeIngredientGroup {
     detailCodeId?: string;
     codeName?: string;
     detailName?: string;
+    customTypeName?: string; // 직접 입력한 그룹 타입 이름
     items: RecipeIngredientItem[];
 }
 

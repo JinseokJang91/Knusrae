@@ -1,4 +1,4 @@
-package com.knusrae.cook.api.domain.entity;
+package com.knusrae.common.domain.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

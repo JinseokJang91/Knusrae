@@ -23,6 +23,7 @@ public class RecipeIngredientGroupDto {
     private String codeGroup;
     private String codeName;
     private String detailName;
+    private String customTypeName; // 직접 입력한 그룹 타입 이름
     
     @Builder.Default
     private List<RecipeIngredientItemDto> items = new ArrayList<>();
@@ -53,6 +54,7 @@ public class RecipeIngredientGroupDto {
                 .codeGroup(codeGroup)
                 .codeName(codeName)
                 .detailName(detailName)
+                .customTypeName(group.getCustomTypeName())
                 .items(group.getItems().stream()
                         .map(RecipeIngredientItemDto::fromEntity)
                         .collect(Collectors.toList()))
