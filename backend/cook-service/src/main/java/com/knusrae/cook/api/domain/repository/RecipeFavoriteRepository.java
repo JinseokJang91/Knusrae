@@ -27,5 +27,8 @@ public interface RecipeFavoriteRepository extends JpaRepository<RecipeFavorite, 
     
     // 특정 레시피의 찜 개수 조회
     long countByRecipeId(Long recipeId);
+    
+    // 특정 레시피의 모든 찜 삭제 (레시피 삭제 시 사용)
+    void deleteByRecipeId(Long recipeId);
 }
 

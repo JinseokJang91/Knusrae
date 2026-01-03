@@ -3,17 +3,14 @@
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-2xl font-bold">레시피 수정</h2>
             <div class="flex gap-2">
-                <button class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md" @click="goBack" :disabled="submitting">
-                    <span class="pi pi-arrow-left mr-2"></span>
-                    <span>목록으로</span>
-                </button>
+                <Button label="목록으로" icon="pi pi-arrow-left" severity="secondary" @click="goBack" :disabled="submitting" />
             </div>
         </div>
 
         <!-- 에러 메시지 표시 -->
-        <div v-if="error" class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <Message v-if="error" severity="error" :closable="false" class="mb-4">
             {{ error }}
-        </div>
+        </Message>
 
         <!-- 로딩 상태 -->
         <div v-if="initialLoading" class="flex justify-center items-center py-8">
@@ -21,62 +18,62 @@
             <span>레시피 정보를 불러오는 중...</span>
         </div>
 
-        <div v-else class="grid grid-cols-1 gap-4">
-            <div class="mb-4 p-4 bg-green-50 border-l-4 border-green-500 rounded-r">
+        <div v-else class="flex flex-col gap-6">
+            <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r">
                 <p class="text-gray-700 italic">
                     셰프님이 누군가를 위해 정성들인 이 요리처럼, 레시피에서도 셰프님의 따뜻한 정성을 보여주세요.
                 </p>
             </div>
 
-            <!-- 썸네일 및 기본 정보 -->
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <!-- 썸네일 업로드 (좌측) -->
-                <div class="md:col-span-2">
-                    <label class="block mb-2 font-medium"><b>대표 사진</b></label>
-                    <input ref="thumbnailInputRef" type="file" accept="image/*" @change="onThumbnailChange" :disabled="submitting" class="hidden" />
-                    <div 
-                        class="relative w-full aspect-[5/3] bg-gray-200 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-300 hover:border-gray-400 transition-colors flex items-center justify-center"
-                        @click="() => !submitting && thumbnailInputRef?.click()"
-                    >
-                        <div v-if="!form.thumbnailPreview" class="text-center text-gray-500">
-                            <span class="pi pi-image text-4xl block mb-2"></span>
-                            <span class="text-sm">이미지를 클릭하여 추가하세요</span>
+            <!-- 기본 정보: 대표 사진, 제목, 소개 -->
+            <div class="border border-gray-200 rounded-lg p-5 bg-white">
+                <h3 class="text-xl font-semibold text-green-600 mb-4">기본 정보</h3>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <!-- 썸네일 업로드 (좌측) -->
+                    <div class="md:col-span-2">
+                        <label class="block mb-2 font-medium"><b>대표 사진</b></label>
+                        <input ref="thumbnailInputRef" type="file" accept="image/*" @change="onThumbnailChange" :disabled="submitting" class="hidden" />
+                        <div 
+                            class="relative w-full aspect-[5/3] bg-gray-200 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-300 hover:border-gray-400 transition-colors flex items-center justify-center"
+                            @click="() => !submitting && thumbnailInputRef?.click()"
+                        >
+                            <div v-if="!form.thumbnailPreview" class="text-center text-gray-500">
+                                <span class="pi pi-image text-4xl block mb-2"></span>
+                                <span class="text-sm">이미지를 클릭하여 추가하세요</span>
+                            </div>
+                            <div v-else class="group relative w-full h-full">
+                                <img :src="form.thumbnailPreview" alt="thumbnail preview" class="w-full h-full object-cover rounded-md" />
+                                <button 
+                                    class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                    @click.stop="clearThumbnail"
+                                    :disabled="submitting"
+                                >
+                                    <span class="pi pi-times"></span>
+                                </button>
+                            </div>
                         </div>
-                        <div v-else class="relative w-full h-full">
-                            <img :src="form.thumbnailPreview" alt="thumbnail preview" class="w-full h-full object-cover rounded-md" />
-                            <button 
-                                class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
-                                @click.stop="clearThumbnail"
-                                :disabled="submitting"
-                            >
-                                <span class="pi pi-times"></span>
-                            </button>
-                        </div>
+                        <p class="text-sm text-gray-500 mt-1">등록 시 썸네일이 대표 이미지로 사용됩니다.</p>
                     </div>
-                    <p class="text-sm text-gray-500 mt-1">등록 시 썸네일이 대표 이미지로 사용됩니다.</p>
-                </div>
 
-                <!-- 제목 및 소개 (우측) -->
-                <div class="md:col-span-3 flex flex-col gap-4">
-                    <div>
-                        <label class="block mb-2 font-medium"><b>제목</b></label>
-                        <input v-model.trim="form.title" type="text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" placeholder="레시피 제목을 입력하세요" />
-                    </div>
-                    <div class="flex-1">
-                        <label class="block mb-2 font-medium"><b>소개</b></label>
-                        <textarea v-model.trim="form.description" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full h-full min-h-[120px]" placeholder="간단한 소개나 메모를 작성하세요"></textarea>
+                    <!-- 제목 및 소개 (우측) -->
+                    <div class="md:col-span-3 flex flex-col gap-4">
+                        <div>
+                            <label class="block mb-2 font-medium"><b>제목</b></label>
+                            <InputText v-model.trim="form.title" placeholder="레시피 제목을 입력하세요" class="w-full" />
+                        </div>
+                        <div class="flex-1">
+                            <label class="block mb-2 font-medium"><b>소개</b></label>
+                            <Textarea v-model.trim="form.description" placeholder="간단한 소개나 메모를 작성하세요" class="w-full" :rows="9" />
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- 준비물 -->
-            <div>
-                <div class="flex items-center justify-between mb-2">
-                    <label class="font-medium"><b>준비물</b></label>
-                    <button class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50" @click="addIngredientGroup" :disabled="submitting">
-                        <span class="pi pi-plus mr-2"></span>
-                        <span>그룹 추가</span>
-                    </button>
+            <div class="border border-gray-200 rounded-lg p-5 bg-white">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-green-600">준비물</h3>
+                    <Button label="그룹 추가" icon="pi pi-plus" @click="addIngredientGroup" :disabled="submitting" />
                 </div>
                 <div v-if="form.ingredientGroups.length === 0" class="p-3 text-gray-500 border rounded">
                     아직 준비물 그룹이 없습니다. '그룹 추가'를 눌러 시작하세요.
@@ -87,47 +84,41 @@
                         <div class="flex items-center gap-3 flex-1">
                             <div class="font-medium text-gray-700">그룹 {{ groupIndex + 1 }}</div>
                             <div class="flex-1 max-w-xs">
-                                <div v-if="ingredientTypesError" class="mb-2 p-2 bg-red-100 border border-red-400 text-red-700 text-xs rounded">
+                                <Message v-if="ingredientTypesError" severity="error" :closable="false" class="mb-2">
                                     {{ ingredientTypesError }}
-                                </div>
+                                </Message>
                                 <div v-else-if="ingredientTypesLoading" class="p-2 text-sm text-gray-500">
                                     로딩 중...
                                 </div>
-                                <select v-else v-model="group.type" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
-                                    <option value="">주제를 선택하세요</option>
-                                    <option v-for="opt in getIngredientTypeOptions()" :key="opt.value" :value="opt.value">
-                                        {{ opt.label }}
-                                    </option>
-                                </select>
+                                <Select v-else
+                                    v-model="group.type" 
+                                    :options="getIngredientTypeOptions()" 
+                                    optionLabel="label" 
+                                    optionValue="value"
+                                    placeholder="주제를 선택하세요"
+                                    class="w-full"
+                                    filter
+                                    showClear
+                                />
                             </div>
                             <!-- 직접 입력 필드 (type이 'CUSTOM'일 때만 표시) -->
                             <div v-if="group.type === 'CUSTOM'" class="flex-1 max-w-xs">
-                                <input 
+                                <InputText 
                                     v-model.trim="group.customTypeName"
-                                    type="text"
                                     placeholder="그룹 타입을 직접 입력하세요"
-                                    class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                    class="w-full"
                                 />
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded text-sm" @click="moveIngredientGroupUp(groupIndex)" :disabled="groupIndex === 0 || submitting">
-                                <span class="pi pi-arrow-up"></span>
-                            </button>
-                            <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded text-sm" @click="moveIngredientGroupDown(groupIndex)" :disabled="groupIndex === form.ingredientGroups.length - 1 || submitting">
-                                <span class="pi pi-arrow-down"></span>
-                            </button>
-                            <button class="px-2 py-1 text-red-600 hover:bg-red-100 rounded text-sm" @click="removeIngredientGroup(groupIndex)" :disabled="submitting">
-                                <span class="pi pi-trash"></span>
-                            </button>
+                            <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveIngredientGroupUp(groupIndex)" :disabled="groupIndex === 0 || submitting" />
+                            <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveIngredientGroupDown(groupIndex)" :disabled="groupIndex === form.ingredientGroups.length - 1 || submitting" />
+                            <Button icon="pi pi-trash" severity="danger" size="small" @click="removeIngredientGroup(groupIndex)" :disabled="submitting" />
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <button class="px-3 py-1 bg-green-500 text-white text-sm rounded-md hover:bg-green-600" @click="addIngredientItem(groupIndex)" :disabled="submitting">
-                            <span class="pi pi-plus mr-1"></span>
-                            <span>항목 추가</span>
-                        </button>
+                        <Button label="항목 추가" icon="pi pi-plus" size="small" @click="addIngredientItem(groupIndex)" :disabled="submitting" />
                     </div>
 
                     <div v-if="group.items.length === 0" class="p-2 text-sm text-gray-400 border border-dashed rounded mb-2">
@@ -138,48 +129,45 @@
                         <div class="flex items-center justify-between mb-2">
                             <div class="text-sm text-gray-600">항목 {{ itemIndex + 1 }}</div>
                             <div class="flex gap-2">
-                                <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded text-xs" @click="moveIngredientItemUp(groupIndex, itemIndex)" :disabled="itemIndex === 0 || submitting">
-                                    <span class="pi pi-arrow-up"></span>
-                                </button>
-                                <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded text-xs" @click="moveIngredientItemDown(groupIndex, itemIndex)" :disabled="itemIndex === group.items.length - 1 || submitting">
-                                    <span class="pi pi-arrow-down"></span>
-                                </button>
-                                <button class="px-2 py-1 text-red-600 hover:bg-red-100 rounded text-xs" @click="removeIngredientItem(groupIndex, itemIndex)" :disabled="submitting">
-                                    <span class="pi pi-trash"></span>
-                                </button>
+                                <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveIngredientItemUp(groupIndex, itemIndex)" :disabled="itemIndex === 0 || submitting" />
+                                <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveIngredientItemDown(groupIndex, itemIndex)" :disabled="itemIndex === group.items.length - 1 || submitting" />
+                                <Button icon="pi pi-trash" severity="danger" size="small" @click="removeIngredientItem(groupIndex, itemIndex)" :disabled="submitting" />
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block mb-2 text-sm">이름</label>
-                                <input v-model.trim="item.name" type="text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" placeholder="재료명을 입력하세요" />
+                                <InputText v-model.trim="item.name" placeholder="재료명을 입력하세요" class="w-full" />
                             </div>
                             <div>
                                 <label class="block mb-2 text-sm">수량</label>
-                                <input v-model.number="item.quantity" type="number" step="0.01" min="0" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" placeholder="수량을 입력하세요" />
+                                <InputNumber v-model="item.quantity" placeholder="수량을 입력하세요" class="w-full" :min="0" :maxFractionDigits="2" />
                             </div>
                             <div>
                                 <label class="block mb-2 text-sm">단위</label>
-                                <div v-if="unitsError" class="mb-2 p-2 bg-red-100 border border-red-400 text-red-700 text-xs rounded">
+                                <Message v-if="unitsError" severity="error" :closable="false" class="mb-2 text-xs">
                                     {{ unitsError }}
-                                </div>
+                                </Message>
                                 <div v-else-if="unitsLoading" class="p-2 text-xs text-gray-500">
                                     로딩 중...
                                 </div>
                                 <div v-else class="flex flex-col gap-2">
-                                    <select v-model="item.unit" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
-                                        <option value="">단위를 선택하세요</option>
-                                        <option v-for="opt in getUnitOptions()" :key="opt.value" :value="opt.value">
-                                            {{ opt.label }}
-                                        </option>
-                                    </select>
+                                    <Select
+                                        v-model="item.unit" 
+                                        :options="getUnitOptions()" 
+                                        optionLabel="label" 
+                                        optionValue="value"
+                                        placeholder="단위를 선택하세요"
+                                        class="w-full"
+                                        filter
+                                        showClear
+                                    />
                                     <!-- 직접 입력 필드 (unit이 'CUSTOM'일 때만 표시) -->
-                                    <input 
+                                    <InputText 
                                         v-if="item.unit === 'CUSTOM'"
                                         v-model.trim="item.customUnitName"
-                                        type="text"
                                         placeholder="단위를 직접 입력하세요"
-                                        class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                        class="w-full"
                                     />
                                 </div>
                             </div>
@@ -188,76 +176,79 @@
                 </div>
             </div>
 
-            <div>
-                <label class="block mb-2 font-medium"><b>카테고리</b></label>
-                <div v-if="categoriesError" class="mb-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                    {{ categoriesError }}
-                </div>
-                <div v-else>
-                    <div v-if="categoriesLoading" class="p-3 text-gray-500 border border-dashed rounded">
-                        카테고리 정보를 불러오는 중입니다...
+            <!-- 분류 정보: 카테고리, 요리팁 -->
+            <div class="border border-gray-200 rounded-lg p-5 bg-white">
+                <h3 class="text-xl font-semibold text-green-600 mb-4">분류 정보</h3>
+                <div class="flex flex-col gap-6">
+                    <div>
+                        <label class="block mb-2 font-medium"><b>카테고리</b></label>
+                        <Message v-if="categoriesError" severity="error" :closable="false" class="mb-2">
+                            {{ categoriesError }}
+                        </Message>
+                        <div v-else>
+                            <div v-if="categoriesLoading" class="p-3 text-gray-500 border border-dashed rounded">
+                                카테고리 정보를 불러오는 중입니다...
+                            </div>
+                            <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div v-for="option in categoryOptions" :key="option.codeId" class="flex flex-col gap-2">
+                                    <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>
+                                    <Select 
+                                        v-model="form.categories[option.codeId]" 
+                                        :options="getCommonCodeDetailOptions(option)" 
+                                        optionLabel="label" 
+                                        optionValue="value"
+                                        placeholder="선택하세요"
+                                        class="w-full"
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div v-for="option in categoryOptions" :key="option.codeId" class="flex flex-col gap-2">
-                            <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>
-                            <select v-model="form.categories[option.codeId]" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">선택하세요</option>
-                                <option v-for="detail in option.details" :key="detail.detailCodeId" :value="detail.detailCodeId">
-                                    {{ detail.codeName }}
-                                </option>
-                            </select>
+
+                    <div>
+                        <label class="block mb-2 font-medium"><b>요리팁</b></label>
+                        <Message v-if="cookingTipsError" severity="error" :closable="false" class="mb-2">
+                            {{ cookingTipsError }}
+                        </Message>
+                        <div v-else>
+                            <div v-if="cookingTipsLoading" class="p-3 text-gray-500 border border-dashed rounded">
+                                요리팁 정보를 불러오는 중입니다...
+                            </div>
+                            <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div v-for="option in cookingTipsOptions" :key="option.codeId" class="flex flex-col gap-2">
+                                    <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>
+                                    <Select 
+                                        v-model="form.cookingTips[option.codeId]" 
+                                        :options="getCommonCodeDetailOptions(option)" 
+                                        optionLabel="label" 
+                                        optionValue="value"
+                                        placeholder="선택하세요"
+                                        class="w-full"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div>
-                <label class="block mb-2 font-medium"><b>요리팁</b></label>
-                <div v-if="cookingTipsError" class="mb-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                    {{ cookingTipsError }}
+            <!-- 조리 순서 -->
+            <div class="border border-gray-200 rounded-lg p-5 bg-white">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-green-600">조리 순서</h3>
+                    <Button label="단계 추가" icon="pi pi-plus" @click="addStep" :disabled="submitting" />
                 </div>
-                <div v-else>
-                    <div v-if="cookingTipsLoading" class="p-3 text-gray-500 border border-dashed rounded">
-                        요리팁 정보를 불러오는 중입니다...
-                    </div>
-                    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div v-for="option in cookingTipsOptions" :key="option.codeId" class="flex flex-col gap-2">
-                            <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>
-                            <select v-model="form.cookingTips[option.codeId]" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">선택하세요</option>
-                                <option v-for="detail in option.details" :key="detail.detailCodeId" :value="detail.detailCodeId">
-                                    {{ detail.codeName }}
-                                </option>
-                            </select>
-                        </div>
-                    </div>
+                <div v-if="form.steps.length === 0" class="p-3 text-gray-500 border rounded">
+                    아직 단계가 없습니다. '단계 추가'를 눌러 시작하세요.
                 </div>
-            </div>
-
-            <!-- 단계 관리 -->
-            <div>
-                <div class="flex items-center justify-between mb-2">
-                    <label class="font-medium"><b>조리 순서</b></label>
-                    <button class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50" @click="addStep" :disabled="submitting">
-                        <span class="pi pi-plus mr-2"></span>
-                        <span>단계 추가</span>
-                    </button>
-                </div>
-                <div v-if="form.steps.length === 0" class="p-3 text-gray-500 border rounded">아직 단계가 없습니다. '단계 추가'를 눌러 시작하세요.</div>
 
                 <div v-for="(step, index) in form.steps" :key="step.id" class="border rounded p-3 mb-3 bg-gray-50">
                     <div class="flex items-center justify-between mb-3">
                         <div class="font-medium">단계 {{ index + 1 }}</div>
                         <div class="flex gap-2">
-                            <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded" @click="moveStepUp(index)" :disabled="index === 0 || submitting">
-                                <span class="pi pi-arrow-up"></span>
-                            </button>
-                            <button class="px-2 py-1 text-blue-600 hover:bg-blue-100 rounded" @click="moveStepDown(index)" :disabled="index === form.steps.length - 1 || submitting">
-                                <span class="pi pi-arrow-down"></span>
-                            </button>
-                            <button class="px-2 py-1 text-red-600 hover:bg-red-100 rounded" @click="removeStep(index)" :disabled="submitting">
-                                <span class="pi pi-trash"></span>
-                            </button>
+                            <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveStepUp(index)" :disabled="index === 0 || submitting" />
+                            <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveStepDown(index)" :disabled="index === form.steps.length - 1 || submitting" />
+                            <Button icon="pi pi-trash" severity="danger" size="small" @click="removeStep(index)" :disabled="submitting" />
                         </div>
                     </div>
 
@@ -280,10 +271,10 @@
                                     <span class="pi pi-image text-4xl block mb-2"></span>
                                     <span class="text-sm">이미지를 클릭하여 추가하세요</span>
                                 </div>
-                                <div v-else class="relative w-full h-full">
+                                <div v-else class="group relative w-full h-full">
                                     <img :src="step.previewUrl" alt="step preview" class="w-full h-full object-cover rounded-md" />
                                     <button 
-                                        class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                                        class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                         @click.stop="clearStepImage(step)"
                                         :disabled="submitting"
                                     >
@@ -294,38 +285,46 @@
                         </div>
                         <div class="md:col-span-3">
                             <label class="block mb-2">설명</label>
-                            <textarea v-model.trim="step.text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" rows="6" placeholder="이 단계에서의 설명을 작성하세요"></textarea>
+                            <Textarea 
+                                v-model.trim="step.text" 
+                                placeholder="이 단계에서의 설명을 작성하세요" 
+                                class="w-full" 
+                                :rows="9"
+                            />
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block mb-2 font-medium"><b>공개 여부</b></label>
-                    <select v-model="form.visibility" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
-                        <option value="PUBLIC">공개</option>
-                        <option value="PRIVATE">비공개</option>
-                    </select>
+            <!-- 설정 및 저장 -->
+            <div class="border border-gray-200 rounded-lg p-5 bg-white">
+                <h3 class="text-xl font-semibold text-green-600 mb-4">설정 및 저장</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block mb-2 font-medium"><b>공개 여부</b></label>
+                        <Select 
+                            v-model="form.visibility" 
+                            :options="visibilityOptions" 
+                            optionLabel="label" 
+                            optionValue="value"
+                            class="w-full"
+                        />
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium"><b>상태</b></label>
+                        <Select 
+                            v-model="form.status" 
+                            :options="statusOptions" 
+                            optionLabel="label" 
+                            optionValue="value"
+                            class="w-full"
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label class="block mb-2 font-medium"><b>상태</b></label>
-                    <select v-model="form.status" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
-                        <option value="DRAFT">초안</option>
-                        <option value="PUBLISHED">발행</option>
-                    </select>
+                <div class="flex justify-end gap-2">
+                    <Button label="취소" icon="pi pi-times" severity="secondary" @click="goBack" :disabled="submitting" />
+                    <Button label="수정" icon="pi pi-check" severity="success" @click="submit" :disabled="submitting || !isValid" />
                 </div>
-            </div>
-
-            <div class="flex justify-end gap-2 mt-2">
-                <button class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md" @click="goBack" :disabled="submitting">
-                    <span class="pi pi-times mr-2"></span>
-                    <span>취소</span>
-                </button>
-                <button class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50" @click="submit" :disabled="submitting || !isValid">
-                    <span class="pi pi-check mr-2"></span>
-                    <span>수정</span>
-                </button>
             </div>
         </div>
     </div>
@@ -336,6 +335,12 @@ import { httpForm, httpJson } from '@/utils/http';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
+import Button from 'primevue/button';
+import InputNumber from 'primevue/inputnumber';
+import InputText from 'primevue/inputtext';
+import Message from 'primevue/message';
+import Select from 'primevue/select';
+import Textarea from 'primevue/textarea';
 
 const router = useRouter();
 const route = useRoute();
@@ -646,6 +651,26 @@ function getUnitOptions() {
     // 직접 입력 옵션 추가
     return [...options, { label: '직접 입력', value: 'CUSTOM' }];
 }
+
+function getCommonCodeDetailOptions(option: CommonCodeOption) {
+    return [
+        { label: '선택하세요', value: '' },
+        ...option.details.map(detail => ({
+            label: detail.codeName,
+            value: detail.detailCodeId
+        }))
+    ];
+}
+
+const visibilityOptions = [
+    { label: '공개', value: 'PUBLIC' },
+    { label: '비공개', value: 'PRIVATE' }
+];
+
+const statusOptions = [
+    { label: '초안', value: 'DRAFT' },
+    { label: '발행', value: 'PUBLISHED' }
+];
 
 function swapArrayItems<T>(array: T[], index1: number, index2: number): void {
     if (index1 < 0 || index2 < 0 || index1 >= array.length || index2 >= array.length) return;
@@ -999,5 +1024,18 @@ onBeforeUnmount(() => {
 
 </script>
 
-<style scoped></style>
+<style scoped>
+:deep(.p-textarea) {
+    resize: none;
+    overflow-y: auto;
+}
+
+:deep(.p-autocomplete.border-red-500 .p-inputtext),
+:deep(.p-inputtext.border-red-500),
+:deep(.p-textarea.border-red-500),
+:deep(.p-select.border-red-500 .p-inputtext) {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.2) !important;
+}
+</style>
 

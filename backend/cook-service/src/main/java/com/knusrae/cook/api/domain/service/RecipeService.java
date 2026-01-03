@@ -616,11 +616,16 @@ public class RecipeService {
             throw new org.springframework.security.access.AccessDeniedException("레시피 작성자만 삭제할 수 있습니다.");
         }
 
+        // 1) 관련된 찜 목록 삭제 (외래키 제약조건 해결)
+        recipeFavoriteRepository.deleteByRecipeId(id);
+
+        // 2) 이미지 삭제
         List<RecipeImage> images = recipeImageRepository.findAllByRecipe(recipe);
         for(RecipeImage image : images) {
             imageStorage.deleteByKey(image.getStorageKey());
         }
 
+        // 3) 레시피 삭제
         recipeRepository.delete(recipe);
     }
 }
