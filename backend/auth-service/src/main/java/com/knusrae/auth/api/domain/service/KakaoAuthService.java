@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knusrae.auth.api.dto.KakaoUserDTO;
+import com.knusrae.auth.api.utils.LoginFormatter;
 import com.knusrae.auth.api.web.response.TokenResponse;
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.enums.Active;
@@ -58,9 +59,9 @@ public class KakaoAuthService {
                     Member.builder()
                             .name(kakaoUserDTO.getName())
                             .nickname(kakaoUserDTO.getNickname())
-                            .phone(StringUtils.replaceChars(kakaoUserDTO.getPhoneNumber(), "+82 ", "0").replace("-", ""))
+                            .phone(LoginFormatter.formatPhoneNumber(kakaoUserDTO.getPhoneNumber()))
                             .email(kakaoUserDTO.getEmail())
-                            .birth(Strings.concat(kakaoUserDTO.getBirthyear(), kakaoUserDTO.getBirthday()))
+                            .birth(LoginFormatter.formatBirth(kakaoUserDTO.getBirthyear(), kakaoUserDTO.getBirthday()))
                             .profileImage(profileImage)
                             .isActive(Active.TRUE)
                             .socialRole(SocialRole.KAKAO)

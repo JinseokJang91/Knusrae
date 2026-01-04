@@ -42,7 +42,6 @@ public class Member {
     @Builder.Default
     private Active isActive = Active.TRUE;
 
-    @NotNull
     @Column(length = 10) // "1990-01-01"
     private String birth;
 

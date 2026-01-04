@@ -3,6 +3,7 @@ package com.knusrae.auth.api.domain.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.knusrae.auth.api.utils.LoginFormatter;
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.enums.Active;
 import com.knusrae.common.domain.enums.Gender;
@@ -55,11 +56,11 @@ public class NaverAuthService {
                     Member.builder()
                             .name(naverUserDTO.getName())
                             .nickname(naverUserDTO.getNickname())
-                            .phone( StringUtils.replaceChars(naverUserDTO.getMobile(), "-", ""))
+                            .phone(LoginFormatter.formatPhoneNumber(naverUserDTO.getMobile()))
                             .email(naverUserDTO.getEmail())
                             .profileImage(naverUserDTO.getProfileImage())
                             .isActive(Active.TRUE)
-                            .birth(Strings.concat(naverUserDTO.getBirthyear(), StringUtils.replaceChars(naverUserDTO.getBirthday(), "-", "")))
+                            .birth(LoginFormatter.formatBirth(naverUserDTO.getBirthyear(), naverUserDTO.getBirthday()))
                             .gender("M".equals(naverUserDTO.getGender()) ? Gender.MALE : "F".equals(naverUserDTO.getGender()) ? Gender.FEMALE : Gender.UNKNOWN)
                             .socialRole(SocialRole.NAVER)
                             .createdAt(LocalDateTime.now())

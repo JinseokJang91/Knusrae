@@ -33,25 +33,21 @@ public class TokenService {
 
     @Transactional
     public TokenResponse loginWithSocialUser(Long userId, String username, String role) {
-        log.info("CHECK 1");
         refreshTokenRepository.findByUserId(userId)
                 .ifPresent(existingToken -> {
             refreshTokenRepository.delete(existingToken);
             log.debug("기존 Refresh Token 삭제: userId={}", userId);
         });
 
-        log.info("CHECK 2");
         String accessToken = tokenProvider.createAccessToken(
                 String.valueOf(userId),
                 Map.of("role", role, "username", username) // TODO Claim 추가
         );
 
-        log.info("CHECK 3");
         String refreshToken = tokenProvider.createRefreshToken(String.valueOf(userId));
 
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(tokenProvider.getRefreshTokenTtl());
 
-        log.info("CHECK 4");
         RefreshToken refreshTokenEntity = RefreshToken.builder()
                 .token(refreshToken)
                 .userId(userId)
@@ -59,7 +55,6 @@ public class TokenService {
                 .build();
         refreshTokenRepository.save(refreshTokenEntity);
 
-        log.info("CHECK 5");
         log.debug("토큰 발행 완료: userId={}, accessTokenExpiresIn={}초, refreshTokenExpiresIn={}초",
                 userId, tokenProvider.getAccessTokenTtl(), tokenProvider.getRefreshTokenTtl());
 
