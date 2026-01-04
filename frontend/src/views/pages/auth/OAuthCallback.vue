@@ -50,7 +50,7 @@ function handleSuccess() {
             type: providerConfig[props.provider].successType
         });
     } catch (e) {
-        console.error('로그인 처리 오류:', e);
+        console.error('[OAuthCallback] 로그인 처리 오류:', e);
         handleError('로그인 처리 중 오류가 발생했습니다.');
     }
 }
@@ -63,21 +63,52 @@ function handleError(errorMessage: string) {
 }
 
 function sendMessageToParent(message: any) {
-    try {
-        if (window.opener && !window.opener.closed) {
+    const sendMessage = () => {
+        try {
+            if (!window.opener) {
+                return false;
+            }
+            
+            try {
+                if (window.opener.closed) {
+                    return false;
+                }
+            } catch (e) {
+                // 크로스 오리진일 수 있음, 계속 진행
+            }
+            
             window.opener.postMessage(message, window.location.origin);
+            return true;
+        } catch (error) {
+            return false;
         }
-    } catch (error) {
-        console.error(error);
+    };
+
+    // localStorage를 통한 대체 방법 (postMessage 실패 시 사용)
+    try {
+        const eventKey = `oauth_${props.provider}_callback_${Date.now()}`;
+        localStorage.setItem(eventKey, JSON.stringify(message));
+        localStorage.setItem('oauth_callback_event', eventKey);
+    } catch (e) {
+        console.error('[OAuthCallback] localStorage 저장 실패:', e);
     }
 
+    // postMessage 시도 및 재시도
+    sendMessage();
+    setTimeout(() => sendMessage(), 100);
+    setTimeout(() => sendMessage(), 200);
+    setTimeout(() => sendMessage(), 300);
+    setTimeout(() => sendMessage(), 500);
+    setTimeout(() => sendMessage(), 1000);
+
+    // 팝업 닫기
     setTimeout(() => {
         try {
             window.close();
         } catch (error) {
-            console.error(error);
+            // 창 닫기 실패는 무시
         }
-    }, 100);
+    }, 1500);
 }
 </script>
 

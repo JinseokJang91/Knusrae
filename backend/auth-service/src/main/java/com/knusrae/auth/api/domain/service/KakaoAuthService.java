@@ -48,10 +48,9 @@ public class KakaoAuthService {
 
         // 사용자 정보 요청
         KakaoUserDTO kakaoUserDTO = getUserInfo(accessToken);
-        log.info("kakaoUserDTO: {}", kakaoUserDTO.toString());
 
-        // 1. DB에서 사용자 조회/없으면 생성
-        Member member = memberRepository.findByEmail(kakaoUserDTO.getEmail());
+        // 1. DB에서 사용자 조회/없으면 생성 (이메일 + 소셜 역할로 조회)
+        Member member = memberRepository.findByEmailAndSocialRole(kakaoUserDTO.getEmail(), SocialRole.KAKAO);
 
         if(ObjectUtils.isEmpty(member)) {
             String profileImage = kakaoUserDTO.getProperties() != null ? kakaoUserDTO.getProperties().getProfileImage() : null;

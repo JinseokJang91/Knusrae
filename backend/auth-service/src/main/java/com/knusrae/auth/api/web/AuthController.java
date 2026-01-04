@@ -46,13 +46,8 @@ public class AuthController {
                                                 @RequestParam("state") String state) {
         try {
             TokenResponse tokenResponse = naverAuthService.naverLoginProcess(code, state);
-
             String redirectUrl = frontendUrl + NAVER_REDIRECT_URI + "?success=true";
-
-            return buildSuccessResponse(redirectUrl, tokenResponse)
-                    .header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
-                    .header("Cross-Origin-Embedder-Policy", "unsafe-none")
-                    .build();
+            return buildSuccessResponse(redirectUrl, tokenResponse, true, false);
         } catch (Exception e) {
             log.error("네이버 로그인 처리 중 오류", e);
             return getErrorRedirectResponse(frontendUrl + NAVER_REDIRECT_URI);
@@ -66,10 +61,7 @@ public class AuthController {
 
             String redirectUrl = frontendUrl + GOOGLE_REDIRECT_URI + "?success=true";
 
-            return buildSuccessResponse(redirectUrl, tokenResponse)
-                    .header("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
-                    .header("Cross-Origin-Embedder-Policy", "unsafe-none")
-                    .build();
+            return buildSuccessResponse(redirectUrl, tokenResponse, true, true);
         } catch (Exception e) {
             log.error("구글 로그인 처리 중 오류", e);
             return getErrorRedirectResponse(frontendUrl + GOOGLE_REDIRECT_URI);
@@ -83,14 +75,15 @@ public class AuthController {
 
             String redirectUrl = frontendUrl + KAKAO_REDIRECT_URI + "?success=true";
 
-            return buildSuccessResponse(redirectUrl, tokenResponse).build();
+            return buildSuccessResponse(redirectUrl, tokenResponse, false, false);
         } catch (Exception e) {
             log.error("카카오 로그인 처리 중 오류", e);
             return getErrorRedirectResponse(frontendUrl + KAKAO_REDIRECT_URI);
         }
     }
 
-    private ResponseEntity.HeadersBuilder<?> buildSuccessResponse(String redirectUrl, TokenResponse tokenResponse) {
+    private ResponseEntity<String> buildSuccessResponse(String redirectUrl, TokenResponse tokenResponse, 
+                                                         boolean addCOOP, boolean addCOEP) {
         // Access Token 쿠키 설정 (HttpOnly, Secure, SameSite)
         ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
                 .httpOnly(true)
@@ -112,15 +105,23 @@ public class AuthController {
                     .build();
         }
 
-        ResponseEntity.HeadersBuilder<?> responseBuilder = ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, redirectUrl)
-                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
-
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.LOCATION, redirectUrl);
+        headers.add(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        
         if (refreshTokenCookie != null) {
-            responseBuilder.header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+            headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
         }
 
-        return responseBuilder;
+        // CORS 관련 헤더 추가
+        if (addCOOP) {
+            headers.add("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+        }
+        if (addCOEP) {
+            headers.add("Cross-Origin-Embedder-Policy", "unsafe-none");
+        }
+
+        return ResponseEntity.status(HttpStatus.FOUND).headers(headers).build();
     }
 
     private ResponseEntity<String> getErrorRedirectResponse(String baseRedirectUri) {

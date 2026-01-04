@@ -45,10 +45,9 @@ public class GoogleAuthService {
         String accessToken = getAccessToken(code);
         // 사용자 정보 요청
         GoogleUserDTO googleUserDTO = getUserInfo(accessToken);
-        log.info("googleUserDTO: {}", googleUserDTO.toString());
 
-        // 1. DB에서 사용자 조회/없으면 생성
-        Member member = memberRepository.findByEmail(googleUserDTO.getEmail());
+        // 1. DB에서 사용자 조회/없으면 생성 (이메일 + 소셜 역할로 조회)
+        Member member = memberRepository.findByEmailAndSocialRole(googleUserDTO.getEmail(), SocialRole.GOOGLE);
 
         if(ObjectUtils.isEmpty(member)) {
             member = memberRepository.save(

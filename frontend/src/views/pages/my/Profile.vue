@@ -3,7 +3,7 @@
         <h2 class="text-2xl font-bold mb-4">내 정보 수정</h2>
         <div class="grid grid-cols-12 gap-6">
             <div class="col-span-12 md:col-span-4">
-                <div class="p-4 border rounded-md flex flex-col items-center gap-4">
+                <div class="p-4 border rounded-md flex flex-col items-center justify-center h-5/6">
                     <input 
                         ref="profileImageInputRef" 
                         type="file" 
@@ -12,7 +12,7 @@
                         class="hidden" 
                     />
                     <div 
-                        class="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                        class="w-48 h-48 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
                         @click="() => profileImageInputRef?.click()"
                     >
                         <img 
@@ -21,7 +21,7 @@
                             alt="프로필 이미지" 
                             class="w-full h-full object-cover"
                         />
-                        <span v-else class="text-3xl text-gray-500">{{ initials }}</span>
+                        <span v-else class="text-5xl text-gray-500">{{ initials }}</span>
                     </div>
                 </div>
             </div>

@@ -18,11 +18,6 @@ export async function refreshToken(): Promise<boolean> {
             return true;
         } else {
             // 401 응답은 정상적인 경우 (로그인하지 않은 상태)이므로 에러로 처리하지 않음
-            // 개발 환경에서만 로그 출력
-            if (import.meta.env.DEV && response.status === 401) {
-                const errorData = await response.json().catch(() => ({}));
-                console.log('Refresh Token이 없습니다. (로그인하지 않은 상태)', errorData);
-            }
             return false;
         }
     } catch (error) {
