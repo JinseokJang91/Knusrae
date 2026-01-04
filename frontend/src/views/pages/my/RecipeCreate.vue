@@ -19,7 +19,22 @@
                 <div class="flex items-center gap-1 mb-1">
                     <h3 class="text-xl font-semibold text-green-600">
                         <span class="mr-1">기본 정보</span>
-                        <i class="pi pi-question-circle help-button" @click="showGuide('basic')" style="cursor: pointer;"/>
+                        <i 
+                            ref="el => { if (el) guideIconRefs.basic = el as HTMLElement; }"
+                            class="pi pi-question-circle help-button" 
+                            @click="showGuide('basic', $event)" 
+                            style="cursor: pointer;"
+                        />
+                        <Popover 
+                            :ref="el => { if (el) guidePopoverRefs.basic = el; }"
+                            :target="guideIconRefs.basic"
+                            :showCloseIcon="true"
+                            :dismissable="true"
+                        >
+                            <div class="p-2">
+                                <img :src="guideImages.basic" alt="기본 정보 가이드" class="max-w-full h-auto" />
+                            </div>
+                        </Popover>
                     </h3>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -74,7 +89,22 @@
                     <div class="flex items-center gap-2">
                         <h3 class="text-xl font-semibold text-green-600">
                             <span class="mr-1">준비물</span>
-                            <i class="pi pi-question-circle help-button" @click="showGuide('ingredients')" style="cursor: pointer;"/>
+                            <i 
+                                ref="el => { if (el) guideIconRefs.ingredients = el as HTMLElement; }"
+                                class="pi pi-question-circle help-button" 
+                                @click="showGuide('ingredients', $event)" 
+                                style="cursor: pointer;"
+                            />
+                            <Popover 
+                                :ref="el => { if (el) guidePopoverRefs.ingredients = el; }"
+                                :target="guideIconRefs.ingredients"
+                                :showCloseIcon="true"
+                                :dismissable="true"
+                            >
+                                <div class="p-2">
+                                    <img :src="guideImages.ingredients" alt="준비물 가이드" class="max-w-full h-auto" />
+                                </div>
+                            </Popover>
                         </h3>
                     </div>
                     <Button label="그룹 추가" icon="pi pi-plus" @click="addIngredientGroup" :disabled="submitting" />
@@ -189,7 +219,22 @@
                 <div class="flex items-center gap-1 mb-1">
                     <h3 class="text-xl font-semibold text-green-600">
                         <span class="mr-1">분류 정보</span>
-                        <i class="pi pi-question-circle help-button" @click="showGuide('classification')" style="cursor: pointer;"/>
+                        <i 
+                            ref="el => { if (el) guideIconRefs.classification = el as HTMLElement; }"
+                            class="pi pi-question-circle help-button" 
+                            @click="showGuide('classification', $event)" 
+                            style="cursor: pointer;"
+                        />
+                        <Popover 
+                            :ref="el => { if (el) guidePopoverRefs.classification = el; }"
+                            :target="guideIconRefs.classification"
+                            :showCloseIcon="true"
+                            :dismissable="true"
+                        >
+                            <div class="p-2">
+                                <img :src="guideImages.classification" alt="분류 정보 가이드" class="max-w-full h-auto" />
+                            </div>
+                        </Popover>
                     </h3>
                 </div>
                 <div class="flex flex-col gap-6">
@@ -255,7 +300,22 @@
                     <div class="flex items-center gap-2">
                         <h3 class="text-xl font-semibold text-green-600">
                             <span class="mr-1">조리 순서</span>
-                            <i class="pi pi-question-circle help-button" @click="showGuide('steps')" style="cursor: pointer;"/>
+                            <i 
+                                ref="el => { if (el) guideIconRefs.steps = el as HTMLElement; }"
+                                class="pi pi-question-circle help-button" 
+                                @click="showGuide('steps', $event)" 
+                                style="cursor: pointer;"
+                            />
+                            <Popover 
+                                :ref="el => { if (el) guidePopoverRefs.steps = el; }"
+                                :target="guideIconRefs.steps"
+                                :showCloseIcon="true"
+                                :dismissable="true"
+                            >
+                                <div class="p-2">
+                                    <img :src="guideImages.steps" alt="조리 순서 가이드" class="max-w-full h-auto" />
+                                </div>
+                            </Popover>
                         </h3>
                     </div>
                     <div data-step-add-button>
@@ -327,7 +387,22 @@
                 <div class="flex items-center gap-1 mb-1">
                     <h3 class="text-xl font-semibold text-green-600">
                         <span class="mr-1">설정 및 저장</span>
-                        <i class="pi pi-question-circle help-button" @click="showGuide('settings')" style="cursor: pointer;"/>
+                        <i 
+                            ref="el => { if (el) guideIconRefs.settings = el as HTMLElement; }"
+                            class="pi pi-question-circle help-button" 
+                            @click="showGuide('settings', $event)" 
+                            style="cursor: pointer;"
+                        />
+                        <Popover 
+                            :ref="el => { if (el) guidePopoverRefs.settings = el; }"
+                            :target="guideIconRefs.settings"
+                            :showCloseIcon="true"
+                            :dismissable="true"
+                        >
+                            <div class="p-2">
+                                <img :src="guideImages.settings" alt="설정 및 저장 가이드" class="max-w-full h-auto" />
+                            </div>
+                        </Popover>
                     </h3>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -369,6 +444,7 @@ import Button from 'primevue/button';
 import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
+import Popover from 'primevue/popover';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
 import { useToast } from 'primevue/usetoast';
@@ -447,6 +523,8 @@ const titleInputRef = ref<InstanceType<typeof InputText> | null>(null);
 const validationErrors = ref<Record<string, boolean>>({});
 const hasUnsavedChanges = ref(false);
 const isSubmitSuccessful = ref(false);
+const guideIconRefs = ref<Record<string, HTMLElement | null>>({});
+const guidePopoverRefs = ref<Record<string, any>>({});
 
 // 옵션 데이터
 const visibilityOptions = [
@@ -1012,10 +1090,22 @@ function goBack(): void {
     router.push('/my/recipes');
 }
 
-// 가이드 표시 (추후 구현)
-function showGuide(section: 'basic' | 'ingredients' | 'classification' | 'steps' | 'settings'): void {
-    console.log('Show guide for:', section);
-    // TODO: 모달/팝업으로 가이드 표시
+// 가이드 이미지 매핑
+const guideImages: Record<string, string> = {
+    basic: '/guide/Guide_01.png',
+    ingredients: '/guide/Guide_02.png',
+    classification: '/guide/Guide_03.png',
+    steps: '/guide/Guide_04.png',
+    settings: '/guide/Guide_05.png'
+};
+
+// 가이드 표시
+function showGuide(section: 'basic' | 'ingredients' | 'classification' | 'steps' | 'settings', event: Event): void {
+    event.stopPropagation();
+    const popover = guidePopoverRefs.value[section];
+    if (popover && typeof popover.toggle === 'function') {
+        popover.toggle(event);
+    }
 }
 
 // 페이지 이탈 방지
