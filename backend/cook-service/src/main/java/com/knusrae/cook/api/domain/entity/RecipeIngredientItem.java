@@ -25,8 +25,8 @@ public class RecipeIngredientItem {
     @Column(nullable = false)
     private String name; // 재료명
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal quantity; // 수량
+    @Column(nullable = true, precision = 10, scale = 2)
+    private BigDecimal quantity; // 수량 (조리도구 등은 수량 불필요)
 
     @Column(nullable = false)
     private Integer itemOrder; // 항목 순서

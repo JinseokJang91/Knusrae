@@ -146,11 +146,11 @@
                                 <InputText v-model.trim="item.name" placeholder="재료명을 입력하세요" class="w-full" />
                             </div>
                             <div>
-                                <label class="block mb-2 text-sm">수량</label>
-                                <InputNumber v-model="item.quantity" placeholder="수량을 입력하세요" class="w-full" :min="0" :maxFractionDigits="2" />
+                                <label class="block mb-2 text-sm">수량 <span class="text-gray-400 text-xs">(선택사항, 분수 입력 가능: 1/2, 3/4 등)</span></label>
+                                <InputText v-model.trim="item.quantityString" placeholder="수량을 입력하세요 (예: 1, 1.5, 1/2)" class="w-full" />
                             </div>
                             <div>
-                                <label class="block mb-2 text-sm">단위</label>
+                                <label class="block mb-2 text-sm">단위 <span class="text-gray-400 text-xs">(선택사항)</span></label>
                                 <Message v-if="unitsError" severity="error" :closable="false" class="mb-2 text-xs">
                                     {{ unitsError }}
                                 </Message>
@@ -163,7 +163,7 @@
                                         :options="getUnitOptions()" 
                                         optionLabel="label" 
                                         optionValue="value"
-                                        placeholder="단위를 선택하세요"
+                                        placeholder="단위를 선택하세요 (선택사항)"
                                         class="w-full"
                                         :class="{ 'border-red-500': validationErrors[`item-unit-${item.id}`] }"
                                         @change="clearValidationError(`item-unit-${item.id}`)"
@@ -390,6 +390,7 @@ interface IngredientItemDraft {
     id: string;
     name: string;
     quantity: number | null;
+    quantityString: string; // 분수 입력 지원 (예: "1/2", "3/4")
     unit: string;
     customUnitName?: string;  // 직접 입력 단위
 }
@@ -786,7 +787,8 @@ function addIngredientItem(groupIndex: number): void {
         group.items.push({ 
             id: generateId(), 
             name: '', 
-            quantity: null, 
+            quantity: null,
+            quantityString: '', // 분수 문자열 초기화
             unit: '' 
         });
     }
@@ -906,13 +908,14 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
             customTypeName: group.type === 'CUSTOM' ? group.customTypeName : null,
             order: groupIdx + 1,
             items: group.items
-                .filter((item) => item.name.trim() && item.quantity !== null && item.quantity > 0 && item.unit)
+                .filter((item) => item.name.trim()) // 이름만 필수, 수량과 단위는 선택사항
                 .map((item, idx) => ({
                     order: idx + 1,
                     name: item.name.trim(),
-                    quantity: item.quantity!,
-                    codeId: item.unit !== 'CUSTOM' ? 'INGREDIENTS_UNIT' : null,
-                    detailCodeId: item.unit !== 'CUSTOM' ? item.unit : null,
+                    quantity: item.quantity || null, // null 허용
+                    quantityString: item.quantityString && item.quantityString.trim() ? item.quantityString.trim() : null, // 분수 문자열
+                    codeId: item.unit && item.unit !== 'CUSTOM' ? 'INGREDIENTS_UNIT' : null,
+                    detailCodeId: item.unit && item.unit !== 'CUSTOM' ? item.unit : null,
                     customUnitName: item.unit === 'CUSTOM' ? item.customUnitName : null
                 }))
         }))

@@ -17,6 +17,7 @@ public class RecipeIngredientItemDto {
     private Long id;
     private String name;
     private BigDecimal quantity;
+    private String quantityString; // 분수 입력 지원 (예: "1/2", "3/4")
     private Integer order;
     private String codeId;
     private String detailCodeId;
