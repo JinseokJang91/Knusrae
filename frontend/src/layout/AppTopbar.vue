@@ -12,6 +12,7 @@ const { toggleMenu } = useLayout();
 const authStore = useAuthStore();
 
 const searchQuery = ref('');
+const profileMenuRef = ref<HTMLElement | null>(null);
 
 const handleSearch = () => {
     if (searchQuery.value.trim()) {
@@ -21,6 +22,12 @@ const handleSearch = () => {
 
 const clearSearch = () => {
     searchQuery.value = '';
+};
+
+const closeProfileMenu = () => {
+    if (profileMenuRef.value) {
+        profileMenuRef.value.classList.add('hidden');
+    }
 };
 
 const handleMyMenuClick = (path: string, event: Event) => {
@@ -40,6 +47,7 @@ const handleMyMenuClick = (path: string, event: Event) => {
                 label: '로그인'
             },
             accept: () => {
+                closeProfileMenu();
                 router.push({
                     path: '/auth/login',
                     query: { redirect: path }
@@ -50,6 +58,7 @@ const handleMyMenuClick = (path: string, event: Event) => {
             }
         });
     } else {
+        closeProfileMenu();
         router.push(path);
     }
 };
@@ -150,7 +159,7 @@ onMounted(() => {
                             <i v-else class="pi pi-user"></i>
                             <span class="hidden">Profile</span>
                         </button>
-                        <div class="hidden absolute right-0 mt-2 w-56 card p-2 z-50">
+                        <div ref="profileMenuRef" class="hidden absolute right-0 mt-2 w-56 card p-2 z-50">
                             <a href="/my/profile" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/profile', $event)">
                                 <i class="pi pi-id-card"></i>
                                 <span>내 정보 수정</span>
@@ -180,7 +189,7 @@ onMounted(() => {
                                 <i class="pi pi-sign-in"></i>
                                 <span>로그인</span>
                             </router-link>
-                            <button v-else type="button" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded w-full text-left" @click="handleLogout">
+                            <button v-else type="button" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded w-full text-left" @click="handleLogout(); closeProfileMenu();">
                                 <i class="pi pi-sign-out"></i>
                                 <span>로그아웃</span>
                             </button>

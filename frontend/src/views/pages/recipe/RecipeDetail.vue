@@ -100,15 +100,15 @@
                                 <!-- 통계 정보 -->
                                 <div class="flex items-center space-x-6 text-gray-600">
                                     <div class="text-center">
-                                        <div class="text-2xl font-bold text-blue-600">{{ recipe.hits }}</div>
+                                        <div class="text-2xl font-bold text-blue-600">{{ formatNumber(recipe.hits) }}</div>
                                         <div class="text-sm">조회수</div>
                                     </div>
                                     <div class="text-center">
-                                        <div class="text-2xl font-bold text-green-600">{{ recipe.stats?.totalComments || 0 }}</div>
+                                        <div class="text-2xl font-bold text-green-600">{{ formatNumber(recipe.stats?.totalComments) }}</div>
                                         <div class="text-sm">댓글</div>
                                     </div>
                                     <div class="text-center">
-                                        <div class="text-2xl font-bold text-red-600">{{ recipe.stats?.favoriteCount || 0 }}</div>
+                                        <div class="text-2xl font-bold text-red-600">{{ formatNumber(recipe.stats?.favoriteCount) }}</div>
                                         <div class="text-sm">찜</div>
                                     </div>
                                 </div>
@@ -1535,6 +1535,11 @@ const formatDate = (dateString: string) => {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
+const formatNumber = (num: number | null | undefined): string => {
+    if (num === null || num === undefined) return '0';
+    return num.toLocaleString('ko-KR');
 };
 
 // 생명주기
