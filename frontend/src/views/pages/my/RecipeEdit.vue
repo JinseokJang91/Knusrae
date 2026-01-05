@@ -181,7 +181,7 @@
                             </div>
                             <div>
                                 <label class="block mb-2 text-sm">수량 <span class="text-gray-400 text-xs">(선택사항, 분수 입력 가능: 1/2, 3/4 등)</span></label>
-                                <InputText v-model.trim="item.quantityString" placeholder="수량을 입력하세요 (예: 1, 1.5, 1/2)" class="w-full" />
+                                <InputText v-model.trim="item.quantity" placeholder="수량을 입력하세요 (예: 1, 1.5, 1/2)" class="w-full" />
                             </div>
                             <div>
                                 <label class="block mb-2 text-sm">단위 <span class="text-gray-400 text-xs">(선택사항)</span></label>
@@ -459,8 +459,7 @@ interface RecipeStepDraft {
 interface IngredientItemDraft {
     id: string;
     name: string;
-    quantity: number | null;
-    quantityString: string; // 분수 입력 지원 (예: "1/2", "3/4")
+    quantity: string | null; // 수량 (분수 입력 지원: "1/2", "3/4", "1.5" 등)
     unit: string;
     customUnitName?: string;  // 직접 입력 단위
 }
@@ -604,8 +603,7 @@ async function loadRecipeData() {
                 items: Array.isArray(group.items) ? group.items.map((item: any) => ({
                     id: crypto.randomUUID(),
                     name: item.name || '',
-                    quantity: item.quantity || null,
-                    quantityString: item.quantity != null ? String(item.quantity) : '', // 기존 수량을 문자열로 변환
+                    quantity: item.quantity || null, // String으로 직접 저장 (분수 입력 지원)
                     unit: item.detailCodeId || (item.customUnitName ? 'CUSTOM' : ''),
                     customUnitName: item.customUnitName || ''
                 })) : []
@@ -813,7 +811,6 @@ function addIngredientItem(groupIndex: number) {
             id: crypto.randomUUID(), 
             name: '', 
             quantity: null,
-            quantityString: '', // 분수 문자열 초기화
             unit: '' 
         });
     }
@@ -963,8 +960,7 @@ function buildRecipePayload() {
                 .map((item, idx) => ({
                     order: idx + 1,
                     name: item.name.trim(),
-                    quantity: item.quantity || null, // null 허용
-                    quantityString: item.quantityString && item.quantityString.trim() ? item.quantityString.trim() : null, // 분수 문자열
+                    quantity: item.quantity && item.quantity.trim() ? item.quantity.trim() : null, // null 허용 (분수 입력 지원: "1/2", "3/4", "1.5" 등)
                     codeId: item.unit && item.unit !== 'CUSTOM' ? 'INGREDIENTS_UNIT' : null,
                     detailCodeId: item.unit && item.unit !== 'CUSTOM' ? item.unit : null,
                     customUnitName: item.unit === 'CUSTOM' ? item.customUnitName : null

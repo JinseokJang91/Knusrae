@@ -7,7 +7,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,8 +24,8 @@ public class RecipeIngredientItem {
     @Column(nullable = false)
     private String name; // 재료명
 
-    @Column(nullable = true, precision = 10, scale = 2)
-    private BigDecimal quantity; // 수량 (조리도구 등은 수량 불필요)
+    @Column(length = 50)
+    private String quantity; // 수량 (분수 입력 지원: "1/2", "3/4", "1.5" 등, 조리도구 등은 수량 불필요)
 
     @Column(nullable = false)
     private Integer itemOrder; // 항목 순서
@@ -38,7 +37,9 @@ public class RecipeIngredientItem {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    // 연관관계 편의 메서드
     // 연관관계 매핑
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_ingredient_group_id", nullable = false)
     private RecipeIngredientGroup recipeIngredientGroup;
@@ -55,10 +56,6 @@ public class RecipeIngredientItem {
     @Column(name = "custom_unit_name", length = 20)
     private String customUnitName;
 
-    // 연관관계 편의 메서드
-    public void setRecipeIngredientGroup(RecipeIngredientGroup recipeIngredientGroup) {
-        this.recipeIngredientGroup = recipeIngredientGroup;
-    }
 }
 
 

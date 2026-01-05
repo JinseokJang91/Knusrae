@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.knusrae.cook.api.domain.entity.RecipeIngredientItem;
 import lombok.*;
 
-import java.math.BigDecimal;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,8 +14,7 @@ import java.math.BigDecimal;
 public class RecipeIngredientItemDto {
     private Long id;
     private String name;
-    private BigDecimal quantity;
-    private String quantityString; // 분수 입력 지원 (예: "1/2", "3/4")
+    private String quantity; // 수량 (분수 입력 지원: "1/2", "3/4", "1.5" 등)
     private Integer order;
     private String codeId;
     private String detailCodeId;
@@ -57,8 +54,5 @@ public class RecipeIngredientItemDto {
                 .customUnitName(item.getCustomUnitName())
                 .build();
     }
-
-    // toEntity는 서비스 레이어에서 CommonCodeDetail을 조회하여 설정하도록 변경
-    // 이 메서드는 더 이상 직접 사용하지 않음
 }
 

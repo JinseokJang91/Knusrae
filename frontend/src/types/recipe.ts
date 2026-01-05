@@ -15,7 +15,7 @@ export interface RecipeCookingTip {
 
 export interface RecipeIngredientItem {
     name: string;
-    quantity: number | null;
+    quantity: string | null; // 수량 (분수 입력 지원: "1/2", "3/4", "1.5" 등)
     codeId?: string;
     detailCodeId?: string;
     codeName?: string;

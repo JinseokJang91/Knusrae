@@ -23,7 +23,6 @@ import com.knusrae.cook.api.domain.repository.RecipeCommentRepository;
 import com.knusrae.cook.api.domain.repository.RecipeFavoriteRepository;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.cook.api.domain.constants.RecipeConstants;
-import com.knusrae.cook.api.utils.QuantityParser;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +30,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -255,14 +252,10 @@ public class RecipeService {
                         customUnitName = itemDto.getCustomUnitName().trim();
                     }
 
-                    // 수량 처리: quantityString이 있으면 파싱, 없으면 기존 quantity 사용
-                    BigDecimal quantity = itemDto.getQuantity();
-                    if (itemDto.getQuantityString() != null && !itemDto.getQuantityString().trim().isEmpty()) {
-                        BigDecimal parsedQuantity = QuantityParser.parseQuantity(itemDto.getQuantityString());
-                        if (parsedQuantity != null) {
-                            quantity = parsedQuantity;
-                        }
-                    }
+                    // 수량 처리: String으로 직접 저장 (분수 입력 지원: "1/2", "3/4", "1.5" 등)
+                    String quantity = itemDto.getQuantity() != null && !itemDto.getQuantity().trim().isEmpty() 
+                            ? itemDto.getQuantity().trim() 
+                            : null;
 
                     // RecipeIngredientItem 생성
                     RecipeIngredientItem item = RecipeIngredientItem.builder()

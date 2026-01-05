@@ -179,7 +179,8 @@
                                 <i class="pi pi-circle-fill text-orange-400 text-xs mr-3"></i>
                                 <span class="text-gray-800 text-lg font-medium flex-1">{{ item.name }}</span>
                                 <span class="text-gray-600 text-lg ml-2">
-                                    {{ item.quantity }}{{ item.customUnitName || item.detailName }}
+                                    <template v-if="item.quantity">{{ item.quantity }}{{ item.customUnitName || item.detailName }}</template>
+                                    <template v-else-if="item.customUnitName || item.detailName">{{ item.customUnitName || item.detailName }}</template>
                                 </span>
                             </div>
                         </div>
