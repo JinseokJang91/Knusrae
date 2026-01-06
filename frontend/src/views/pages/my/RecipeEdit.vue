@@ -432,11 +432,12 @@
 
 <script setup lang="ts">
 import { httpForm, httpJson } from '@/utils/http';
+import { GUIDE_IMAGES, getApiBaseUrl } from '@/utils/constants';
+import { useErrorHandler } from '@/utils/errorHandler';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import Button from 'primevue/button';
-import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
 import Popover from 'primevue/popover';
@@ -447,6 +448,7 @@ const router = useRouter();
 const route = useRoute();
 const recipeId = computed(() => Number(route.params.id));
 const confirm = useConfirm();
+const { handleApiCallVoid } = useErrorHandler();
 
 interface RecipeStepDraft {
     id: string;
@@ -560,7 +562,7 @@ onMounted(() => {
 
 async function loadRecipeData() {
     try {
-        const API_COOK_BASE_URL = import.meta.env.VITE_API_BASE_URL_COOK;
+        const API_COOK_BASE_URL = getApiBaseUrl('cook');
         const response = await httpJson(API_COOK_BASE_URL, `/api/recipe/${recipeId.value}`, {
             method: 'GET'
         });
@@ -645,7 +647,7 @@ async function loadCategoryOptions() {
     categoriesLoading.value = true;
     categoriesError.value = null;
     try {
-        const response = await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/common-codes?codeGroup=CATEGORY', {
+        const response = await httpJson(getApiBaseUrl('cook'), '/api/common-codes?codeGroup=CATEGORY', {
             method: 'GET'
         });
 
@@ -671,7 +673,7 @@ async function loadCookingTipsOptions() {
     cookingTipsLoading.value = true;
     cookingTipsError.value = null;
     try {
-        const response = await httpJson(import.meta.env.VITE_API_BASE_URL_COOK, '/api/common-codes?codeGroup=COOKINGTIP', {
+        const response = await httpJson(getApiBaseUrl('cook'), '/api/common-codes?codeGroup=COOKINGTIP', {
             method: 'GET'
         });
 
@@ -698,7 +700,7 @@ async function loadIngredientsGroupOptions() {
     ingredientTypesError.value = null;
     try {
         const response = await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
+            getApiBaseUrl('cook'),
             '/api/common-codes?codeId=INGREDIENTS_GROUP',
             { method: 'GET' }
         );
@@ -715,7 +717,7 @@ async function loadIngredientsUnitOptions() {
     unitsError.value = null;
     try {
         const response = await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
+            getApiBaseUrl('cook'),
             '/api/common-codes?codeId=INGREDIENTS_UNIT',
             { method: 'GET' }
         );
@@ -913,14 +915,8 @@ function goBack() {
     router.push('/my/recipes');
 }
 
-// 가이드 이미지 매핑
-const guideImages: Record<string, string> = {
-    basic: '/guide/Guide_01.png',
-    ingredients: '/guide/Guide_02.png',
-    classification: '/guide/Guide_03.png',
-    steps: '/guide/Guide_04.png',
-    settings: '/guide/Guide_05.png'
-};
+// 가이드 이미지 매핑 (공통 상수 사용)
+const guideImages = GUIDE_IMAGES;
 
 // 가이드 표시
 function showGuide(section: 'basic' | 'ingredients' | 'classification' | 'steps' | 'settings', event: Event): void {
@@ -1053,16 +1049,21 @@ async function submit() {
         // 이미지 변경이 없으면 images를 전송하지 않음 -> 백엔드에서 기존 이미지 유지
 
         // 실제 API 엔드포인트로 전송 (토큰 자동 첨부) - PUT 메서드로 수정
-        await httpForm(import.meta.env.VITE_API_BASE_URL_COOK, `/api/recipe/${recipeId.value}`, formData, { method: 'PUT' });
+        const success = await handleApiCallVoid(
+            () => httpForm(getApiBaseUrl('cook'), `/api/recipe/${recipeId.value}`, formData, { method: 'PUT' }),
+            '레시피 수정 중 오류가 발생했습니다.',
+            '수정 실패'
+        );
 
-        // 수정 성공 시 페이지 이탈 방지 해제
-        isSubmitSuccessful.value = true;
+        if (success) {
+            // 수정 성공 시 페이지 이탈 방지 해제
+            isSubmitSuccessful.value = true;
 
-        alert('수정이 완료되었습니다.');
-        router.push('/my/recipes');
-    } catch (e) {
-        console.error(e);
-        error.value = e instanceof Error ? e.message : '레시피 수정 중 오류가 발생했습니다.';
+            alert('수정이 완료되었습니다.');
+            router.push('/my/recipes');
+        } else {
+            error.value = '레시피 수정 중 오류가 발생했습니다.';
+        }
     } finally {
         submitting.value = false;
     }

@@ -5,6 +5,7 @@ import { openOAuthPopup } from '@/utils/oauth';
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
+import { getApiBaseUrl } from '@/utils/constants';
 
 const router = useRouter();
 const route = useRoute();
@@ -77,7 +78,8 @@ async function loadTestAccounts() {
     
     loadingTestAccounts.value = true;
     try {
-        const response = await fetch('http://localhost:8081/api/auth/test/accounts', {
+        const API_BASE_URL = getApiBaseUrl('auth');
+        const response = await fetch(`${API_BASE_URL}/api/auth/test/accounts`, {
             method: 'GET',
             credentials: 'include',
         });
@@ -98,7 +100,8 @@ async function loadTestAccounts() {
 
 async function loginWithTestAccount(email: string) {
     try {
-        const response = await fetch('http://localhost:8081/api/auth/test/login', {
+        const API_BASE_URL = getApiBaseUrl('auth');
+        const response = await fetch(`${API_BASE_URL}/api/auth/test/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

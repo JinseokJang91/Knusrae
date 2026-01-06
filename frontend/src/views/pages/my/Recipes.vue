@@ -133,9 +133,10 @@ import { fetchMemberInfo } from '@/utils/auth';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
+import { getApiBaseUrl } from '@/utils/constants';
 
 // API 호출을 위한 기본 URL 및 공용 HTTP 유틸
-const API_COOK_BASE_URL = import.meta.env.VITE_API_BASE_URL_COOK;
+const API_COOK_BASE_URL = getApiBaseUrl('cook');
 const router = useRouter();
 const confirm = useConfirm();
 

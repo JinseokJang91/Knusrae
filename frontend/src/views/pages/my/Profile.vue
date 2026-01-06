@@ -79,6 +79,7 @@ import { httpForm } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
 import { useToast } from 'primevue/usetoast';
 import { useAuthStore } from '@/stores/authStore';
+import { getApiBaseUrl } from '@/utils/constants';
 
 interface ProfileFormState {
     name: string;
@@ -126,7 +127,7 @@ const onProfileImageChange = (event: Event) => {
 const onSave = async () => {
     try {
         loading.value = true;
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_MEMBER || 'http://localhost:8083';
+        const API_BASE_URL = getApiBaseUrl('member');
         
         const formData = new FormData();
         if (form.name) formData.append('name', form.name);

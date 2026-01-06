@@ -877,14 +877,16 @@ import { httpJson, httpForm } from '@/utils/http';
 import { useConfirm } from 'primevue/useconfirm';
 import { useAuthStore } from '@/stores/authStore';
 import { useToast } from 'primevue/usetoast';
+import { useErrorHandler } from '@/utils/errorHandler';
+import { getApiBaseUrl } from '@/utils/constants';
 import type { RecipeDetail, RecipeComment, RecipeImage } from '@/types/recipe';
-import { handleApiCall, handleApiCallVoid } from '@/utils/errorHandler';
 
 const route = useRoute();
 const router = useRouter();
 const confirm = useConfirm();
 const authStore = useAuthStore();
 const toast = useToast();
+const { handleApiCall, handleApiCallVoid } = useErrorHandler();
 
 // 반응형 데이터
 const loading = ref(true);
@@ -964,7 +966,7 @@ const cookingTipsData = computed(() => {
 const loadDifficultyCodes = async () => {
     try {
         const response = await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
+            getApiBaseUrl('cook'),
             `/api/common-codes?codeGroup=COOKINGTIP`,
             { method: 'GET' }
         );
@@ -991,7 +993,7 @@ const fetchRecipeDetail = async () => {
         
         const recipeId = route.params.id;
         const response = await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
+            getApiBaseUrl('cook'),
             `/api/recipe/${recipeId}`,
             { method: 'GET' }
         );
@@ -1017,7 +1019,7 @@ const checkFavoriteStatus = async () => {
     try {
         const recipeId = route.params.id;
         const response = await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
+            getApiBaseUrl('cook'),
             `/api/recipe/favorites/check?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
             { method: 'GET' }
         );
@@ -1032,7 +1034,7 @@ const fetchComments = async (page: number = 0) => {
     try {
         const recipeId = route.params.id;
         const response = await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
+            getApiBaseUrl('cook'),
             `/api/recipe/comments/${recipeId}/page?page=${page}&size=${pageSize}`,
             { method: 'GET' }
         );
@@ -1074,18 +1076,19 @@ const toggleLike = async () => {
         return;
     }
     
-    try {
-        const recipeId = route.params.id;
-        const response = await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
+    const recipeId = route.params.id;
+    const response = await handleApiCall(
+        () => httpJson(
+            getApiBaseUrl('cook'),
             `/api/recipe/favorites/toggle?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
             { method: 'PUT' }
-        );
-        
+        ),
+        '찜 기능을 사용할 수 없습니다.',
+        '찜 토글 실패'
+    );
+    
+    if (response) {
         isLiked.value = response.isFavorite;
-    } catch (err) {
-        console.error('찜 토글 실패:', err);
-        alert('찜 기능을 사용할 수 없습니다.');
     }
 };
 
@@ -1166,26 +1169,37 @@ const submitComment = async () => {
         return;
     }
     
-    try {
-        const recipeId = route.params.id;
+    const recipeId = route.params.id;
+    
+    // 이미지가 있으면 multipart/form-data로 전송
+    if (newCommentImage.value) {
+        const formData = new FormData();
+        formData.append('memberId', currentMemberId.value.toString());
+        formData.append('content', newComment.value);
+        formData.append('image', newCommentImage.value);
         
-        // 이미지가 있으면 multipart/form-data로 전송
-        if (newCommentImage.value) {
-            const formData = new FormData();
-            formData.append('memberId', currentMemberId.value.toString());
-            formData.append('content', newComment.value);
-            formData.append('image', newCommentImage.value);
-            
-            await httpForm(
-                import.meta.env.VITE_API_BASE_URL_COOK,
+        const success = await handleApiCallVoid(
+            () => httpForm(
+                getApiBaseUrl('cook'),
                 `/api/recipe/comments/${recipeId}/with-image`,
                 formData,
                 { method: 'POST' }
-            );
-        } else {
-            // 이미지가 없으면 JSON으로 전송
-            await httpJson(
-                import.meta.env.VITE_API_BASE_URL_COOK,
+            ),
+            '댓글 작성 중 오류가 발생했습니다.',
+            '댓글 작성 실패'
+        );
+        
+        if (success) {
+            newComment.value = '';
+            newCommentImage.value = null;
+            newCommentImagePreview.value = null;
+            await fetchComments(0);
+        }
+    } else {
+        // 이미지가 없으면 JSON으로 전송
+        const success = await handleApiCallVoid(
+            () => httpJson(
+                getApiBaseUrl('cook'),
                 `/api/recipe/comments/${recipeId}`,
                 {
                     method: 'POST',
@@ -1195,18 +1209,17 @@ const submitComment = async () => {
                         parentId: null
                     })
                 }
-            );
+            ),
+            '댓글 작성 중 오류가 발생했습니다.',
+            '댓글 작성 실패'
+        );
+        
+        if (success) {
+            newComment.value = '';
+            newCommentImage.value = null;
+            newCommentImagePreview.value = null;
+            await fetchComments(0);
         }
-        
-        newComment.value = '';
-        newCommentImage.value = null;
-        newCommentImagePreview.value = null;
-        
-        // 댓글 목록 다시 불러오기 (첫 페이지로)
-        await fetchComments(0);
-    } catch (err) {
-        console.error('Comment submission error:', err);
-        alert('댓글 작성 중 오류가 발생했습니다.');
     }
 };
 
@@ -1268,34 +1281,47 @@ const submitReply = async (parentId: number) => {
         return;
     }
     
-    try {
-        const recipeId = route.params.id;
+    const recipeId = route.params.id;
+    
+    // 부모 댓글 닉네임 prefix 추가
+    let contentWithPrefix = replyContent.value;
+    if (replyingToComment.value) {
+        const parentNickname = replyingToComment.value.memberNickname || replyingToComment.value.memberName;
+        contentWithPrefix = `@${parentNickname} ${replyContent.value}`;
+    }
+    
+    // 이미지가 있으면 multipart/form-data로 전송
+    if (replyImage.value) {
+        const formData = new FormData();
+        formData.append('memberId', currentMemberId.value.toString());
+        formData.append('content', contentWithPrefix);
+        formData.append('parentId', parentId.toString());
+        formData.append('image', replyImage.value);
         
-        // 부모 댓글 닉네임 prefix 추가
-        let contentWithPrefix = replyContent.value;
-        if (replyingToComment.value) {
-            const parentNickname = replyingToComment.value.memberNickname || replyingToComment.value.memberName;
-            contentWithPrefix = `@${parentNickname} ${replyContent.value}`;
-        }
-        
-        // 이미지가 있으면 multipart/form-data로 전송
-        if (replyImage.value) {
-            const formData = new FormData();
-            formData.append('memberId', currentMemberId.value.toString());
-            formData.append('content', contentWithPrefix);
-            formData.append('parentId', parentId.toString());
-            formData.append('image', replyImage.value);
-            
-            await httpForm(
-                import.meta.env.VITE_API_BASE_URL_COOK,
+        const success = await handleApiCallVoid(
+            () => httpForm(
+                getApiBaseUrl('cook'),
                 `/api/recipe/comments/${recipeId}/with-image`,
                 formData,
                 { method: 'POST' }
-            );
-        } else {
-            // 이미지가 없으면 JSON으로 전송
-            await httpJson(
-                import.meta.env.VITE_API_BASE_URL_COOK,
+            ),
+            '답글 작성 중 오류가 발생했습니다.',
+            '답글 작성 실패'
+        );
+        
+        if (success) {
+            replyContent.value = '';
+            replyImage.value = null;
+            replyImagePreview.value = null;
+            replyingToCommentId.value = null;
+            replyingToComment.value = null;
+            await fetchComments(currentPage.value);
+        }
+    } else {
+        // 이미지가 없으면 JSON으로 전송
+        const success = await handleApiCallVoid(
+            () => httpJson(
+                getApiBaseUrl('cook'),
                 `/api/recipe/comments/${recipeId}`,
                 {
                     method: 'POST',
@@ -1305,20 +1331,19 @@ const submitReply = async (parentId: number) => {
                         parentId: parentId
                     })
                 }
-            );
+            ),
+            '답글 작성 중 오류가 발생했습니다.',
+            '답글 작성 실패'
+        );
+        
+        if (success) {
+            replyContent.value = '';
+            replyImage.value = null;
+            replyImagePreview.value = null;
+            replyingToCommentId.value = null;
+            replyingToComment.value = null;
+            await fetchComments(currentPage.value);
         }
-        
-        replyContent.value = '';
-        replyImage.value = null;
-        replyImagePreview.value = null;
-        replyingToCommentId.value = null;
-        replyingToComment.value = null;
-        
-        // 댓글 목록 다시 불러오기
-        await fetchComments(currentPage.value);
-    } catch (err) {
-        console.error('Reply submission error:', err);
-        alert('답글 작성 중 오류가 발생했습니다.');
     }
 };
 
@@ -1428,7 +1453,7 @@ const updateComment = async (commentId: number) => {
             }
             
             await httpForm(
-                import.meta.env.VITE_API_BASE_URL_COOK,
+                getApiBaseUrl('cook'),
                 `/api/recipe/comments/${commentId}/with-image`,
                 formData,
                 { method: 'PUT' }
@@ -1436,7 +1461,7 @@ const updateComment = async (commentId: number) => {
         } else {
             // 이미지가 변경되지 않은 경우
             await httpJson(
-                import.meta.env.VITE_API_BASE_URL_COOK,
+                getApiBaseUrl('cook'),
                 `/api/recipe/comments/${commentId}`,
                 {
                     method: 'PUT',
@@ -1478,21 +1503,23 @@ const deleteComment = async (commentId: number) => {
         accept: async () => {
             loading.value = true;
             error.value = null;
-            try {
-                await httpJson(
-                    import.meta.env.VITE_API_BASE_URL_COOK,
+            
+            const success = await handleApiCallVoid(
+                () => httpJson(
+                    getApiBaseUrl('cook'),
                     `/api/recipe/comments/${commentId}?memberId=${currentMemberId.value}`,
                     { method: 'DELETE' }
-                );
-                
+                ),
+                '댓글 삭제 중 오류가 발생했습니다.',
+                '댓글 삭제 실패'
+            );
+            
+            if (success) {
                 // 댓글 목록 다시 불러오기
                 await fetchComments(currentPage.value);
-            } catch (err) {
-                console.error('Comment deletion error:', err);
-                alert('댓글 삭제 중 오류가 발생했습니다.');
-            } finally {
-                loading.value = false;
             }
+            
+            loading.value = false;
         },
         reject: () => {
             // 취소 시 아무것도 하지 않음

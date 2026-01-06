@@ -1,4 +1,5 @@
 import { httpJson } from '@/utils/http';
+import { getApiBaseUrl } from '@/utils/constants';
 
 /**
  * Token Refresh API 호출
@@ -7,11 +8,15 @@ import { httpJson } from '@/utils/http';
  */
 export async function refreshToken(): Promise<boolean> {
     try {
-        
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+        const API_BASE_URL = getApiBaseUrl('auth');
+        // httpJson을 사용하지 않는 이유: 401 응답을 정상적인 경우로 처리해야 하므로
+        // fetch를 직접 사용하여 response.ok를 체크할 수 있도록 함
         const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
             method: 'POST',
-            credentials: 'include' // HttpOnly 쿠키 전송
+            credentials: 'include', // HttpOnly 쿠키 전송
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
         if (response.ok) {
@@ -30,7 +35,7 @@ export async function refreshToken(): Promise<boolean> {
 export async function fetchMemberInfo(): Promise<any> {
     try {
         // member-service의 BASE URL 사용 (환경 변수가 있으면 사용, 없으면 기본값)
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_MEMBER;
+        const API_BASE_URL = getApiBaseUrl('member');
         const memberInfo = await httpJson(API_BASE_URL, '/api/member/me', {
             method: 'GET'
         });

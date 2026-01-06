@@ -215,6 +215,7 @@ import Tag from 'primevue/tag';
 import { useToast } from 'primevue/usetoast';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { getApiBaseUrl } from '@/utils/constants';
 
 const router = useRouter();
 const toast = useToast();
@@ -243,7 +244,7 @@ const currentMemberId = computed(() => authStore.memberInfo?.id || null);
 
 // API 기본 URL
 // TODO 테스트는 로컬로 진행, 추후 분기처리로 EC2 연결 예정
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8082';
+const API_BASE_URL = getApiBaseUrl('cook');
 
 // 카테고리 header > 표시된 레시피 > 개수
 const filteredRecipes = computed(() => {
@@ -407,7 +408,7 @@ const loadRecipes = async () => {
             try {
                 // 백엔드 API: GET /api/recipe/favorites/{memberId}
                 const favoritesResponse = await httpJson(
-                    import.meta.env.VITE_API_BASE_URL_COOK,
+                    getApiBaseUrl('cook'),
                     `/api/recipe/favorites/${currentMemberId.value}`,
                     { method: 'GET' }
                 );
@@ -686,7 +687,7 @@ const toggleFavorite = async (recipeId) => {
 
         // API 호출
         const response = await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
+            getApiBaseUrl('cook'),
             `/api/recipe/favorites/toggle?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
             { method: 'PUT' }
         );

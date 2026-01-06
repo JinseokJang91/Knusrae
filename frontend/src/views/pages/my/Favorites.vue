@@ -115,12 +115,13 @@ import Tag from 'primevue/tag';
 import { useToast } from 'primevue/usetoast';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { getApiBaseUrl } from '@/utils/constants';
 
 const router = useRouter();
 const toast = useToast();
 
 // API 기본 URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL_COOK || 'http://localhost:8082';
+const API_BASE_URL = getApiBaseUrl('cook');
 
 // 반응형 데이터
 const favoriteRecipes = ref([]);

@@ -438,10 +438,11 @@
 <script setup lang="ts">
 import { httpForm, httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
+import { GUIDE_IMAGES, getApiBaseUrl } from '@/utils/constants';
+import { useErrorHandler } from '@/utils/errorHandler';
 import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import Button from 'primevue/button';
-import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
 import Popover from 'primevue/popover';
@@ -453,6 +454,7 @@ import { useConfirm } from 'primevue/useconfirm';
 const router = useRouter();
 const toast = useToast();
 const confirm = useConfirm();
+const { handleApiCallVoid } = useErrorHandler();
 
 // 타입 정의
 interface RecipeStepDraft {
@@ -700,7 +702,7 @@ function focusFirstError(field: string): void {
 async function loadCommonCodes(codeGroup: 'CATEGORY' | 'COOKINGTIP' | 'INGREDIENTS_GROUP' | 'INGREDIENTS_UNIT'): Promise<CommonCodeOption[]> {
     try {
         const response = await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
+            getApiBaseUrl('cook'),
             `/api/common-codes?codeGroup=${codeGroup}`,
             { method: 'GET' }
         );
@@ -751,7 +753,7 @@ async function loadIngredientsGroupOptions(): Promise<void> {
     try {
         // codeId 파라미터로 INGREDIENTS으로 시작하는 코드들을 조회
         const response = await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
+            getApiBaseUrl('cook'),
             `/api/common-codes?codeId=INGREDIENTS_GROUP`,
             { method: 'GET' }
         );
@@ -770,7 +772,7 @@ async function loadIngredientsUnitOptions(): Promise<void> {
     try {
         // codeId 파라미터로 INGREDIEN으로 시작하는 단위 코드들을 조회
         const response = await httpJson(
-            import.meta.env.VITE_API_BASE_URL_COOK,
+            getApiBaseUrl('cook'),
             `/api/common-codes?codeId=INGREDIENTS_UNIT`,
             { method: 'GET' }
         );
@@ -1034,31 +1036,36 @@ async function submit(): Promise<void> {
     }
 
     submitting.value = true;
-    try {
-        const formData = new FormData();
-        const recipePayload = buildRecipePayload();
+    
+    const formData = new FormData();
+    const recipePayload = buildRecipePayload();
 
-        const recipeBlob = new Blob([JSON.stringify(recipePayload)], {
-            type: 'application/json; charset=utf-8'
-        });
-        formData.append('recipe', recipeBlob, 'recipe.json');
+    const recipeBlob = new Blob([JSON.stringify(recipePayload)], {
+        type: 'application/json; charset=utf-8'
+    });
+    formData.append('recipe', recipeBlob, 'recipe.json');
 
-        if (form.thumbnailFile) {
-            formData.append('images', form.thumbnailFile, 'thumbnail.png');
+    if (form.thumbnailFile) {
+        formData.append('images', form.thumbnailFile, 'thumbnail.png');
+    }
+
+    form.steps.forEach((s, idx) => {
+        if (s.file) {
+            formData.append('images', s.file, `step-${idx + 1}.png`);
         }
+    });
 
-        form.steps.forEach((s, idx) => {
-            if (s.file) {
-                formData.append('images', s.file, `step-${idx + 1}.png`);
-            }
-        });
+    formData.append('mainImageIndex', '0');
 
-        formData.append('mainImageIndex', '0');
-
-        await httpForm(import.meta.env.VITE_API_BASE_URL_COOK, '/api/recipe', formData, { 
+    const success = await handleApiCallVoid(
+        () => httpForm(getApiBaseUrl('cook'), '/api/recipe', formData, { 
             method: 'POST' 
-        });
+        }),
+        '레시피 등록 중 오류가 발생했습니다.',
+        '등록 실패'
+    );
 
+    if (success) {
         // 등록 성공 시 페이지 이탈 방지 해제
         isSubmitSuccessful.value = true;
 
@@ -1070,31 +1077,17 @@ async function submit(): Promise<void> {
         });
 
         router.push('/my/recipes');
-    } catch (e) {
-        console.error(e);
-        toast.add({
-            severity: 'error',
-            summary: '등록 실패',
-            detail: e instanceof Error ? e.message : '레시피 등록 중 오류가 발생했습니다.',
-            life: 3000
-        });
-    } finally {
-        submitting.value = false;
     }
+    
+    submitting.value = false;
 }
 
 function goBack(): void {
     router.push('/my/recipes');
 }
 
-// 가이드 이미지 매핑
-const guideImages: Record<string, string> = {
-    basic: '/guide/Guide_01.png',
-    ingredients: '/guide/Guide_02.png',
-    classification: '/guide/Guide_03.png',
-    steps: '/guide/Guide_04.png',
-    settings: '/guide/Guide_05.png'
-};
+// 가이드 이미지 매핑 (공통 상수 사용)
+const guideImages = GUIDE_IMAGES;
 
 // 가이드 표시
 function showGuide(section: 'basic' | 'ingredients' | 'classification' | 'steps' | 'settings', event: Event): void {

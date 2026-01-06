@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { refreshToken, fetchMemberInfo } from '@/utils/auth';
+import { getApiBaseUrl } from '@/utils/constants';
 
 interface MemberInfo {
     id?: number;
@@ -86,7 +87,7 @@ export const useAuthStore = defineStore('auth', () => {
      */
     async function logout(): Promise<void> {
         try {
-            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+            const API_BASE_URL = getApiBaseUrl('auth');
             await fetch(`${API_BASE_URL}/api/auth/logout`, {
                 method: 'POST',
                 credentials: 'include'
