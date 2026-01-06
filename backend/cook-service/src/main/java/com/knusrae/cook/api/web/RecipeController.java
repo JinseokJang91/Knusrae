@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.knusrae.common.utils.AuthenticationUtils;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 
@@ -136,7 +137,7 @@ public class RecipeController {
             Authentication authentication
     ) throws JsonProcessingException {
         // 인증 정보에서 회원 ID 추출
-        Long memberId = extractMemberId(authentication);
+        Long memberId = AuthenticationUtils.extractMemberId(authentication);
         
         log.debug("Updating recipe: id={}, memberId={}, images count={}, mainImageIndex={}", 
                 id, memberId, images != null ? images.size() : 0, mainImageIndex);
@@ -164,28 +165,12 @@ public class RecipeController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecipe(@PathVariable Long id, Authentication authentication) {
         // 인증 정보에서 회원 ID 추출
-        Long memberId = extractMemberId(authentication);
+        Long memberId = AuthenticationUtils.extractMemberId(authentication);
         
         log.info("Deleting recipe: id={}, memberId={}", id, memberId);
         recipeService.deleteRecipe(id, memberId);
         log.info("Recipe deleted successfully: id={}", id);
         return ResponseEntity.noContent().build();
-    }
-    
-    /**
-     * Authentication에서 회원 ID 추출
-     */
-    private Long extractMemberId(Authentication authentication) {
-        if (authentication == null || authentication.getPrincipal() == null) {
-            throw new org.springframework.security.authentication.BadCredentialsException("인증 정보가 없습니다.");
-        }
-        
-        try {
-            String memberIdStr = authentication.getPrincipal().toString();
-            return Long.parseLong(memberIdStr);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("유효하지 않은 회원 ID 형식입니다.");
-        }
     }
     
     /**

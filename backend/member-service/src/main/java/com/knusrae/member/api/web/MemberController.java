@@ -2,6 +2,7 @@ package com.knusrae.member.api.web;
 
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
+import com.knusrae.common.utils.AuthenticationUtils;
 import com.knusrae.member.api.domain.service.MemberService;
 import com.knusrae.member.api.dto.MemberDto;
 import lombok.RequiredArgsConstructor;
@@ -36,14 +37,7 @@ public class MemberController {
     public ResponseEntity<MemberDto> retrieveCurrentMember(Authentication authentication) {
         try {
             // JWT 필터에서 설정한 Authentication의 principal에서 회원 ID 추출
-            // JwtAuthenticationFilter에서 subject를 principal로 설정했으므로 String으로 받아서 Long으로 변환
-            if (authentication == null || authentication.getPrincipal() == null) {
-                log.error("GET /api/member/me - 인증 정보가 없습니다.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-
-            String memberIdStr = authentication.getPrincipal().toString();
-            Long memberId = Long.parseLong(memberIdStr);
+            Long memberId = AuthenticationUtils.extractMemberId(authentication);
 
             log.info("GET /api/member/me - 회원 ID: {}", memberId);
 
@@ -68,9 +62,9 @@ public class MemberController {
                     .build();
 
             return ResponseEntity.ok(memberDto);
-        } catch (NumberFormatException e) {
-            log.error("GET /api/member/me - 회원 ID 파싱 오류: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (org.springframework.security.authentication.BadCredentialsException | IllegalArgumentException e) {
+            log.error("GET /api/member/me - 인증 정보 오류: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (RuntimeException e) {
             log.error("GET /api/member/me - 회원 조회 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -99,22 +93,16 @@ public class MemberController {
             @RequestParam(required = false) MultipartFile profileImage
     ) {
         try {
-            if (authentication == null || authentication.getPrincipal() == null) {
-                log.error("PUT /api/member/profile - 인증 정보가 없습니다.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-
-            String memberIdStr = authentication.getPrincipal().toString();
-            Long memberId = Long.parseLong(memberIdStr);
+            Long memberId = AuthenticationUtils.extractMemberId(authentication);
 
             log.info("PUT /api/member/profile - 회원 ID: {}", memberId);
 
             MemberDto updatedMember = memberService.updateProfile(memberId, name, nickname, bio, profileImage);
 
             return ResponseEntity.ok(updatedMember);
-        } catch (NumberFormatException e) {
-            log.error("PUT /api/member/profile - 회원 ID 파싱 오류: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (org.springframework.security.authentication.BadCredentialsException | IllegalArgumentException e) {
+            log.error("PUT /api/member/profile - 인증 정보 오류: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (RuntimeException e) {
             log.error("PUT /api/member/profile - 프로필 업데이트 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

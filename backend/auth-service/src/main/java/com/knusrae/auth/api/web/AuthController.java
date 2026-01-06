@@ -4,6 +4,7 @@ import com.knusrae.auth.api.domain.service.GoogleAuthService;
 import com.knusrae.auth.api.domain.service.KakaoAuthService;
 import com.knusrae.auth.api.domain.service.NaverAuthService;
 import com.knusrae.auth.api.domain.service.TokenService;
+import com.knusrae.auth.api.utils.CookieUtils;
 import com.knusrae.auth.api.web.request.TestLoginRequest;
 import com.knusrae.auth.api.web.response.TokenResponse;
 import jakarta.validation.Valid;
@@ -13,12 +14,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Map;
 
 @RestController
@@ -30,6 +29,7 @@ public class AuthController {
     private final GoogleAuthService googleAuthService;
     private final KakaoAuthService kakaoAuthService;
     private final TokenService tokenService;
+    private final CookieUtils cookieUtils;
 
     @Value("${app.test-login.enabled:false}")
     private boolean testLoginEnabled;
@@ -84,26 +84,19 @@ public class AuthController {
 
     private ResponseEntity<String> buildSuccessResponse(String redirectUrl, TokenResponse tokenResponse, 
                                                          boolean addCOOP, boolean addCOEP) {
-        // Access Token 쿠키 설정 (HttpOnly, Secure, SameSite)
-        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
-                .httpOnly(true)
-                .secure(false) // TODO DEV - false / PROD - true
-                .path("/")
-                .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
-                .sameSite("Lax")
-                .build();
+        // Access Token 쿠키 설정
+        var accessTokenCookie = cookieUtils.createAccessTokenCookie(
+                tokenResponse.accessToken(), 
+                tokenResponse.accessTokenExpiresIn()
+        );
 
-        // Refresh Token 쿠키 설정 (HttpOnly, Secure, SameSite)
-        ResponseCookie refreshTokenCookie = null;
-        if (tokenResponse.refreshToken() != null) {
-            refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
-                    .httpOnly(true)
-                    .secure(false) // TODO DEV - false / PROD - true
-                    .path("/")
-                    .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
-                    .sameSite("Lax")
-                    .build();
-        }
+        // Refresh Token 쿠키 설정
+        var refreshTokenCookie = tokenResponse.refreshToken() != null
+                ? cookieUtils.createRefreshTokenCookie(
+                        tokenResponse.refreshToken(), 
+                        tokenResponse.refreshTokenExpiresIn()
+                )
+                : null;
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.LOCATION, redirectUrl);
@@ -144,21 +137,8 @@ public class AuthController {
         try {
             tokenService.logout(accessToken, refreshToken);
             
-            ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", "")
-                    .httpOnly(true)
-                    .secure(false) // TODO DEV - false / PROD - true
-                    .path("/")
-                    .maxAge(0)
-                    .sameSite("Lax")
-                    .build();
-            
-            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
-                    .httpOnly(true)
-                    .secure(false) // TODO DEV - false / PROD - true
-                    .path("/")
-                    .maxAge(0)
-                    .sameSite("Lax")
-                    .build();
+            var accessTokenCookie = cookieUtils.deleteAccessTokenCookie();
+            var refreshTokenCookie = cookieUtils.deleteRefreshTokenCookie();
             
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
@@ -175,28 +155,21 @@ public class AuthController {
     public ResponseEntity<?> refreshToken(
             @CookieValue(value = "refreshToken", required = false) String refreshToken) {
         try {
-            if (StringUtils.isBlank(refreshToken) || refreshToken.isBlank()) {
+            if (StringUtils.isBlank(refreshToken)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "REFRESH_TOKEN_REQUIRED", "message", "Refresh Token이 필요합니다."));
             }
 
             TokenResponse tokenResponse = tokenService.refreshAccessToken(refreshToken);
 
-            ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
-                    .httpOnly(true)
-                    .secure(false) // TODO DEV - false / PROD - true
-                    .path("/")
-                    .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
-                    .sameSite("Lax")
-                    .build();
-
-            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
-                    .httpOnly(true)
-                    .secure(false) // TODO DEV - false / PROD - true
-                    .path("/")
-                    .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
-                    .sameSite("Lax")
-                    .build();
+            var accessTokenCookie = cookieUtils.createAccessTokenCookie(
+                    tokenResponse.accessToken(), 
+                    tokenResponse.accessTokenExpiresIn()
+            );
+            var refreshTokenCookie = cookieUtils.createRefreshTokenCookie(
+                    tokenResponse.refreshToken(), 
+                    tokenResponse.refreshTokenExpiresIn()
+            );
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
@@ -239,21 +212,14 @@ public class AuthController {
         try {
             TokenResponse tokenResponse = tokenService.loginWithTestAccount(request.getEmail());
 
-            ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", tokenResponse.accessToken())
-                    .httpOnly(true)
-                    .secure(false) // TODO DEV - false / PROD - true
-                    .path("/")
-                    .maxAge(Duration.ofSeconds(tokenResponse.accessTokenExpiresIn()))
-                    .sameSite("Lax")
-                    .build();
-
-            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.refreshToken())
-                    .httpOnly(true)
-                    .secure(false) // TODO DEV - false / PROD - true
-                    .path("/")
-                    .maxAge(Duration.ofSeconds(tokenResponse.refreshTokenExpiresIn()))
-                    .sameSite("Lax")
-                    .build();
+            var accessTokenCookie = cookieUtils.createAccessTokenCookie(
+                    tokenResponse.accessToken(), 
+                    tokenResponse.accessTokenExpiresIn()
+            );
+            var refreshTokenCookie = cookieUtils.createRefreshTokenCookie(
+                    tokenResponse.refreshToken(), 
+                    tokenResponse.refreshTokenExpiresIn()
+            );
 
             log.info("테스트 로그인 성공: {}", request.getEmail());
 

@@ -151,7 +151,7 @@ public class TokenService {
                 }
             }
             
-            if (!StringUtils.isBlank(refreshToken) && !refreshToken.isBlank()) {
+            if (!StringUtils.isBlank(refreshToken)) {
                 refreshTokenRepository.findByToken(refreshToken).ifPresent(refreshTokenRepository::delete);
                 log.debug("Refresh Token 삭제 완료");
             }

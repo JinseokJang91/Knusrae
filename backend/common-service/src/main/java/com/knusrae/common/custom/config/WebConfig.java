@@ -20,8 +20,10 @@ public class WebConfig implements WebMvcConfigurer {
     // S3 서버 구축 전 이미지 파일 로컬 저장 후 테스트
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 환경 변수에서 경로를 읽어옴 (기본값: 로컬 개발 경로)
+        String uploadPath = baseDir.endsWith("/") ? baseDir : baseDir + "/";
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:///C:/JangJinSeok/test/uploads/") // 끝에 슬래시!
+                .addResourceLocations("file:///" + uploadPath)
                 .setCachePeriod(3600);
     }
 

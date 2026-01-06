@@ -110,6 +110,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
+            log.debug("토큰 블랙리스트 확인 중 오류 발생 (무시됨): {}", e.getMessage());
         }
         return false;
     }
