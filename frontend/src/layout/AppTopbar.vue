@@ -5,9 +5,11 @@ import { useAuthStore } from '@/stores/authStore';
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
+import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
 const confirm = useConfirm();
+const toast = useToast();
 const { toggleMenu } = useLayout();
 const authStore = useAuthStore();
 
@@ -15,8 +17,22 @@ const searchQuery = ref('');
 const profileMenuRef = ref<HTMLElement | null>(null);
 
 const handleSearch = () => {
-    if (searchQuery.value.trim()) {
-        console.log('검색어:', searchQuery.value);
+    const keyword = searchQuery.value.trim();
+    
+    if (keyword) {
+        // 검색어가 있으면 검색 결과 페이지로 이동
+        router.push({
+            path: '/recipe/search',
+            query: { keyword: keyword }
+        });
+    } else {
+        // 검색어가 없으면 안내 메시지 표시
+        toast.add({
+            severity: 'warn',
+            summary: '검색어를 입력해주세요',
+            detail: '레시피를 검색하려면 검색어를 입력해주세요.',
+            life: 3000
+        });
     }
 };
 
@@ -129,10 +145,12 @@ onMounted(() => {
 
         <div class="layout-topbar-search">
             <div class="search-container">
-                <i class="pi pi-search search-icon"></i>
                 <input type="text" placeholder="레시피를 검색해보세요..." class="search-input" v-model="searchQuery" @keyup.enter="handleSearch" />
                 <button v-if="searchQuery" class="search-clear-btn" @click="clearSearch">
                     <i class="pi pi-times"></i>
+                </button>
+                <button class="search-submit-btn" @click="handleSearch" type="button">
+                    <i class="pi pi-search"></i>
                 </button>
             </div>
         </div>

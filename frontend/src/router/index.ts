@@ -75,6 +75,11 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/pages/recipe/Category.vue')
             },
             {
+                path: '/recipe/search',
+                name: 'searchResult',
+                component: () => import('@/views/pages/recipe/SearchResult.vue')
+            },
+            {
                 path: '/recipe/:id',
                 name: 'recipeDetail',
                 component: () => import('@/views/pages/recipe/RecipeDetail.vue')

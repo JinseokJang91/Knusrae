@@ -39,4 +39,17 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
                 .orderBy(recipe.createdAt.desc())
                 .fetch();
     }
+
+    @Override
+    public List<Recipe> searchRecipesByTitle(String keyword) {
+        return queryFactory
+                .selectFrom(recipe)
+                .where(
+                        recipe.status.eq(Status.PUBLISHED),
+                        recipe.visibility.eq(Visibility.PUBLIC),
+                        recipe.title.containsIgnoreCase(keyword)
+                )
+                .orderBy(recipe.createdAt.desc())
+                .fetch();
+    }
 }
