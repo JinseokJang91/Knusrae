@@ -206,6 +206,152 @@
                 }
             }
         }
+        
+        // 최근 검색어 드롭다운
+        .search-wrapper {
+            position: relative;
+            
+            .recent-keywords-dropdown {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                margin-top: 0.5rem;
+                background-color: var(--surface-card);
+                border: 1px solid var(--surface-border);
+                border-radius: var(--content-border-radius);
+                box-shadow: 
+                    0px 3px 5px rgba(0, 0, 0, 0.02),
+                    0px 0px 2px rgba(0, 0, 0, 0.05),
+                    0px 1px 4px rgba(0, 0, 0, 0.08);
+                z-index: 9999;
+                max-height: 300px;
+                overflow-y: auto;
+                
+                .recent-keywords-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 0.75rem 1rem;
+                    border-bottom: 1px solid var(--surface-border);
+                    background-color: var(--surface-ground);
+                    
+                    span {
+                        flex: 1;
+                    }
+                    
+                    .recent-keywords-header-actions {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        flex-shrink: 0;
+                    }
+                    
+                    .auto-save-toggle-btn {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        border: none;
+                        background: transparent;
+                        border-radius: var(--content-border-radius);
+                        cursor: pointer;
+                        transition: all var(--element-transition-duration);
+                        flex-shrink: 0;
+                        padding: 0.25rem 0.5rem;
+                        white-space: nowrap;
+                        
+                        &:hover {
+                            background-color: var(--surface-hover);
+                        }
+                        
+                        &:focus-visible {
+                            outline: 2px solid var(--primary-color);
+                            outline-offset: 2px;
+                        }
+                        
+                        i {
+                            font-size: 1.25rem;
+                            line-height: 1;
+                            transition: color var(--element-transition-duration);
+                            display: inline-block;
+                            
+                            &.pi-check-circle {
+                                color: #10b981;
+                            }
+                            
+                            &.pi-times-circle {
+                                color: #9ca3af;
+                            }
+                        }
+                    }
+                }
+                
+                .recent-keywords-loading,
+                .recent-keywords-empty {
+                    padding: 1.5rem;
+                    text-align: center;
+                    color: var(--text-secondary-color);
+                }
+                
+                .recent-keywords-list {
+                    padding: 0.5rem 0;
+                }
+                
+                .recent-keyword-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    padding: 0.75rem 1rem;
+                    cursor: pointer;
+                    transition: background-color var(--element-transition-duration);
+                    
+                    &:hover {
+                        background-color: var(--surface-hover);
+                    }
+                    
+                    i.pi-clock {
+                        font-size: 0.875rem;
+                        flex-shrink: 0;
+                    }
+                    
+                    .recent-keyword-text {
+                        flex: 1;
+                        font-size: 0.9375rem;
+                        color: var(--text-color);
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                    
+                    .recent-keyword-delete {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 1.5rem;
+                        height: 1.5rem;
+                        border: none;
+                        background: transparent;
+                        color: var(--text-secondary-color);
+                        border-radius: 50%;
+                        cursor: pointer;
+                        transition: all var(--element-transition-duration);
+                        flex-shrink: 0;
+                        opacity: 0.6;
+                        
+                        &:hover {
+                            background-color: var(--surface-hover);
+                            color: var(--text-color);
+                            opacity: 1;
+                        }
+                        
+                        i {
+                            font-size: 0.75rem;
+                        }
+                    }
+                }
+                
+            }
+        }
     }
 
     .layout-topbar-actions {

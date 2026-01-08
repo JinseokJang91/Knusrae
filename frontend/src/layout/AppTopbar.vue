@@ -2,10 +2,11 @@
 import logoText from '@/assets/images/logo-text.png';
 import { useLayout } from '@/layout/composables/layout';
 import { useAuthStore } from '@/stores/authStore';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
+import { getRecentSearchKeywords, deleteRecentSearchKeyword, deleteAllRecentSearchKeywords, type RecentSearchKeyword } from '@/utils/search';
 
 const router = useRouter();
 const confirm = useConfirm();
@@ -15,6 +16,17 @@ const authStore = useAuthStore();
 
 const searchQuery = ref('');
 const profileMenuRef = ref<HTMLElement | null>(null);
+const recentKeywords = ref<RecentSearchKeyword[]>([]);
+const showRecentKeywords = ref(false);
+const recentKeywordsLoading = ref(false);
+
+// 자동저장 설정 (localStorage에 저장)
+const AUTO_SAVE_KEY = 'recent_search_auto_save';
+const getInitialAutoSaveValue = (): boolean => {
+    const saved = localStorage.getItem(AUTO_SAVE_KEY);
+    return saved === null ? true : saved === 'true'; // 기본값은 true
+};
+const isAutoSaveEnabled = ref<boolean>(getInitialAutoSaveValue());
 
 const handleSearch = () => {
     const keyword = searchQuery.value.trim();
@@ -25,6 +37,8 @@ const handleSearch = () => {
             path: '/recipe/search',
             query: { keyword: keyword }
         });
+        // 최근 검색어 목록 닫기
+        showRecentKeywords.value = false;
     } else {
         // 검색어가 없으면 안내 메시지 표시
         toast.add({
@@ -38,6 +52,173 @@ const handleSearch = () => {
 
 const clearSearch = () => {
     searchQuery.value = '';
+    showRecentKeywords.value = false;
+};
+
+// 최근 검색어 목록 로드
+const loadRecentKeywords = async () => {
+    if (!authStore.isLoggedIn || !isAutoSaveEnabled.value) {
+        recentKeywords.value = [];
+        return;
+    }
+
+    try {
+        recentKeywordsLoading.value = true;
+        const keywords = await getRecentSearchKeywords();
+        recentKeywords.value = keywords;
+        console.log('최근 검색어 로드 완료:', keywords);
+    } catch (error) {
+        console.error('최근 검색어 로드 실패:', error);
+        recentKeywords.value = [];
+    } finally {
+        recentKeywordsLoading.value = false;
+    }
+};
+
+// 검색어 클릭 시 검색 실행
+const selectRecentKeyword = (keyword: string) => {
+    searchQuery.value = keyword;
+    showRecentKeywords.value = false; // 드롭다운 닫기
+    handleSearch();
+};
+
+// 최근 검색어 삭제
+const handleDeleteKeyword = async (keywordId: number, event: Event) => {
+    event.stopPropagation(); // 이벤트 전파 방지
+    
+    try {
+        await deleteRecentSearchKeyword(keywordId);
+        // 목록에서 제거
+        recentKeywords.value = recentKeywords.value.filter(k => k.id !== keywordId);
+        toast.add({
+            severity: 'success',
+            summary: '삭제 완료',
+            detail: '검색어가 삭제되었습니다.',
+            life: 2000
+        });
+    } catch (error) {
+        console.error('검색어 삭제 실패:', error);
+        toast.add({
+            severity: 'error',
+            summary: '삭제 실패',
+            detail: '검색어 삭제 중 오류가 발생했습니다.',
+            life: 3000
+        });
+    }
+};
+
+// 자동저장 끄기/켜기
+const toggleAutoSave = async () => {
+    const newValue = !isAutoSaveEnabled.value;
+    isAutoSaveEnabled.value = newValue;
+    localStorage.setItem(AUTO_SAVE_KEY, String(newValue));
+    
+    if (!newValue) {
+        // 자동저장을 끄면 모든 최근 검색어 삭제
+        if (authStore.isLoggedIn && recentKeywords.value.length > 0) {
+            try {
+                await deleteAllRecentSearchKeywords();
+                recentKeywords.value = [];
+                showRecentKeywords.value = false;
+                toast.add({
+                    severity: 'success',
+                    summary: '자동저장 비활성화',
+                    detail: '최근 검색어가 모두 삭제되었습니다.',
+                    life: 2000
+                });
+            } catch (error) {
+                console.error('전체 검색어 삭제 실패:', error);
+                toast.add({
+                    severity: 'error',
+                    summary: '삭제 실패',
+                    detail: '검색어 삭제 중 오류가 발생했습니다.',
+                    life: 3000
+                });
+            }
+        } else {
+            showRecentKeywords.value = false;
+        }
+    }
+};
+
+// 전체 검색어 삭제
+const handleDeleteAllKeywords = async (event: Event) => {
+    event.stopPropagation(); // 이벤트 전파 방지
+    
+    confirm.require({
+        message: '모든 최근 검색어를 삭제하시겠습니까?',
+        header: '전체 삭제',
+        icon: 'pi pi-exclamation-triangle',
+        rejectProps: {
+            label: '취소',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: '삭제',
+            severity: 'danger'
+        },
+        accept: async () => {
+            try {
+                await deleteAllRecentSearchKeywords();
+                recentKeywords.value = [];
+                toast.add({
+                    severity: 'success',
+                    summary: '삭제 완료',
+                    detail: '모든 최근 검색어가 삭제되었습니다.',
+                    life: 2000
+                });
+            } catch (error) {
+                console.error('전체 검색어 삭제 실패:', error);
+                toast.add({
+                    severity: 'error',
+                    summary: '삭제 실패',
+                    detail: '검색어 삭제 중 오류가 발생했습니다.',
+                    life: 3000
+                });
+            }
+        },
+        reject: () => {
+            // 취소 시 아무것도 하지 않음
+        }
+    });
+};
+
+// 검색창 포커스 시 최근 검색어 표시
+const handleSearchFocus = () => {
+    console.log('검색창 포커스, 로그인 상태:', authStore.isLoggedIn, '자동저장:', isAutoSaveEnabled.value);
+    if (authStore.isLoggedIn && isAutoSaveEnabled.value) {
+        loadRecentKeywords();
+        showRecentKeywords.value = true;
+        console.log('최근 검색어 표시 활성화');
+    } else {
+        showRecentKeywords.value = false;
+    }
+};
+
+// 검색창 블러 시 최근 검색어 숨김 (약간의 지연을 두어 클릭 이벤트 처리)
+const handleSearchBlur = (event: FocusEvent) => {
+    // 드롭다운 내부를 클릭한 경우는 닫지 않음
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    if (relatedTarget && relatedTarget.closest('.recent-keywords-dropdown')) {
+        return;
+    }
+    
+    setTimeout(() => {
+        showRecentKeywords.value = false;
+    }, 200);
+};
+
+// 드롭다운 외부 클릭 시 닫기
+const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    const searchWrapper = target.closest('.search-wrapper');
+    const dropdown = target.closest('.recent-keywords-dropdown');
+    
+    // 검색 래퍼나 드롭다운 외부를 클릭한 경우에만 닫기
+    if (!searchWrapper && !dropdown) {
+        showRecentKeywords.value = false;
+    }
 };
 
 const closeProfileMenu = () => {
@@ -102,7 +283,28 @@ const handleLogout = async () => {
     });
 };
 
+// 로그인 상태 변경 감시하여 최근 검색어 로드
+watch(() => authStore.isLoggedIn, (isLoggedIn) => {
+    if (isLoggedIn && showRecentKeywords.value && isAutoSaveEnabled.value) {
+        loadRecentKeywords();
+    } else if (!isLoggedIn) {
+        recentKeywords.value = [];
+        showRecentKeywords.value = false;
+    }
+});
+
+// 자동저장 설정 변경 감시
+watch(isAutoSaveEnabled, (enabled) => {
+    if (!enabled) {
+        showRecentKeywords.value = false;
+        recentKeywords.value = [];
+    }
+});
+
 onMounted(() => {
+    // 외부 클릭 감지
+    document.addEventListener('click', handleClickOutside);
+    
     // OAuth 로그인 성공 시 메시지 수신하여 로그인 상태 업데이트
     window.addEventListener('message', async (event) => {
         if (event.data && (
@@ -144,14 +346,81 @@ onMounted(() => {
         </div>
 
         <div class="layout-topbar-search">
-            <div class="search-container">
-                <input type="text" placeholder="레시피를 검색해보세요..." class="search-input" v-model="searchQuery" @keyup.enter="handleSearch" />
-                <button v-if="searchQuery" class="search-clear-btn" @click="clearSearch">
-                    <i class="pi pi-times"></i>
-                </button>
-                <button class="search-submit-btn" @click="handleSearch" type="button">
-                    <i class="pi pi-search"></i>
-                </button>
+            <div class="search-wrapper">
+                <div class="search-container relative">
+                    <input 
+                        type="text" 
+                        placeholder="레시피를 검색해보세요..." 
+                        class="search-input" 
+                        v-model="searchQuery" 
+                        @keyup.enter="handleSearch"
+                        @focus="handleSearchFocus"
+                        @blur="handleSearchBlur"
+                    />
+                    <button v-if="searchQuery" class="search-clear-btn" @click="clearSearch">
+                        <i class="pi pi-times"></i>
+                    </button>
+                    <button class="search-submit-btn" @click="handleSearch" type="button">
+                        <i class="pi pi-search"></i>
+                    </button>
+                </div>
+                
+                <!-- 최근 검색어 드롭다운 -->
+                <div 
+                    v-if="showRecentKeywords && authStore.isLoggedIn && isAutoSaveEnabled" 
+                    class="recent-keywords-dropdown"
+                    @mousedown.prevent
+                >
+                <div class="recent-keywords-header">
+                    <span class="text-sm font-semibold text-gray-700">최근 검색어</span>
+                    <div class="recent-keywords-header-actions">
+                        <button 
+                            v-if="recentKeywords.length > 0"
+                            class="auto-save-toggle-btn text-xs text-gray-600 hover:text-gray-800 whitespace-nowrap"
+                            @click="handleDeleteAllKeywords"
+                            @mousedown.stop
+                            type="button"
+                        >
+                            전체 삭제
+                        </button>
+                        <button 
+                            class="auto-save-toggle-btn text-xs text-gray-600 hover:text-gray-800 whitespace-nowrap"
+                            @click="toggleAutoSave"
+                            @mousedown.stop
+                            type="button"
+                        >
+                            {{ isAutoSaveEnabled ? '자동저장 끄기' : '자동저장 켜기' }}
+                        </button>
+                    </div>
+                </div>
+                <div v-if="recentKeywordsLoading" class="recent-keywords-loading">
+                    <i class="pi pi-spin pi-spinner"></i>
+                    <span class="ml-2">로딩 중...</span>
+                </div>
+                <div v-else-if="recentKeywords.length === 0" class="recent-keywords-empty">
+                    <span class="text-sm text-gray-500">최근 검색어가 없습니다.</span>
+                </div>
+                <div v-else class="recent-keywords-list">
+                    <div 
+                        v-for="keyword in recentKeywords" 
+                        :key="keyword.id"
+                        class="recent-keyword-item"
+                        @mousedown.prevent
+                        @click="selectRecentKeyword(keyword.keyword)"
+                    >
+                        <i class="pi pi-clock text-gray-400"></i>
+                        <span class="recent-keyword-text">{{ keyword.keyword }}</span>
+                        <button 
+                            class="recent-keyword-delete"
+                            @mousedown.stop
+                            @click.stop="handleDeleteKeyword(keyword.id, $event)"
+                            type="button"
+                        >
+                            <i class="pi pi-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
             </div>
         </div>
 

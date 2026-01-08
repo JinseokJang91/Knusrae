@@ -1,0 +1,24 @@
+﻿{
+    "mcpServers": {
+        "primevue": {
+            "command": "npx",
+            "args": ["-y", "@primevue/mcp"],
+            "allowList": [
+                "mcp_primevue_list_components",
+                "mcp_primevue_get_component",
+                "mcp_primevue_search_components",
+                "mcp_primevue_get_component_props",
+                "mcp_primevue_get_component_events",
+                "mcp_primevue_get_component_methods",
+                "mcp_primevue_get_component_slots",
+                "mcp_primevue_get_example",
+                "mcp_primevue_generate_component_template",
+                "mcp_primevue_suggest_component",
+                "mcp_primevue_find_by_prop",
+                "mcp_primevue_find_by_event",
+                "mcp_primevue_compare_components",
+                "mcp_primevue_get_component_pt"
+            ]
+        }
+    }
+}
