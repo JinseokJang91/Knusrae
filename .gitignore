@@ -378,3 +378,7 @@ gradle-app.setting
 /frontend/.vscode/
 
 .vscode/
+.cursor/
+
+# MCP Configuration
+mcp.json
