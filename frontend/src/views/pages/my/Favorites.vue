@@ -1,35 +1,21 @@
 <template>
     <div class="card">
-        <!-- header : 페이지 제목, 새로고침 버튼 -->
+        <!-- header : 페이지 제목 -->
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-3xl font-bold text-gray-900">찜 목록</h1>
-            <div class="flex gap-2">
-                <Button icon="pi pi-refresh" label="새로고침" severity="secondary" @click="refreshFavorites" />
-            </div>
         </div>
 
-        <!-- 찜 목록 통계 -->
-        <div class="grid mb-4">
-            <div class="col-12 md:col-4">
-                <Card class="stat-card">
-                    <template #content>
-                        <div class="flex align-items-center">
-                            <div class="flex-1">
-                                <h3 class="text-2xl font-bold text-900 m-0">{{ totalFavorites }}</h3>
-                                <p class="text-600 m-0">총 찜한 레시피</p>
-                            </div>
-                            <i class="pi pi-heart text-4xl text-red-500"></i>
-                        </div>
-                    </template>
-                </Card>
-            </div>
+        <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r">
+            <p class="text-gray-700 italic">
+                찜 버튼( <i class="pi pi-heart-fill"/> )을 클릭해 찜 목록에서 삭제할 수 있어요.
+            </p>
         </div>
 
         <!-- body : 레시피 목록 섹션 -->
         <div class="recipe-section">
             <div class="flex justify-between items-center mb-3">
                 <h2 class="text-2xl font-semibold text-gray-900 m-0">
-                    내가 찜한 레시피
+                    내가 찜한 레시피 ({{ totalFavorites }})
                 </h2>
             </div>
 
@@ -108,7 +94,6 @@
 import { httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
 import Button from 'primevue/button';
-import Card from 'primevue/card';
 import Paginator from 'primevue/paginator';
 import ProgressSpinner from 'primevue/progressspinner';
 import Tag from 'primevue/tag';
@@ -178,10 +163,6 @@ const loadFavorites = async () => {
     } finally {
         loading.value = false;
     }
-};
-
-const refreshFavorites = () => {
-    loadFavorites();
 };
 
 const removeFavorite = async (recipeId) => {
@@ -286,19 +267,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.stat-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.stat-card .text-900 {
-    color: white !important;
-}
-
-.stat-card .text-600 {
-    color: rgba(255, 255, 255, 0.8) !important;
-}
-
 .recipe-section {
     margin-top: 2rem;
     padding-top: 2rem;

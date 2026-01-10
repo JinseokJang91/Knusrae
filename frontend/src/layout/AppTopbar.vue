@@ -90,7 +90,6 @@ const loadRecentKeywords = () => {
         const memberId = authStore.memberInfo?.id;
         const keywords = getRecentSearchKeywords(memberId);
         recentKeywords.value = keywords;
-        console.log('최근 검색어 로드 완료:', keywords);
     } catch (error) {
         console.error('최근 검색어 로드 실패:', error);
         recentKeywords.value = [];
@@ -216,12 +215,10 @@ const handleDeleteAllKeywords = (event: Event) => {
 
 // 검색창 포커스 시 최근 검색어 표시 (검색창이 비어있을 때만)
 const handleSearchFocus = () => {
-    console.log('검색창 포커스, 로그인 상태:', authStore.isLoggedIn, '자동저장:', isAutoSaveEnabled.value);
     // 검색창이 비어있을 때만 최근 검색어 표시 (자동저장 off 상태에서도 표시)
     if (authStore.isLoggedIn && searchQuery.value.trim() === '') {
         loadRecentKeywords();
         showRecentKeywords.value = true;
-        console.log('최근 검색어 표시 활성화');
     } else {
         showRecentKeywords.value = false;
     }
