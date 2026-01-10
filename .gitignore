@@ -53,8 +53,7 @@ bin/
 # AWS User-specific
 .idea/**/aws.xml
 
-# Generated files
-.idea/**/contentModel.xml
+# Generated files.idea/**/contentModel.xml
 
 # Sensitive or high-churn files
 .idea/**/dataSources/
@@ -379,6 +378,8 @@ gradle-app.setting
 
 .vscode/
 .cursor/
+.shrimp/
+.rules/
 
 # MCP Configuration
 mcp.json

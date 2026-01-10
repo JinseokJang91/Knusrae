@@ -141,7 +141,6 @@ const loadFavorites = async () => {
         );
 
         favoriteRecipes.value = response || [];
-        console.log('찜 목록 : ', favoriteRecipes.value)
 
         toast.add({
             severity: 'success',
