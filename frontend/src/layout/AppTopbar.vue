@@ -6,7 +6,7 @@ import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
-import { getRecentSearchKeywords, deleteRecentSearchKeyword, deleteAllRecentSearchKeywords, type RecentSearchKeyword } from '@/utils/search';
+import { getRecentSearchKeywords, deleteRecentSearchKeyword, deleteAllRecentSearchKeywords, saveRecentSearchKeyword, type RecentSearchKeyword } from '@/utils/search';
 
 const router = useRouter();
 const confirm = useConfirm();
@@ -20,10 +20,18 @@ const recentKeywords = ref<RecentSearchKeyword[]>([]);
 const showRecentKeywords = ref(false);
 const recentKeywordsLoading = ref(false);
 
-// 자동저장 설정 (localStorage에 저장)
-const AUTO_SAVE_KEY = 'recent_search_auto_save';
+// 자동저장 설정 (localStorage에 저장 - 계정별로 분리)
+const getAutoSaveKey = (memberId?: number): string => {
+    if (memberId) {
+        return `recent_search_auto_save_${memberId}`;
+    }
+    return 'recent_search_auto_save_guest';
+};
+
 const getInitialAutoSaveValue = (): boolean => {
-    const saved = localStorage.getItem(AUTO_SAVE_KEY);
+    const memberId = authStore.memberInfo?.id;
+    const key = getAutoSaveKey(memberId);
+    const saved = localStorage.getItem(key);
     return saved === null ? true : saved === 'true'; // 기본값은 true
 };
 const isAutoSaveEnabled = ref<boolean>(getInitialAutoSaveValue());
@@ -32,6 +40,19 @@ const handleSearch = () => {
     const keyword = searchQuery.value.trim();
     
     if (keyword) {
+        // 자동저장이 켜져 있고 로그인 상태일 때만 검색어 저장
+        if (authStore.isLoggedIn && isAutoSaveEnabled.value) {
+            try {
+                const memberId = authStore.memberInfo?.id;
+                saveRecentSearchKeyword(keyword, memberId);
+                // 저장 후 목록 새로고침
+                loadRecentKeywords();
+            } catch (error) {
+                console.error('검색어 저장 실패:', error);
+                // 저장 실패해도 검색은 진행
+            }
+        }
+        
         // 검색어가 있으면 검색 결과 페이지로 이동
         router.push({
             path: '/recipe/search',
@@ -56,15 +77,18 @@ const clearSearch = () => {
 };
 
 // 최근 검색어 목록 로드
-const loadRecentKeywords = async () => {
-    if (!authStore.isLoggedIn || !isAutoSaveEnabled.value) {
+const loadRecentKeywords = () => {
+    // 로그인 상태가 아니면 목록을 로드하지 않음
+    if (!authStore.isLoggedIn) {
         recentKeywords.value = [];
         return;
     }
 
+    // 자동저장 off 상태에서도 목록은 로드 (단지 새 검색어는 저장하지 않음)
     try {
         recentKeywordsLoading.value = true;
-        const keywords = await getRecentSearchKeywords();
+        const memberId = authStore.memberInfo?.id;
+        const keywords = getRecentSearchKeywords(memberId);
         recentKeywords.value = keywords;
         console.log('최근 검색어 로드 완료:', keywords);
     } catch (error) {
@@ -79,15 +103,30 @@ const loadRecentKeywords = async () => {
 const selectRecentKeyword = (keyword: string) => {
     searchQuery.value = keyword;
     showRecentKeywords.value = false; // 드롭다운 닫기
+    
+    // 자동저장이 켜져 있고 로그인 상태일 때만 검색어 저장
+    if (authStore.isLoggedIn && isAutoSaveEnabled.value) {
+        try {
+            const memberId = authStore.memberInfo?.id;
+            saveRecentSearchKeyword(keyword, memberId);
+            // 저장 후 목록 새로고침
+            loadRecentKeywords();
+        } catch (error) {
+            console.error('검색어 저장 실패:', error);
+            // 저장 실패해도 검색은 진행
+        }
+    }
+    
     handleSearch();
 };
 
 // 최근 검색어 삭제
-const handleDeleteKeyword = async (keywordId: number, event: Event) => {
+const handleDeleteKeyword = (keywordId: number, event: Event) => {
     event.stopPropagation(); // 이벤트 전파 방지
     
     try {
-        await deleteRecentSearchKeyword(keywordId);
+        const memberId = authStore.memberInfo?.id;
+        deleteRecentSearchKeyword(keywordId, memberId);
         // 목록에서 제거
         recentKeywords.value = recentKeywords.value.filter(k => k.id !== keywordId);
         toast.add({
@@ -107,42 +146,32 @@ const handleDeleteKeyword = async (keywordId: number, event: Event) => {
     }
 };
 
-// 자동저장 끄기/켜기
-const toggleAutoSave = async () => {
-    const newValue = !isAutoSaveEnabled.value;
-    isAutoSaveEnabled.value = newValue;
-    localStorage.setItem(AUTO_SAVE_KEY, String(newValue));
+// 자동저장 끄기/켜기 (ToggleSwitch의 v-model이 값 변경을 처리)
+const toggleAutoSave = (newValue: boolean) => {
+    const memberId = authStore.memberInfo?.id;
+    const key = getAutoSaveKey(memberId);
+    localStorage.setItem(key, String(newValue));
     
+    // 자동저장 off로 변경해도 목록은 유지 (단지 새 검색어는 저장하지 않음)
     if (!newValue) {
-        // 자동저장을 끄면 모든 최근 검색어 삭제
-        if (authStore.isLoggedIn && recentKeywords.value.length > 0) {
-            try {
-                await deleteAllRecentSearchKeywords();
-                recentKeywords.value = [];
-                showRecentKeywords.value = false;
-                toast.add({
-                    severity: 'success',
-                    summary: '자동저장 비활성화',
-                    detail: '최근 검색어가 모두 삭제되었습니다.',
-                    life: 2000
-                });
-            } catch (error) {
-                console.error('전체 검색어 삭제 실패:', error);
-                toast.add({
-                    severity: 'error',
-                    summary: '삭제 실패',
-                    detail: '검색어 삭제 중 오류가 발생했습니다.',
-                    life: 3000
-                });
-            }
-        } else {
-            showRecentKeywords.value = false;
-        }
+        toast.add({
+            severity: 'info',
+            summary: '자동저장 비활성화',
+            detail: '이제부터 새로운 검색어는 저장되지 않습니다.',
+            life: 2000
+        });
+    } else {
+        toast.add({
+            severity: 'success',
+            summary: '자동저장 활성화',
+            detail: '이제부터 검색한 검색어가 자동으로 저장됩니다.',
+            life: 2000
+        });
     }
 };
 
 // 전체 검색어 삭제
-const handleDeleteAllKeywords = async (event: Event) => {
+const handleDeleteAllKeywords = (event: Event) => {
     event.stopPropagation(); // 이벤트 전파 방지
     
     confirm.require({
@@ -158,9 +187,10 @@ const handleDeleteAllKeywords = async (event: Event) => {
             label: '삭제',
             severity: 'danger'
         },
-        accept: async () => {
+        accept: () => {
             try {
-                await deleteAllRecentSearchKeywords();
+                const memberId = authStore.memberInfo?.id;
+                deleteAllRecentSearchKeywords(memberId);
                 recentKeywords.value = [];
                 toast.add({
                     severity: 'success',
@@ -184,10 +214,11 @@ const handleDeleteAllKeywords = async (event: Event) => {
     });
 };
 
-// 검색창 포커스 시 최근 검색어 표시
+// 검색창 포커스 시 최근 검색어 표시 (검색창이 비어있을 때만)
 const handleSearchFocus = () => {
     console.log('검색창 포커스, 로그인 상태:', authStore.isLoggedIn, '자동저장:', isAutoSaveEnabled.value);
-    if (authStore.isLoggedIn && isAutoSaveEnabled.value) {
+    // 검색창이 비어있을 때만 최근 검색어 표시 (자동저장 off 상태에서도 표시)
+    if (authStore.isLoggedIn && searchQuery.value.trim() === '') {
         loadRecentKeywords();
         showRecentKeywords.value = true;
         console.log('최근 검색어 표시 활성화');
@@ -283,21 +314,39 @@ const handleLogout = async () => {
     });
 };
 
-// 로그인 상태 변경 감시하여 최근 검색어 로드
+// 로그인 상태 변경 감시하여 최근 검색어 로드 및 자동저장 설정 업데이트
 watch(() => authStore.isLoggedIn, (isLoggedIn) => {
-    if (isLoggedIn && showRecentKeywords.value && isAutoSaveEnabled.value) {
+    if (isLoggedIn && showRecentKeywords.value) {
+        // 자동저장 off 상태에서도 목록 로드
         loadRecentKeywords();
+        // 계정 변경 시 해당 계정의 자동저장 설정으로 업데이트
+        isAutoSaveEnabled.value = getInitialAutoSaveValue();
     } else if (!isLoggedIn) {
         recentKeywords.value = [];
         showRecentKeywords.value = false;
+        // 로그아웃 시 기본값으로 재설정
+        isAutoSaveEnabled.value = getInitialAutoSaveValue();
     }
 });
 
-// 자동저장 설정 변경 감시
-watch(isAutoSaveEnabled, (enabled) => {
-    if (!enabled) {
+// 사용자 ID 변경 감시 (계정 변경 시 자동저장 설정 업데이트)
+watch(() => authStore.memberInfo?.id, (newId, oldId) => {
+    // 사용자 ID가 변경되었을 때 (계정 변경)
+    if (newId !== oldId && authStore.isLoggedIn) {
+        isAutoSaveEnabled.value = getInitialAutoSaveValue();
+        // 최근 검색어 목록도 새로 로드
+        if (showRecentKeywords.value) {
+            loadRecentKeywords();
+        }
+    }
+});
+
+// 자동저장 설정 변경 감시 - 목록은 유지 (목록 숨기기 제거)
+
+// 검색어 입력 감시 - 값이 입력되면 최근 검색어 목록 숨김
+watch(searchQuery, (newValue) => {
+    if (newValue.trim() !== '') {
         showRecentKeywords.value = false;
-        recentKeywords.value = [];
     }
 });
 
@@ -367,7 +416,7 @@ onMounted(() => {
                 
                 <!-- 최근 검색어 드롭다운 -->
                 <div 
-                    v-if="showRecentKeywords && authStore.isLoggedIn && isAutoSaveEnabled" 
+                    v-if="showRecentKeywords && authStore.isLoggedIn" 
                     class="recent-keywords-dropdown"
                     @mousedown.prevent
                 >
@@ -383,14 +432,13 @@ onMounted(() => {
                         >
                             전체 삭제
                         </button>
-                        <button 
-                            class="auto-save-toggle-btn text-xs text-gray-600 hover:text-gray-800 whitespace-nowrap"
-                            @click="toggleAutoSave"
-                            @mousedown.stop
-                            type="button"
-                        >
-                            {{ isAutoSaveEnabled ? '자동저장 끄기' : '자동저장 켜기' }}
-                        </button>
+                        <div class="flex items-center gap-2" @mousedown.stop>
+                            <span class="text-xs text-gray-600 whitespace-nowrap">자동저장</span>
+                            <ToggleSwitch 
+                                v-model="isAutoSaveEnabled"
+                                @update:modelValue="(value: boolean) => toggleAutoSave(value)"
+                            />
+                        </div>
                     </div>
                 </div>
                 <div v-if="recentKeywordsLoading" class="recent-keywords-loading">
