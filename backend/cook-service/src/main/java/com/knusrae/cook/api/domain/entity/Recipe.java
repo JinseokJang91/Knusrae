@@ -73,10 +73,6 @@ public class Recipe {
     @Builder.Default
     private List<RecipeComment> recipeComments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("createdAt DESC")
-    @Builder.Default
-    private List<Review> reviews = new ArrayList<>();
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     @SQLRestriction("code_group = 'CATEGORY'")
@@ -122,10 +118,6 @@ public class Recipe {
         recipeComment.setRecipe(this);
     }
 
-    public void addReview(Review review) {
-        this.reviews.add(review);
-        review.setRecipe(this);
-    }
 
     public void addRecipeCategory(RecipeCategory recipeCategory) {
         this.recipeCategories.add(recipeCategory);

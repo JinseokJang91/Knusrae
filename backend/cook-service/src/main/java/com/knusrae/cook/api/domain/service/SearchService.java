@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 /**
  * 검색 기능을 제공하는 서비스
- * 여러 도메인(레시피, 게시판 등)의 검색 기능을 통합 관리
+ * 여러 도메인(레시피 등)의 검색 기능을 통합 관리
  */
 @Service
 @RequiredArgsConstructor

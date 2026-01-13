@@ -38,21 +38,37 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/pages/my/Comments.vue')
             },
             {
-                path: '/my/reviews',
-                name: 'myReviews',
-                component: () => import('@/views/pages/my/Reviews.vue')
-            },
-            {
                 path: '/my/inquiries',
                 name: 'myInquiries',
                 component: () => import('@/views/pages/my/Inquiries.vue')
             },
-            // 추천 메뉴
+            // 메인 메뉴
             {
                 path: '/recommend/today',
                 name: 'todayRecipe',
                 component: () => import('@/views/pages/recommend/TodayRecipe.vue')
             },
+            {
+                path: '/ranking',
+                name: 'ranking',
+                component: () => import('@/views/pages/ranking/Ranking.vue')
+            },
+            {
+                path: '/recipe/category',
+                name: 'category',
+                component: () => import('@/views/pages/recipe/Category.vue')
+            },
+            {
+                path: '/ingredient/management',
+                name: 'ingredientManagement',
+                component: () => import('@/views/pages/ingredient/Management.vue')
+            },
+            {
+                path: '/faq',
+                name: 'faq',
+                component: () => import('@/views/pages/faq/FAQ.vue')
+            },
+            // 기존 경로 (하위 호환성 유지)
             {
                 path: '/recommend/weekly',
                 name: 'weeklyRanking',
@@ -68,11 +84,6 @@ const routes: RouteRecordRaw[] = [
                 path: '/my/favorites',
                 name: 'favorites',
                 component: () => import('@/views/pages/my/Favorites.vue')
-            },
-            {
-                path: '/recipe/category',
-                name: 'category',
-                component: () => import('@/views/pages/recipe/Category.vue')
             },
             {
                 path: '/recipe/search',
@@ -94,22 +105,7 @@ const routes: RouteRecordRaw[] = [
                 name: 'preparation',
                 component: () => import('@/views/pages/recipe/Preparation.vue')
             },
-            // 소통 메뉴
-            {
-                path: '/community/reviews',
-                name: 'reviews',
-                component: () => import('@/views/pages/community/Reviews.vue')
-            },
-            {
-                path: '/community/board',
-                name: 'board',
-                component: () => import('@/views/pages/community/Board.vue')
-            },
-            {
-                path: '/community/events',
-                name: 'events',
-                component: () => import('@/views/pages/community/Events.vue')
-            },
+            // 소통 메뉴 (하위 호환성 유지)
             {
                 path: '/community/qna',
                 name: 'qna',

@@ -504,10 +504,6 @@ onMounted(() => {
                                 <i class="pi pi-comments"></i>
                                 <span>댓글 관리</span>
                             </a>
-                            <a href="/my/reviews" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/reviews', $event)">
-                                <i class="pi pi-star"></i>
-                                <span>후기 관리</span>
-                            </a>
                             <a href="/my/inquiries" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/inquiries', $event)">
                                 <i class="pi pi-inbox"></i>
                                 <span>1:1 문의 내역</span>

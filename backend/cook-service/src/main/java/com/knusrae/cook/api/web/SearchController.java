@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * 검색 기능을 제공하는 컨트롤러
- * 메인 화면, 카테고리, 자유 게시판 등 여러 곳에서 사용할 수 있는 공통 검색 모듈
+ * 메인 화면, 카테고리 등 여러 곳에서 사용할 수 있는 공통 검색 모듈
  */
 @RestController
 @RequestMapping("/api/search")

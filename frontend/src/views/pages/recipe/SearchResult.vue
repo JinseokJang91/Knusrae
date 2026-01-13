@@ -65,10 +65,6 @@
                                         </template>
                                     </h3>
                                     <div class="recipe-meta">
-                                        <div v-if="recipe.hasReviews && recipe.rating" class="recipe-rating">
-                                            <Rating :modelValue="recipe.rating" readonly :cancel="false" />
-                                            <span class="rating-text">{{ recipe.rating.toFixed(1) }}</span>
-                                        </div>
                                         <div class="recipe-info">
                                             <div v-if="recipe.cookingTime" class="info-item">
                                                 <i class="pi pi-clock"></i>
@@ -124,10 +120,6 @@
                                     <div v-if="recipe.servings" class="flex items-center gap-1">
                                         <i class="pi pi-users"></i>
                                         <span>{{ recipe.servings }}</span>
-                                    </div>
-                                    <div v-if="recipe.hasReviews && recipe.rating" class="flex items-center gap-1">
-                                        <i class="pi pi-star-fill text-yellow-500"></i>
-                                        <span>{{ recipe.rating.toFixed(1) }}</span>
                                     </div>
                                     <Tag v-if="getCategoryName(recipe.category)" :value="getCategoryName(recipe.category)" severity="info" />
                                     <!-- 조회수 표시 -->
@@ -371,10 +363,6 @@ const performSearch = async () => {
         recipes.value = searchResults.map((recipe: any) => {
             const cookingTime = extractCookingTime(recipe.cookingTips);
             const servings = extractServings(recipe.cookingTips);
-            
-            const averageRating = recipe.reviews && recipe.reviews.length > 0
-                ? recipe.reviews.reduce((sum: number, review: any) => sum + (review.rating || 0), 0) / recipe.reviews.length
-                : null;
 
             const isFavorite = favoriteRecipeIds.includes(recipe.id);
             
@@ -390,8 +378,6 @@ const performSearch = async () => {
                 category: primaryCategoryId,
                 cookingTime,
                 servings,
-                rating: averageRating,
-                hasReviews: recipe.reviews && recipe.reviews.length > 0,
                 isFavorite,
                 commentCount: recipe.commentCount || 0
             };

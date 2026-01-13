@@ -421,7 +421,7 @@ public class RecipeService {
         RecipeStatsDto stats = dto.getStats();
         RecipeStatsDto updatedStats = RecipeStatsDto.builder()
                 .totalComments(stats.getTotalComments())
-                .totalReviews(stats.getTotalReviews())
+                .totalReviews(0)
                 .averageRating(stats.getAverageRating())
                 .totalLikes(stats.getTotalLikes())
                 .isLiked(stats.isLiked())

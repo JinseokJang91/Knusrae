@@ -89,10 +89,6 @@
                                 <div class="recipe-content">
                                     <h3 class="recipe-title">{{ recipe.title }}</h3>
                                     <div class="recipe-meta">
-                                        <div v-if="recipe.hasReviews && recipe.rating" class="recipe-rating">
-                                            <Rating :modelValue="recipe.rating" readonly :cancel="false" />
-                                            <span class="rating-text">{{ recipe.rating.toFixed(1) }}</span>
-                                        </div>
                                         <div class="recipe-info">
                                             <div v-if="recipe.cookingTime" class="info-item">
                                                 <i class="pi pi-clock"></i>
@@ -146,10 +142,6 @@
                                     <div v-if="recipe.servings" class="flex items-center gap-1">
                                         <i class="pi pi-users"></i>
                                         <span>{{ recipe.servings }}</span>
-                                    </div>
-                                    <div v-if="recipe.hasReviews && recipe.rating" class="flex items-center gap-1">
-                                        <i class="pi pi-star-fill text-yellow-500"></i>
-                                        <span>{{ recipe.rating.toFixed(1) }}</span>
                                     </div>
                                     <Tag v-if="getCategoryName(recipe.category)" :value="getCategoryName(recipe.category)" severity="info" />
                                     <!-- 조회수 표시 (키워드 태그 우측) -->
@@ -429,10 +421,6 @@ const loadRecipes = async () => {
             const cookingTime = extractCookingTime(recipe.cookingTips);
             const servings = extractServings(recipe.cookingTips);
             
-            // 후기가 있을 때만 평균 별점 계산 (일단 reviews 필드가 없으므로 나중에 API에서 받을 것으로 가정)
-            const averageRating = recipe.reviews && recipe.reviews.length > 0
-                ? recipe.reviews.reduce((sum, review) => sum + (review.rating || 0), 0) / recipe.reviews.length
-                : null;
 
             const isFavorite = favoriteRecipeIds.includes(recipe.id);
             
@@ -451,8 +439,6 @@ const loadRecipes = async () => {
                 category: primaryCategoryId, // 표시용 대표 카테고리
                 cookingTime,
                 servings,
-                rating: averageRating,
-                hasReviews: recipe.reviews && recipe.reviews.length > 0,
                 isFavorite,
                 commentCount: recipe.commentCount || 0
             };
@@ -480,8 +466,6 @@ const loadRecipes = async () => {
                 cookingTime: '30분',
                 servings: '2인분',
                 hits: 1250,
-                rating: 4.5,
-                hasReviews: true,
                 isFavorite: false,
                 commentCount: 173
             },
@@ -495,8 +479,6 @@ const loadRecipes = async () => {
                 cookingTime: '20분',
                 servings: '2인분',
                 hits: 980,
-                rating: 4.3,
-                hasReviews: true,
                 isFavorite: false,
                 commentCount: 45
             },
@@ -510,8 +492,6 @@ const loadRecipes = async () => {
                 cookingTime: '45분',
                 servings: '4인분',
                 hits: 2100,
-                rating: 4.8,
-                hasReviews: true,
                 isFavorite: false,
                 commentCount: 1435
             },
@@ -525,8 +505,6 @@ const loadRecipes = async () => {
                 cookingTime: '25분',
                 servings: '2인분',
                 hits: 1560,
-                rating: 4.2,
-                hasReviews: true,
                 isFavorite: true,
                 commentCount: 0
             },
@@ -540,8 +518,6 @@ const loadRecipes = async () => {
                 cookingTime: '90분',
                 servings: '8인분',
                 hits: 890,
-                rating: null,
-                hasReviews: false,
                 isFavorite: true,
                 commentCount: 12
             },
@@ -555,8 +531,6 @@ const loadRecipes = async () => {
                 cookingTime: '15분',
                 servings: '3인분',
                 hits: 1750,
-                rating: null,
-                hasReviews: false,
                 isFavorite: false,
                 commentCount: 89
             }

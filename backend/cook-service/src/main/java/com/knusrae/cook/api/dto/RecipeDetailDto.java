@@ -1,7 +1,6 @@
 package com.knusrae.cook.api.dto;
 
 import com.knusrae.cook.api.domain.entity.Recipe;
-import com.knusrae.cook.api.domain.entity.Review;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -39,9 +38,6 @@ public class RecipeDetailDto {
     
     // 댓글들
     private List<RecipeCommentDto> comments;
-    
-    // 리뷰들
-    private List<ReviewDto> reviews;
     
     // 통계 정보
     private RecipeStatsDto stats;
@@ -81,16 +77,10 @@ public class RecipeDetailDto {
                 .comments(recipe.getRecipeComments().stream()
                         .map(RecipeCommentDto::fromEntity)
                         .collect(Collectors.toList()))
-                .reviews(recipe.getReviews().stream()
-                        .map(ReviewDto::fromEntity)
-                        .collect(Collectors.toList()))
                 .stats(RecipeStatsDto.builder()
                         .totalComments(recipe.getRecipeComments().size())
-                        .totalReviews(recipe.getReviews().size())
-                        .averageRating(recipe.getReviews().stream()
-                                .mapToDouble(Review::getScore)
-                                .average()
-                                .orElse(0.0))
+                        .totalReviews(0)
+                        .averageRating(0.0)
                         .build())
                 .build();
     }

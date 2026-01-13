@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen bg-gray-50">
+    <div class="min-h-screen">
         <!-- 로딩 상태 -->
         <div v-if="loading" class="flex items-center justify-center min-h-screen">
             <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
@@ -800,45 +800,6 @@
                 </div>
             </div>
 
-            <!-- 리뷰 섹션 -->
-            <div v-if="recipe.reviews && recipe.reviews.length > 0" class="bg-white rounded-2xl shadow-lg p-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
-                    <i class="pi pi-star mr-3 text-yellow-500"></i>
-                    리뷰 ({{ recipe.stats?.totalReviews || 0 }})
-                </h2>
-                
-                <div class="space-y-6">
-                    <div 
-                        v-for="review in recipe.reviews" 
-                        :key="review.id"
-                        class="border border-gray-200 rounded-lg p-6"
-                    >
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                                    <i class="pi pi-user text-gray-600"></i>
-                                </div>
-                                <div>
-                                    <div class="font-medium text-gray-800">{{ review.memberName }}</div>
-                                    <div class="text-sm text-gray-500">{{ formatDate(review.createdAt) }}</div>
-                                </div>
-                            </div>
-                            
-                            <!-- 별점 -->
-                            <div class="flex items-center space-x-1">
-                                <i 
-                                    v-for="star in 5" 
-                                    :key="star"
-                                    :class="star <= review.rating ? 'pi pi-star-fill text-yellow-400' : 'pi pi-star text-gray-300'"
-                                ></i>
-                                <span class="ml-2 text-gray-600">{{ review.rating }}/5</span>
-                            </div>
-                        </div>
-                        
-                        <p class="text-gray-700">{{ review.content }}</p>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- 이미지 모달 -->

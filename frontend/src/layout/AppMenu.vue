@@ -13,69 +13,29 @@ interface MenuItem {
 
 const model = ref<MenuItem[]>([
     {
-        label: '추천',
-        items: [
-            {
-                label: '오늘의 레시피',
-                icon: 'pi pi-fw pi-sun',
-                to: '/recommend/today'
-            },
-            {
-                label: '주간 랭킹',
-                icon: 'pi pi-fw pi-flag',
-                to: '/recommend/weekly'
-            },
-            {
-                label: '월간 랭킹',
-                icon: 'pi pi-fw pi-flag-fill',
-                to: '/recommend/monthly'
-            }
-        ]
+        label: '오늘의 레시피',
+        icon: 'pi pi-fw pi-sun',
+        to: '/recommend/today'
+    },
+    {
+        label: '랭킹',
+        icon: 'pi pi-fw pi-flag',
+        to: '/ranking'
     },
     {
         label: '레시피',
-        items: [
-            {
-                label: '카테고리',
-                icon: 'pi pi-fw pi-list',
-                to: '/recipe/category'
-            },
-            {
-                label: '재료 보관법',
-                icon: 'pi pi-fw pi-box',
-                to: '/recipe/storage'
-            },
-            {
-                label: '재료 손질법',
-                icon: 'pi pi-fw pi-clipboard',
-                to: '/recipe/preparation'
-            }
-        ]
+        icon: 'pi pi-fw pi-list',
+        to: '/recipe/category'
     },
     {
-        label: '소통',
-        items: [
-            {
-                label: '요리 후기',
-                icon: 'pi pi-fw pi-receipt',
-                to: '/community/reviews'
-            },
-            {
-                label: '자유 게시판',
-                icon: 'pi pi-fw pi-warehouse',
-                to: '/community/board'
-            },
-            {
-                label: '이벤트',
-                icon: 'pi pi-fw pi-lightbulb',
-                to: '/community/events'
-            },
-            {
-                label: '질문과 답변',
-                icon: 'pi pi-fw pi-question-circle',
-                to: '/community/qna'
-            }
-        ]
+        label: '재료 관리',
+        icon: 'pi pi-fw pi-box',
+        to: '/ingredient/management'
+    },
+    {
+        label: 'FAQ',
+        icon: 'pi pi-fw pi-question-circle',
+        to: '/faq'
     }
 ]);
 </script>

@@ -4,7 +4,7 @@ import type { Recipe } from '@/types/recipe';
 
 /**
  * 검색 API 서비스
- * 여러 도메인(레시피, 게시판 등)의 검색 기능을 제공
+ * 여러 도메인(레시피 등)의 검색 기능을 제공
  */
 
 const API_BASE_URL = getApiBaseUrl('cook');

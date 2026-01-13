@@ -5,7 +5,9 @@ html {
 }
 
 body {
-    font-family: 'Lato', sans-serif;
+    font-family: "Gowun Dodum", sans-serif;
+    font-weight: 400;
+    font-style: normal;
     color: var(--text-color);
     background-color: var(--surface-ground);
     margin: 0;
@@ -13,6 +15,7 @@ body {
     min-height: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: rgba(245, 183, 39, 0.8);
 }
 
 a {
