@@ -1,81 +1,25 @@
 <script setup lang="ts">
-import { useLayout } from '@/layout/composables/layout';
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import AppFooter from './AppFooter.vue';
-import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
-
-const { layoutConfig, layoutState, isSidebarActive } = useLayout();
-
-const outsideClickListener = ref<((event: MouseEvent) => void) | null>(null);
-
-watch(isSidebarActive, (newVal) => {
-    if (newVal) {
-        bindOutsideClickListener();
-    } else {
-        unbindOutsideClickListener();
-    }
-});
 
 const containerClass = computed(() => {
     return {
-        'layout-overlay': layoutConfig.menuMode === 'overlay',
-        'layout-static': layoutConfig.menuMode === 'static',
-        'layout-static-inactive': layoutState.staticMenuDesktopInactive && layoutConfig.menuMode === 'static',
-        'layout-overlay-active': layoutState.overlayMenuActive,
-        'layout-mobile-active': layoutState.staticMenuMobileActive
+        'layout-wrapper': true,
+        'layout-horizontal': true
     };
 });
-
-function bindOutsideClickListener() {
-    if (!outsideClickListener.value) {
-        outsideClickListener.value = (event: MouseEvent) => {
-            if (isOutsideClicked(event)) {
-                layoutState.overlayMenuActive = false;
-                layoutState.staticMenuMobileActive = false;
-                layoutState.menuHoverActive = false;
-            }
-        };
-        document.addEventListener('click', outsideClickListener.value);
-    }
-}
-
-function unbindOutsideClickListener() {
-    if (outsideClickListener.value) {
-        document.removeEventListener('click', outsideClickListener.value);
-        outsideClickListener.value = null;
-    }
-}
-
-function isOutsideClicked(event: MouseEvent) {
-    const sidebarEl = document.querySelector('.layout-sidebar');
-    const topbarEl = document.querySelector('.layout-menu-button');
-    const modalEl = (event.target as HTMLElement)?.closest('[data-modal]');
-    
-    // 모달이 열려있으면 사이드바 외부 클릭 처리를 하지 않음
-    if (modalEl) return false;
-    
-    // document에 모달이 있는지 확인 (모달이 열려있는지 체크)
-    const anyModal = document.querySelector('[data-modal]');
-    if (anyModal) return false;
-
-    if (!sidebarEl || !topbarEl) return false;
-
-    return !(sidebarEl.isSameNode(event.target as Node) || sidebarEl.contains(event.target as Node) || topbarEl.isSameNode(event.target as Node) || topbarEl.contains(event.target as Node));
-}
 </script>
 
 <template>
-    <div class="layout-wrapper" :class="containerClass">
+    <div :class="containerClass">
         <app-topbar></app-topbar>
-        <app-sidebar></app-sidebar>
         <div class="layout-main-container">
             <div class="layout-main">
                 <router-view></router-view>
             </div>
             <app-footer></app-footer>
         </div>
-        <div class="layout-mask animate-fadein"></div>
     </div>
     <Toast position="bottom-left" />
 </template>

@@ -1,5 +1,315 @@
 @use 'mixins' as *;
 
+// 새로운 가로 레이아웃 스타일
+.layout-topbar-horizontal {
+    position: fixed;
+    height: 5rem;
+    z-index: 997;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0 2rem;
+    background-color: var(--surface-card);
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    border-bottom: 1px solid var(--surface-border);
+
+    .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .logo-section {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        
+        .logo-image {
+            height: 2.5rem;
+            width: auto;
+        }
+    }
+
+    .main-menu {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: var(--content-border-radius);
+        text-decoration: none;
+        color: var(--text-color);
+        transition: background-color var(--element-transition-duration);
+        white-space: nowrap;
+        cursor: pointer;
+        border: none;
+        background: none;
+        font-size: 1rem;
+        font-weight: 500;
+        
+        &:hover {
+            background-color: var(--surface-hover);
+        }
+        
+        &.router-link-active,
+        &.router-link-exact-active {
+            background-color: var(--primary-color);
+            color: var(--primary-contrast-color);
+        }
+        
+        i {
+            font-size: 1rem;
+        }
+    }
+
+    .topbar-center {
+        flex: 1;
+        max-width: 600px;
+        position: relative;
+
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+
+            .search-container {
+                position: relative;
+                width: 100%;
+            }
+
+            .search-input {
+                width: 100%;
+                padding: 0.75rem 4rem 0.75rem 1rem;
+                border: 1px solid var(--surface-border);
+                border-radius: var(--content-border-radius);
+                font-size: 1rem;
+                transition: border-color var(--element-transition-duration);
+                background-color: var(--surface-ground);
+                color: var(--text-color);
+                
+                &:focus {
+                    outline: none;
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 2px var(--primary-color-alpha-20);
+                }
+
+                &::placeholder {
+                    color: var(--text-secondary-color);
+                }
+            }
+
+            .search-clear-btn {
+                position: absolute;
+                right: 3rem;
+                top: 50%;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                color: var(--text-secondary-color);
+                cursor: pointer;
+                padding: 0.25rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 1.75rem;
+                height: 1.75rem;
+                transition: all var(--element-transition-duration);
+                
+                &:hover {
+                    background-color: var(--surface-hover);
+                    color: var(--text-color);
+                }
+
+                i {
+                    font-size: 0.875rem;
+                }
+            }
+
+            .search-submit-btn {
+                position: absolute;
+                right: 0.5rem;
+                top: 50%;
+                transform: translateY(-50%);
+                background: var(--primary-color);
+                color: var(--primary-contrast-color);
+                border: none;
+                border-radius: var(--content-border-radius);
+                padding: 0.5rem 0.75rem;
+                cursor: pointer;
+                transition: background-color var(--element-transition-duration);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                
+                &:hover {
+                    background-color: var(--primary-color-hover, var(--primary-color));
+                    opacity: 0.9;
+                }
+
+                i {
+                    font-size: 1rem;
+                }
+            }
+
+            // 최근 검색어 드롭다운
+            .recent-keywords-dropdown {
+                position: absolute;
+                top: calc(100% + 0.5rem);
+                left: 0;
+                right: 0;
+                background: var(--surface-card);
+                border: 1px solid var(--surface-border);
+                border-radius: var(--content-border-radius);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                max-height: 400px;
+                overflow-y: auto;
+                z-index: 1001;
+            }
+
+            .recent-keywords-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 1rem;
+                border-bottom: 1px solid var(--surface-border);
+            }
+
+            .recent-keywords-header-actions {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .auto-save-toggle-btn {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0.25rem 0.5rem;
+                border-radius: var(--content-border-radius);
+                transition: all var(--element-transition-duration);
+
+                &:hover {
+                    background-color: var(--surface-hover);
+                }
+            }
+
+            .recent-keywords-loading,
+            .recent-keywords-empty {
+                padding: 2rem;
+                text-align: center;
+                color: var(--text-secondary-color);
+            }
+
+            .recent-keywords-list {
+                padding: 0.5rem;
+            }
+
+            .recent-keyword-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.75rem;
+                border-radius: var(--content-border-radius);
+                cursor: pointer;
+                transition: background-color var(--element-transition-duration);
+                
+                &:hover {
+                    background-color: var(--surface-hover);
+                }
+
+                i.pi-clock {
+                    font-size: 0.875rem;
+                    flex-shrink: 0;
+                }
+
+                .recent-keyword-text {
+                    flex: 1;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                .recent-keyword-delete {
+                    background: none;
+                    border: none;
+                    color: var(--text-secondary-color);
+                    cursor: pointer;
+                    padding: 0.25rem;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 1.5rem;
+                    height: 1.5rem;
+                    transition: all var(--element-transition-duration);
+                    
+                    &:hover {
+                        background-color: var(--surface-hover);
+                        color: var(--red-500);
+                    }
+
+                    i {
+                        font-size: 0.75rem;
+                    }
+                }
+            }
+        }
+    }
+
+    .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .my-recipes-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .profile-section {
+        position: relative;
+    }
+
+    .profile-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--surface-border);
+        border-radius: var(--content-border-radius);
+        background: var(--surface-card);
+        cursor: pointer;
+        transition: background-color var(--element-transition-duration);
+        color: var(--text-color);
+        
+        &:hover {
+            background-color: var(--surface-hover);
+        }
+    }
+
+    .profile-image {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .auth-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+}
+
+// 기존 레이아웃 스타일 (호환성 유지)
 .layout-topbar {
     position: fixed;
     height: 5rem;
@@ -371,7 +681,8 @@
     }
 }
 
-@media (max-width: 991px) {
+/* 태블릿 세로 이하 (767px 이하) */
+@media (max-width: 767px) {
     .layout-topbar {
         padding: 0 2rem;
 
@@ -465,7 +776,8 @@
     }
 }
 
-@media (max-width: 640px) {
+/* iPhone 표준 모바일 (375px 이하) */
+@media (max-width: 375px) {
     .layout-topbar {
         .layout-topbar-search {
             .search-container {
@@ -481,12 +793,75 @@
     }
 }
 
+/* 안드로이드 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    .layout-topbar {
+        .layout-topbar-search {
+            .search-container {
+                .search-submit-btn {
+                    padding: 0.5rem;
+                    
+                    i {
+                        font-size: 0.75rem;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// 반응형 스타일 - 새로운 가로 레이아웃
+/* 중소형 노트북 이하 (1365px 이하) */
+@media (max-width: 1365px) {
+    .layout-topbar-horizontal {
+        .main-menu .menu-item span {
+            display: none;
+        }
+    }
+}
+
+/* 태블릿 가로 이하 (1023px 이하) */
+@media (max-width: 1023px) {
+    .layout-topbar-horizontal {
+        flex-wrap: wrap;
+        gap: 1rem;
+        height: auto;
+        padding: 1rem 2rem;
+        
+        .topbar-center {
+            order: 3;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .main-menu {
+            gap: 0.25rem;
+        }
+
+        .menu-item {
+            padding: 0.5rem;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .layout-topbar-horizontal {
+        .main-menu {
+            display: none;
+        }
+        
+        .topbar-left {
+            gap: 1rem;
+        }
+    }
+}
+
 .config-panel {
     .config-panel-label {
-        font-size: 0.875rem;
+        font-size: 1rem;
         color: var(--text-secondary-color);
         font-weight: 600;
-        line-height: 1;
+        line-height: 1.5;
     }
 
     .config-panel-colors {

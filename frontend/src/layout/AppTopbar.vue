@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import logoText from '@/assets/images/logo-text.png';
-import { useLayout } from '@/layout/composables/layout';
 import { useAuthStore } from '@/stores/authStore';
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -11,7 +10,6 @@ import { getRecentSearchKeywords, deleteRecentSearchKeyword, deleteAllRecentSear
 const router = useRouter();
 const confirm = useConfirm();
 const toast = useToast();
-const { toggleMenu } = useLayout();
 const authStore = useAuthStore();
 
 const searchQuery = ref('');
@@ -255,6 +253,37 @@ const closeProfileMenu = () => {
     }
 };
 
+const handleMyRecipesClick = (event: Event) => {
+    event.preventDefault();
+    
+    if (!authStore.isLoggedIn) {
+        confirm.require({
+            message: '로그인 후 이용 가능합니다.',
+            header: '안내',
+            icon: 'pi pi-info-circle',
+            rejectProps: {
+                label: '취소',
+                severity: 'secondary',
+                outlined: true
+            },
+            acceptProps: {
+                label: '로그인'
+            },
+            accept: () => {
+                router.push({
+                    path: '/auth/login',
+                    query: { redirect: '/my/recipes' }
+                });
+            },
+            reject: () => {
+                // 취소 시 아무것도 하지 않음
+            }
+        });
+    } else {
+        router.push('/my/recipes');
+    }
+};
+
 const handleMyMenuClick = (path: string, event: Event) => {
     event.preventDefault();
     
@@ -338,8 +367,6 @@ watch(() => authStore.memberInfo?.id, (newId, oldId) => {
     }
 });
 
-// 자동저장 설정 변경 감시 - 목록은 유지 (목록 숨기기 제거)
-
 // 검색어 입력 감시 - 값이 입력되면 최근 검색어 목록 숨김
 watch(searchQuery, (newValue) => {
     if (newValue.trim() !== '') {
@@ -381,19 +408,43 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="layout-topbar">
-        <div class="layout-topbar-logo-container">
-            <button class="layout-menu-button layout-topbar-action" @click="toggleMenu">
-                <i class="pi pi-bars"></i>
-            </button>
-            <router-link to="/" class="layout-topbar-logo">
-                <img :src="logoText" alt="너에게 스며드는 레시피" class="logo-text-image" />
+    <div class="layout-topbar-horizontal">
+        <!-- 좌측 영역: 로고 + 앱명 + 메뉴 -->
+        <div class="topbar-left">
+            <!-- 로고와 앱명 -->
+            <router-link to="/" class="logo-section">
+                <img :src="logoText" alt="너에게 스며드는 레시피" class="logo-image" />
             </router-link>
+
+            <!-- 메뉴 -->
+            <nav class="main-menu">
+                <router-link to="/recipe/category" class="menu-item">
+                    <i class="pi pi-list"></i>
+                    <span>전체 레시피</span>
+                </router-link>
+                <router-link to="/ingredient/management" class="menu-item">
+                    <i class="pi pi-box"></i>
+                    <span>재료 관리</span>
+                </router-link>
+                <router-link to="/ranking" class="menu-item">
+                    <i class="pi pi-flag"></i>
+                    <span>랭킹</span>
+                </router-link>
+                <router-link to="/recipe/category" class="menu-item">
+                    <i class="pi pi-th-large"></i>
+                    <span>카테고리</span>
+                </router-link>
+                <router-link to="/faq" class="menu-item">
+                    <i class="pi pi-question-circle"></i>
+                    <span>FAQ</span>
+                </router-link>
+            </nav>
         </div>
 
-        <div class="layout-topbar-search">
+        <!-- 중앙 영역: 검색창 -->
+        <div class="topbar-center">
             <div class="search-wrapper">
-                <div class="search-container relative">
+                <div class="search-container">
                     <input 
                         type="text" 
                         placeholder="레시피를 검색해보세요..." 
@@ -417,114 +468,390 @@ onMounted(() => {
                     class="recent-keywords-dropdown"
                     @mousedown.prevent
                 >
-                <div class="recent-keywords-header">
-                    <span class="text-sm font-semibold text-gray-700">최근 검색어</span>
-                    <div class="recent-keywords-header-actions">
-                        <button 
-                            v-if="recentKeywords.length > 0"
-                            class="auto-save-toggle-btn text-xs text-gray-600 hover:text-gray-800 whitespace-nowrap"
-                            @click="handleDeleteAllKeywords"
-                            @mousedown.stop
-                            type="button"
-                        >
-                            전체 삭제
-                        </button>
-                        <div class="flex items-center gap-2" @mousedown.stop>
-                            <span class="text-xs text-gray-600 whitespace-nowrap">자동저장</span>
-                            <ToggleSwitch 
-                                v-model="isAutoSaveEnabled"
-                                @update:modelValue="(value: boolean) => toggleAutoSave(value)"
-                            />
+                    <div class="recent-keywords-header">
+                        <span class="text-sm font-semibold text-gray-700">최근 검색어</span>
+                        <div class="recent-keywords-header-actions">
+                            <button 
+                                v-if="recentKeywords.length > 0"
+                                class="auto-save-toggle-btn text-xs text-gray-600 hover:text-gray-800 whitespace-nowrap"
+                                @click="handleDeleteAllKeywords"
+                                @mousedown.stop
+                                type="button"
+                            >
+                                전체 삭제
+                            </button>
+                            <div class="flex items-center gap-2" @mousedown.stop>
+                                <span class="text-xs text-gray-600 whitespace-nowrap">자동저장</span>
+                                <ToggleSwitch 
+                                    v-model="isAutoSaveEnabled"
+                                    @update:modelValue="(value: boolean) => toggleAutoSave(value)"
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div v-if="recentKeywordsLoading" class="recent-keywords-loading">
-                    <i class="pi pi-spin pi-spinner"></i>
-                    <span class="ml-2">로딩 중...</span>
-                </div>
-                <div v-else-if="recentKeywords.length === 0" class="recent-keywords-empty">
-                    <span class="text-sm text-gray-500">최근 검색어가 없습니다.</span>
-                </div>
-                <div v-else class="recent-keywords-list">
-                    <div 
-                        v-for="keyword in recentKeywords" 
-                        :key="keyword.id"
-                        class="recent-keyword-item"
-                        @mousedown.prevent
-                        @click="selectRecentKeyword(keyword.keyword)"
-                    >
-                        <i class="pi pi-clock text-gray-400"></i>
-                        <span class="recent-keyword-text">{{ keyword.keyword }}</span>
-                        <button 
-                            class="recent-keyword-delete"
-                            @mousedown.stop
-                            @click.stop="handleDeleteKeyword(keyword.id, $event)"
-                            type="button"
-                        >
-                            <i class="pi pi-times"></i>
-                        </button>
+                    <div v-if="recentKeywordsLoading" class="recent-keywords-loading">
+                        <i class="pi pi-spin pi-spinner"></i>
+                        <span class="ml-2">로딩 중...</span>
                     </div>
-                </div>
-            </div>
-            </div>
-        </div>
-
-        <div class="layout-topbar-actions">
-            <div class="layout-config-menu" v-if="authStore.isLoggedIn">
-                <span class="layout-topbar-welcome">{{ authStore.memberName }}님 환영합니다.</span>
-            </div>
-
-            <div class="layout-topbar-menu hidden lg:block">
-                <div class="layout-topbar-menu-content">
-                    <div class="relative">
-                        <button
-                            type="button"
-                            class="layout-topbar-action profile-button"
-                            v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }"
+                    <div v-else-if="recentKeywords.length === 0" class="recent-keywords-empty">
+                        <span class="text-sm text-gray-500">최근 검색어가 없습니다.</span>
+                    </div>
+                    <div v-else class="recent-keywords-list">
+                        <div 
+                            v-for="keyword in recentKeywords" 
+                            :key="keyword.id"
+                            class="recent-keyword-item"
+                            @mousedown.prevent
+                            @click="selectRecentKeyword(keyword.keyword)"
                         >
-                            <img 
-                                v-if="authStore.memberProfileImage" 
-                                :src="authStore.memberProfileImage" 
-                                alt="프로필" 
-                                class="profile-image"
-                            />
-                            <i v-else class="pi pi-user"></i>
-                            <span class="hidden">Profile</span>
-                        </button>
-                        <div ref="profileMenuRef" class="hidden absolute right-0 mt-2 w-56 card p-2 z-50">
-                            <a href="/my/profile" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/profile', $event)">
-                                <i class="pi pi-id-card"></i>
-                                <span>내 정보 수정</span>
-                            </a>
-                            <a href="/my/recipes" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/recipes', $event)">
-                                <i class="pi pi-book"></i>
-                                <span>레시피 관리</span>
-                            </a>
-                            <a href="/my/comments" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/comments', $event)">
-                                <i class="pi pi-comments"></i>
-                                <span>댓글 관리</span>
-                            </a>
-                            <a href="/my/inquiries" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/inquiries', $event)">
-                                <i class="pi pi-inbox"></i>
-                                <span>1:1 문의 내역</span>
-                            </a>
-                            <a href="/my/favorites" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/favorites', $event)">
-                                <i class="pi pi-heart"></i>
-                                <span>찜 목록</span>
-                            </a>
-                            <div class="my-2 border-t"></div>
-                            <router-link v-if="!authStore.isLoggedIn" to="/auth/login" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded">
-                                <i class="pi pi-sign-in"></i>
-                                <span>로그인</span>
-                            </router-link>
-                            <button v-else type="button" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded w-full text-left" @click="handleLogout(); closeProfileMenu();">
-                                <i class="pi pi-sign-out"></i>
-                                <span>로그아웃</span>
+                            <i class="pi pi-clock text-gray-400"></i>
+                            <span class="recent-keyword-text">{{ keyword.keyword }}</span>
+                            <button 
+                                class="recent-keyword-delete"
+                                @mousedown.stop
+                                @click.stop="handleDeleteKeyword(keyword.id, $event)"
+                                type="button"
+                            >
+                                <i class="pi pi-times"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- 우측 영역: 내 레시피 + 프로필/로그인/회원가입 -->
+        <div class="topbar-right">
+            <button class="menu-item my-recipes-btn" @click="handleMyRecipesClick">
+                <i class="pi pi-book"></i>
+                <span>내 레시피</span>
+            </button>
+
+            <!-- 로그인 상태일 때 -->
+            <div v-if="authStore.isLoggedIn" class="profile-section">
+                <div class="relative">
+                    <button
+                        type="button"
+                        class="profile-button"
+                        v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }"
+                    >
+                        <img 
+                            v-if="authStore.memberProfileImage" 
+                            :src="authStore.memberProfileImage" 
+                            alt="프로필" 
+                            class="profile-image"
+                        />
+                        <i v-else class="pi pi-user"></i>
+                        <span class="ml-2">{{ authStore.memberName }}님</span>
+                    </button>
+                    <div ref="profileMenuRef" class="hidden absolute right-0 mt-2 w-56 card p-2 z-50">
+                        <a href="/my/profile" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/profile', $event)">
+                            <i class="pi pi-id-card"></i>
+                            <span>내 정보 수정</span>
+                        </a>
+                        <a href="/my/recipes" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/recipes', $event)">
+                            <i class="pi pi-book"></i>
+                            <span>레시피 관리</span>
+                        </a>
+                        <a href="/my/comments" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/comments', $event)">
+                            <i class="pi pi-comments"></i>
+                            <span>댓글 관리</span>
+                        </a>
+                        <a href="/my/inquiries" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/inquiries', $event)">
+                            <i class="pi pi-inbox"></i>
+                            <span>1:1 문의 내역</span>
+                        </a>
+                        <a href="/my/favorites" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/favorites', $event)">
+                            <i class="pi pi-heart"></i>
+                            <span>찜 목록</span>
+                        </a>
+                        <div class="my-2 border-t"></div>
+                        <button type="button" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded w-full text-left" @click="handleLogout(); closeProfileMenu();">
+                            <i class="pi pi-sign-out"></i>
+                            <span>로그아웃</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 비로그인 상태일 때 -->
+            <div v-else class="auth-buttons">
+                <Button label="로그인" @click="router.push('/auth/login')" outlined size="small" />
+                <Button label="회원가입" @click="router.push('/auth/signup')" size="small" />
+            </div>
+        </div>
     </div>
 </template>
+
+<style lang="scss" scoped>
+.layout-topbar-horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background-color: var(--surface-card);
+    border-bottom: 1px solid var(--surface-border);
+    gap: 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    
+    .logo-image {
+        height: 2.5rem;
+        width: auto;
+    }
+}
+
+.main-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    color: var(--text-color);
+    transition: background-color 0.2s;
+    white-space: nowrap;
+    
+    &:hover {
+        background-color: var(--surface-hover);
+    }
+    
+    &.router-link-active {
+        background-color: var(--primary-color);
+        color: var(--primary-color-text);
+    }
+    
+    i {
+        font-size: 1rem;
+    }
+    
+    span {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+}
+
+.my-recipes-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.topbar-center {
+    flex: 1;
+    max-width: 600px;
+    position: relative;
+}
+
+.search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.search-container {
+    position: relative;
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 4rem 0.75rem 1rem;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+    
+    &:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-color-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    
+    &:hover {
+        color: var(--text-color);
+    }
+}
+
+.search-submit-btn {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    
+    &:hover {
+        background-color: var(--primary-600);
+    }
+}
+
+.recent-keywords-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1001;
+}
+
+.recent-keywords-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.recent-keywords-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.auto-save-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+}
+
+.recent-keywords-loading,
+.recent-keywords-empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-color-secondary);
+}
+
+.recent-keywords-list {
+    padding: 0.5rem;
+}
+
+.recent-keyword-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    
+    &:hover {
+        background-color: var(--surface-hover);
+    }
+}
+
+.recent-keyword-text {
+    flex: 1;
+}
+
+.recent-keyword-delete {
+    background: none;
+    border: none;
+    color: var(--text-color-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    
+    &:hover {
+        color: var(--red-500);
+    }
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profile-section {
+    position: relative;
+}
+
+.profile-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius);
+    background: var(--surface-card);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    
+    &:hover {
+        background-color: var(--surface-hover);
+    }
+}
+
+.profile-image {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* 중소형 노트북 이하 (1365px 이하) */
+@media (max-width: 1365px) {
+    .main-menu .menu-item span {
+        display: none;
+    }
+}
+
+/* 태블릿 가로 이하 (1023px 이하) */
+@media (max-width: 1023px) {
+    .layout-topbar-horizontal {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .topbar-center {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+    }
+}
+</style>
