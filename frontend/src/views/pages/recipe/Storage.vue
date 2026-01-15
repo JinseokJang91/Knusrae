@@ -67,7 +67,7 @@
                                 <h3 class="text-2xl font-bold text-900 m-0">{{ totalIngredients }}</h3>
                                 <p class="text-600 m-0">총 재료</p>
                             </div>
-                            <i class="pi pi-box text-4xl text-blue-500"></i>
+                            <i class="pi pi-box text-4xl text-orange-500"></i>
                         </div>
                     </template>
                 </Card>
@@ -80,7 +80,7 @@
                                 <h3 class="text-2xl font-bold text-900 m-0">{{ categoryCount }}</h3>
                                 <p class="text-600 m-0">카테고리</p>
                             </div>
-                            <i class="pi pi-tags text-4xl text-green-500"></i>
+                            <i class="pi pi-tags text-4xl text-orange-500"></i>
                         </div>
                     </template>
                 </Card>
@@ -106,7 +106,7 @@
                                 <h3 class="text-2xl font-bold text-900 m-0">{{ frozenCount }}</h3>
                                 <p class="text-600 m-0">냉동 보관</p>
                             </div>
-                            <i class="pi pi-circle text-4xl text-blue-300"></i>
+                            <i class="pi pi-circle text-4xl text-orange-300"></i>
                         </div>
                     </template>
                 </Card>

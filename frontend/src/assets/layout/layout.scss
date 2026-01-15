@@ -1,13 +1,13 @@
 @use './variables/_common';
-@use './variables/_light';
-@use './variables/_dark';
-@use './_mixins';
-@use './_preloading';
-@use './_core';
-@use './_main';
-@use './_topbar';
-@use './_menu';
+// @use './variables/_light';
+// @use './variables/_dark';
+// @use './_mixins';
+// @use './_preloading';
+@use './_core'; // 전체
+@use './_main'; // 메인 화면
+@use './_topbar'; // 상단바
+// @use './_menu'; // 메뉴
 @use './_footer';
-@use './_responsive';
-@use './_utils';
-@use './_typography';
+@use './_responsive'; // 반응형
+@use './_utils'; // 유틸
+@use './_typography'; // 타이포그래피

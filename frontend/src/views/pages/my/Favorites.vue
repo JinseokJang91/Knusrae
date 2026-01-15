@@ -5,7 +5,7 @@
             <h1 class="text-3xl font-bold text-gray-900">찜 목록</h1>
         </div>
 
-        <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r">
+        <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
             <p class="text-gray-700 italic">
                 찜 버튼( <i class="pi pi-heart-fill"/> )을 클릭해 찜 목록에서 삭제할 수 있어요.
             </p>

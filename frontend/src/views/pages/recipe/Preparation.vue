@@ -79,7 +79,7 @@
                                 <h3 class="text-2xl font-bold text-900 m-0">{{ totalPreparations }}</h3>
                                 <p class="text-600 m-0">총 손질법</p>
                             </div>
-                            <i class="pi pi-cut text-4xl text-blue-500"></i>
+                            <i class="pi pi-cut text-4xl text-orange-500"></i>
                         </div>
                     </template>
                 </Card>
@@ -92,7 +92,7 @@
                                 <h3 class="text-2xl font-bold text-900 m-0">{{ easyCount }}</h3>
                                 <p class="text-600 m-0">쉬운 손질법</p>
                             </div>
-                            <i class="pi pi-check-circle text-4xl text-green-500"></i>
+                            <i class="pi pi-check-circle text-4xl text-orange-500"></i>
                         </div>
                     </template>
                 </Card>

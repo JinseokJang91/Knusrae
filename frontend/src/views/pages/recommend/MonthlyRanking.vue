@@ -33,7 +33,7 @@
                                 <p class="text-600 m-0">총 조회수</p>
                                 <small class="text-green-500">+{{ monthlyStats.viewsGrowth }}%</small>
                             </div>
-                            <i class="pi pi-eye text-4xl text-blue-500"></i>
+                            <i class="pi pi-eye text-4xl text-orange-500"></i>
                         </div>
                     </template>
                 </Card>
@@ -89,7 +89,7 @@
                 <Card>
                     <template #title>
                         <div class="flex align-items-center gap-2">
-                            <i class="pi pi-chart-line text-blue-500"></i>
+                            <i class="pi pi-chart-line text-orange-500"></i>
                             <span>월간 인기 레시피 TOP 20</span>
                         </div>
                     </template>

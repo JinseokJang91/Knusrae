@@ -3,8 +3,8 @@
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-2xl font-bold">레시피 관리</h2>
             <div class="flex gap-2">
-                <input v-model="search" type="text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="레시피 검색" />
-                <button @click="handleCreateRecipe" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50" :disabled="loading">
+                <input v-model="search" type="text" class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="레시피 검색" />
+                <button @click="handleCreateRecipe" class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 disabled:opacity-50" :disabled="loading">
                     <span class="pi pi-plus mr-2"></span>
                     <span>레시피 등록하기</span>
                 </button>
@@ -43,7 +43,7 @@
                         <td class="px-3 py-2">
                             <button
                                 @click="viewRecipeDetail(r.id)"
-                                class="text-left text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                                class="text-left text-orange-600 hover:text-orange-800 hover:underline font-medium"
                             >
                                 {{ r.title }}
                             </button>
@@ -54,12 +54,12 @@
                             </span>
                         </td>
                         <td class="px-3 py-2">
-                            <span class="px-2 py-1 rounded text-xs" :class="r.visibility === 'PUBLIC' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'">
+                            <span class="px-2 py-1 rounded text-xs" :class="r.visibility === 'PUBLIC' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'">
                                 {{ r.visibility === 'PUBLIC' ? '공개' : '비공개' }}
                             </span>
                         </td>
                         <td class="px-3 py-2 text-right">
-                            <button @click="handleEditRecipe(r)" class="px-2 py-1 text-green-600 hover:bg-green-100 rounded" :disabled="loading" title="수정">
+                            <button @click="handleEditRecipe(r)" class="px-2 py-1 text-orange-600 hover:bg-orange-100 rounded" :disabled="loading" title="수정">
                                 <span class="pi pi-pencil"></span>
                             </button>
                             <button @click="handleDeleteRecipe(r.id)" class="px-2 py-1 text-red-600 hover:bg-red-100 rounded" :disabled="loading" title="삭제">
@@ -95,9 +95,9 @@
                         <div v-if="recipeDetail.images.length > 0" class="mb-6">
                             <h5 class="font-medium mb-2">이미지</h5>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                <div v-for="(image, index) in recipeDetail.imageUrls" :key="index" class="relative border rounded-lg overflow-hidden" :class="{ 'ring-2 ring-blue-500': index === recipeDetail.mainImageIndex }">
+                                <div v-for="(image, index) in recipeDetail.imageUrls" :key="index" class="relative border rounded-lg overflow-hidden" :class="{ 'ring-2 ring-orange-500': index === recipeDetail.mainImageIndex }">
                                     <img :src="image" :alt="`레시피 이미지 ${index + 1}`" class="w-full h-32 object-cover" />
-                                    <div v-if="index === recipeDetail.mainImageIndex" class="absolute top-2 left-2 bg-blue-500 text-white text-xs px-1 rounded">메인</div>
+                                    <div v-if="index === recipeDetail.mainImageIndex" class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-1 rounded">메인</div>
                                 </div>
                             </div>
                         </div>
@@ -107,7 +107,7 @@
                             <h5 class="font-medium mb-2">조리 단계</h5>
                             <div class="space-y-2">
                                 <div v-for="(step, index) in recipeDetail.recipe.steps" :key="index" class="flex gap-3 p-3 bg-gray-50 rounded">
-                                    <span class="font-bold text-blue-600">{{ index + 1 }}.</span>
+                                    <span class="font-bold text-orange-600">{{ index + 1 }}.</span>
                                     <span>{{ step.description }}</span>
                                 </div>
                             </div>

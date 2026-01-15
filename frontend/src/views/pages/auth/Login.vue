@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import loginIconNaver from '@/assets/images/login-icon-naver.png';
-import logoImage from '@/assets/images/logo-text.png';
+import logoImage from '@/assets/images/logo-login.png';
 import { openOAuthPopup } from '@/utils/oauth';
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
@@ -153,7 +153,7 @@ async function loginWithTestAccount(email: string) {
             <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 50%)">
                 <div class="w-full bg-white dark:bg-gray-900 py-20 px-8 sm:px-20" style="border-radius: 53px">
                     <div class="text-center mb-8">
-                        <img :src="logoImage" alt="로고 이미지" class="logo-image w-50 h-auto mx-auto mb-8" />
+                        <img :src="logoImage" alt="로고 이미지" class="logo-image w-48 h-auto mx-auto mb-8" />
                     </div>
 
                     <div class="space-y-4">
@@ -184,7 +184,7 @@ async function loginWithTestAccount(email: string) {
 
                         <!-- 개발 환경에서만 표시되는 테스트 계정 로그인 -->
                         <div v-if="isDevelopment" class="mt-8 pt-6 border-t border-gray-300 dark:border-gray-700">
-                            <button @click="loadTestAccounts" :disabled="loadingTestAccounts" class="w-full flex items-center justify-center gap-2 bg-purple-100 dark:bg-purple-900 border border-purple-300 dark:border-purple-700 rounded-lg px-6 py-3 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors disabled:opacity-50">
+                            <button @click="loadTestAccounts" :disabled="loadingTestAccounts" class="w-full flex items-center justify-center gap-2 bg-orange-100 dark:bg-orange-900 border border-orange-300 dark:border-orange-700 rounded-lg px-6 py-3 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800 transition-colors disabled:opacity-50">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>

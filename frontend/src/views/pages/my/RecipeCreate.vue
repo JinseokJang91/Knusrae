@@ -7,7 +7,7 @@
             </div>
         </div>
 
-        <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r">
+        <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
             <p class="text-gray-700 italic">
                 셰프님이 누군가를 위해 정성들인 이 요리처럼, 레시피에서도 셰프님의 따뜻한 정성을 보여주세요.
             </p>
@@ -17,7 +17,7 @@
             <!-- 기본 정보: 대표 사진, 제목, 소개 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <div class="flex items-center gap-1 mb-1">
-                    <h3 class="text-xl font-semibold text-green-600">
+                    <h3 class="text-xl font-semibold text-orange-600">
                         <span class="mr-1">기본 정보</span>
                         <i 
                             ref="el => { if (el) guideIconRefs.basic = el as HTMLElement; }"
@@ -87,7 +87,7 @@
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
-                        <h3 class="text-xl font-semibold text-green-600">
+                        <h3 class="text-xl font-semibold text-orange-600">
                             <span class="mr-1">준비물</span>
                             <i 
                                 ref="el => { if (el) guideIconRefs.ingredients = el as HTMLElement; }"
@@ -217,7 +217,7 @@
             <!-- 분류 정보: 카테고리, 요리팁 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <div class="flex items-center gap-1 mb-1">
-                    <h3 class="text-xl font-semibold text-green-600">
+                    <h3 class="text-xl font-semibold text-orange-600">
                         <span class="mr-1">분류 정보</span>
                         <i 
                             ref="el => { if (el) guideIconRefs.classification = el as HTMLElement; }"
@@ -298,7 +298,7 @@
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
-                        <h3 class="text-xl font-semibold text-green-600">
+                        <h3 class="text-xl font-semibold text-orange-600">
                             <span class="mr-1">조리 순서</span>
                             <i 
                                 ref="el => { if (el) guideIconRefs.steps = el as HTMLElement; }"
@@ -385,7 +385,7 @@
             <!-- 설정 및 저장 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
                 <div class="flex items-center gap-1 mb-1">
-                    <h3 class="text-xl font-semibold text-green-600">
+                    <h3 class="text-xl font-semibold text-orange-600">
                         <span class="mr-1">설정 및 저장</span>
                         <i 
                             ref="el => { if (el) guideIconRefs.settings = el as HTMLElement; }"
@@ -1185,7 +1185,7 @@ onBeforeUnmount(() => {
 }
 
 .help-button {
-    color: #16a34a;
+    color: #ea580c;
     opacity: 0.7;
     transition: opacity 0.2s;
 }
