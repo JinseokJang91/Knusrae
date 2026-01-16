@@ -431,7 +431,7 @@ onMounted(() => {
                     <span>랭킹</span>
                 </router-link>
                 <router-link to="/recipe/category" class="menu-item">
-                    <i class="fa-solid fa-bars-staggered"></i>
+                    <i class="fa-solid fa-arrow-down-wide-short"></i>
                     <span>카테고리</span>
                 </router-link>
                 <router-link to="/faq" class="menu-item">
@@ -445,6 +445,7 @@ onMounted(() => {
         <div class="topbar-center">
             <div class="search-wrapper">
                 <div class="search-container">
+                    <i class="pi pi-search search-icon" @click="handleSearch"></i>
                     <input 
                         type="text" 
                         placeholder="레시피를 검색해보세요..." 
@@ -456,9 +457,6 @@ onMounted(() => {
                     />
                     <button v-if="searchQuery" class="search-clear-btn" @click="clearSearch">
                         <i class="pi pi-times"></i>
-                    </button>
-                    <button class="search-submit-btn" @click="handleSearch" type="button">
-                        <i class="pi pi-search"></i>
                     </button>
                 </div>
                 
@@ -576,8 +574,8 @@ onMounted(() => {
 
             <!-- 비로그인 상태일 때 -->
             <div v-else class="auth-buttons">
-                <Button label="로그인" @click="router.push('/auth/login')" outlined size="small" />
-                <Button label="회원가입" @click="router.push('/auth/signup')" size="small" />
+                <Button label="로그인" @click="router.push('/auth/login')" size="small" raised />
+                <Button label="회원가입" @click="router.push('/auth/signup')" severity="contrast" outlined size="small" raised />
             </div>
         </div>
     </div>
