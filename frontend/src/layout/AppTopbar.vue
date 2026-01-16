@@ -419,23 +419,23 @@ onMounted(() => {
             <!-- 메뉴 -->
             <nav class="main-menu">
                 <router-link to="/recipe/category" class="menu-item">
-                    <i class="pi pi-list"></i>
+                    <i class="fa-solid fa-utensils"></i>
                     <span>전체 레시피</span>
                 </router-link>
                 <router-link to="/ingredient/management" class="menu-item">
-                    <i class="pi pi-box"></i>
+                    <i class="fa-solid fa-boxes-packing"></i>
                     <span>재료 관리</span>
                 </router-link>
                 <router-link to="/ranking" class="menu-item">
-                    <i class="pi pi-flag"></i>
+                    <i class="fa-solid fa-ranking-star"></i>
                     <span>랭킹</span>
                 </router-link>
                 <router-link to="/recipe/category" class="menu-item">
-                    <i class="pi pi-th-large"></i>
+                    <i class="fa-solid fa-bars-staggered"></i>
                     <span>카테고리</span>
                 </router-link>
                 <router-link to="/faq" class="menu-item">
-                    <i class="pi pi-question-circle"></i>
+                    <i class="fa-solid fa-circle-question"></i>
                     <span>FAQ</span>
                 </router-link>
             </nav>

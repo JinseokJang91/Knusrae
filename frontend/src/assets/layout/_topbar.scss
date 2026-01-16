@@ -9,11 +9,22 @@
     top: 0;
     width: 100%;
     padding: 0 2rem;
-    background-color: var(--surface-card);
+    // background-color: var(--surface-card);
     display: flex;
     align-items: center;
     gap: 2rem;
-    border-bottom: 1px solid var(--surface-border);
+    // border-bottom: 1px solid var(--surface-border);
+
+    background: linear-gradient(
+        90deg,
+        rgba(255, 247, 237, 0.72) 0%,
+        rgba(255, 255, 255, 0.72) 45%,
+        rgba(255, 247, 237, 0.72) 100%
+      );
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 2px 0 rgba(249, 115, 22, 0.18); /* 오렌지 얇은 하이라이트 */
 
     .topbar-left {
         display: flex;

@@ -1,7 +1,7 @@
 @use './variables/_common';
 // @use './variables/_light';
 // @use './variables/_dark';
-// @use './_mixins';
+@use './_mixins'; // 믹스인
 // @use './_preloading';
 @use './_core'; // 전체
 @use './_main'; // 메인 화면
