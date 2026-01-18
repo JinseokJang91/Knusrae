@@ -1,8 +1,330 @@
 .layout-footer {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem 0 1rem 0;
-    gap: 0.5rem;
-    border-top: 1px solid var(--surface-border);
+    flex-direction: column;
+    font-family: 'Malgun Gothic', sans-serif;
+    
+    // 주황색과 대비되는 어두운 배경 옵션들 (글자: 흰색)
+    // Option 1: 진한 회색 계열 (추천)
+    // background: #1f2937;
+    // background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+    
+    // Option 2: 남색/네이비 계열
+    // background: #1e293b;
+    // background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    
+    // Option 3: 다크 그레이-블루 계열
+    // background: #334155;
+    // background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+    
+    // Option 4: 차콜 그레이
+    // background: #2d3748;
+    background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
+    
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2rem 2rem 1.5rem;
+    gap: 2rem;
+
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 3rem;
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        padding-left: 0;
+    }
+
+    .footer-left {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        flex: 1;
+        padding-left: 0;
+        margin-left: 0;
+
+        .footer-logo {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+            margin-left: 0;
+            padding-left: 0;
+        }
+
+        .footer-description {
+            color: #ffffff;
+            font-size: 0.85rem;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .app-download-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+
+            .download-btn {
+                display: inline-block;
+                text-decoration: none;
+                cursor: pointer;
+                line-height: 0;
+
+                img {
+                    height: 40px;
+                    width: auto;
+                    display: block;
+                }
+            }
+        }
+    }
+
+    .footer-right {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-width: 200px;
+
+        .social-media-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1.0rem;
+            margin-bottom: 0.5rem;
+
+            .social-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border-radius: 0.5rem;
+                background-color: var(--surface-card);
+                border: none;
+                text-decoration: none;
+                cursor: pointer;
+                padding: 0;
+                overflow: hidden;
+                line-height: 0;
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                    display: block;
+                }
+            }
+        }
+
+        .footer-links-group {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+
+            .divider {
+                color: rgba(255, 255, 255, 0.4);
+            }
+        }
+
+        .footer-link {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+    }
+
+    .footer-bottom {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        padding-left: 0;
+
+        .company-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.75rem;
+            line-height: 1.5;
+
+            .divider {
+                color: rgba(255, 255, 255, 0.4);
+            }
+        }
+
+        .copyright {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.75rem;
+            margin: 0;
+        }
+    }
+}
+
+// 반응형 디자인
+/* 태블릿 가로 이하 (1023px 이하) */
+@media (max-width: 1023px) {
+    .layout-footer {
+        padding: 1.75rem 1.5rem 1.25rem;
+        gap: 1.5rem;
+
+        .footer-content {
+            gap: 2.5rem;
+        }
+    }
+}
+
+/* 태블릿 세로 (768px 이하) */
+@media (max-width: 768px) {
+    .layout-footer {
+        padding: 1.5rem 1rem 1rem;
+        gap: 1.5rem;
+
+        .footer-content {
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .footer-left {
+            .footer-logo {
+                height: 50px;
+            }
+
+            .footer-description {
+                font-size: 0.85rem;
+            }
+
+            .app-download-buttons {
+                gap: 0.5rem;
+
+                .download-btn img {
+                    height: 36px;
+                }
+            }
+        }
+
+        .footer-right {
+            width: 100%;
+
+            .social-media-buttons {
+                gap: 0.5rem;
+
+                .social-btn {
+                    width: 36px;
+                    height: 36px;
+                }
+            }
+
+            .footer-links-group {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+        }
+
+        .footer-bottom {
+            padding-top: 1.25rem;
+
+            .company-info {
+                flex-direction: column;
+                gap: 0.25rem;
+                font-size: 0.75rem;
+
+                .divider {
+                    display: none;
+                }
+            }
+
+            .copyright {
+                font-size: 0.75rem;
+            }
+        }
+    }
+}
+
+/* iPhone 표준 모바일 (375px 이하) */
+@media (max-width: 375px) {
+    .layout-footer {
+        padding: 1.25rem 0.75rem 0.75rem;
+        gap: 1.25rem;
+
+        .footer-left {
+            .footer-logo {
+                height: 45px;
+            }
+
+            .footer-description {
+                font-size: 0.85rem;
+            }
+
+            .app-download-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+
+                .download-btn img {
+                    height: 34px;
+                }
+            }
+        }
+
+        .footer-right {
+            .social-media-buttons {
+                gap: 0.5rem;
+
+                .social-btn {
+                    width: 34px;
+                    height: 34px;
+                }
+            }
+
+            .footer-link {
+                font-size: 0.85rem;
+            }
+        }
+
+        .footer-bottom {
+            padding-top: 1rem;
+
+            .company-info {
+                font-size: 0.75rem;
+            }
+
+            .copyright {
+                font-size: 0.75rem;
+            }
+        }
+    }
+}
+
+/* 안드로이드 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    .layout-footer {
+        padding: 1rem 0.5rem 0.75rem;
+        gap: 1rem;
+
+        .footer-left {
+            .footer-logo {
+                height: 40px;
+            }
+
+            .app-download-buttons {
+                .download-btn img {
+                    height: 32px;
+                }
+            }
+        }
+
+        .footer-right {
+            .social-media-buttons {
+                .social-btn {
+                    width: 32px;
+                    height: 32px;
+                }
+            }
+        }
+    }
 }

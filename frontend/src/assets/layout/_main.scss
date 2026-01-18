@@ -3,8 +3,7 @@
     flex-direction: column;
     min-height: 100vh;
     justify-content: space-between;
-    padding: 6rem 2rem 0 2rem;
-    transition: margin-left var(--layout-section-transition-duration);
+    padding: 6rem 0 0 0; // 상단: topbar 높이(5rem) + 여백(1rem), 하단: footer를 위한 여백은 layout-main의 padding-bottom으로 처리
     
     // background: #f97316;
     background:
@@ -15,5 +14,46 @@
 
 .layout-main {
     flex: 1 1 auto;
-    padding-bottom: 2rem;
+    padding-bottom: 2rem; // footer와의 간격은 container의 padding-bottom으로 처리
+}
+
+// 반응형 디자인
+/* 태블릿 가로 이하 (1023px 이하) - topbar가 wrap될 때 */
+@media (max-width: 1023px) {
+    .layout-main-container {
+        padding: 8rem 2rem 0 2rem; // topbar가 wrap되어 높이가 늘어남 (약 7rem) + 여백(1rem)
+    }
+}
+
+/* 태블릿 세로 (768px 이하) */
+@media (max-width: 768px) {
+    .layout-main-container {
+        padding: 7rem 1rem 0 1rem; // topbar 높이 조정 + 여백
+    }
+    
+    .layout-main {
+        padding-bottom: 1.5rem; // footer와의 간격 조정
+    }
+}
+
+/* iPhone 표준 모바일 (375px 이하) */
+@media (max-width: 375px) {
+    .layout-main-container {
+        padding: 6rem 0.75rem 0 0.75rem; // topbar 높이 + 여백
+    }
+    
+    .layout-main {
+        padding-bottom: 1rem; // footer와의 간격 조정
+    }
+}
+
+/* 안드로이드 모바일 (360px 이하) */
+@media (max-width: 360px) {
+    .layout-main-container {
+        padding: 6rem 0.5rem 0 0.5rem; // topbar 높이 + 여백
+    }
+    
+    .layout-main {
+        padding-bottom: 1rem; // footer와의 간격 조정
+    }
 }

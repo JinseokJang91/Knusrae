@@ -130,38 +130,8 @@
             }
         }
 
-        // 새로운 가로 레이아웃의 반응형
-        &.layout-horizontal {
-            .layout-main-container {
-                padding-top: 8rem; // topbar가 wrap될 때 더 많은 공간 필요
-            }
-        }
+        // 새로운 가로 레이아웃의 반응형은 _main.scss에서 처리
     }
 }
 
-/* 태블릿 세로 (768px 이하) */
-@media (max-width: 768px) {
-    .layout-wrapper.layout-horizontal {
-        .layout-main-container {
-            padding: 7rem 1rem 0 1rem;
-        }
-    }
-}
-
-/* iPhone 표준 모바일 (375px 이하) */
-@media (max-width: 375px) {
-    .layout-wrapper.layout-horizontal {
-        .layout-main-container {
-            padding: 6rem 0.75rem 0 0.75rem;
-        }
-    }
-}
-
-/* 안드로이드 모바일 (360px 이하) */
-@media (max-width: 360px) {
-    .layout-wrapper.layout-horizontal {
-        .layout-main-container {
-            padding: 6rem 0.5rem 0 0.5rem;
-        }
-    }
-}
+// 새로운 가로 레이아웃의 반응형은 _main.scss에서 처리
