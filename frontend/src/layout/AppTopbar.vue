@@ -18,6 +18,22 @@ const recentKeywords = ref<RecentSearchKeyword[]>([]);
 const showRecentKeywords = ref(false);
 const recentKeywordsLoading = ref(false);
 
+// 요리 카테고리 목록
+const recipeCategories = [
+    { id: 1, name: '한식', icon: 'fa-solid fa-k' },
+    { id: 2, name: '국·탕·찌개', icon: 'fa-solid fa-bowl-food' },
+    { id: 3, name: '밥·덮밥·볶음밥', icon: 'fa-solid fa-bowl-rice' },
+    { id: 4, name: '면요리', icon: 'fa-solid fa-plate-wheat', description: '라면/국수/파스타' },
+    { id: 5, name: '반찬·밑반찬', icon: 'fa-solid fa-box-archive' },
+    { id: 6, name: '고기요리', icon: 'fa-solid fa-drumstick-bite' },
+    { id: 7, name: '해산물요리', icon: 'fa-solid fa-fish' },
+    { id: 8, name: '샐러드·건강식', icon: 'fa-solid fa-leaf' },
+    { id: 9, name: '초간단·자취요리', icon: 'fa-solid fa-clock', description: '10~15분, 재료 적은 레시피' },
+    { id: 10, name: '도시락', icon: 'fa-solid fa-box' },
+    { id: 11, name: '야식·안주', icon: 'fa-solid fa-beer-mug-empty' },
+    { id: 12, name: '디저트·베이킹', icon: 'fa-solid fa-cookie-bite' }
+];
+
 // 자동저장 설정 (localStorage에 저장 - 계정별로 분리)
 const getAutoSaveKey = (memberId?: number): string => {
     if (memberId) {
@@ -430,10 +446,38 @@ onMounted(() => {
                     <i class="fa-solid fa-ranking-star"></i>
                     <span>랭킹</span>
                 </router-link>
-                <router-link to="/recipe/category" class="menu-item">
-                    <i class="fa-solid fa-arrow-down-wide-short"></i>
-                    <span>카테고리</span>
-                </router-link>
+                <div class="menu-item-wrapper">
+                    <button
+                        type="button"
+                        class="menu-item category-menu-btn"
+                        v-styleclass="{ 
+                            selector: '@next', 
+                            enterFromClass: 'hidden', 
+                            leaveToClass: 'hidden', 
+                            hideOnOutsideClick: true 
+                        }"
+                    >
+                        <i class="fa-solid fa-arrow-down-wide-short"></i>
+                        <span>카테고리</span>
+                        <i class="fa-solid fa-chevron-down ml-1 text-xs"></i>
+                    </button>
+                    <div class="hidden category-dropdown">
+                        <div class="category-grid">
+                            <router-link 
+                                v-for="category in recipeCategories" 
+                                :key="category.id"
+                                :to="`/recipe/category?type=${category.id}`"
+                                class="category-item"
+                            >
+                                <i :class="category.icon"></i>
+                                <div class="category-info">
+                                    <span class="category-name">{{ category.name }}</span>
+                                    <span v-if="category.description" class="category-desc">{{ category.description }}</span>
+                                </div>
+                            </router-link>
+                        </div>
+                    </div>
+                </div>
                 <router-link to="/faq" class="menu-item">
                     <i class="fa-solid fa-circle-question"></i>
                     <span>FAQ</span>
@@ -581,4 +625,80 @@ onMounted(() => {
     </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.menu-item-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.category-menu-btn {
+    // menu-item 클래스의 스타일을 상속받으므로 최소한의 추가 스타일만
+    
+    // 버튼의 기본 스타일 초기화
+    &:focus {
+        outline: none;
+    }
+}
+
+.category-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    min-width: 600px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 1001; // menu-item의 z-index보다 높게 설정
+    padding: 1rem;
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.category-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--text-color);
+    transition: all 0.2s;
+    background: white;
+    border: 1px solid var(--surface-border);
+
+    &:hover {
+        background: var(--primary-50);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    i {
+        font-size: 1.5rem;
+        min-width: 2rem;
+        text-align: center;
+    }
+}
+
+.category-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.category-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.category-desc {
+    font-size: 0.75rem;
+    color: var(--text-color-secondary);
+}
+</style>
