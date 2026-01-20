@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import logoText from '@/assets/images/logo-text.png';
+import logoText from '@/assets/images/logo/logo-full.png';
 import { useAuthStore } from '@/stores/authStore';
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -618,8 +618,7 @@ onMounted(() => {
 
             <!-- 비로그인 상태일 때 -->
             <div v-else class="auth-buttons">
-                <Button label="로그인" @click="router.push('/auth/login')" size="small" raised />
-                <Button label="회원가입" @click="router.push('/auth/signup')" severity="contrast" outlined size="small" raised />
+                <Button icon="pi pi-sign-in" label="로그인" @click="router.push('/auth/login')" size="small" raised />
             </div>
         </div>
     </div>

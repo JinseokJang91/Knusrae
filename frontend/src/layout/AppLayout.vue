@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import AppFooter from './AppFooter.vue';
 import AppTopbar from './AppTopbar.vue';
+import ScrollToTop from '@/components/ScrollToTop.vue';
 
 const containerClass = computed(() => {
     return {
@@ -22,4 +23,5 @@ const containerClass = computed(() => {
         </div>
     </div>
     <Toast position="bottom-left" />
+    <ScrollToTop />
 </template>

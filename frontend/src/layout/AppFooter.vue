@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import logoText from '@/assets/images/logo-text.png';
-import badgeAppStore from '@/assets/badges/badge_appstore.svg';
-import badgeGooglePlay from '@/assets/badges/badge_googleplay.svg';
-import iconYouTube from '@/assets/badges/icon_youtube.png';
-import iconInstagram from '@/assets/badges/icon_instagram.svg';
-import iconFacebook from '@/assets/badges/icon_facebook.png';
-import iconKakaoTalk from '@/assets/badges/icon_kakaotalk.png';
+import logoText from '@/assets/images/logo/logo-full.png';
+import badgeAppStore from '@/assets/images/badges/badge_appstore.svg';
+import badgeGooglePlay from '@/assets/images/badges/badge_googleplay.svg';
+import iconYouTube from '@/assets/images/badges/badge_youtube.png';
+import iconInstagram from '@/assets/images/badges/badge_instagram.svg';
+import iconFacebook from '@/assets/images/badges/badge_facebook.png';
+import iconKakaoTalk from '@/assets/images/badges/badge_kakaotalk.png';
 </script>
 
 <template>

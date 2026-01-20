@@ -8,7 +8,7 @@
     left: 0;
     top: 0;
     width: 100%;
-    padding: 0 2rem;
+    padding: 0 14rem;
     // background-color: var(--surface-card);
     display: flex;
     align-items: center;
@@ -842,6 +842,10 @@
             }
         }
     }
+    
+    .layout-topbar-horizontal {
+        padding: 0.75rem 1rem;
+    }
 }
 
 /* 안드로이드 모바일 (360px 이하) */
@@ -859,12 +863,18 @@
             }
         }
     }
+    
+    .layout-topbar-horizontal {
+        padding: 0.75rem 0.75rem;
+    }
 }
 
 // 반응형 스타일 - 새로운 가로 레이아웃
 /* 중소형 노트북 이하 (1365px 이하) */
 @media (max-width: 1365px) {
     .layout-topbar-horizontal {
+        padding: 0 8rem;
+        
         .main-menu .menu-item span {
             display: none;
         }
@@ -877,7 +887,7 @@
         flex-wrap: wrap;
         gap: 1rem;
         height: auto;
-        padding: 1rem 2rem;
+        padding: 1rem 3rem;
         
         .topbar-center {
             order: 3;
@@ -897,6 +907,8 @@
 
 @media (max-width: 768px) {
     .layout-topbar-horizontal {
+        padding: 1rem 1.5rem;
+        
         .main-menu {
             display: none;
         }
