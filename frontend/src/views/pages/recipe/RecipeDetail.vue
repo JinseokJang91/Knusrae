@@ -2,7 +2,7 @@
     <div class="min-h-screen">
         <!-- 로딩 상태 -->
         <div v-if="loading" class="flex items-center justify-center min-h-screen">
-            <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500"></div>
+            <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-500"></div>
         </div>
 
         <!-- 에러 상태 -->
@@ -11,7 +11,7 @@
                 <div class="text-6xl mb-4">😞</div>
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">레시피를 찾을 수 없습니다</h2>
                 <p class="text-gray-600 mb-4">{{ error }}</p>
-                <button @click="goBack" class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+                <button @click="goBack" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
                     돌아가기
                 </button>
             </div>
@@ -65,11 +65,11 @@
                                 <span
                                     v-for="category in recipe.categories"
                                     :key="`${category.codeId}-${category.detailCodeId}`"
-                                    class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium"
+                                    class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium"
                                 >
                                     {{ category.detailName || category.codeName }}
                                 </span>
-                                <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                                <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
                                     {{ recipe.visibility === 'PUBLIC' ? '공개' : '비공개' }}
                                 </span>
                             </div>
@@ -80,13 +80,13 @@
                                 <div class="flex flex-wrap gap-6">
                                     <!-- 인분 수 -->
                                     <div v-if="cookingTipsData.servings" class="flex items-center space-x-2">
-                                        <i class="pi pi-users text-orange-600 text-xl"></i>
+                                        <i class="pi pi-users text-gray-600 text-xl"></i>
                                         <span class="text-gray-700 font-medium">{{ cookingTipsData.servings }}</span>
                                     </div>
                                     
                                     <!-- 요리 시간 -->
                                     <div v-if="cookingTipsData.cookingTime" class="flex items-center space-x-2">
-                                        <i class="pi pi-clock text-orange-600 text-xl"></i>
+                                        <i class="pi pi-clock text-gray-600 text-xl"></i>
                                         <span class="text-gray-700 font-medium">{{ cookingTipsData.cookingTime }}</span>
                                     </div>
                                     
@@ -100,11 +100,11 @@
                                 <!-- 통계 정보 -->
                                 <div class="flex items-center space-x-6 text-gray-600">
                                     <div class="text-center">
-                                        <div class="text-2xl font-bold text-orange-600">{{ formatNumber(recipe.hits) }}</div>
+                                        <div class="text-2xl font-bold text-gray-600">{{ formatNumber(recipe.hits) }}</div>
                                         <div class="text-sm">조회수</div>
                                     </div>
                                     <div class="text-center">
-                                        <div class="text-2xl font-bold text-orange-600">{{ formatNumber(recipe.stats?.totalComments) }}</div>
+                                        <div class="text-2xl font-bold text-gray-600">{{ formatNumber(recipe.stats?.totalComments) }}</div>
                                         <div class="text-sm">댓글</div>
                                     </div>
                                     <div class="text-center">
@@ -149,7 +149,7 @@
             <!-- 준비물 섹션 -->
             <div v-if="recipe.ingredientGroups && recipe.ingredientGroups.length > 0" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
-                    <i class="pi pi-shopping-cart mr-3 text-orange-500"></i>
+                    <i class="pi pi-shopping-cart mr-3 text-gray-500"></i>
                     준비물
                 </h2>
                 
@@ -161,7 +161,7 @@
                     >
                         <!-- 그룹 제목 -->
                         <div class="flex items-center mb-4">
-                            <div class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mr-3">
+                            <div class="w-8 h-8 bg-gray-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mr-3">
                                 {{ groupIndex + 1 }}
                             </div>
                             <h3 class="text-xl font-semibold text-gray-800">
@@ -176,7 +176,7 @@
                                 :key="item.id"
                                 class="flex items-center p-3 bg-white rounded-lg border border-gray-200"
                             >
-                                <i class="pi pi-circle-fill text-orange-400 text-xs mr-3"></i>
+                                <i class="pi pi-circle-fill text-gray-400 text-xs mr-3"></i>
                                 <span class="text-gray-800 text-lg font-medium flex-1">{{ item.name }}</span>
                                 <span class="text-gray-600 text-lg ml-2">
                                     <template v-if="item.quantity">{{ item.quantity }}{{ item.customUnitName || item.detailName }}</template>
@@ -196,7 +196,7 @@
             <!-- 조리 단계 섹션 -->
             <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
-                    <i class="pi pi-list mr-3 text-orange-500"></i>
+                    <i class="pi pi-list mr-3 text-gray-500"></i>
                     조리 순서
                 </h2>
                 
@@ -225,7 +225,7 @@
                             <!-- 우측: 설명 -->
                             <div>
                                 <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0">
+                                    <div class="w-10 h-10 bg-gray-500 text-white rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0">
                                         {{ index + 1 }}
                                     </div>
                                     <p class="text-gray-800 text-lg leading-relaxed whitespace-pre-line">
@@ -241,7 +241,7 @@
             <!-- 이미지 갤러리 섹션 -->
             <div v-if="recipe.images && recipe.images.length > 0" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
-                    <i class="pi pi-images mr-3 text-orange-500"></i>
+                    <i class="pi pi-images mr-3 text-gray-500"></i>
                     이미지 갤러리
                 </h2>
                 
@@ -267,7 +267,7 @@
             <!-- 댓글 섹션 -->
             <div id="comments" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
-                    <i class="pi pi-comments mr-3 text-orange-500"></i>
+                    <i class="pi pi-comments mr-3 text-gray-500"></i>
                     댓글 ({{ comments.length }})
                 </h2>
                 
@@ -290,7 +290,7 @@
                                 @focus="focusCommentTextarea"
                                 :disabled="isRecipeAuthor"
                                 :placeholder="isRecipeAuthor ? '작성자는 답글만 작성이 가능합니다' : '댓글을 작성해주세요...'"
-                                class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                                class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
                                 :class="{ 'bg-gray-100 cursor-not-allowed': isRecipeAuthor }"
                                 rows="3"
                             ></textarea>
@@ -327,7 +327,7 @@
                                 <button 
                                     @click="submitComment"
                                     :disabled="!newComment.trim() || isRecipeAuthor"
-                                    class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     댓글 작성
                                 </button>
@@ -341,7 +341,7 @@
                         <p class="text-gray-600 mb-3">댓글을 작성하려면 로그인이 필요합니다.</p>
                         <button 
                             @click="router.push({ path: '/auth/login', query: { redirect: route.fullPath } })"
-                            class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                            class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
                         >
                             로그인하기
                         </button>
@@ -356,7 +356,7 @@
                         class="space-y-4"
                     >
                         <!-- 최상위 댓글 -->
-                        <div class="flex space-x-4 p-4 bg-gray-50 rounded-lg border-l-4 border-orange-500">
+                        <div class="flex space-x-4 p-4 bg-gray-50 rounded-lg border-l-4 border-gray-500">
                             <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                                 <img 
                                     v-if="comment.memberProfileImage" 
@@ -379,7 +379,7 @@
                                         <template v-if="isMyComment(comment)">
                                             <button 
                                                 @click="startEditComment(comment)"
-                                                class="text-sm text-orange-500 hover:text-orange-700"
+                                                class="text-sm text-gray-500 hover:text-gray-700"
                                             >
                                                 수정
                                             </button>
@@ -404,7 +404,7 @@
                                 <div v-if="editingCommentId === comment.id">
                                     <textarea 
                                         v-model="editingContent"
-                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none mb-2"
+                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none mb-2"
                                         rows="2"
                                     ></textarea>
                                     
@@ -446,7 +446,7 @@
                                             <button 
                                                 @click="updateComment(comment.id)"
                                                 :disabled="!editingContent.trim()"
-                                                class="px-4 py-1 text-sm bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                class="px-4 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                             >
                                                 수정 완료
                                             </button>
@@ -485,7 +485,7 @@
                         </div>
 
                         <!-- 최상위 댓글에 대한 답글 작성 폼 (답글 목록 위) -->
-                        <div v-if="replyingToCommentId === comment.id && !comment.parentId" class="ml-14 flex space-x-4 p-4 bg-orange-50 rounded-lg border-2 border-orange-300">
+                        <div v-if="replyingToCommentId === comment.id && !comment.parentId" class="ml-14 flex space-x-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
                             <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                                 <img 
                                     v-if="authStore.memberProfileImage" 
@@ -496,13 +496,13 @@
                                 <i v-else class="pi pi-user text-gray-600 text-sm"></i>
                             </div>
                             <div class="flex-1">
-                                <div class="text-xs text-orange-600 font-medium mb-2">
+                                <div class="text-xs text-gray-600 font-medium mb-2">
                                     <i class="pi pi-at mr-1"></i>{{ replyingToComment?.memberNickname || replyingToComment?.memberName }}님에게 답글 작성
                                 </div>
                                 <textarea 
                                     v-model="replyContent"
                                     placeholder="답글을 작성해주세요..."
-                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
                                     rows="2"
                                 ></textarea>
                                 
@@ -544,7 +544,7 @@
                                         <button 
                                             @click="submitReply(replyingToComment.parentId || replyingToComment.id)"
                                             :disabled="!replyContent.trim()"
-                                            class="px-4 py-1 text-sm bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                            class="px-4 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                         >
                                             답글 작성
                                         </button>
@@ -585,7 +585,7 @@
                                                 <template v-if="isMyComment(reply)">
                                                     <button 
                                                         @click="startEditComment(reply)"
-                                                        class="text-sm text-orange-500 hover:text-orange-700"
+                                                        class="text-sm text-gray-500 hover:text-gray-700"
                                                     >
                                                         수정
                                                     </button>
@@ -610,7 +610,7 @@
                                         <div v-if="editingCommentId === reply.id">
                                             <textarea 
                                                 v-model="editingContent"
-                                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none mb-2"
+                                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none mb-2"
                                                 rows="2"
                                             ></textarea>
                                             
@@ -652,7 +652,7 @@
                                                     <button 
                                                         @click="updateComment(reply.id)"
                                                         :disabled="!editingContent.trim()"
-                                                        class="px-4 py-1 text-sm bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                        class="px-4 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                     >
                                                         수정 완료
                                                     </button>
@@ -665,7 +665,7 @@
                                                 <!-- 답글 내용 (닉네임 prefix 강조) -->
                                                 <p class="text-gray-700 whitespace-pre-wrap flex-1">
                                                     <template v-if="reply.content.startsWith('@')">
-                                                        <span class="font-bold text-orange-600">{{ reply.content.split(' ')[0] }}</span>
+                                                        <span class="font-bold text-gray-600">{{ reply.content.split(' ')[0] }}</span>
                                                         {{ reply.content.substring(reply.content.indexOf(' ')) }}
                                                     </template>
                                                     <template v-else>
@@ -690,7 +690,7 @@
                                 </div>
                             
                                 <!-- 답글에 대한 답글 작성 폼 -->
-                                <div v-if="replyingToCommentId === reply.id" class="flex space-x-4 p-4 bg-orange-50 rounded-lg border-2 border-orange-300">
+                                <div v-if="replyingToCommentId === reply.id" class="flex space-x-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
                                     <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                                         <img 
                                             v-if="authStore.memberProfileImage" 
@@ -701,13 +701,13 @@
                                         <i v-else class="pi pi-user text-gray-600 text-sm"></i>
                                     </div>
                                     <div class="flex-1">
-                                        <div class="text-xs text-orange-600 font-medium mb-2">
+                                        <div class="text-xs text-gray-600 font-medium mb-2">
                                             <i class="pi pi-at mr-1"></i>{{ replyingToComment?.memberNickname || replyingToComment?.memberName }}님에게 답글 작성
                                         </div>
                                         <textarea 
                                             v-model="replyContent"
                                             placeholder="답글을 작성해주세요..."
-                                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
                                             rows="2"
                                         ></textarea>
                                         
@@ -749,7 +749,7 @@
                                                 <button 
                                                     @click="submitReply(replyingToComment.parentId || replyingToComment.id)"
                                                     :disabled="!replyContent.trim()"
-                                                    class="px-4 py-1 text-sm bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                    class="px-4 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                 >
                                                     답글 작성
                                                 </button>
@@ -782,7 +782,7 @@
                                 v-for="page in totalPages" 
                                 :key="page"
                                 @click="loadPage(page - 1)"
-                                :class="currentPage === page - 1 ? 'bg-orange-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                                :class="currentPage === page - 1 ? 'bg-gray-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
                                 class="px-4 py-2 border border-gray-300 rounded-lg transition-colors"
                             >
                                 {{ page }}

@@ -29,21 +29,21 @@
                 <div class="grid grid-cols-12 gap-4">
                     <div class="col-span-12 md:col-span-6">
                         <label class="block text-sm mb-2">이름</label>
-                        <input v-model="form.name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="이름" />
+                        <input v-model="form.name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="이름" />
                     </div>
                     <div class="col-span-12 md:col-span-6">
                         <label class="block text-sm mb-2">닉네임</label>
-                        <input v-model="form.nickname" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="닉네임" />
+                        <input v-model="form.nickname" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="닉네임" />
                     </div>
                     <div class="col-span-12">
                         <label class="block text-sm mb-2">이메일</label>
-                        <input v-model="form.email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 opacity-80" disabled />
+                        <input v-model="form.email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 opacity-80" disabled />
                     </div>
                     <div class="col-span-12">
                         <label class="block text-sm mb-2">자기소개</label>
                         <textarea 
                             v-model="form.bio" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 resize-none" 
                             placeholder="자기소개를 입력해주세요"
                             rows="4"
                         ></textarea>
@@ -63,7 +63,7 @@
                 </div>
 
                 <div class="mt-6 flex gap-2 justify-end">
-                    <button type="button" class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600" @click="onSave">
+                    <button type="button" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" @click="onSave">
                         <span class="pi pi-save mr-2"></span>
                         <span>저장</span>
                     </button>

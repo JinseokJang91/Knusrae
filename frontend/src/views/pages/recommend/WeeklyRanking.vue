@@ -32,7 +32,7 @@
                                 <h3 class="text-2xl font-bold text-900 m-0">{{ totalViews }}</h3>
                                 <p class="text-600 m-0">총 조회수</p>
                             </div>
-                            <i class="pi pi-eye text-4xl text-orange-500"></i>
+                            <i class="pi pi-eye text-4xl text-gray-500"></i>
                         </div>
                     </template>
                 </Card>
@@ -58,7 +58,7 @@
                                 <h3 class="text-2xl font-bold text-900 m-0">{{ totalRecipes }}</h3>
                                 <p class="text-600 m-0">등록된 레시피</p>
                             </div>
-                            <i class="pi pi-book text-4xl text-orange-500"></i>
+                            <i class="pi pi-book text-4xl text-gray-500"></i>
                         </div>
                     </template>
                 </Card>
@@ -127,7 +127,7 @@
                 <Card>
                     <template #title>
                         <div class="flex align-items-center gap-2">
-                            <i class="pi pi-chart-bar text-orange-500"></i>
+                            <i class="pi pi-chart-bar text-gray-500"></i>
                             <span>카테고리별 인기</span>
                         </div>
                     </template>
@@ -150,7 +150,7 @@
                 <Card class="mt-3">
                     <template #title>
                         <div class="flex align-items-center gap-2">
-                            <i class="pi pi-tag text-orange-500"></i>
+                            <i class="pi pi-tag text-gray-500"></i>
                             <span>인기 키워드</span>
                         </div>
                     </template>

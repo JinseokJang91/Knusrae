@@ -564,10 +564,13 @@ onMounted(() => {
 
         <!-- 우측 영역: 내 레시피 + 프로필/로그인/회원가입 -->
         <div class="topbar-right">
-            <button class="menu-item my-recipes-btn" @click="handleMyRecipesClick">
+            <!-- <button v-if="authStore.isLoggedIn" class="menu-item my-recipes-btn" @click="handleMyRecipesClick">
                 <i class="pi pi-book"></i>
                 <span>내 레시피</span>
-            </button>
+            </button> -->
+            <div v-if="authStore.isLoggedIn">
+                <Button icon="pi pi-book" label="내 레시피" @click="handleMyRecipesClick" size="small" raised />
+            </div>
 
             <!-- 로그인 상태일 때 -->
             <div v-if="authStore.isLoggedIn" class="profile-section">
@@ -583,17 +586,12 @@ onMounted(() => {
                             alt="프로필" 
                             class="profile-image"
                         />
-                        <i v-else class="pi pi-user"></i>
-                        <span class="ml-2">{{ authStore.memberName }}님</span>
+                        <i v-else class="pi pi-user profile-icon"></i>
                     </button>
-                    <div ref="profileMenuRef" class="hidden absolute right-0 mt-2 w-56 card p-2 z-50">
+                    <div ref="profileMenuRef" class="hidden absolute left-0 mt-2 w-56 card p-2 z-50">
                         <a href="/my/profile" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/profile', $event)">
                             <i class="pi pi-id-card"></i>
                             <span>내 정보 수정</span>
-                        </a>
-                        <a href="/my/recipes" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/recipes', $event)">
-                            <i class="pi pi-book"></i>
-                            <span>레시피 관리</span>
                         </a>
                         <a href="/my/comments" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/comments', $event)">
                             <i class="pi pi-comments"></i>

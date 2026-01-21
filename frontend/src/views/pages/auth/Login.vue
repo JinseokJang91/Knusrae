@@ -123,7 +123,7 @@ async function loginWithTestAccount(email: string) {
 </script>
 
 <template>
-    <div class="bg-gray-50 dark:bg-gray-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden relative">
+    <div class="bg-white dark:bg-gray-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden relative">
         <!-- 홈 아이콘 -->
         <div class="absolute top-6 left-6 z-10">
             <Button 
@@ -157,7 +157,7 @@ async function loginWithTestAccount(email: string) {
 
                         <!-- 개발 환경에서만 표시되는 테스트 계정 로그인 -->
                         <div v-if="isDevelopment" class="mt-8 pt-6 border-t border-gray-300 dark:border-gray-700">
-                            <button @click="loadTestAccounts" :disabled="loadingTestAccounts" class="w-full flex items-center justify-center gap-2 bg-orange-100 dark:bg-orange-900 border border-orange-300 dark:border-orange-700 rounded-lg px-6 py-3 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800 transition-colors disabled:opacity-50">
+                            <button @click="loadTestAccounts" :disabled="loadingTestAccounts" class="w-full flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>

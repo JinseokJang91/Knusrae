@@ -5,11 +5,11 @@
     justify-content: space-between;
     padding: 6rem 0 0 0; // 상단: topbar 높이(5rem) + 여백(1rem), 하단: footer를 위한 여백은 layout-main의 padding-bottom으로 처리
     
-    // background: #f97316;
+    // background: white;
     background:
     radial-gradient(circle at 50% 220px, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 60%),
-    radial-gradient(circle at 50% 320px, rgba(0,0,0,.18) 0%, rgba(0,0,0,0) 70%),
-    #f97316;
+    radial-gradient(circle at 50% 320px, rgba(0,0,0,.05) 0%, rgba(0,0,0,0) 70%),
+    #fff7ed; // body와 톤 통일 + topbar보다 한 톤 더 오렌지 (orange-50 계열)
 }
 
 .layout-main {

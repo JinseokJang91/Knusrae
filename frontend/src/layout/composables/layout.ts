@@ -20,7 +20,7 @@ interface LayoutState {
 
 const layoutConfig = reactive<LayoutConfig>({
     preset: 'Aura',
-    primary: 'orange',
+    primary: 'gray',
     surface: null,
     darkTheme: false,
     menuMode: 'static'

@@ -23,7 +23,7 @@ const providerConfig = {
     google: {
         successType: 'GOOGLE_LOGIN_SUCCESS',
         errorType: 'GOOGLE_LOGIN_ERROR',
-        color: 'orange-600',
+        color: 'gray-600',
         label: '구글'
     }
 };

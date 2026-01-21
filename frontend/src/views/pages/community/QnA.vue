@@ -44,7 +44,7 @@
                                 <h3 class="text-2xl font-bold text-gray-900 m-0">{{ totalQuestions }}</h3>
                                 <p class="text-gray-600 m-0">총 질문</p>
                             </div>
-                            <i class="pi pi-question-circle text-4xl text-orange-500"></i>
+                            <i class="pi pi-question-circle text-4xl text-gray-500"></i>
                         </div>
                     </template>
                 </Card>
@@ -70,7 +70,7 @@
                                 <h3 class="text-2xl font-bold text-gray-900 m-0">{{ pendingQuestions }}</h3>
                                 <p class="text-gray-600 m-0">답변 대기</p>
                             </div>
-                            <i class="pi pi-clock text-4xl text-orange-500"></i>
+                            <i class="pi pi-clock text-4xl text-gray-500"></i>
                         </div>
                     </template>
                 </Card>
@@ -698,13 +698,13 @@ onMounted(() => {
     background-color: var(--surface-50);
     padding: 1rem;
     border-radius: 8px;
-    border-left: 4px solid var(--orange-500);
+    border-left: 4px solid var(--gray-500);
 }
 
 .answer-item {
     background-color: var(--surface-50);
     padding: 1rem;
     border-radius: 8px;
-    border-left: 4px solid var(--orange-500);
+    border-left: 4px solid var(--gray-500);
 }
 </style>

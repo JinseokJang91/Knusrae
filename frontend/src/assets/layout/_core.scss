@@ -9,7 +9,7 @@ body {
     font-weight: 400;
     font-style: normal;
     color: var(--text-color);
-    background-color: var(--surface-ground);
+    background-color: #fff7ed; // body를 topbar보다 한 톤 더 오렌지로 (orange-50 계열)
     margin: 0;
     padding: 0;
     min-height: 100%;
