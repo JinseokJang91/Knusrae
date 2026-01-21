@@ -1,6 +1,5 @@
 <template>
-    <div class="card">
-        <h2 class="text-2xl font-bold mb-4">내 정보 수정</h2>
+    <div class="profile-content">
         <div class="grid grid-cols-12 gap-6">
             <div class="col-span-12 md:col-span-4">
                 <div class="p-4 border rounded-md flex flex-col items-center justify-center h-5/6">

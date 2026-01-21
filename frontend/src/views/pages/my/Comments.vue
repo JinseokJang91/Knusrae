@@ -1,8 +1,7 @@
 <template>
-    <div class="card">
+    <div class="comments-content">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-2xl font-bold">댓글 관리</h2>
-            <div class="flex gap-2 items-center">
+            <div class="flex gap-2 items-center ml-auto">
                 <select v-model="filter" class="p-inputtext p-component">
                     <option value="all">전체</option>
                     <option value="recipe">레시피</option>

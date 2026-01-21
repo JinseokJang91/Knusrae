@@ -13,9 +13,25 @@ const routes: RouteRecordRaw[] = [
             },
             // 마이페이지 메뉴
             {
+                path: '/mypage',
+                name: 'mypage',
+                component: () => import('@/views/pages/my/MyPage.vue')
+            },
+            {
                 path: '/my/profile',
-                name: 'myProfile',
-                component: () => import('@/views/pages/my/Profile.vue')
+                redirect: '/mypage?tab=profile'
+            },
+            {
+                path: '/my/comments',
+                redirect: '/mypage?tab=comments'
+            },
+            {
+                path: '/my/inquiries',
+                redirect: '/mypage?tab=inquiries'
+            },
+            {
+                path: '/my/favorites',
+                redirect: '/mypage?tab=favorites'
             },
             {
                 path: '/my/recipes',
@@ -31,16 +47,6 @@ const routes: RouteRecordRaw[] = [
                 path: '/my/recipes/:id/edit',
                 name: 'myRecipeEdit',
                 component: () => import('@/views/pages/my/RecipeEdit.vue')
-            },
-            {
-                path: '/my/comments',
-                name: 'myComments',
-                component: () => import('@/views/pages/my/Comments.vue')
-            },
-            {
-                path: '/my/inquiries',
-                name: 'myInquiries',
-                component: () => import('@/views/pages/my/Inquiries.vue')
             },
             // 메인 메뉴
             {
@@ -80,11 +86,6 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/pages/recommend/MonthlyRanking.vue')
             },
             // 레시피 메뉴
-            {
-                path: '/my/favorites',
-                name: 'favorites',
-                component: () => import('@/views/pages/my/Favorites.vue')
-            },
             {
                 path: '/recipe/search',
                 name: 'searchResult',

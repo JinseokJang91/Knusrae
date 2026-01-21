@@ -48,7 +48,7 @@ onUnmounted(() => {
     width: 3rem;
     height: 3rem;
     border-radius: 50%;
-    background: var(--primary-color);
+    background: #FF9800;
     color: white;
     border: none;
     cursor: pointer;
@@ -61,12 +61,6 @@ onUnmounted(() => {
     
     i {
         font-size: 1.25rem;
-    }
-    
-    &:hover {
-        background: var(--primary-600);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     }
     
     &:active {

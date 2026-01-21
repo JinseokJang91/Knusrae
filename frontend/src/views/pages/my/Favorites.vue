@@ -1,10 +1,5 @@
 <template>
-    <div class="card">
-        <!-- header : 페이지 제목 -->
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-3xl font-bold text-gray-900">찜 목록</h1>
-        </div>
-
+    <div class="favorites-content">
         <div class="mb-6 p-4 bg-gray-50 border-l-4 border-gray-500 rounded-r">
             <p class="text-gray-700 italic">
                 찜 버튼( <i class="pi pi-heart-fill"/> )을 클릭해 찜 목록에서 삭제할 수 있어요.

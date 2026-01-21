@@ -5,6 +5,7 @@ import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import { useToast } from 'primevue/usetoast';
+import Menu from 'primevue/menu';
 import { getRecentSearchKeywords, deleteRecentSearchKeyword, deleteAllRecentSearchKeywords, saveRecentSearchKeyword, type RecentSearchKeyword } from '@/utils/search';
 
 const router = useRouter();
@@ -13,7 +14,22 @@ const toast = useToast();
 const authStore = useAuthStore();
 
 const searchQuery = ref('');
-const profileMenuRef = ref<HTMLElement | null>(null);
+const profileMenu = ref();
+
+// 프로필 메뉴 아이템
+const profileMenuItems = ref([
+    {
+        label: '마이페이지',
+        icon: 'pi pi-user',
+        command: () => handleMyMenuClick('/mypage', new Event('click'))
+    },
+    { separator: true },
+    {
+        label: '로그아웃',
+        icon: 'pi pi-sign-out',
+        command: () => handleLogout()
+    }
+]);
 const recentKeywords = ref<RecentSearchKeyword[]>([]);
 const showRecentKeywords = ref(false);
 const recentKeywordsLoading = ref(false);
@@ -263,11 +279,6 @@ const handleClickOutside = (event: MouseEvent) => {
     }
 };
 
-const closeProfileMenu = () => {
-    if (profileMenuRef.value) {
-        profileMenuRef.value.classList.add('hidden');
-    }
-};
 
 const handleMyRecipesClick = (event: Event) => {
     event.preventDefault();
@@ -317,7 +328,6 @@ const handleMyMenuClick = (path: string, event: Event) => {
                 label: '로그인'
             },
             accept: () => {
-                closeProfileMenu();
                 router.push({
                     path: '/auth/login',
                     query: { redirect: path }
@@ -328,7 +338,6 @@ const handleMyMenuClick = (path: string, event: Event) => {
             }
         });
     } else {
-        closeProfileMenu();
         router.push(path);
     }
 };
@@ -574,44 +583,20 @@ onMounted(() => {
 
             <!-- 로그인 상태일 때 -->
             <div v-if="authStore.isLoggedIn" class="profile-section">
-                <div class="relative">
-                    <button
-                        type="button"
-                        class="profile-button"
-                        v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }"
-                    >
-                        <img 
-                            v-if="authStore.memberProfileImage" 
-                            :src="authStore.memberProfileImage" 
-                            alt="프로필" 
-                            class="profile-image"
-                        />
-                        <i v-else class="pi pi-user profile-icon"></i>
-                    </button>
-                    <div ref="profileMenuRef" class="hidden absolute left-0 mt-2 w-56 card p-2 z-50">
-                        <a href="/my/profile" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/profile', $event)">
-                            <i class="pi pi-id-card"></i>
-                            <span>내 정보 수정</span>
-                        </a>
-                        <a href="/my/comments" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/comments', $event)">
-                            <i class="pi pi-comments"></i>
-                            <span>댓글 관리</span>
-                        </a>
-                        <a href="/my/inquiries" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/inquiries', $event)">
-                            <i class="pi pi-inbox"></i>
-                            <span>1:1 문의 내역</span>
-                        </a>
-                        <a href="/my/favorites" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer" @click="handleMyMenuClick('/my/favorites', $event)">
-                            <i class="pi pi-heart"></i>
-                            <span>찜 목록</span>
-                        </a>
-                        <div class="my-2 border-t"></div>
-                        <button type="button" class="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded w-full text-left" @click="handleLogout(); closeProfileMenu();">
-                            <i class="pi pi-sign-out"></i>
-                            <span>로그아웃</span>
-                        </button>
-                    </div>
-                </div>
+                <button
+                    type="button"
+                    class="profile-button"
+                    @click="(event: Event) => profileMenu.toggle(event)"
+                >
+                    <img 
+                        v-if="authStore.memberProfileImage" 
+                        :src="authStore.memberProfileImage" 
+                        alt="프로필" 
+                        class="profile-image"
+                    />
+                    <i v-else class="pi pi-user profile-icon"></i>
+                </button>
+                <Menu ref="profileMenu" :model="profileMenuItems" :popup="true" />
             </div>
 
             <!-- 비로그인 상태일 때 -->

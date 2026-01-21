@@ -90,12 +90,10 @@
         }
         
         &:hover {
-            background-color: var(--primary-color);
-            color: var(--primary-contrast-color);
+            color: var(--primary-color);
             
             span {
-                color: var(--primary-contrast-color);
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                color: var(--primary-color);
                 
                 // hover 시 underline 확장
                 &::after {
@@ -104,19 +102,16 @@
             }
             
             i {
-                color: var(--primary-contrast-color);
-                transform: scale(1.1);
+                color: var(--primary-color);
             }
         }
         
         &.router-link-active,
         &.router-link-exact-active {
-            background-color: var(--primary-color);
-            color: var(--primary-contrast-color);
+            color: var(--primary-color);
             
             span {
-                color: var(--primary-contrast-color);
-                text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                color: var(--primary-color);
                 
                 // active 상태에서도 underline 유지
                 &::after {
@@ -125,7 +120,7 @@
             }
             
             i {
-                color: var(--primary-contrast-color);
+                color: var(--primary-color);
             }
         }
     }
@@ -163,21 +158,21 @@
             .search-input {
                 width: 100%;
                 padding: 0.75rem 3rem 0.75rem 3rem;
-                border: 1px solid rgba(0, 0, 0, 0.1);
+                border: 1px solid #000000;
                 border-radius: var(--content-border-radius);
                 font-size: 1rem;
                 transition: border-color var(--element-transition-duration);
-                background-color: var(--surface-ground);
+                background-color: #ffffff;
                 color: var(--text-color);
                 
                 &:focus {
                     outline: none;
-                    border-color: rgba(0, 0, 0, 0.2);
+                    border-color: #000000;
                     box-shadow: 0 0 0 2px var(--primary-color-alpha-20);
                 }
 
                 &::placeholder {
-                    color: var(--text-secondary-color);
+                    color: #6b7280;
                 }
             }
 

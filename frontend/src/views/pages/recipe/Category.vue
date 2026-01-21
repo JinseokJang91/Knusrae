@@ -1,9 +1,9 @@
 <template>
     <div class="card">
         <!-- header : 페이지 제목, 새로고침 버튼, 상세검색 다이얼로그 버튼 -->
-        <div class="flex justify-between items-center mb-4">
+        <!-- <div class="flex justify-between items-center mb-4">
             <h1 class="text-3xl font-bold text-gray-900">카테고리</h1>
-        </div>
+        </div> -->
 
         <!-- header : 카테고리 선택 영역 (좌측 메인 카테고리, 우측 서브 카테고리) -->
         <div class="category-selector mb-4">
@@ -23,15 +23,14 @@
                 <!-- 우측: 선택된 메인 카테고리의 서브 카테고리 목록 (나열) -->
                 <div class="sub-categories flex-1">
                     <div class="flex flex-wrap gap-2">
-                        <Button
+                        <button
                             v-for="detail in selectedMainCategoryDetails"
                             :key="detail.detailCodeId"
-                            :label="detail.codeName"
-                            :class="selectedCategory === detail.detailCodeId ? 'p-button-primary' : 'p-button-outlined'"
-                            size="small"
+                            :class="['category-button', selectedCategory === detail.detailCodeId ? 'selected' : '']"
                             @click="selectCategory(detail.detailCodeId)"
-                            class="category-button"
-                        />
+                        >
+                            {{ detail.codeName }}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -793,16 +792,17 @@ onMounted(() => {
 /* 카테고리 선택기 스타일 */
 .category-selector {
     background: var(--surface-card);
-    border: 1px solid var(--surface-border);
+    border: 1px solid #4b5563;
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* 좌측 메인 카테고리 스타일 */
 .main-categories {
     min-width: 200px;
-    border-right: 2px solid var(--surface-border);
+    border-right: 2px solid #e5e7eb;
     padding-right: 1rem;
     margin-right: 1rem;
 }
@@ -813,22 +813,23 @@ onMounted(() => {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-weight: 500;
-    color: var(--text-color);
-    background: var(--surface-ground);
-    border: 1px solid transparent;
+    font-weight: 700;
+    color: #374151;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
 }
 
 .main-category-item:hover {
-    background: var(--surface-hover);
-    border-color: var(--primary-color);
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    color: #111827;
 }
 
 .main-category-item.selected {
-    background: var(--primary-color);
+    background: #1f2937;
     color: white;
-    border-color: var(--primary-color);
-    font-weight: 600;
+    border-color: #111827;
+    font-weight: 700;
 }
 
 /* 우측 서브 카테고리 스타일 */
@@ -837,13 +838,37 @@ onMounted(() => {
 }
 
 .category-button {
+    padding: 0.75rem 1rem;
     min-width: 120px;
+    border-radius: 8px;
+    cursor: pointer;
     transition: all 0.2s ease;
+    font-weight: 700;
+    color: #374151;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    font-size: 0.875rem;
 }
 
 .category-button:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    color: #111827;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.category-button.selected {
+    background: #1f2937;
+    color: white;
+    border-color: #111827;
+    font-weight: 700;
+}
+
+.category-button.selected:hover {
+    background: #111827;
+    border-color: #000000;
+    color: white;
 }
 
 /* 레시피 그리드 스타일 */

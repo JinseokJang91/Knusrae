@@ -1,13 +1,36 @@
-<script setup>
-// TODO: 요리 레시피 대시보드용 컴포넌트들을 여기에 추가할 예정
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useAuthStore } from '@/stores/authStore';
+
+const authStore = useAuthStore();
+
+const isLoggedIn = computed(() => authStore.isLoggedIn);
+const nickname = computed(() => authStore.memberName);
+
+// 앱 초기화 중에는 비로그인 문구를 보여주되, 인증이 끝나면 실제 로그인 상태로 전환
+const showLoggedInGreeting = computed(() => authStore.isInitialized && isLoggedIn.value);
 </script>
 
 <template>
     <div class="grid grid-cols-12 gap-8">
         <div class="col-span-12">
             <div class="card">
-                <h5 class="text-xl font-bold mb-4">요리 레시피 대시보드</h5>
-                <p class="text-gray-600">요리 레시피 웹사이트 대시보드가 여기에 구현됩니다.</p>
+                <h4 class="text-2xl font-bold mb-2">
+                    <template v-if="showLoggedInGreeting">
+                        {{ nickname }} 요리사님, 환영해요 😄
+                    </template>
+                    <template v-else>
+                        환영해요 😄
+                    </template>
+                </h4>
+                <p class="text-gray-600">
+                    <template v-if="showLoggedInGreeting">
+                        오늘은 어떤 레시피가 당신에게 스며들까요?
+                    </template>
+                    <template v-else>
+                        오늘 여러분이 선택한 레시피는 어떤 걸까요?
+                    </template>
+                </p>
             </div>
         </div>
     </div>

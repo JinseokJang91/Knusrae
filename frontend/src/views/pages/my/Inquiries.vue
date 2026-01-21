@@ -1,8 +1,7 @@
 <template>
-    <div class="card">
+    <div class="inquiries-content">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-2xl font-bold">1:1 문의 내역</h2>
-            <div class="flex gap-2 items-center">
+            <div class="flex gap-2 items-center ml-auto">
                 <select v-model="status" class="p-inputtext p-component">
                     <option value="all">전체 상태</option>
                     <option value="pending">대기</option>
