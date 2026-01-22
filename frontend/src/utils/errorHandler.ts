@@ -1,5 +1,3 @@
-import { useToast } from 'primevue/usetoast';
-
 /**
  * 에러 메시지 추출 유틸리티
  * @param err 에러 객체
@@ -30,21 +28,6 @@ function extractErrorMessage(err: unknown, defaultMessage: string): string {
  * 컴포넌트 내부에서 사용하여 API 호출 에러를 일관되게 처리합니다.
  */
 export function useErrorHandler() {
-    const toast = useToast();
-
-    /**
-     * 에러 토스트 표시
-     * @param detailMessage 표시할 상세 메시지
-     * @param summary 토스트 제목 (기본값: '오류')
-     */
-    const showErrorToast = (detailMessage: string, summary: string = '오류'): void => {
-        toast.add({
-            severity: 'error',
-            summary,
-            detail: detailMessage,
-            life: 3000
-        });
-    };
 
     /**
      * API 호출 에러 처리 유틸리티
@@ -64,7 +47,7 @@ export function useErrorHandler() {
             } catch (err) {
                 console.error(errorMessage, err);
                 const detailMessage = extractErrorMessage(err, errorMessage);
-                showErrorToast(detailMessage, errorSummary);
+                console.error(`${errorSummary}: ${detailMessage}`);
                 return null;
             }
         })();
@@ -88,7 +71,7 @@ export function useErrorHandler() {
         } catch (err) {
             console.error(errorMessage, err);
             const detailMessage = extractErrorMessage(err, errorMessage);
-            showErrorToast(detailMessage, errorSummary);
+            console.error(`${errorSummary}: ${detailMessage}`);
             return false;
         }
     };
@@ -96,7 +79,6 @@ export function useErrorHandler() {
     return {
         handleApiCall,
         handleApiCallVoid,
-        showErrorToast,
         extractErrorMessage
     };
 }

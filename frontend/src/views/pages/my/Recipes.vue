@@ -88,37 +88,37 @@
                     </div>
 
                     <div v-else-if="recipeDetail">
-                        <h4 class="text-lg font-semibold mb-2">{{ recipeDetail.recipe.title }}</h4>
-                        <p class="text-gray-600 mb-4">{{ recipeDetail.recipe.introduction }}</p>
+                        <h4 class="text-lg font-semibold mb-2">{{ recipeDetail.title }}</h4>
+                        <p class="text-gray-600 mb-4">{{ recipeDetail.introduction }}</p>
 
                         <!-- 이미지 갤러리 -->
-                        <div v-if="recipeDetail.images.length > 0" class="mb-6">
+                        <div v-if="recipeDetail.images && recipeDetail.images.length > 0" class="mb-6">
                             <h5 class="font-medium mb-2">이미지</h5>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                <div v-for="(image, index) in recipeDetail.imageUrls" :key="index" class="relative border rounded-lg overflow-hidden" :class="{ 'ring-2 ring-gray-500': index === recipeDetail.mainImageIndex }">
-                                    <img :src="image" :alt="`레시피 이미지 ${index + 1}`" class="w-full h-32 object-cover" />
-                                    <div v-if="index === recipeDetail.mainImageIndex" class="absolute top-2 left-2 bg-gray-500 text-white text-xs px-1 rounded">메인</div>
+                                <div v-for="(image, index) in recipeDetail.images" :key="index" class="relative border rounded-lg overflow-hidden" :class="{ 'ring-2 ring-gray-500': image.isMainImage }">
+                                    <img :src="image.url" :alt="`레시피 이미지 ${index + 1}`" class="w-full h-32 object-cover" />
+                                    <div v-if="image.isMainImage" class="absolute top-2 left-2 bg-gray-500 text-white text-xs px-1 rounded">메인</div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 레시피 스텝 -->
-                        <div v-if="recipeDetail.recipe.steps && recipeDetail.recipe.steps.length > 0">
+                        <div v-if="recipeDetail.steps && recipeDetail.steps.length > 0">
                             <h5 class="font-medium mb-2">조리 단계</h5>
                             <div class="space-y-2">
-                                <div v-for="(step, index) in recipeDetail.recipe.steps" :key="index" class="flex gap-3 p-3 bg-gray-50 rounded">
+                                <div v-for="(step, index) in recipeDetail.steps" :key="index" class="flex gap-3 p-3 bg-gray-50 rounded">
                                     <span class="font-bold text-gray-600">{{ index + 1 }}.</span>
-                                    <span>{{ step.description }}</span>
+                                    <span>{{ step.text }}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mt-4 pt-4 border-t text-sm text-gray-500">
-                            <div>카테고리: {{ formatCategories(recipeDetail.recipe.categories) }}</div>
-                            <div>상태: {{ recipeDetail.recipe.status }}</div>
-                            <div>공개 설정: {{ recipeDetail.recipe.visibility }}</div>
-                            <div>조회수: {{ recipeDetail.recipe.hits || 0 }}</div>
-                            <div v-if="recipeDetail.recipe.createdAt">등록일: {{ new Date(recipeDetail.recipe.createdAt).toLocaleDateString() }}</div>
+                            <div>카테고리: {{ formatCategories(recipeDetail.categories) }}</div>
+                            <div>상태: {{ recipeDetail.status }}</div>
+                            <div>공개 설정: {{ recipeDetail.visibility }}</div>
+                            <div>조회수: {{ recipeDetail.hits || 0 }}</div>
+                            <div v-if="recipeDetail.createdAt">등록일: {{ new Date(recipeDetail.createdAt).toLocaleDateString() }}</div>
                         </div>
                     </div>
                 </div>
@@ -134,13 +134,12 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import { getApiBaseUrl } from '@/utils/constants';
+import type { Recipe, RecipeDetail } from '@/types/recipe';
 
 // API 호출을 위한 기본 URL 및 공용 HTTP 유틸
 const API_COOK_BASE_URL = getApiBaseUrl('cook');
 const router = useRouter();
 const confirm = useConfirm();
-
-// 타입은 @/types/recipe에서 import
 
 // 1. 레시피 목록 조회 (로그인 유저의 레시피)
 const fetchRecipes = async (): Promise<Recipe[]> => {
@@ -160,7 +159,7 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const showDetailModal = ref(false);
 const detailLoading = ref(false);
-const recipeDetail = ref<Recipe | null>(null);
+const recipeDetail = ref<RecipeDetail | null>(null);
 
 // 레시피 목록 로드
 const loadRecipes = async () => {

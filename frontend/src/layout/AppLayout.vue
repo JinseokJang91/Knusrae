@@ -22,6 +22,5 @@ const containerClass = computed(() => {
             <app-footer></app-footer>
         </div>
     </div>
-    <Toast position="bottom-left" />
     <ScrollToTop />
 </template>

@@ -8,26 +8,14 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Button: typeof import('primevue/button')['default']
-    Dropdown: typeof import('primevue/dropdown')['default']
-    InputNumber: typeof import('primevue/inputnumber')['default']
-    InputText: typeof import('primevue/inputtext')['default']
-    Menu: typeof import('primevue/menu')['default']
-    Message: typeof import('primevue/message')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ScrollToTop: typeof import('./src/components/ScrollToTop.vue')['default']
-    Select: typeof import('primevue/select')['default']
     SocialLoginButtons: typeof import('./src/components/SocialLoginButtons.vue')['default']
-    Tab: typeof import('primevue/tab')['default']
-    TabList: typeof import('primevue/tablist')['default']
-    TabPanels: typeof import('primevue/tabpanels')['default']
-    Tabs: typeof import('primevue/tabs')['default']
-    Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
     ToggleSwitch: typeof import('primevue/toggleswitch')['default']
   }
   export interface ComponentCustomProperties {
     StyleClass: typeof import('primevue/styleclass')['default']
-    Tooltip: typeof import('primevue/tooltip')['default']
   }
 }

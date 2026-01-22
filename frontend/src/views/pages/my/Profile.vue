@@ -76,7 +76,6 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import { httpForm } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
-import { useToast } from 'primevue/usetoast';
 import { useAuthStore } from '@/stores/authStore';
 import { getApiBaseUrl } from '@/utils/constants';
 
@@ -90,7 +89,6 @@ interface ProfileFormState {
     followingCount: number;
 }
 
-const toast = useToast();
 const authStore = useAuthStore();
 const form = reactive<ProfileFormState>({
     name: '',
@@ -140,13 +138,6 @@ const onSave = async () => {
             method: 'PUT'
         });
 
-        toast.add({
-            severity: 'success',
-            summary: '성공',
-            detail: '프로필 정보가 저장되었습니다.',
-            life: 3000
-        });
-
         // 프로필 정보 다시 불러오기
         await loadMemberInfo();
         // authStore의 회원 정보도 업데이트하여 AppTopbar에 즉시 반영
@@ -154,12 +145,6 @@ const onSave = async () => {
         profileImageFile.value = null;
     } catch (error) {
         console.error('프로필 저장 실패:', error);
-        toast.add({
-            severity: 'error',
-            summary: '오류',
-            detail: '프로필 저장에 실패했습니다.',
-            life: 3000
-        });
     } finally {
         loading.value = false;
     }

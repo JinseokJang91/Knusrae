@@ -448,11 +448,9 @@ import Message from 'primevue/message';
 import Popover from 'primevue/popover';
 import Select from 'primevue/select';
 import Textarea from 'primevue/textarea';
-import { useToast } from 'primevue/usetoast';
 import { useConfirm } from 'primevue/useconfirm';
 
 const router = useRouter();
-const toast = useToast();
 const confirm = useConfirm();
 const { handleApiCallVoid } = useErrorHandler();
 
@@ -1020,13 +1018,7 @@ async function submit(): Promise<void> {
     const validation = validateForm();
     if (!validation.valid) {
         const fieldName = validation.firstErrorFieldName || '필수 항목';
-        
-        toast.add({ 
-            severity: 'error', 
-            summary: '입력 오류', 
-            detail: `${fieldName}을(를) 입력해주세요.`, 
-            life: 3000 
-        });
+        alert(`${fieldName}을(를) 입력해주세요.`);
         if (validation.firstErrorField) {
             setTimeout(() => {
                 focusFirstError(validation.firstErrorField!);
@@ -1068,13 +1060,6 @@ async function submit(): Promise<void> {
     if (success) {
         // 등록 성공 시 페이지 이탈 방지 해제
         isSubmitSuccessful.value = true;
-
-        toast.add({
-            severity: 'success',
-            summary: '등록 완료',
-            detail: '등록이 완료되었습니다.',
-            life: 3000
-        });
 
         router.push('/my/recipes');
     }

@@ -116,5 +116,10 @@ export interface Recipe {
     memberNickname?: string;
     memberProfileImage?: string;
     commentCount?: number;
+    // 검색 결과에서 사용되는 추가 속성
+    isFavorite?: boolean;
+    category?: string;
+    cookingTime?: string;
+    servings?: string;
 }
 

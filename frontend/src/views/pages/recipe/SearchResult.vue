@@ -183,9 +183,7 @@ import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Paginator from 'primevue/paginator';
 import ProgressSpinner from 'primevue/progressspinner';
-import Rating from 'primevue/rating';
 import Tag from 'primevue/tag';
-import { useToast } from 'primevue/usetoast';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getApiBaseUrl } from '@/utils/constants';
@@ -193,7 +191,6 @@ import type { Recipe } from '@/types/recipe';
 
 const route = useRoute();
 const router = useRouter();
-const toast = useToast();
 const authStore = useAuthStore();
 
 // 반응형 데이터
@@ -206,7 +203,6 @@ const error = ref<string | null>(null);
 const searchKeyword = ref<string>('');
 
 // 현재 로그인한 사용자 정보
-const isLoggedIn = computed(() => authStore.isLoggedIn);
 const currentMemberId = computed(() => authStore.memberInfo?.id || null);
 
 // API 기본 URL
@@ -270,9 +266,9 @@ const loadCategories = async () => {
         const codes = Array.isArray(response) ? response : [];
         
         categories.value = [];
-        codes.forEach((code) => {
+        codes.forEach((code: { codeId: string; details?: Array<{ detailCodeId: string; codeName: string }> }) => {
             if (Array.isArray(code.details)) {
-                code.details.forEach((detail) => {
+                code.details.forEach((detail: { detailCodeId: string; codeName: string }) => {
                     categories.value.push({
                         value: detail.detailCodeId,
                         name: detail.codeName,
@@ -305,7 +301,7 @@ const extractCategoryIds = (recipe: Recipe) => {
 };
 
 // cookingTips에서 요리 시간 추출
-const extractCookingTime = (cookingTips: any[]) => {
+const extractCookingTime = (cookingTips: Array<{ codeId: string; detailName?: string }> | undefined) => {
     if (!cookingTips || !Array.isArray(cookingTips)) {
         return null;
     }
@@ -314,7 +310,7 @@ const extractCookingTime = (cookingTips: any[]) => {
 };
 
 // cookingTips에서 인분 수 추출
-const extractServings = (cookingTips: any[]) => {
+const extractServings = (cookingTips: Array<{ codeId: string; detailName?: string }> | undefined) => {
     if (!cookingTips || !Array.isArray(cookingTips)) {
         return null;
     }
@@ -426,12 +422,7 @@ const scrollToComments = (recipeId: number) => {
 // 찜 목록 추가/제거
 const toggleFavorite = async (recipeId: number) => {
     if (!currentMemberId.value) {
-        toast.add({
-            severity: 'warn',
-            summary: '로그인 필요',
-            detail: '찜 기능을 사용하려면 로그인이 필요합니다.',
-            life: 3000
-        });
+        console.warn('찜 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
 
@@ -446,21 +437,8 @@ const toggleFavorite = async (recipeId: number) => {
         );
 
         (recipe as any).isFavorite = response.isFavorite;
-
-        toast.add({
-            severity: 'success',
-            summary: (recipe as any).isFavorite ? '찜 추가' : '찜 해제',
-            detail: (recipe as any).isFavorite ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.',
-            life: 3000
-        });
     } catch (err) {
         console.error('찜 토글 실패:', err);
-        toast.add({
-            severity: 'error',
-            summary: '오류 발생',
-            detail: '찜 기능을 사용할 수 없습니다.',
-            life: 3000
-        });
     }
 };
 
@@ -470,8 +448,8 @@ const viewRecipe = (recipeId: number) => {
 };
 
 // 북마크 추가
-const bookmarkRecipe = (recipeId: number) => {
-    toast.add({ severity: 'info', summary: '북마크', detail: '레시피가 북마크되었습니다.', life: 3000 });
+const bookmarkRecipe = (_recipeId: number) => {
+    // 북마크 기능은 추후 구현 예정
 };
 
 // 페이징

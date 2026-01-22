@@ -92,13 +92,11 @@ import Button from 'primevue/button';
 import Paginator from 'primevue/paginator';
 import ProgressSpinner from 'primevue/progressspinner';
 import Tag from 'primevue/tag';
-import { useToast } from 'primevue/usetoast';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { getApiBaseUrl } from '@/utils/constants';
 
 const router = useRouter();
-const toast = useToast();
 
 // API 기본 URL
 const API_BASE_URL = getApiBaseUrl('cook');
@@ -136,24 +134,10 @@ const loadFavorites = async () => {
         );
 
         favoriteRecipes.value = response || [];
-
-        toast.add({
-            severity: 'success',
-            summary: '찜 목록 로드 완료',
-            detail: `${favoriteRecipes.value.length}개의 찜한 레시피를 불러왔습니다.`,
-            life: 3000
-        });
     } catch (err) {
         console.error('찜 목록 로드 실패:', err);
         error.value = err.message || '찜 목록을 불러오는데 실패했습니다.';
         favoriteRecipes.value = [];
-
-        toast.add({
-            severity: 'error',
-            summary: '로드 실패',
-            detail: '찜 목록을 불러올 수 없습니다.',
-            life: 3000
-        });
     } finally {
         loading.value = false;
     }
@@ -161,7 +145,7 @@ const loadFavorites = async () => {
 
 const removeFavorite = async (recipeId) => {
     if (!currentMemberId.value) {
-        toast.add({ severity: 'error', summary: '오류', detail: '로그인이 필요합니다.', life: 3000 });
+        console.warn('로그인이 필요합니다.');
         return;
     }
 
@@ -174,21 +158,8 @@ const removeFavorite = async (recipeId) => {
 
         // 로컬 상태에서 제거
         favoriteRecipes.value = favoriteRecipes.value.filter((fav) => fav.recipeId !== recipeId);
-
-        toast.add({ 
-            severity: 'success', 
-            summary: '찜 해제', 
-            detail: '찜 목록에서 제거되었습니다.', 
-            life: 3000 
-        });
     } catch (err) {
         console.error('찜 삭제 실패:', err);
-        toast.add({ 
-            severity: 'error', 
-            summary: '삭제 실패', 
-            detail: '찜 목록에서 제거할 수 없습니다.', 
-            life: 3000 
-        });
     }
 };
 
@@ -248,12 +219,6 @@ onMounted(() => {
             await loadFavorites();
         } else {
             error.value = '로그인이 필요합니다.';
-            toast.add({
-                severity: 'warn',
-                summary: '로그인 필요',
-                detail: '찜 목록을 보려면 로그인해주세요.',
-                life: 3000
-            });
         }
     };
     initializeFavorites();

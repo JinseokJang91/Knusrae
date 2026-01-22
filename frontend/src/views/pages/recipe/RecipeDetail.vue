@@ -156,7 +156,7 @@
                 <div class="space-y-6">
                     <div 
                         v-for="(group, groupIndex) in recipe.ingredientGroups" 
-                        :key="group.id"
+                        :key="`group-${groupIndex}-${group.order}`"
                         class="bg-gray-50 rounded-xl p-6"
                     >
                         <!-- 그룹 제목 -->
@@ -172,8 +172,8 @@
                         <!-- 항목 목록 -->
                         <div v-if="group.items && group.items.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div 
-                                v-for="item in group.items" 
-                                :key="item.id"
+                                v-for="(item, itemIndex) in group.items" 
+                                :key="`item-${groupIndex}-${itemIndex}-${item.name}`"
                                 class="flex items-center p-3 bg-white rounded-lg border border-gray-200"
                             >
                                 <i class="pi pi-circle-fill text-gray-400 text-xs mr-3"></i>
@@ -203,7 +203,7 @@
                 <div class="space-y-8">
                     <div 
                         v-for="(step, index) in recipe.steps" 
-                        :key="step.id"
+                        :key="`step-${index}-${step.order}`"
                         class="bg-gray-50 rounded-xl p-6"
                     >
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
@@ -211,8 +211,8 @@
                             <div>
                                 <div class="relative w-full overflow-hidden rounded-lg shadow-md bg-white">
                                     <img 
-                                        v-if="step.image"
-                                        :src="step.image"
+                                        v-if="step.imageUrl"
+                                        :src="step.imageUrl"
                                         :alt="`단계 ${index + 1} 이미지`"
                                         class="w-full h-72 object-cover"
                                     />
@@ -229,7 +229,7 @@
                                         {{ index + 1 }}
                                     </div>
                                     <p class="text-gray-800 text-lg leading-relaxed whitespace-pre-line">
-                                        {{ step.description }}
+                                        {{ step.text }}
                                     </p>
                                 </div>
                             </div>
@@ -473,12 +473,12 @@
                                     
                                     <!-- 답글 펼치기/접기 버튼 -->
                                     <button 
-                                        v-if="comment.replies && comment.replies.length > 0"
+                                        v-if="comment.children && comment.children.length > 0"
                                         @click="toggleRepliesVisibility(comment.id)"
                                         class="text-sm text-gray-600 hover:text-gray-800 font-medium mt-2"
                                     >
                                         <i :class="expandedComments.has(comment.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="mr-1"></i>
-                                        {{ expandedComments.has(comment.id) ? '접기' : `답글 (${comment.replies.length})` }}
+                                        {{ expandedComments.has(comment.id) ? '접기' : `답글 (${comment.children.length})` }}
                                     </button>
                                 </div>
                             </div>
@@ -497,7 +497,7 @@
                             </div>
                             <div class="flex-1">
                                 <div class="text-xs text-gray-600 font-medium mb-2">
-                                    <i class="pi pi-at mr-1"></i>{{ replyingToComment?.memberNickname || replyingToComment?.memberName }}님에게 답글 작성
+                                    <i class="pi pi-at mr-1"></i>{{ replyingToComment ? (replyingToComment.memberNickname || replyingToComment.memberName) : '' }}님에게 답글 작성
                                 </div>
                                 <textarea 
                                     v-model="replyContent"
@@ -542,8 +542,8 @@
                                             취소
                                         </button>
                                         <button 
-                                            @click="submitReply(replyingToComment.parentId || replyingToComment.id)"
-                                            :disabled="!replyContent.trim()"
+                                            @click="submitReply(replyingToComment ? (replyingToComment.parentId || replyingToComment.id) : 0)"
+                                            :disabled="!replyContent.trim() || !replyingToComment"
                                             class="px-4 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                         >
                                             답글 작성
@@ -554,10 +554,10 @@
                         </div>
 
                         <!-- 답글 목록 (펼쳐진 경우에만 표시) -->
-                        <div v-if="comment.replies && comment.replies.length > 0 && expandedComments.has(comment.id)" class="ml-14 space-y-4">
+                        <div v-if="comment.children && comment.children.length > 0 && expandedComments.has(comment.id)" class="ml-14 space-y-4">
                             <!-- 각 답글을 감싸는 컨테이너 -->
                             <div 
-                                v-for="reply in comment.replies" 
+                                v-for="reply in comment.children" 
                                 :key="reply.id"
                                 class="space-y-4"
                             >
@@ -747,8 +747,8 @@
                                                     취소
                                                 </button>
                                                 <button 
-                                                    @click="submitReply(replyingToComment.parentId || replyingToComment.id)"
-                                                    :disabled="!replyContent.trim()"
+                                                    @click="submitReply(replyingToComment ? (replyingToComment.parentId || replyingToComment.id) : 0)"
+                                                    :disabled="!replyContent.trim() || !replyingToComment"
                                                     class="px-4 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                                 >
                                                     답글 작성
@@ -837,17 +837,17 @@ import { useRoute, useRouter } from 'vue-router';
 import { httpJson, httpForm } from '@/utils/http';
 import { useConfirm } from 'primevue/useconfirm';
 import { useAuthStore } from '@/stores/authStore';
-import { useToast } from 'primevue/usetoast';
 import { useErrorHandler } from '@/utils/errorHandler';
 import { getApiBaseUrl } from '@/utils/constants';
+import { useAppToast } from '@/utils/toast';
 import type { RecipeDetail, RecipeComment, RecipeImage } from '@/types/recipe';
 
 const route = useRoute();
 const router = useRouter();
 const confirm = useConfirm();
 const authStore = useAuthStore();
-const toast = useToast();
 const { handleApiCall, handleApiCallVoid } = useErrorHandler();
+const { showSuccess, showWarn, showError } = useAppToast();
 
 // 반응형 데이터
 const loading = ref(true);
@@ -890,7 +890,7 @@ const currentMemberId = computed(() => authStore.memberInfo?.id || null);
 
 // 현재 사용자가 레시피 작성자인지 확인
 const isRecipeAuthor = computed(() => {
-    return recipe.value && currentMemberId.value && recipe.value.memberId === currentMemberId.value;
+    return !!(recipe.value && currentMemberId.value && recipe.value.memberId === currentMemberId.value);
 });
 
 // 계산된 속성
@@ -913,7 +913,9 @@ const cookingTipsData = computed(() => {
     let difficultyText = null;
     if (difficultyTip) {
         const detailCodeId = difficultyTip.detailCodeId || difficultyTip.detailName;
-        difficultyText = difficultyCodes.value.get(detailCodeId) || detailCodeId;
+        if (detailCodeId) {
+            difficultyText = difficultyCodes.value.get(detailCodeId) || detailCodeId;
+        }
     }
     
     return {
@@ -937,7 +939,7 @@ const loadDifficultyCodes = async () => {
         
         if (difficultyCode && difficultyCode.details) {
             difficultyCodes.value.clear();
-            difficultyCode.details.forEach((detail) => {
+            difficultyCode.details.forEach((detail: { detailCodeId: string; codeName: string }) => {
                 difficultyCodes.value.set(detail.detailCodeId, detail.codeName);
             });
         }
@@ -958,6 +960,15 @@ const fetchRecipeDetail = async () => {
             `/api/recipe/${recipeId}`,
             { method: 'GET' }
         );
+        
+        // 백엔드 응답의 steps 필드명을 프론트엔드 타입에 맞게 변환
+        if (response.steps && Array.isArray(response.steps)) {
+            response.steps = response.steps.map((step: any) => ({
+                order: step.step || step.order || 0,
+                text: step.description || step.text || '',
+                imageUrl: step.image || step.imageUrl || null
+            }));
+        }
         
         recipe.value = response;
         
@@ -1028,12 +1039,7 @@ const goBack = () => {
 const toggleLike = async () => {
     // 로그인 확인
     if (!isLoggedIn.value || !currentMemberId.value) {
-        toast.add({
-            severity: 'warn',
-            summary: '로그인 필요',
-            detail: '찜 기능을 사용하려면 로그인이 필요합니다.',
-            life: 3000
-        });
+        console.warn('찜 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
     
@@ -1054,22 +1060,17 @@ const toggleLike = async () => {
 };
 
 const shareRecipe = () => {
+    if (!recipe.value) return;
     if (navigator.share) {
         navigator.share({
             title: recipe.value.title,
-            text: recipe.value.description,
+            text: recipe.value.description || recipe.value.introduction || '',
             url: window.location.href
         });
     } else {
         // 클립보드에 URL 복사
         navigator.clipboard.writeText(window.location.href);
-        toast.add({
-            severity: 'info',
-            summary: '링크 복사',
-            detail: '링크가 클립보드에 복사되었습니다.',
-            life: 3000
-        });
-        alert('링크가 클립보드에 복사되었습니다.');
+        showSuccess('링크가 클립보드에 복사되었습니다.');
     }
 };
 
@@ -1078,21 +1079,11 @@ const handleCommentImageSelect = (event: Event) => {
     const file = target.files?.[0];
     if (file) {
         if (!file.type.startsWith('image/')) {
-            toast.add({
-                severity: 'error',
-                summary: '파일 형식 오류',
-                detail: '이미지 파일만 업로드할 수 있습니다.',
-                life: 3000
-            });
+            showWarn('이미지 파일만 업로드할 수 있습니다.');
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
-            toast.add({
-                severity: 'error',
-                summary: '파일 크기 초과',
-                detail: '이미지 크기는 5MB 이하여야 합니다.',
-                life: 3000
-            });
+            showWarn('이미지 크기는 5MB 이하여야 합니다.');
             return;
         }
         
@@ -1115,18 +1106,13 @@ const submitComment = async () => {
     
     // 로그인 확인
     if (!isLoggedIn.value || !currentMemberId.value) {
-        toast.add({
-            severity: 'warn',
-            summary: '로그인 필요',
-            detail: '댓글 기능을 사용하려면 로그인이 필요합니다.',
-            life: 3000
-        });
+        console.warn('댓글 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
     
     // 레시피 작성자는 댓글 작성 불가
     if (isRecipeAuthor.value) {
-        alert('작성자는 답글만 작성이 가능합니다');
+        showWarn('작성자는 답글만 작성이 가능합니다');
         return;
     }
     
@@ -1187,7 +1173,7 @@ const submitComment = async () => {
 const focusCommentTextarea = () => {
     // 레시피 작성자는 댓글 작성 불가
     if (isRecipeAuthor.value) {
-        alert('작성자는 답글만 작성이 가능합니다');
+        showWarn('작성자는 답글만 작성이 가능합니다');
     }
 };
 
@@ -1196,21 +1182,11 @@ const handleReplyImageSelect = (event: Event) => {
     const file = target.files?.[0];
     if (file) {
         if (!file.type.startsWith('image/')) {
-            toast.add({
-                severity: 'error',
-                summary: '파일 형식 오류',
-                detail: '이미지 파일만 업로드할 수 있습니다.',
-                life: 3000
-            });
+            showWarn('이미지 파일만 업로드할 수 있습니다.');
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
-            toast.add({
-                severity: 'error',
-                summary: '파일 크기 초과',
-                detail: '이미지 크기는 5MB 이하여야 합니다.',
-                life: 3000
-            });
+            showWarn('이미지 크기는 5MB 이하여야 합니다.');
             return;
         }
         
@@ -1233,12 +1209,7 @@ const submitReply = async (parentId: number) => {
     
     // 로그인 확인
     if (!isLoggedIn.value || !currentMemberId.value) {
-        toast.add({
-            severity: 'warn',
-            summary: '로그인 필요',
-            detail: '댓글 기능을 사용하려면 로그인이 필요합니다.',
-            life: 3000
-        });
+        console.warn('댓글 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
     
@@ -1311,12 +1282,7 @@ const submitReply = async (parentId: number) => {
 const toggleReplyForm = (comment: any) => {
     // 로그인 확인
     if (!isLoggedIn.value) {
-        toast.add({
-            severity: 'warn',
-            summary: '로그인 필요',
-            detail: '댓글 기능을 사용하려면 로그인이 필요합니다.',
-            life: 3000
-        });
+        console.warn('댓글 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
     
@@ -1365,21 +1331,11 @@ const handleEditImageSelect = (event: Event) => {
     const file = target.files?.[0];
     if (file) {
         if (!file.type.startsWith('image/')) {
-            toast.add({
-                severity: 'error',
-                summary: '파일 형식 오류',
-                detail: '이미지 파일만 업로드할 수 있습니다.',
-                life: 3000
-            });
+            showWarn('이미지 파일만 업로드할 수 있습니다.');
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
-            toast.add({
-                severity: 'error',
-                summary: '파일 크기 초과',
-                detail: '이미지 크기는 5MB 이하여야 합니다.',
-                life: 3000
-            });
+            showWarn('이미지 크기는 5MB 이하여야 합니다.');
             return;
         }
         
@@ -1444,7 +1400,7 @@ const updateComment = async (commentId: number) => {
         await fetchComments(currentPage.value);
     } catch (err) {
         console.error('Comment update error:', err);
-        alert('댓글 수정 중 오류가 발생했습니다.');
+        showError('댓글 수정 중 오류가 발생했습니다.');
     }
 };
 

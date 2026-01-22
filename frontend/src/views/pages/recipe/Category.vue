@@ -203,13 +203,11 @@ import Paginator from 'primevue/paginator';
 import ProgressSpinner from 'primevue/progressspinner';
 import Rating from 'primevue/rating';
 import Tag from 'primevue/tag';
-import { useToast } from 'primevue/usetoast';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { getApiBaseUrl } from '@/utils/constants';
 
 const router = useRouter();
-const toast = useToast();
 const authStore = useAuthStore();
 
 // 반응형 데이터
@@ -442,13 +440,6 @@ const loadRecipes = async () => {
                 commentCount: recipe.commentCount || 0
             };
         });
-
-        toast.add({
-            severity: 'success',
-            summary: '레시피 로드 완료',
-            detail: `${recipes.value.length}개의 레시피를 불러왔습니다.`,
-            life: 3000
-        });
     } catch (err) {
         console.error('레시피 로드 실패:', err);
         error.value = err.message || '레시피를 불러오는데 실패했습니다.';
@@ -534,13 +525,6 @@ const loadRecipes = async () => {
                 commentCount: 89
             }
         ];
-
-        toast.add({
-            severity: 'warn',
-            summary: 'API 연결 실패',
-            detail: '더미 데이터를 표시합니다.',
-            life: 3000
-        });
     } finally {
         loading.value = false;
     }
@@ -645,12 +629,7 @@ const scrollToComments = (recipeId) => {
 const toggleFavorite = async (recipeId) => {
     // 로그인 확인
     if (!currentMemberId.value) {
-        toast.add({
-            severity: 'warn',
-            summary: '로그인 필요',
-            detail: '찜 기능을 사용하려면 로그인이 필요합니다.',
-            life: 3000
-        });
+        console.warn('찜 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
 
@@ -667,21 +646,8 @@ const toggleFavorite = async (recipeId) => {
 
         // 상태 업데이트
         recipe.isFavorite = response.isFavorite;
-
-        toast.add({
-            severity: 'success',
-            summary: recipe.isFavorite ? '찜 추가' : '찜 해제',
-            detail: recipe.isFavorite ? '찜 목록에 추가되었습니다.' : '찜 목록에서 제거되었습니다.',
-            life: 3000
-        });
     } catch (err) {
         console.error('찜 토글 실패:', err);
-        toast.add({
-            severity: 'error',
-            summary: '오류 발생',
-            detail: '찜 기능을 사용할 수 없습니다.',
-            life: 3000
-        });
     }
 };
 
@@ -693,7 +659,7 @@ const viewRecipe = (recipeId) => {
 // Function > Button > 북마크 추가
 // TODO 북마크 목록 데이터로 관리 시 API 연결 필요
 const bookmarkRecipe = (recipeId) => {
-    toast.add({ severity: 'info', summary: '북마크', detail: '레시피가 북마크되었습니다.', life: 3000 });
+    // 북마크 기능은 추후 구현 예정
 };
 
 // Function > 페이징

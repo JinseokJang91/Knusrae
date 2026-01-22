@@ -4,13 +4,11 @@ import { useAuthStore } from '@/stores/authStore';
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
-import { useToast } from 'primevue/usetoast';
 import Menu from 'primevue/menu';
 import { getRecentSearchKeywords, deleteRecentSearchKeyword, deleteAllRecentSearchKeywords, saveRecentSearchKeyword, type RecentSearchKeyword } from '@/utils/search';
 
 const router = useRouter();
 const confirm = useConfirm();
-const toast = useToast();
 const authStore = useAuthStore();
 
 const searchQuery = ref('');
@@ -92,12 +90,7 @@ const handleSearch = () => {
         showRecentKeywords.value = false;
     } else {
         // 검색어가 없으면 안내 메시지 표시
-        toast.add({
-            severity: 'warn',
-            summary: '검색어를 입력해주세요',
-            detail: '레시피를 검색하려면 검색어를 입력해주세요.',
-            life: 3000
-        });
+        console.warn('레시피를 검색하려면 검색어를 입력해주세요.');
     }
 };
 
@@ -158,20 +151,8 @@ const handleDeleteKeyword = (keywordId: number, event: Event) => {
         deleteRecentSearchKeyword(keywordId, memberId);
         // 목록에서 제거
         recentKeywords.value = recentKeywords.value.filter(k => k.id !== keywordId);
-        toast.add({
-            severity: 'success',
-            summary: '삭제 완료',
-            detail: '검색어가 삭제되었습니다.',
-            life: 2000
-        });
     } catch (error) {
         console.error('검색어 삭제 실패:', error);
-        toast.add({
-            severity: 'error',
-            summary: '삭제 실패',
-            detail: '검색어 삭제 중 오류가 발생했습니다.',
-            life: 3000
-        });
     }
 };
 
@@ -181,22 +162,7 @@ const toggleAutoSave = (newValue: boolean) => {
     const key = getAutoSaveKey(memberId);
     localStorage.setItem(key, String(newValue));
     
-    // 자동저장 off로 변경해도 목록은 유지 (단지 새 검색어는 저장하지 않음)
-    if (!newValue) {
-        toast.add({
-            severity: 'info',
-            summary: '자동저장 비활성화',
-            detail: '이제부터 새로운 검색어는 저장되지 않습니다.',
-            life: 2000
-        });
-    } else {
-        toast.add({
-            severity: 'success',
-            summary: '자동저장 활성화',
-            detail: '이제부터 검색한 검색어가 자동으로 저장됩니다.',
-            life: 2000
-        });
-    }
+    // 자동저장 설정 변경 (토스트 없이 처리)
 };
 
 // 전체 검색어 삭제
@@ -221,20 +187,8 @@ const handleDeleteAllKeywords = (event: Event) => {
                 const memberId = authStore.memberInfo?.id;
                 deleteAllRecentSearchKeywords(memberId);
                 recentKeywords.value = [];
-                toast.add({
-                    severity: 'success',
-                    summary: '삭제 완료',
-                    detail: '모든 최근 검색어가 삭제되었습니다.',
-                    life: 2000
-                });
             } catch (error) {
                 console.error('전체 검색어 삭제 실패:', error);
-                toast.add({
-                    severity: 'error',
-                    summary: '삭제 실패',
-                    detail: '검색어 삭제 중 오류가 발생했습니다.',
-                    life: 3000
-                });
             }
         },
         reject: () => {
