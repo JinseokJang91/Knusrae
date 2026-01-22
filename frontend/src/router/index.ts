@@ -6,12 +6,42 @@ const routes: RouteRecordRaw[] = [
         path: '/',
         component: AppLayout,
         children: [
+            // 1. 메인 화면
+            // 1-1. 대시보드
             {
                 path: '/',
                 name: 'dashboard',
                 component: () => import('@/views/Dashboard.vue')
             },
-            // 마이페이지 메뉴
+            // 1-2. 오늘의 레시피 추천
+            {
+                path: '/recommend/today',
+                name: 'todayRecipe',
+                component: () => import('@/views/pages/recommend/TodayRecipe.vue')
+            },
+            // 1-3. 검색 결과
+            {
+                path: '/recipe/search',
+                name: 'searchResult',
+                component: () => import('@/views/pages/recipe/SearchResult.vue')
+            },
+            // 2. 내 레시피
+            {
+                path: '/my/recipes',
+                name: 'myRecipes',
+                component: () => import('@/views/pages/my/Recipes.vue')
+            },
+            {
+                path: '/my/recipes/new',
+                name: 'myRecipeCreate',
+                component: () => import('@/views/pages/my/RecipeCreate.vue')
+            },
+            {
+                path: '/my/recipes/:id/edit',
+                name: 'myRecipeEdit',
+                component: () => import('@/views/pages/my/RecipeEdit.vue')
+            },
+            // 3. 프로필 / 마이페이지
             {
                 path: '/mypage',
                 name: 'mypage',
@@ -33,116 +63,62 @@ const routes: RouteRecordRaw[] = [
                 path: '/my/favorites',
                 redirect: '/mypage?tab=favorites'
             },
-            {
-                path: '/my/recipes',
-                name: 'myRecipes',
-                component: () => import('@/views/pages/my/Recipes.vue')
-            },
-            {
-                path: '/my/recipes/new',
-                name: 'myRecipeCreate',
-                component: () => import('@/views/pages/my/RecipeCreate.vue')
-            },
-            {
-                path: '/my/recipes/:id/edit',
-                name: 'myRecipeEdit',
-                component: () => import('@/views/pages/my/RecipeEdit.vue')
-            },
-            // 메인 메뉴
-            {
-                path: '/recommend/today',
-                name: 'todayRecipe',
-                component: () => import('@/views/pages/recommend/TodayRecipe.vue')
-            },
-            {
-                path: '/ranking',
-                name: 'ranking',
-                component: () => import('@/views/pages/ranking/Ranking.vue')
-            },
+            // 4. 메인 메뉴
+            // 4-1. 전체 레시피
             {
                 path: '/recipe/category',
                 name: 'category',
                 component: () => import('@/views/pages/recipe/Category.vue')
             },
             {
+                path: '/recipe/:id',
+                name: 'recipeDetail',
+                component: () => import('@/views/pages/recipe/RecipeDetail.vue')
+            },
+            // 4-2. 재료 관리
+            {
                 path: '/ingredient/management',
                 name: 'ingredientManagement',
                 component: () => import('@/views/pages/ingredient/Management.vue')
             },
             {
-                path: '/faq',
-                name: 'faq',
-                component: () => import('@/views/pages/faq/FAQ.vue')
-            },
-            // 기존 경로 (하위 호환성 유지)
-            {
-                path: '/recommend/weekly',
-                name: 'weeklyRanking',
-                component: () => import('@/views/pages/recommend/WeeklyRanking.vue')
-            },
-            {
-                path: '/recommend/monthly',
-                name: 'monthlyRanking',
-                component: () => import('@/views/pages/recommend/MonthlyRanking.vue')
-            },
-            // 레시피 메뉴
-            {
-                path: '/recipe/search',
-                name: 'searchResult',
-                component: () => import('@/views/pages/recipe/SearchResult.vue')
-            },
-            {
-                path: '/recipe/:id',
-                name: 'recipeDetail',
-                component: () => import('@/views/pages/recipe/RecipeDetail.vue')
-            },
-            {
-                path: '/recipe/storage',
+                path: '/ingredient/storage',
                 name: 'storage',
-                component: () => import('@/views/pages/recipe/Storage.vue')
+                component: () => import('@/views/pages/ingredient/Storage.vue')
             },
             {
-                path: '/recipe/preparation',
+                path: '/ingredient/preparation',
                 name: 'preparation',
-                component: () => import('@/views/pages/recipe/Preparation.vue')
+                component: () => import('@/views/pages/ingredient/Preparation.vue')
             },
-            // 소통 메뉴 (하위 호환성 유지)
+            // 4-3. 랭킹
             {
-                path: '/community/qna',
-                name: 'qna',
-                component: () => import('@/views/pages/community/QnA.vue')
+                path: '/ranking',
+                name: 'ranking',
+                component: () => import('@/views/pages/ranking/Ranking.vue')
             },
             {
-                path: '/pages/empty',
-                name: 'empty',
-                component: () => import('@/views/pages/Empty.vue')
-            }
+                path: '/ranking/weekly',
+                name: 'weeklyRanking',
+                component: () => import('@/views/pages/ranking/WeeklyRanking.vue')
+            },
+            {
+                path: '/ranking/monthly',
+                name: 'monthlyRanking',
+                component: () => import('@/views/pages/ranking/MonthlyRanking.vue')
+            },
+            // 4-4. FAQ
+            {
+                path: '/community/faq',
+                name: 'faq',
+                component: () => import('@/views/pages/community/FAQ.vue')
+            },
         ]
-    },
-    {
-        path: '/landing',
-        name: 'landing',
-        component: () => import('@/views/pages/Landing.vue')
-    },
-    {
-        path: '/pages/notfound',
-        name: 'notfound',
-        component: () => import('@/views/pages/NotFound.vue')
     },
     {
         path: '/auth/login',
         name: 'login',
         component: () => import('@/views/pages/auth/Login.vue')
-    },
-    {
-        path: '/auth/access',
-        name: 'accessDenied',
-        component: () => import('@/views/pages/auth/Access.vue')
-    },
-    {
-        path: '/auth/error',
-        name: 'error',
-        component: () => import('@/views/pages/auth/Error.vue')
     },
     {
         path: '/auth/naver/callback',
@@ -158,7 +134,22 @@ const routes: RouteRecordRaw[] = [
         path: '/auth/kakao/callback',
         name: 'kakaoCallback',
         component: () => import('@/views/pages/auth/KakaoCallback.vue')
-    }
+    },
+    {
+        path: '/error/notfound',
+        name: 'notfound',
+        component: () => import('@/views/pages/error/NotFound.vue')
+    },
+    {
+        path: '/error/access',
+        name: 'accessDenied',
+        component: () => import('@/views/pages/error/Access.vue')
+    },
+    {
+        path: '/error/error',
+        name: 'error',
+        component: () => import('@/views/pages/error/Error.vue')
+    },
 ];
 
 const router = createRouter({

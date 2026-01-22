@@ -487,7 +487,7 @@ onMounted(() => {
                         </div>
                     </div>
                 </div>
-                <router-link to="/faq" class="menu-item">
+                <router-link to="/community/faq" class="menu-item">
                     <i class="fa-solid fa-circle-question"></i>
                     <span>FAQ</span>
                 </router-link>
@@ -607,80 +607,3 @@ onMounted(() => {
     </div>
 </template>
 
-<style lang="scss" scoped>
-.menu-item-wrapper {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-}
-
-.category-menu-btn {
-    // menu-item 클래스의 스타일을 상속받으므로 최소한의 추가 스타일만
-    
-    // 버튼의 기본 스타일 초기화
-    &:focus {
-        outline: none;
-    }
-}
-
-.category-dropdown {
-    position: absolute;
-    top: calc(100% + 0.5rem);
-    left: 0;
-    min-width: 600px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    z-index: 1001; // menu-item의 z-index보다 높게 설정
-    padding: 1rem;
-}
-
-.category-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-}
-
-.category-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    text-decoration: none;
-    color: var(--text-color);
-    transition: all 0.2s;
-    background: white;
-    border: 1px solid var(--surface-border);
-
-    &:hover {
-        background: var(--primary-50);
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-        transform: translateY(-2px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    i {
-        font-size: 1.5rem;
-        min-width: 2rem;
-        text-align: center;
-    }
-}
-
-.category-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.category-name {
-    font-weight: 600;
-    font-size: 0.95rem;
-}
-
-.category-desc {
-    font-size: 0.75rem;
-    color: var(--text-color-secondary);
-}
-</style>
