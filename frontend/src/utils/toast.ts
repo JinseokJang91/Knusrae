@@ -15,8 +15,7 @@ export const useAppToast = () => {
         toast.add({
             severity: 'success',
             summary: summary || '성공',
-            detail: message,
-            life: 3000
+            detail: message
         });
     };
 
@@ -27,8 +26,7 @@ export const useAppToast = () => {
         toast.add({
             severity: 'info',
             summary: summary || '알림',
-            detail: message,
-            life: 3000
+            detail: message
         });
     };
 
@@ -39,8 +37,7 @@ export const useAppToast = () => {
         toast.add({
             severity: 'warn',
             summary: summary || '경고',
-            detail: message,
-            life: 3000
+            detail: message
         });
     };
 
@@ -51,8 +48,7 @@ export const useAppToast = () => {
         toast.add({
             severity: 'error',
             summary: summary || '오류',
-            detail: message,
-            life: 4000
+            detail: message
         });
     };
 
@@ -64,7 +60,7 @@ export const useAppToast = () => {
             severity,
             summary: summary || (severity === 'success' ? '성공' : severity === 'error' ? '오류' : severity === 'warn' ? '경고' : '알림'),
             detail: message,
-            life: life || 3000
+            ...(life !== undefined && { life })
         });
     };
 
