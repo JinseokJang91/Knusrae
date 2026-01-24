@@ -31,5 +31,8 @@ public interface RecipeCommentRepository extends JpaRepository<RecipeComment, Lo
     
     // 특정 사용자가 작성한 댓글 조회
     List<RecipeComment> findAllByMemberIdOrderByCreatedAtDesc(Long memberId);
+    
+    // 특정 레시피의 댓글 개수 조회 (recipeId 기준)
+    long countByRecipeId(Long recipeId);
 }
 

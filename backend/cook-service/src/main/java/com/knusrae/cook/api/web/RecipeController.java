@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.knusrae.cook.api.dto.RecipeDto;
 import com.knusrae.cook.api.dto.RecipeDetailDto;
+import com.knusrae.cook.api.dto.PopularRecipeDto;
 import com.knusrae.cook.api.domain.service.RecipeService;
+import com.knusrae.cook.api.domain.service.PopularRecipeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,11 +29,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RecipeController {
     private final RecipeService recipeService;
+    private final PopularRecipeService popularRecipeService;
     private final ObjectMapper objectMapper;
     private final Validator validator;
     
-    public RecipeController(RecipeService recipeService, Validator validator) {
+    public RecipeController(RecipeService recipeService, PopularRecipeService popularRecipeService, Validator validator) {
         this.recipeService = recipeService;
+        this.popularRecipeService = popularRecipeService;
         this.validator = validator;
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -171,6 +175,30 @@ public class RecipeController {
         recipeService.deleteRecipe(id, memberId);
         log.info("Recipe deleted successfully: id={}", id);
         return ResponseEntity.noContent().build();
+    }
+    
+    /**
+     * 인기 레시피 목록 조회
+     * 
+     * @param limit 조회할 개수 (기본 10)
+     * @param period 기간 (24h, 7d, 30d) (기본 24h)
+     * @return 인기 레시피 목록
+     */
+    @GetMapping("/popular")
+    public ResponseEntity<List<PopularRecipeDto>> getPopularRecipes(
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "24h") String period) {
+        log.debug("Fetching popular recipes: limit={}, period={}", limit, period);
+        
+        // limit 최대값 제한
+        if (limit > 100) {
+            limit = 100;
+        }
+        
+        List<PopularRecipeDto> popularRecipes = popularRecipeService.getPopularRecipes(limit, period);
+        log.info("Retrieved {} popular recipes", popularRecipes.size());
+        
+        return ResponseEntity.ok(popularRecipes);
     }
     
     /**
