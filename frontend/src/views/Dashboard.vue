@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
+import PopularRecipes from '@/components/dashboard/PopularRecipes.vue';
 
 const authStore = useAuthStore();
 
@@ -13,6 +14,7 @@ const showLoggedInGreeting = computed(() => authStore.isInitialized && isLoggedI
 
 <template>
     <div class="grid grid-cols-12 gap-8">
+        <!-- 1. 환영 문구 -->
         <div class="col-span-12">
             <div class="card">
                 <h4 class="text-2xl font-bold mb-2">
@@ -32,6 +34,11 @@ const showLoggedInGreeting = computed(() => authStore.isInitialized && isLoggedI
                     </template>
                 </p>
             </div>
+        </div>
+        
+        <!-- 2. 인기 레시피 TOP -->
+        <div class="col-span-12">
+            <PopularRecipes />
         </div>
     </div>
 </template>

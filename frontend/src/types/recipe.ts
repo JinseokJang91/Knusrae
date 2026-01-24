@@ -116,10 +116,42 @@ export interface Recipe {
     memberNickname?: string;
     memberProfileImage?: string;
     commentCount?: number;
+    favoriteCount?: number;
     // 검색 결과에서 사용되는 추가 속성
     isFavorite?: boolean;
     category?: string;
     cookingTime?: string;
     servings?: string;
+}
+
+// 인기도 통계
+export interface PopularityStats {
+    popularityScore: number;
+    hits24h: number;
+    hits7d: number;
+    favoriteCount: number;
+    commentCount: number;
+    favoriteIncrease24h?: number;
+}
+
+// 트렌드 상태
+export type TrendStatus = 'UP' | 'DOWN' | 'NEW' | 'SAME';
+
+// 인기 레시피 항목
+export interface PopularRecipeItem {
+    rank: number;
+    previousRank?: number;
+    trendStatus: TrendStatus;
+    recipe: Recipe;
+    popularityStats: PopularityStats;
+    calculatedAt?: string;
+}
+
+// 인기 레시피 API 응답
+export interface PopularRecipesResponse {
+    recipes: PopularRecipeItem[];
+    period: string;
+    calculatedAt?: string;
+    totalCount?: number;
 }
 
