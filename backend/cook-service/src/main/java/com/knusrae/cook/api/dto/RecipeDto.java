@@ -167,4 +167,9 @@ public class RecipeDto {
                 .steps(steps)
                 .build();
     }
+
+    // Entity -> DTO 변환
+    public static RecipeDto from(Recipe recipe) {
+        return new RecipeDto(recipe);
+    }
 }
