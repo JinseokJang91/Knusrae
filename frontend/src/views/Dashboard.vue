@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import PopularRecipes from '@/components/dashboard/PopularRecipes.vue';
+import CategorySections from '@/components/dashboard/CategorySections.vue';
 
 const authStore = useAuthStore();
 
@@ -39,6 +40,11 @@ const showLoggedInGreeting = computed(() => authStore.isInitialized && isLoggedI
         <!-- 2. 인기 레시피 TOP -->
         <div class="col-span-12">
             <PopularRecipes />
+        </div>
+        
+        <!-- 3. 카테고리 섹션 -->
+        <div class="col-span-12">
+            <CategorySections />
         </div>
     </div>
 </template>
