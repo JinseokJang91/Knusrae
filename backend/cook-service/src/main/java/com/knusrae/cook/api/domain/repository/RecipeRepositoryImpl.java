@@ -5,11 +5,14 @@ import com.knusrae.cook.api.domain.enums.Status;
 import com.knusrae.cook.api.domain.enums.Visibility;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.knusrae.cook.api.domain.entity.QRecipe.recipe;
+import static com.knusrae.cook.api.domain.entity.QRecipeCategory.recipeCategory;
 
 
 @Repository
@@ -50,6 +53,38 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
                         recipe.title.containsIgnoreCase(keyword)
                 )
                 .orderBy(recipe.createdAt.desc())
+                .fetch();
+    }
+    
+    @Override
+    public List<Recipe> findRecentRecipesByCategory(String codeGroup, String detailCodeId, LocalDateTime since, Pageable pageable) {
+        return queryFactory
+                .selectFrom(recipe)
+                .join(recipe.recipeCategories, recipeCategory)
+                .where(
+                        recipe.status.eq(Status.PUBLISHED),
+                        recipe.visibility.eq(Visibility.PUBLIC),
+                        recipeCategory.codeGroup.eq(codeGroup),
+                        recipeCategory.detail.id.detailCodeId.eq(detailCodeId),
+                        recipe.createdAt.after(since)
+                )
+                .orderBy(recipe.createdAt.desc())
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetch();
+    }
+    
+    @Override
+    public List<Recipe> findRecentPopularRecipes(Pageable pageable) {
+        return queryFactory
+                .selectFrom(recipe)
+                .where(
+                        recipe.status.eq(Status.PUBLISHED),
+                        recipe.visibility.eq(Visibility.PUBLIC)
+                )
+                .orderBy(recipe.hits.desc(), recipe.createdAt.desc())
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
                 .fetch();
     }
 }
