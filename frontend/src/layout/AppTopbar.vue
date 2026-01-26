@@ -88,9 +88,6 @@ const handleSearch = () => {
         });
         // 최근 검색어 목록 닫기
         showRecentKeywords.value = false;
-    } else {
-        // 검색어가 없으면 안내 메시지 표시
-        console.warn('레시피를 검색하려면 검색어를 입력해주세요.');
     }
 };
 

@@ -278,7 +278,7 @@ const loadCategories = async () => {
             }
         });
     } catch (err) {
-        console.warn('카테고리 목록 조회 실패:', err);
+        // 카테고리 목록 조회 실패 시 무시
     }
 };
 
@@ -422,7 +422,6 @@ const scrollToComments = (recipeId: number) => {
 // 찜 목록 추가/제거
 const toggleFavorite = async (recipeId: number) => {
     if (!currentMemberId.value) {
-        console.warn('찜 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
 

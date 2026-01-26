@@ -62,7 +62,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <section class="category-section">
+    <div class="category-section">
         <div class="section-header">
             <div class="category-title-area">
                 <i :class="categoryIcon" class="category-icon"></i>
@@ -103,12 +103,12 @@ onMounted(() => {
             <i class="pi pi-inbox text-4xl text-gray-300 mb-2"></i>
             <p class="text-gray-500">레시피가 없습니다.</p>
         </div>
-    </section>
+    </div>
 </template>
 
 <style scoped>
 .category-section {
-    padding: 2rem 0;
+    padding: 0;
 }
 
 .section-header {

@@ -1015,8 +1015,6 @@ async function submit() {
                     if (response.ok) {
                         const blob = await response.blob();
                         formData.append('images', blob, 'thumbnail.png');
-                    } else {
-                        console.warn('썸네일 다운로드 실패:', response.status);
                     }
                 } catch (err) {
                     console.error('썸네일 fetch 에러:', err);
@@ -1034,8 +1032,6 @@ async function submit() {
                         if (response.ok) {
                             const blob = await response.blob();
                             formData.append('images', blob, `step-${i + 1}.png`);
-                        } else {
-                            console.warn(`Step ${i+1}: 이미지 다운로드 실패:`, response.status);
                         }
                     } catch (err) {
                         console.error(`Step ${i+1}: fetch 에러:`, err);

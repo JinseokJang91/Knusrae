@@ -319,7 +319,6 @@ const loadCategories = async () => {
             selectedMainCategory.value = mainCategories.value[0].codeId;
         }
     } catch (error) {
-        console.warn('카테고리 목록 조회 실패, 기본값을 사용합니다.', error);
         // 기본값 설정
         mainCategories.value = [
             {
@@ -629,7 +628,6 @@ const scrollToComments = (recipeId) => {
 const toggleFavorite = async (recipeId) => {
     // 로그인 확인
     if (!currentMemberId.value) {
-        console.warn('찜 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
 

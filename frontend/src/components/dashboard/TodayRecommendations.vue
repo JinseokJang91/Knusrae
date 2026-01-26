@@ -1,5 +1,5 @@
 <template>
-  <section class="today-recommendations-section">
+  <div class="today-recommendations-section">
     <div class="section-header">
       <div>
         <h2 class="section-title">
@@ -99,7 +99,7 @@
       <i class="pi pi-sparkles" style="font-size: 3rem; color: var(--text-color-secondary)"></i>
       <p>추천할 레시피가 없습니다</p>
     </div>
-  </section>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -121,14 +121,11 @@ const isLoading = ref(false);
  * 오늘의 추천 레시피 로딩
  */
 const loadRecommendations = async (refresh: boolean = false) => {
-  console.log('[TodayRecommendations] 추천 레시피 로딩 시작, refresh:', refresh);
   isLoading.value = true;
   
   try {
     const data = await getTodayRecommendations(3, refresh);
-    console.log('[TodayRecommendations] 데이터 로딩 성공:', data);
     recommendations.value = data;
-    console.log('[TodayRecommendations] 추천 타입:', data.recommendationType);
   } catch (error) {
     console.error('[TodayRecommendations] 추천 레시피 로딩 실패:', error);
     toast.add({
@@ -177,7 +174,6 @@ const formatNumber = (num: number): string => {
 
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
-  console.log('[TodayRecommendations] 컴포넌트 마운트됨');
   loadRecommendations();
 });
 
@@ -189,7 +185,7 @@ defineExpose({
 
 <style scoped lang="scss">
 .today-recommendations-section {
-  margin-bottom: 48px;
+  margin-bottom: 0;
 }
 
 .section-header {

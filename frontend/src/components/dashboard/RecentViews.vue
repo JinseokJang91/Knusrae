@@ -1,5 +1,5 @@
 <template>
-  <section v-if="isLoggedIn" class="recent-views-section">
+  <div class="recent-views-section">
     <div class="section-header">
       <div>
         <h2 class="section-title">
@@ -73,7 +73,7 @@
         </div>
       </div>
     </div>
-  </section>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -102,17 +102,13 @@ const memberId = computed(() => authStore.memberInfo?.id);
  */
 const loadRecentViews = async () => {
   if (!memberId.value) {
-    console.log('[RecentViews] memberId가 없어서 로딩을 건너뜁니다.');
     return;
   }
   
-  console.log('[RecentViews] 최근 본 레시피 로딩 시작, memberId:', memberId.value);
   isLoading.value = true;
   try {
     const data = await getRecentViews(memberId.value, 10, 0);
-    console.log('[RecentViews] 데이터 로딩 성공:', data);
     recentViews.value = data.views || [];
-    console.log('[RecentViews] 로딩된 레시피 개수:', recentViews.value.length);
   } catch (error) {
     console.error('[RecentViews] 최근 본 레시피 로딩 실패:', error);
     toast.add({
@@ -215,7 +211,6 @@ const formatNumber = (num: number): string => {
 
 // 로그인 상태 변경 감지
 watch([isLoggedIn, memberId], ([newIsLoggedIn, newMemberId]) => {
-  console.log('[RecentViews] 로그인 상태 변경:', { isLoggedIn: newIsLoggedIn, memberId: newMemberId });
   if (newIsLoggedIn && newMemberId) {
     loadRecentViews();
   } else {
@@ -225,7 +220,6 @@ watch([isLoggedIn, memberId], ([newIsLoggedIn, newMemberId]) => {
 
 // 컴포넌트 마운트 시 데이터 로드
 onMounted(() => {
-  console.log('[RecentViews] 컴포넌트 마운트됨', { isLoggedIn: isLoggedIn.value, memberId: memberId.value });
   if (isLoggedIn.value && memberId.value) {
     loadRecentViews();
   }
@@ -239,7 +233,7 @@ defineExpose({
 
 <style scoped lang="scss">
 .recent-views-section {
-  margin-bottom: 48px;
+  margin-bottom: 0;
 }
 
 .section-header {

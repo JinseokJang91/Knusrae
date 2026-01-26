@@ -145,7 +145,6 @@ const loadFavorites = async () => {
 
 const removeFavorite = async (recipeId) => {
     if (!currentMemberId.value) {
-        console.warn('로그인이 필요합니다.');
         return;
     }
 

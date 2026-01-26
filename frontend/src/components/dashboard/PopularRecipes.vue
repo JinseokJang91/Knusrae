@@ -170,7 +170,7 @@ onMounted(() => {
 
 <style scoped>
 .popular-recipes-section {
-    padding: 2rem 0;
+    padding: 0;
 }
 
 /* 반응형 디자인 */

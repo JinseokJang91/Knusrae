@@ -756,7 +756,6 @@ async function loadIngredientsGroupOptions(): Promise<void> {
             { method: 'GET' }
         );
         ingredientTypeOptions.value = Array.isArray(response) ? response : [];
-        console.log('재료 타입 옵션:', ingredientTypeOptions.value);
     } catch (e) {
         ingredientTypesError.value = '재료 타입 정보를 불러오지 못했습니다.';
     } finally {
@@ -775,7 +774,6 @@ async function loadIngredientsUnitOptions(): Promise<void> {
             { method: 'GET' }
         );
         unitOptions.value = Array.isArray(response) ? response : [];
-        console.log('단위 옵션:', unitOptions.value);
     } catch (e) {
         unitsError.value = '단위 정보를 불러오지 못했습니다.';
     } finally {
@@ -995,8 +993,6 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
                 }))
         }))
         .filter((group) => group.items.length > 0);
-
-    console.log('최종 ingredientGroups:', ingredientGroups);
 
     return {
         title: form.title,

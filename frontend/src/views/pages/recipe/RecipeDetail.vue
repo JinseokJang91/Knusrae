@@ -999,7 +999,6 @@ const fetchRecipeDetail = async () => {
 const recordRecipeView = async (recipeId: number) => {
     try {
         await createRecipeView(recipeId);
-        console.log('Recipe view recorded:', recipeId);
     } catch (err) {
         // 조회 기록 생성 실패는 사용자에게 노출하지 않음
         console.error('Failed to record recipe view:', err);
@@ -1058,7 +1057,6 @@ const goBack = () => {
 const toggleLike = async () => {
     // 로그인 확인
     if (!isLoggedIn.value || !currentMemberId.value) {
-        console.warn('찜 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
     
@@ -1125,7 +1123,6 @@ const submitComment = async () => {
     
     // 로그인 확인
     if (!isLoggedIn.value || !currentMemberId.value) {
-        console.warn('댓글 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
     
@@ -1228,7 +1225,6 @@ const submitReply = async (parentId: number) => {
     
     // 로그인 확인
     if (!isLoggedIn.value || !currentMemberId.value) {
-        console.warn('댓글 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
     
@@ -1301,7 +1297,6 @@ const submitReply = async (parentId: number) => {
 const toggleReplyForm = (comment: any) => {
     // 로그인 확인
     if (!isLoggedIn.value) {
-        console.warn('댓글 기능을 사용하려면 로그인이 필요합니다.');
         return;
     }
     

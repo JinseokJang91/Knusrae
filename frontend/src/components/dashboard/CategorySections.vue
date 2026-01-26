@@ -56,12 +56,12 @@ onMounted(() => {
 .category-sections {
     display: flex;
     flex-direction: column;
-    gap: 48px;
+    gap: 40px;
 }
 
 @media (max-width: 768px) {
     .category-sections {
-        gap: 32px;
+        gap: 28px;
     }
 }
 </style>
