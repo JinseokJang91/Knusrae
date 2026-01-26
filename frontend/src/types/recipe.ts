@@ -155,3 +155,59 @@ export interface PopularRecipesResponse {
     totalCount?: number;
 }
 
+// 레시피 조회 기록
+export interface RecipeView {
+    id: number;
+    memberId: number;
+    recipeId: number;
+    viewedAt: string;
+    recipe?: RecipeSimple;
+}
+
+// 간단한 레시피 정보 (조회 기록용)
+export interface RecipeSimple {
+    id: number;
+    title: string;
+    thumbnail?: string;
+    memberNickname?: string;
+    hits?: number;
+    favoriteCount?: number;
+    commentCount?: number;
+}
+
+// 최근 본 레시피 API 응답
+export interface RecentViewsResponse {
+    views: RecipeView[];
+    totalCount: number;
+}
+
+// 조회 기록 생성 API 응답
+export interface CreateViewResponse {
+    view: RecipeView;
+    isNew: boolean;
+}
+
+// 추천 레시피
+export interface RecommendedRecipe {
+    id: number;
+    title: string;
+    description?: string;
+    thumbnail?: string;
+    memberId: number;
+    memberNickname?: string;
+    memberProfileImage?: string;
+    hits?: number;
+    categories?: RecipeCategory[];
+    commentCount?: number;
+    favoriteCount?: number;
+    createdAt?: string;
+    recommendReason?: string; // 추천 이유
+}
+
+// 오늘의 레시피 추천 API 응답
+export interface TodayRecommendationsResponse {
+    recipes: RecommendedRecipe[];
+    recommendationType: 'PERSONALIZED' | 'GENERAL';
+    refreshable: boolean;
+}
+

@@ -14,6 +14,7 @@ declare module 'vue' {
     CategorySections: typeof import('./src/components/dashboard/CategorySections.vue')['default']
     PopularRecipes: typeof import('./src/components/dashboard/PopularRecipes.vue')['default']
     ProgressBar: typeof import('primevue/progressbar')['default']
+    RecentViews: typeof import('./src/components/dashboard/RecentViews.vue')['default']
     RecipeCard: typeof import('./src/components/recipe/RecipeCard.vue')['default']
     RecipeListItem: typeof import('./src/components/recipe/RecipeListItem.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
@@ -21,6 +22,7 @@ declare module 'vue' {
     ScrollToTop: typeof import('./src/components/ScrollToTop.vue')['default']
     SocialLoginButtons: typeof import('./src/components/SocialLoginButtons.vue')['default']
     Toast: typeof import('primevue/toast')['default']
+    TodayRecommendations: typeof import('./src/components/dashboard/TodayRecommendations.vue')['default']
     ToggleSwitch: typeof import('primevue/toggleswitch')['default']
   }
   export interface ComponentCustomProperties {

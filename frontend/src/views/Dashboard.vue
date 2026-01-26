@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import PopularRecipes from '@/components/dashboard/PopularRecipes.vue';
 import CategorySections from '@/components/dashboard/CategorySections.vue';
+import RecentViews from '@/components/dashboard/RecentViews.vue';
+import TodayRecommendations from '@/components/dashboard/TodayRecommendations.vue';
 
 const authStore = useAuthStore();
 
@@ -37,14 +39,24 @@ const showLoggedInGreeting = computed(() => authStore.isInitialized && isLoggedI
             </div>
         </div>
         
-        <!-- 2. 인기 레시피 TOP -->
+        <!-- 2. 오늘의 레시피 추천 -->
+        <div class="col-span-12">
+            <TodayRecommendations />
+        </div>
+        
+        <!-- 3. 인기 레시피 TOP -->
         <div class="col-span-12">
             <PopularRecipes />
         </div>
         
-        <!-- 3. 카테고리 섹션 -->
+        <!-- 4. 카테고리 섹션 -->
         <div class="col-span-12">
             <CategorySections />
+        </div>
+        
+        <!-- 5. 최근 본 레시피 (로그인 시만) -->
+        <div class="col-span-12">
+            <RecentViews />
         </div>
     </div>
 </template>

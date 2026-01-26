@@ -840,6 +840,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useErrorHandler } from '@/utils/errorHandler';
 import { getApiBaseUrl } from '@/utils/constants';
 import { useAppToast } from '@/utils/toast';
+import { createRecipeView } from '@/api/recipeViewApi';
 import type { RecipeDetail, RecipeComment, RecipeImage } from '@/types/recipe';
 
 const route = useRoute();
@@ -977,6 +978,11 @@ const fetchRecipeDetail = async () => {
             await checkFavoriteStatus();
         }
         
+        // 조회 기록 생성 (로그인 사용자만)
+        if (authStore.isLoggedIn) {
+            await recordRecipeView(Number(recipeId));
+        }
+        
         // 댓글 목록 불러오기
         await fetchComments();
     } catch (err) {
@@ -984,6 +990,19 @@ const fetchRecipeDetail = async () => {
         console.error('Recipe detail fetch error:', err);
     } finally {
         loading.value = false;
+    }
+};
+
+/**
+ * 레시피 조회 기록 생성
+ */
+const recordRecipeView = async (recipeId: number) => {
+    try {
+        await createRecipeView(recipeId);
+        console.log('Recipe view recorded:', recipeId);
+    } catch (err) {
+        // 조회 기록 생성 실패는 사용자에게 노출하지 않음
+        console.error('Failed to record recipe view:', err);
     }
 };
 
