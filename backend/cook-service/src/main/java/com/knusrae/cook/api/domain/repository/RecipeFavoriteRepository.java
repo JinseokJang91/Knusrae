@@ -30,5 +30,9 @@ public interface RecipeFavoriteRepository extends JpaRepository<RecipeFavorite, 
     
     // 특정 레시피의 모든 찜 삭제 (레시피 삭제 시 사용)
     void deleteByRecipeId(Long recipeId);
+    
+    // 특정 레시피의 특정 기간 이후 찜 개수 조회 (인기도 계산용)
+    @Query("SELECT COUNT(rf) FROM RecipeFavorite rf WHERE rf.recipeId = :recipeId AND rf.createdAt >= :since")
+    long countByRecipeIdAndCreatedAtAfter(@Param("recipeId") Long recipeId, @Param("since") java.time.LocalDateTime since);
 }
 

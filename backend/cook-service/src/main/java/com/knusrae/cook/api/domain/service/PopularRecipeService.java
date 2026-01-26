@@ -2,6 +2,7 @@ package com.knusrae.cook.api.domain.service;
 
 import com.knusrae.cook.api.domain.entity.Recipe;
 import com.knusrae.cook.api.domain.entity.RecipePopularity;
+import com.knusrae.cook.api.domain.entity.RecipePopularityHistory;
 import com.knusrae.cook.api.domain.repository.*;
 import com.knusrae.cook.api.dto.PopularRecipeDto;
 import com.knusrae.cook.api.dto.PopularityStatsDto;
@@ -14,8 +15,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +28,7 @@ import java.util.List;
 public class PopularRecipeService {
     
     private final RecipePopularityRepository recipePopularityRepository;
+    private final RecipePopularityHistoryRepository recipePopularityHistoryRepository;
     private final RecipeImageRepository recipeImageRepository;
     private final MemberRepository memberRepository;
     private final RecipeCommentRepository recipeCommentRepository;
@@ -47,12 +52,44 @@ public class PopularRecipeService {
         
         // 기간에 따른 정렬 기준 선택
 
+        // 이전 순위 조회 (24시간 전)
+        LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
+        LocalDateTime yesterdayStart = yesterday.minusHours(1);
+        LocalDateTime yesterdayEnd = yesterday.plusHours(1);
+        
+        List<RecipePopularityHistory> previousHistories = 
+                recipePopularityHistoryRepository.findByRecordedAtBetween(yesterdayStart, yesterdayEnd);
+        
+        // 레시피 ID -> 이전 순위 매핑
+        Map<Long, Integer> previousRanks = previousHistories.stream()
+                .collect(Collectors.toMap(
+                        RecipePopularityHistory::getRecipeId,
+                        RecipePopularityHistory::getRank,
+                        (existing, replacement) -> existing // 중복 시 기존 값 유지
+                ));
+        
         // DTO 변환
         List<PopularRecipeDto> result = new ArrayList<>();
         int rank = 1;
         
         for (RecipePopularity popularity : popularityList) {
             Recipe recipe = popularity.getRecipe();
+            Long recipeId = recipe.getId();
+            
+            // 이전 순위 조회
+            Integer previousRank = previousRanks.get(recipeId);
+            
+            // 트렌드 상태 계산
+            String trendStatus;
+            if (previousRank == null) {
+                trendStatus = "NEW";
+            } else if (rank < previousRank) {
+                trendStatus = "UP";
+            } else if (rank > previousRank) {
+                trendStatus = "DOWN";
+            } else {
+                trendStatus = "SAME";
+            }
             
             // RecipeDto 생성
             RecipeDto recipeDto = convertToRecipeDto(recipe);
@@ -63,8 +100,8 @@ public class PopularRecipeService {
             // PopularRecipeDto 생성
             PopularRecipeDto popularRecipeDto = PopularRecipeDto.builder()
                     .rank(rank)
-                    .previousRank(null) // TODO: 순위 추적 기능 추가 시 구현
-                    .trendStatus("SAME") // TODO: 순위 추적 기능 추가 시 구현
+                    .previousRank(previousRank)
+                    .trendStatus(trendStatus)
                     .recipe(recipeDto)
                     .popularityStats(statsDto)
                     .calculatedAt(popularity.getCalculatedAt())
