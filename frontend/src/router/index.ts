@@ -82,6 +82,11 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/pages/ingredient/Management.vue')
             },
             {
+                path: '/ingredient/management/register',
+                name: 'ingredientRegister',
+                component: () => import('@/views/pages/ingredient/Register.vue')
+            },
+            {
                 path: '/ingredient/storage',
                 name: 'storage',
                 component: () => import('@/views/pages/ingredient/Storage.vue')

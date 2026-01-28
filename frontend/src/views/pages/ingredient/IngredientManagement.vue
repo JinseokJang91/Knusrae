@@ -167,7 +167,7 @@ watch(() => route.query, (newQuery) => {
     margin-top: 24px;
 }
 
-:deep(.p-tabs) {
+::deep(.p-tabs) {
     .p-tablist {
         background: transparent;
         border-bottom: 2px solid var(--surface-border);
@@ -185,3 +185,4 @@ watch(() => route.query, (newQuery) => {
     }
 }
 </style>
+

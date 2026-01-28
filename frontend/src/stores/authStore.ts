@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { refreshToken, fetchMemberInfo } from '@/utils/auth';
+import { refreshToken, fetchMemberInfo, isAdminEmail } from '@/utils/auth';
 import { getApiBaseUrl } from '@/utils/constants';
 
 interface MemberInfo {
@@ -27,6 +27,11 @@ export const useAuthStore = defineStore('auth', () => {
     const memberProfileImage = computed(() => {
         if (!memberInfo.value) return '';
         return memberInfo.value.profileImage || '';
+    });
+
+    const isAdmin = computed(() => {
+        if (!memberInfo.value || !memberInfo.value.email) return false;
+        return isAdminEmail(memberInfo.value.email);
     });
 
     // Actions
@@ -119,6 +124,7 @@ export const useAuthStore = defineStore('auth', () => {
         isLoggedIn,
         memberName,
         memberProfileImage,
+        isAdmin,
         // Actions
         checkAuth,
         loadMemberInfo,
