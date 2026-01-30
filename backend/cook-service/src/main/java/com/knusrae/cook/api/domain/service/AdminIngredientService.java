@@ -9,6 +9,8 @@ import com.knusrae.cook.api.domain.entity.IngredientStorage;
 import com.knusrae.cook.api.domain.repository.*;
 import com.knusrae.cook.api.dto.*;
 import jakarta.persistence.EntityNotFoundException;
+
+import java.util.Optional;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +31,46 @@ public class AdminIngredientService {
     private final IngredientStorageRepository storageRepository;
     private final IngredientPreparationRepository preparationRepository;
     private final ImageStorage imageStorage;
+
+    /**
+     * 재료 그룹 등록
+     */
+    public IngredientGroupDto createGroup(String name, String imageUrl, Integer sortOrder) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("재료 그룹명은 필수입니다.");
+        }
+        int order = Optional.ofNullable(sortOrder).orElse(0);
+        IngredientGroup group = IngredientGroup.builder()
+                .name(name.trim())
+                .imageUrl(imageUrl != null && !imageUrl.isBlank() ? imageUrl.trim() : null)
+                .sortOrder(order)
+                .build();
+        IngredientGroup saved = groupRepository.save(group);
+        return IngredientGroupDto.fromEntity(saved);
+    }
+
+    /**
+     * 재료 등록
+     */
+    public IngredientDto createIngredient(Long groupId, String name, String imageUrl, Integer sortOrder) {
+        if (groupId == null) {
+            throw new IllegalArgumentException("재료 그룹은 필수입니다.");
+        }
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("재료명은 필수입니다.");
+        }
+        IngredientGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("재료 그룹을 찾을 수 없습니다: " + groupId));
+        int order = Optional.ofNullable(sortOrder).orElse(0);
+        Ingredient ingredient = Ingredient.builder()
+                .name(name.trim())
+                .group(group)
+                .imageUrl(imageUrl != null && !imageUrl.isBlank() ? imageUrl.trim() : null)
+                .sortOrder(order)
+                .build();
+        Ingredient saved = ingredientRepository.save(ingredient);
+        return IngredientDto.fromEntity(saved);
+    }
     
     /**
      * 재료 보관법 등록

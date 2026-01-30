@@ -2,6 +2,8 @@ package com.knusrae.cook.api.web;
 
 import com.knusrae.common.utils.AuthenticationUtils;
 import com.knusrae.cook.api.domain.service.AdminIngredientService;
+import com.knusrae.cook.api.dto.IngredientDto;
+import com.knusrae.cook.api.dto.IngredientGroupDto;
 import com.knusrae.cook.api.dto.IngredientPreparationDto;
 import com.knusrae.cook.api.dto.IngredientStorageDto;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,49 @@ import java.util.Map;
 public class AdminIngredientController {
     
     private final AdminIngredientService adminIngredientService;
+
+    /**
+     * 재료 그룹 등록
+     */
+    @PostMapping("/groups")
+    public ResponseEntity<Map<String, Object>> createGroup(@RequestBody Map<String, Object> request) {
+        String name = request.get("name").toString();
+        String imageUrl = request.containsKey("imageUrl") ? request.get("imageUrl").toString() : null;
+        Integer sortOrder = request.containsKey("sortOrder") && request.get("sortOrder") != null
+                ? Integer.valueOf(request.get("sortOrder").toString()) : null;
+
+        log.debug("POST /api/admin/ingredients/groups - name={}", name);
+
+        IngredientGroupDto group = adminIngredientService.createGroup(name, imageUrl, sortOrder);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", group);
+
+        log.info("Created ingredient group: {}", group.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * 재료 등록
+     */
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createIngredient(@RequestBody Map<String, Object> request) {
+        Long groupId = Long.valueOf(request.get("groupId").toString());
+        String name = request.get("name").toString();
+        String imageUrl = request.containsKey("imageUrl") ? request.get("imageUrl").toString() : null;
+        Integer sortOrder = request.containsKey("sortOrder") && request.get("sortOrder") != null
+                ? Integer.valueOf(request.get("sortOrder").toString()) : null;
+
+        log.debug("POST /api/admin/ingredients - groupId={}, name={}", groupId, name);
+
+        IngredientDto ingredient = adminIngredientService.createIngredient(groupId, name, imageUrl, sortOrder);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", ingredient);
+
+        log.info("Created ingredient: {}", ingredient.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
     
     /**
      * 재료 보관법 등록
