@@ -15,7 +15,7 @@ import logoIcon from '@/assets/images/logo/logo-icon.png';
                         <i 
                             :class="[
                                 'pi text-xl',
-                                message.severity === 'success' ? 'pi-check-circle text-green-500' :
+                                message.severity === 'success' ? 'pi-check-circle text-orange-500' :
                                 message.severity === 'info' ? 'pi-info-circle text-blue-500' :
                                 message.severity === 'warn' ? 'pi-exclamation-triangle text-yellow-500' :
                                 'pi-times-circle text-red-500'

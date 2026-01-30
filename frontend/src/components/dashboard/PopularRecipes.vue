@@ -53,7 +53,7 @@ const remainingRecipes = computed(() => {
 const getTrendIcon = (status: string) => {
     switch (status) {
         case 'UP':
-            return 'pi-arrow-up text-green-500';
+            return 'pi-arrow-up text-orange-500';
         case 'DOWN':
             return 'pi-arrow-down text-red-500';
         case 'NEW':

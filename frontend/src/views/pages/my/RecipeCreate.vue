@@ -428,7 +428,7 @@
                     </div>
                 </div>
                 <div class="flex justify-end gap-2">
-                    <Button label="등록" icon="pi pi-check" severity="success" @click="submit" :disabled="submitting" />
+                    <Button label="등록" icon="pi pi-check" severity="primary" @click="submit" :disabled="submitting" />
                 </div>
             </div>
         </div>
@@ -600,13 +600,17 @@ function validateForm(): { valid: boolean; firstErrorField?: string; firstErrorF
         }
     }
 
-    for (const option of categoryOptions.value) {
-        if (!form.categories[option.codeId]) {
-            validationErrors.value[`category-${option.codeId}`] = true;
-            return { 
-                valid: false, 
-                firstErrorField: `category-${option.codeId}`, 
-                firstErrorFieldName: `카테고리 - ${option.codeName}` 
+    // 카테고리: 7개 중 최소 1개만 선택하면 됨
+    const hasAtLeastOneCategory = categoryOptions.value.length === 0
+        || categoryOptions.value.some((option) => !!form.categories[option.codeId]);
+    if (!hasAtLeastOneCategory) {
+        const firstOption = categoryOptions.value[0];
+        if (firstOption) {
+            validationErrors.value[`category-${firstOption.codeId}`] = true;
+            return {
+                valid: false,
+                firstErrorField: `category-${firstOption.codeId}`,
+                firstErrorFieldName: '카테고리를 최소 1개 이상 선택해주세요.'
             };
         }
     }

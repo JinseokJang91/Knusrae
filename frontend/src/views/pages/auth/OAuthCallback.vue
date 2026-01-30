@@ -11,7 +11,7 @@ const providerConfig = {
     naver: {
         successType: 'NAVER_LOGIN_SUCCESS',
         errorType: 'NAVER_LOGIN_ERROR',
-        color: 'green-500',
+        color: 'orange-500',
         label: '네이버'
     },
     kakao: {

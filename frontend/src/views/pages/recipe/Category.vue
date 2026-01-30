@@ -5,28 +5,75 @@
             <h1 class="text-3xl font-bold text-gray-900">카테고리</h1>
         </div> -->
 
-        <!-- header : 카테고리 선택 영역 (좌측 메인 카테고리, 우측 서브 카테고리) -->
+        <!-- header : 카테고리 선택 영역 (1. 검색 자동완성 + 2. 가로 탭 + 메가메뉴 패널) -->
         <div class="category-selector mb-4">
-            <div class="flex gap-4">
-                <!-- 좌측: 메인 카테고리 목록 (수직 일렬) -->
-                <div class="main-categories">
-                    <div
+            <!-- 1. 카테고리 검색 (자동완성) -->
+            <div class="category-search mb-4">
+                <AutoComplete
+                    v-model="categorySearchSelected"
+                    :suggestions="categorySearchSuggestions"
+                    @complete="onCategorySearch"
+                    optionLabel="label"
+                    placeholder="카테고리 검색 (예: 한식, 요리 키워드)"
+                    class="category-search-input w-full"
+                    @item-select="onCategorySearchSelect"
+                    inputClass="w-full"
+                >
+                    <template #option="slotProps">
+                        <div class="flex items-center gap-2 py-1">
+                            <i class="pi pi-tag text-surface-500"></i>
+                            <span>{{ slotProps.option.label }}</span>
+                        </div>
+                    </template>
+                    <template #empty>
+                        <div class="p-3 text-surface-500">검색 결과가 없습니다.</div>
+                    </template>
+                </AutoComplete>
+            </div>
+
+            <!-- 2. 가로 탭 + 메가메뉴 패널 -->
+            <div class="category-tabs-panel">
+                <!-- 선택 영역 라벨: 사용자가 클릭 가능한 카테고리임을 명시 -->
+                <div class="category-select-label">
+                    <i class="pi pi-check-circle category-select-icon" aria-hidden="true"></i>
+                    <span class="category-select-title">카테고리 선택</span>
+                    <span class="category-select-hint">원하는 카테고리를 클릭하세요</span>
+                </div>
+                <!-- 메인 카테고리 탭 (가로) -->
+                <div class="main-category-tabs">
+                    <button
                         v-for="mainCategory in mainCategories"
                         :key="mainCategory.codeId"
-                        :class="['main-category-item', selectedMainCategory === mainCategory.codeId ? 'selected' : '']"
+                        type="button"
+                        :class="['tab-button', selectedMainCategory === mainCategory.codeId ? 'active' : '']"
+                        :aria-pressed="selectedMainCategory === mainCategory.codeId"
+                        :aria-label="`${mainCategory.codeName} 카테고리 선택`"
                         @click="selectMainCategory(mainCategory.codeId)"
                     >
                         {{ mainCategory.codeName }}
-                    </div>
+                    </button>
                 </div>
-
-                <!-- 우측: 선택된 메인 카테고리의 서브 카테고리 목록 (나열) -->
-                <div class="sub-categories flex-1">
+                <!-- 선택된 메인의 상세 카테고리 패널 (맨 앞 '전체' + 칩 그리드) -->
+                <div class="sub-categories-panel">
                     <div class="flex flex-wrap gap-2">
+                        <button
+                            v-if="selectedMainCategory"
+                            key="sub-all"
+                            type="button"
+                            :class="['category-chip', selectedCategory === null ? 'selected' : '']"
+                            aria-pressed="selectedCategory === null"
+                            aria-label="전체 카테고리 선택"
+                            @click="selectCategory(null)"
+                        >
+                            전체
+                        </button>
                         <button
                             v-for="detail in selectedMainCategoryDetails"
                             :key="detail.detailCodeId"
-                            :class="['category-button', selectedCategory === detail.detailCodeId ? 'selected' : '']"
+                            type="button"
+                            :class="['category-chip', selectedCategory === detail.detailCodeId ? 'selected' : '']"
+                            :aria-pressed="selectedCategory === detail.detailCodeId"
+                            :aria-label="`${detail.codeName} 카테고리 선택`"
                             @click="selectCategory(detail.detailCodeId)"
                         >
                             {{ detail.codeName }}
@@ -76,7 +123,7 @@
                                             <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="large" rounded @click.stop="toggleFavorite(recipe.id)" />
                                             <Button icon="pi pi-bookmark" severity="secondary" size="large" rounded @click.stop="bookmarkRecipe(recipe.id)" />
                                         </div>
-                                        <Tag v-if="getCategoryName(recipe.category)" :value="getCategoryName(recipe.category)" severity="info" class="recipe-category-tag" />
+                                        <Tag v-if="recipe.primaryCategoryName || getCategoryName(recipe.category)" :value="recipe.primaryCategoryName || getCategoryName(recipe.category)" severity="info" class="recipe-category-tag" />
                                     </div>
                                     <!-- 조회수 표시 (이미지 우측 하단) -->
                                     <div v-if="formatCount(recipe.hits)" class="recipe-hits-overlay">
@@ -142,7 +189,7 @@
                                         <i class="pi pi-users"></i>
                                         <span>{{ recipe.servings }}</span>
                                     </div>
-                                    <Tag v-if="getCategoryName(recipe.category)" :value="getCategoryName(recipe.category)" severity="info" />
+                                    <Tag v-if="recipe.primaryCategoryName || getCategoryName(recipe.category)" :value="recipe.primaryCategoryName || getCategoryName(recipe.category)" severity="info" />
                                     <!-- 조회수 표시 (키워드 태그 우측) -->
                                     <span v-if="formatCount(recipe.hits)" class="text-sm text-gray-600">
                                         조회수 {{ formatCount(recipe.hits) }}
@@ -194,6 +241,7 @@
 <script setup>
 import { httpJson } from '@/utils/http';
 import { useAuthStore } from '@/stores/authStore';
+import AutoComplete from 'primevue/autocomplete';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Dialog from 'primevue/dialog';
@@ -221,6 +269,9 @@ const searchQuery = ref('');
 const searchCategory = ref(null);
 const searchDifficulty = ref(null);
 const viewMode = ref('grid');
+// 카테고리 검색(자동완성)용
+const categorySearchSelected = ref(null);
+const categorySearchSuggestions = ref([]);
 const first = ref(0);
 const rows = ref(12);
 const loading = ref(false);
@@ -279,6 +330,18 @@ const selectedMainCategoryDetails = computed(() => {
     return mainCategory?.details || [];
 });
 
+// 검색용 플랫 카테고리 목록 (메인 전체 + 메인별 상세)
+const allCategoriesFlat = computed(() => {
+    const list = [];
+    mainCategories.value.forEach((main) => {
+        list.push({ label: `${main.codeName} (전체)`, mainCodeId: main.codeId, detailCodeId: null });
+        (main.details || []).forEach((d) => {
+            list.push({ label: `${main.codeName} > ${d.codeName}`, mainCodeId: main.codeId, detailCodeId: d.detailCodeId });
+        });
+    });
+    return list;
+});
+
 // Function > onMounted > 카테고리 조회
 // TODO 카테고리 목록 조회 API 연결 예정
 const loadCategories = async () => {
@@ -314,10 +377,7 @@ const loadCategories = async () => {
             }
         });
 
-        // 첫 번째 메인 카테고리를 기본 선택
-        if (mainCategories.value.length > 0) {
-            selectedMainCategory.value = mainCategories.value[0].codeId;
-        }
+        // 메인 카테고리 기본값: 미선택(전체 레시피)
     } catch (error) {
         // 기본값 설정
         mainCategories.value = [
@@ -424,15 +484,17 @@ const loadRecipes = async () => {
             const categoryKeys = extractCategoryKeys(recipe);
             // 레시피의 모든 카테고리 ID 추출 (표시용)
             const categoryIds = extractCategoryIds(recipe);
-            // 표시용 대표 카테고리 (첫 번째 카테고리 또는 COOKING_KEYWORD 우선)
-            const keywordCategory = recipe.categories?.find((cat) => cat.codeId === 'COOKING_KEYWORD');
-            const primaryCategoryId = keywordCategory?.detailCodeId || categoryIds[0] || null;
+            // 표시용 대표 카테고리: 첫 번째 카테고리 (7개 중 최소 1개만 있을 수 있음)
+            const firstCategory = recipe.categories?.[0];
+            const primaryCategoryId = firstCategory?.detailCodeId || categoryIds[0] || null;
+            const primaryCategoryName = firstCategory?.detailName || firstCategory?.codeName || null;
 
             return {
                 ...recipe,
                 categoryKeys, // 모든 카테고리 키 배열 (필터링용, "codeId-detailCodeId" 형식)
                 categoryIds, // 모든 카테고리 ID 배열 (표시용)
-                category: primaryCategoryId, // 표시용 대표 카테고리
+                category: primaryCategoryId, // 표시용 대표 카테고리 ID (필터/폴백용)
+                primaryCategoryName, // 표시용 대표 카테고리명 (API 기준, 새 7개 카테고리 대응)
                 cookingTime,
                 servings,
                 isFavorite,
@@ -443,86 +505,14 @@ const loadRecipes = async () => {
         console.error('레시피 로드 실패:', err);
         error.value = err.message || '레시피를 불러오는데 실패했습니다.';
 
-        // API 실패 시 더미 데이터 사용
+        // API 실패 시 더미 데이터 사용 (primaryCategoryName으로 카드 태그 표시)
         recipes.value = [
-            {
-                id: 1,
-                title: '김치찌개',
-                thumbnail: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400',
-                category: 'korean',
-                categoryIds: ['korean'],
-                categoryKeys: ['COOKING_KEYWORD-korean'],
-                cookingTime: '30분',
-                servings: '2인분',
-                hits: 1250,
-                isFavorite: false,
-                commentCount: 173
-            },
-            {
-                id: 2,
-                title: '짜장면',
-                thumbnail: 'https://images.unsplash.com/photo-1563379091339-03246963d4d8?w=400',
-                category: 'chinese',
-                categoryIds: ['chinese'],
-                categoryKeys: ['COOKING_KEYWORD-chinese'],
-                cookingTime: '20분',
-                servings: '2인분',
-                hits: 980,
-                isFavorite: false,
-                commentCount: 45
-            },
-            {
-                id: 3,
-                title: '초밥',
-                thumbnail: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400',
-                category: 'japanese',
-                categoryIds: ['japanese'],
-                categoryKeys: ['COOKING_KEYWORD-japanese'],
-                cookingTime: '45분',
-                servings: '4인분',
-                hits: 2100,
-                isFavorite: false,
-                commentCount: 1435
-            },
-            {
-                id: 4,
-                title: '파스타',
-                thumbnail: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400',
-                category: 'western',
-                categoryIds: ['western'],
-                categoryKeys: ['COOKING_KEYWORD-western'],
-                cookingTime: '25분',
-                servings: '2인분',
-                hits: 1560,
-                isFavorite: true,
-                commentCount: 0
-            },
-            {
-                id: 5,
-                title: '치즈케이크',
-                thumbnail: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400',
-                category: 'dessert',
-                categoryIds: ['dessert'],
-                categoryKeys: ['COOKING_KEYWORD-dessert'],
-                cookingTime: '90분',
-                servings: '8인분',
-                hits: 890,
-                isFavorite: true,
-                commentCount: 12
-            },
-            {
-                id: 6,
-                title: '불고기',
-                thumbnail: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400',
-                category: 'korean',
-                categoryIds: ['korean'],
-                categoryKeys: ['COOKING_KEYWORD-korean'],
-                cookingTime: '15분',
-                servings: '3인분',
-                hits: 1750,
-                isFavorite: false,
-                commentCount: 89
-            }
+            { id: 1, title: '김치찌개', thumbnail: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400', category: '1001', categoryIds: ['1001'], categoryKeys: ['COOKING_STYLE-1001'], primaryCategoryName: '한식', cookingTime: '30분', servings: '2인분', hits: 1250, isFavorite: false, commentCount: 173 },
+            { id: 2, title: '짜장면', thumbnail: 'https://images.unsplash.com/photo-1563379091339-03246963d4d8?w=400', category: '1003', categoryIds: ['1003'], categoryKeys: ['COOKING_STYLE-1003'], primaryCategoryName: '중식', cookingTime: '20분', servings: '2인분', hits: 980, isFavorite: false, commentCount: 45 },
+            { id: 3, title: '초밥', thumbnail: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400', category: '1004', categoryIds: ['1004'], categoryKeys: ['COOKING_STYLE-1004'], primaryCategoryName: '일식', cookingTime: '45분', servings: '4인분', hits: 2100, isFavorite: false, commentCount: 1435 },
+            { id: 4, title: '파스타', thumbnail: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400', category: '1005', categoryIds: ['1005'], categoryKeys: ['COOKING_STYLE-1005'], primaryCategoryName: '이탈리안', cookingTime: '25분', servings: '2인분', hits: 1560, isFavorite: true, commentCount: 0 },
+            { id: 5, title: '치즈케이크', thumbnail: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400', category: '1001', categoryIds: ['1001'], categoryKeys: ['COOKING_DESSERT-1001'], primaryCategoryName: '쿠키', cookingTime: '90분', servings: '8인분', hits: 890, isFavorite: true, commentCount: 12 },
+            { id: 6, title: '불고기', thumbnail: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400', category: '1001', categoryIds: ['1001'], categoryKeys: ['COOKING_STYLE-1001'], primaryCategoryName: '한식', cookingTime: '15분', servings: '3인분', hits: 1750, isFavorite: false, commentCount: 89 }
         ];
     } finally {
         loading.value = false;
@@ -531,13 +521,16 @@ const loadRecipes = async () => {
 
 // Function > Button > 메인 카테고리 선택
 const selectMainCategory = (codeId) => {
-    selectedMainCategory.value = codeId;
-    selectedCategory.value = null; // 메인 카테고리 변경 시 서브 카테고리 선택 해제
+    // 이미 선택된 메인을 다시 클릭하면 선택 해제(전체 레시피로)
+    if (selectedMainCategory.value === codeId) {
+        selectedMainCategory.value = null;
+        selectedCategory.value = null;
+    } else {
+        selectedMainCategory.value = codeId;
+        selectedCategory.value = null;
+    }
     searchResults.value = [];
     first.value = 0;
-    
-    // 선택된 메인 카테고리의 서브 카테고리 목록 출력
-    const mainCategory = mainCategories.value.find((cat) => cat.codeId === codeId);
 };
 
 // Function > Button > body 카테고리 선택 시 목록 필터링
@@ -551,16 +544,41 @@ const selectCategory = (categoryValue) => {
     first.value = 0;
 };
 
+// 카테고리 검색(자동완성): 입력 시 제안 목록 필터링
+const onCategorySearch = (event) => {
+    const query = (event.query || '').trim().toLowerCase();
+    if (!query) {
+        // 포커스만 했을 때는 메인 카테고리(전체)만 표시
+        categorySearchSuggestions.value = allCategoriesFlat.value.filter((item) => item.detailCodeId === null);
+        return;
+    }
+    categorySearchSuggestions.value = allCategoriesFlat.value.filter(
+        (item) => item.label.toLowerCase().includes(query)
+    );
+};
+
+// 카테고리 검색(자동완성): 항목 선택 시 메인/상세 적용 후 검색창 초기화
+const onCategorySearchSelect = (event) => {
+    const item = event.value;
+    if (!item) return;
+    selectedMainCategory.value = item.mainCodeId;
+    selectedCategory.value = item.detailCodeId ?? null;
+    categorySearchSelected.value = null;
+    searchResults.value = [];
+    first.value = 0;
+};
+
 // const viewCategory = (categoryValue) => {
 //     selectedCategory.value = categoryValue;
 //     searchResults.value = [];
 //     first.value = 0;
 // };
 
-// Function > header 현재 카테고리 값 동기화 (COOKING_KEYWORD인 경우만 반환)
+// Function > 대표 카테고리명 조회 (detailCodeId로 서브 카테고리 목록에서 이름 찾기, 폴백용)
 const getCategoryName = (categoryValue) => {
-    // COOKING_KEYWORD 메인 카테고리에 속한 카테고리만 반환
-    const category = categories.value.find((cat) => cat.value === categoryValue && cat.mainCategoryId === 'COOKING_KEYWORD');
+    if (!categoryValue) return null;
+    // 서브 카테고리 목록에서 value(detailCodeId)가 일치하는 첫 번째 항목의 이름 반환
+    const category = categories.value.find((cat) => cat.value === categoryValue);
     return category ? category.name : null;
 };
 
@@ -684,7 +702,7 @@ onMounted(() => {
 
 <style scoped>
 .stat-card {
-    background: linear-gradient(135deg, #249461 0%, #afe6ca 100%);
+    background: linear-gradient(135deg, #ea580c 0%, #fed7aa 100%);
     color: white;
 }
 
@@ -756,83 +774,108 @@ onMounted(() => {
 /* 카테고리 선택기 스타일 */
 .category-selector {
     background: var(--surface-card);
-    border: 1px solid #4b5563;
+    border: 1px solid var(--surface-border);
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 2rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-/* 좌측 메인 카테고리 스타일 */
-.main-categories {
-    min-width: 200px;
-    border-right: 2px solid #e5e7eb;
-    padding-right: 1rem;
-    margin-right: 1rem;
+/* 1. 카테고리 검색(자동완성) */
+.category-search .category-search-input {
+    max-width: 400px;
 }
 
-.main-category-item {
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
+/* 2. 가로 탭 + 메가메뉴 패널 */
+.category-tabs-panel {
+    border-top: 1px solid var(--surface-border);
+    padding-top: 1rem;
+}
+
+/* 카테고리 선택 영역 라벨 (선택 가능함을 명시) */
+.category-select-label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+}
+
+.category-select-icon {
+    color: var(--primary-color, #1f2937);
+    font-size: 1.1rem;
+}
+
+.category-select-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.category-select-hint {
+    font-size: 0.8rem;
+    color: var(--text-color-secondary);
+}
+
+.main-category-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.main-category-tabs .tab-button {
+    padding: 0.6rem 1rem;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-weight: 700;
+    font-weight: 600;
+    font-size: 0.9rem;
     color: #374151;
-    background: #f9fafb;
-    border: 1px solid #d1d5db;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
 }
 
-.main-category-item:hover {
-    background: #f3f4f6;
-    border-color: #9ca3af;
+.main-category-tabs .tab-button:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
     color: #111827;
 }
 
-.main-category-item.selected {
-    background: #1f2937;
+.main-category-tabs .tab-button.active {
+    background: var(--primary-color, #1f2937);
     color: white;
-    border-color: #111827;
-    font-weight: 700;
+    border-color: var(--primary-color, #1f2937);
 }
 
-/* 우측 서브 카테고리 스타일 */
-.sub-categories {
-    padding-left: 1rem;
+.sub-categories-panel {
+    padding: 0.75rem 0;
+    min-height: 52px;
 }
 
-.category-button {
-    padding: 0.75rem 1rem;
-    min-width: 120px;
-    border-radius: 8px;
+.category-chip {
+    padding: 0.5rem 0.9rem;
+    border-radius: 9999px;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-weight: 700;
-    color: #374151;
-    background: #f9fafb;
-    border: 1px solid #d1d5db;
+    font-weight: 500;
     font-size: 0.875rem;
+    color: #374151;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
 }
 
-.category-button:hover {
+.category-chip:hover {
     background: #f3f4f6;
-    border-color: #9ca3af;
+    border-color: #d1d5db;
     color: #111827;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.category-button.selected {
-    background: #1f2937;
+.category-chip.selected {
+    background: var(--primary-color, #1f2937);
     color: white;
-    border-color: #111827;
-    font-weight: 700;
-}
-
-.category-button.selected:hover {
-    background: #111827;
-    border-color: #000000;
-    color: white;
+    border-color: var(--primary-color, #1f2937);
 }
 
 /* 레시피 그리드 스타일 */
@@ -998,27 +1041,22 @@ onMounted(() => {
         padding: 1rem;
     }
 
-    .category-selector .flex {
-        flex-direction: column;
+    .category-search .category-search-input {
+        max-width: 100%;
     }
 
-    .main-categories {
-        min-width: 100%;
-        border-right: none;
-        border-bottom: 2px solid var(--surface-border);
-        padding-right: 0;
-        padding-bottom: 1rem;
-        margin-right: 0;
-        margin-bottom: 1rem;
+    .main-category-tabs {
+        gap: 0.35rem;
     }
 
-    .sub-categories {
-        padding-left: 0;
+    .main-category-tabs .tab-button {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
     }
 
-    .category-button {
-        min-width: 100px;
-        font-size: 0.9rem;
+    .category-chip {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
     }
 }
 </style>

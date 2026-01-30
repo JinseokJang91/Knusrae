@@ -49,7 +49,7 @@
                             </button>
                         </td>
                         <td class="px-3 py-2">
-                            <span class="px-2 py-1 rounded text-xs" :class="r.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'">
+                            <span class="px-2 py-1 rounded text-xs" :class="r.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-700' : 'bg-orange-100 text-orange-700'">
                                 {{ r.status === 'DRAFT' ? '초안' : '발행' }}
                             </span>
                         </td>

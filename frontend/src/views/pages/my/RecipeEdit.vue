@@ -423,7 +423,7 @@
                 </div>
                 <div class="flex justify-end gap-2">
                     <Button label="취소" icon="pi pi-times" severity="secondary" @click="goBack" :disabled="submitting" />
-                    <Button label="수정" icon="pi pi-check" severity="success" @click="submit" :disabled="submitting || !isValid" />
+                    <Button label="수정" icon="pi pi-check" severity="primary" @click="submit" :disabled="submitting || !isValid" />
                 </div>
             </div>
         </div>
@@ -538,7 +538,7 @@ const form = reactive<RecipeDraft>({
 const isValid = computed(() => {
     const basicValid = Boolean(form.title.trim());
     const stepsValid = form.steps.length > 0 && form.steps.every((s) => s.text.trim());
-    const categoriesValid = categoryOptions.value.length === 0 || categoryOptions.value.every((option) => !!form.categories[option.codeId]);
+    const categoriesValid = categoryOptions.value.length === 0 || categoryOptions.value.some((option) => !!form.categories[option.codeId]);
     const cookingTipsValid = cookingTipsOptions.value.length === 0 || cookingTipsOptions.value.every((option) => !!form.cookingTips[option.codeId]);
     return basicValid && stepsValid && categoriesValid && cookingTipsValid;
 });

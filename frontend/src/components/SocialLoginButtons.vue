@@ -118,7 +118,7 @@
   }
   
   .social-btn--naver {
-    background: #03A94D;
+    background: #ea580c; /* 오렌지톤 통일 (orange-600) */
     color: #ffffff;
     gap: 8px;
   }

@@ -187,7 +187,7 @@ async function loginAsAdmin() {
                                         <div class="text-xs px-2 py-1 rounded" :class="{
                                             'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': account.socialRole === 'GOOGLE',
                                             'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': account.socialRole === 'KAKAO',
-                                            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': account.socialRole === 'NAVER'
+                                            'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200': account.socialRole === 'NAVER'
                                         }">
                                             {{ account.socialRole }}
                                         </div>
