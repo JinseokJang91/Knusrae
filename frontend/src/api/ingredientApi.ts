@@ -96,6 +96,37 @@ export async function getMyIngredientRequests(): Promise<IngredientRequestRespon
 }
 
 /**
+ * 재료 그룹 등록 (관리자 전용)
+ */
+export async function createIngredientGroup(request: {
+  name: string;
+  imageUrl?: string;
+  sortOrder?: number;
+}): Promise<IngredientGroup> {
+  const response = await httpJson(BASE_URL, '/api/admin/ingredients/groups', {
+    method: 'POST',
+    body: JSON.stringify(request)
+  });
+  return response.data;
+}
+
+/**
+ * 재료 등록 (관리자 전용)
+ */
+export async function createIngredient(request: {
+  groupId: number;
+  name: string;
+  imageUrl?: string;
+  sortOrder?: number;
+}): Promise<Ingredient> {
+  const response = await httpJson(BASE_URL, '/api/admin/ingredients', {
+    method: 'POST',
+    body: JSON.stringify(request)
+  });
+  return response.data;
+}
+
+/**
  * 재료 보관법 등록 (관리자 전용)
  */
 export async function createIngredientStorage(request: {

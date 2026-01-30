@@ -6,13 +6,6 @@
                     <h1 class="text-3xl font-bold text-gray-900">재료 관리</h1>
                     <p class="text-gray-600 mt-2">재료의 보관법과 손질법을 확인하세요</p>
                 </div>
-                <Button 
-                    v-if="authStore.isAdmin"
-                    label="등록하기"
-                    icon="pi pi-plus"
-                    @click="goToRegister"
-                    class="ml-4"
-                />
             </div>
         </div>
 
@@ -60,26 +53,19 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
-import Button from 'primevue/button';
 import IngredientList from '@/components/ingredient/IngredientList.vue';
 
 const route = useRoute();
 const router = useRouter();
-const authStore = useAuthStore();
 
 const activeTab = ref<'storage' | 'preparation'>('storage');
 const selectedGroupId = ref<number | null>(null);
 const searchQuery = ref('');
-
-const goToRegister = () => {
-    router.push('/ingredient/management/register');
-};
 
 // URL 쿼리 파라미터로 탭 상태 복원
 onMounted(() => {

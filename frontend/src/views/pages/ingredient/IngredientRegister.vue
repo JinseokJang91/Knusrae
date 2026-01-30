@@ -127,7 +127,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useToast } from 'primevue/usetoast';
 import Card from 'primevue/card';
@@ -144,6 +144,7 @@ import {
 } from '@/api/ingredientApi';
 import type { Ingredient } from '@/types/ingredient';
 
+const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const toast = useToast();
@@ -290,8 +291,8 @@ const handleSubmit = async () => {
             });
         }
 
-        // 재료 관리 화면으로 이동
-        router.push('/ingredient/management');
+        // 관리자 경로에서 왔으면 관리자페이지로, 아니면 재료 관리 화면으로
+        router.push(route.path.startsWith('/admin') ? '/admin' : '/ingredient/management');
     } catch (error: any) {
         console.error('등록 실패:', error);
         toast.add({
@@ -307,7 +308,7 @@ const handleSubmit = async () => {
 
 // 취소
 const handleCancel = () => {
-    router.push('/ingredient/management');
+    router.push(route.path.startsWith('/admin') ? '/admin' : '/ingredient/management');
 };
 
 onMounted(() => {
@@ -325,11 +326,11 @@ onMounted(() => {
                     detail: '재료 등록은 관리자만 이용할 수 있습니다.',
                     life: 3000
                 });
-                router.replace('/ingredient/management');
+                router.replace(route.path.startsWith('/admin') ? '/admin' : '/ingredient/management');
             }
         } catch (error) {
             console.error('관리자 권한 확인 실패:', error);
-            router.replace('/ingredient/management');
+            router.replace(route.path.startsWith('/admin') ? '/admin' : '/ingredient/management');
         }
     };
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import logoText from '@/assets/images/logo/logo-full.png';
 import { useAuthStore } from '@/stores/authStore';
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import Menu from 'primevue/menu';
@@ -14,20 +14,29 @@ const authStore = useAuthStore();
 const searchQuery = ref('');
 const profileMenu = ref();
 
-// 프로필 메뉴 아이템
-const profileMenuItems = ref([
-    {
-        label: '마이페이지',
-        icon: 'pi pi-user',
-        command: () => handleMyMenuClick('/mypage', new Event('click'))
-    },
-    { separator: true },
-    {
+// 프로필 메뉴 아이템 (관리자일 때 마이페이지 밑에 관리자페이지 추가)
+const profileMenuItems = computed(() => {
+    const items: Array<{ label: string; icon: string; command?: () => void } | { separator: true }> = [
+        {
+            label: '마이페이지',
+            icon: 'pi pi-user',
+            command: () => handleMyMenuClick('/mypage', new Event('click'))
+        }
+    ];
+    if (authStore.isAdmin) {
+        items.push({
+            label: '관리자페이지',
+            icon: 'pi pi-cog',
+            command: () => handleMyMenuClick('/admin', new Event('click'))
+        });
+    }
+    items.push({ separator: true }, {
         label: '로그아웃',
         icon: 'pi pi-sign-out',
         command: () => handleLogout()
-    }
-]);
+    });
+    return items;
+});
 const recentKeywords = ref<RecentSearchKeyword[]>([]);
 const showRecentKeywords = ref(false);
 const recentKeywordsLoading = ref(false);

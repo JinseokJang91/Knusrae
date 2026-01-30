@@ -63,6 +63,27 @@ const routes: RouteRecordRaw[] = [
                 path: '/my/favorites',
                 redirect: '/mypage?tab=favorites'
             },
+            // 3-1. 관리자 페이지
+            {
+                path: '/admin',
+                name: 'admin',
+                component: () => import('@/views/pages/admin/Admin.vue')
+            },
+            {
+                path: '/admin/ingredient-group/register',
+                name: 'adminIngredientGroupRegister',
+                component: () => import('@/views/pages/admin/IngredientGroupRegister.vue')
+            },
+            {
+                path: '/admin/ingredient/register',
+                name: 'adminIngredientRegister',
+                component: () => import('@/views/pages/admin/IngredientRegister.vue')
+            },
+            {
+                path: '/admin/ingredient-management/register',
+                name: 'adminIngredientManagementRegister',
+                component: () => import('@/views/pages/ingredient/IngredientRegister.vue')
+            },
             // 4. 메인 메뉴
             // 4-1. 전체 레시피
             {
@@ -79,12 +100,12 @@ const routes: RouteRecordRaw[] = [
             {
                 path: '/ingredient/management',
                 name: 'ingredientManagement',
-                component: () => import('@/views/pages/ingredient/Management.vue')
+                component: () => import('@/views/pages/ingredient/IngredientManagement.vue')
             },
             {
                 path: '/ingredient/management/register',
                 name: 'ingredientRegister',
-                component: () => import('@/views/pages/ingredient/Register.vue')
+                component: () => import('@/views/pages/ingredient/IngredientRegister.vue')
             },
             {
                 path: '/ingredient/storage',
