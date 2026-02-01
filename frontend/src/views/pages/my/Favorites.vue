@@ -30,41 +30,46 @@
 
             <!-- 레시피 목록이 있는 경우 -->
             <div v-else-if="displayFavorites.length > 0">
-                <!-- 리스트 뷰 -->
-                <div class="recipe-list">
-                    <div v-for="favorite in displayFavorites" :key="favorite.id" class="recipe-list-item">
-                        <div class="flex items-center gap-3 p-3 rounded hover:bg-gray-50 transition-colors duration-150">
-                            <img :src="favorite.recipe.thumbnail || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400'" :alt="favorite.recipe.title" class="recipe-thumbnail" @click="viewRecipe(favorite.recipeId)" />
-                            <div class="flex-1" @click="viewRecipe(favorite.recipeId)">
-                                <h4 class="text-lg font-semibold text-gray-900 m-0 mb-1">{{ favorite.recipe.title }}</h4>
-                                <p class="text-sm text-gray-600 mb-2">{{ favorite.recipe.description }}</p>
-                                <div class="flex items-center gap-3 text-sm text-gray-500">
-                                    <div v-if="favorite.recipe.hits !== null && favorite.recipe.hits !== undefined" class="flex items-center gap-1">
-                                        <i class="pi pi-eye"></i>
-                                        <span>{{ favorite.recipe.hits.toLocaleString() }}</span>
+                <!-- 그리드 뷰 (카드 형태) -->
+                <div class="recipe-grid">
+                    <div v-for="favorite in displayFavorites" :key="favorite.id" class="recipe-card-wrapper" @click="viewRecipe(favorite.recipeId)">
+                        <Card class="recipe-card h-full">
+                            <template #header>
+                                <div class="recipe-image-container">
+                                    <img :src="favorite.recipe.thumbnail || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400'" :alt="favorite.recipe.title" class="recipe-image" />
+                                    <div class="recipe-overlay">
+                                        <div class="recipe-actions">
+                                            <Button icon="pi pi-heart-fill" class="p-button-danger" size="large" rounded @click.stop="removeFavorite(favorite.recipeId)" />
+                                        </div>
+                                        <Tag v-if="getCategoryName(favorite.recipe)" :value="getCategoryName(favorite.recipe)" severity="info" class="recipe-category-tag" />
                                     </div>
-                                    <div v-if="getCookingTime(favorite.recipe)" class="flex items-center gap-1">
-                                        <i class="pi pi-clock"></i>
-                                        <span>{{ getCookingTime(favorite.recipe) }}</span>
-                                    </div>
-                                    <div v-if="getServings(favorite.recipe)" class="flex items-center gap-1">
-                                        <i class="pi pi-users"></i>
-                                        <span>{{ getServings(favorite.recipe) }}</span>
-                                    </div>
-                                    <div v-if="getCategoryName(favorite.recipe)" class="flex items-center gap-1">
-                                        <Tag :value="getCategoryName(favorite.recipe)" severity="info" />
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        <i class="pi pi-calendar"></i>
-                                        <span>{{ formatDate(favorite.createdAt) }}</span>
+                                    <div v-if="formatCount(favorite.recipe.hits)" class="recipe-hits-overlay">
+                                        조회수 {{ formatCount(favorite.recipe.hits) }}
                                     </div>
                                 </div>
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <Button icon="pi pi-heart-fill" class="p-button-danger" size="small" rounded @click="removeFavorite(favorite.recipeId)" />
-                                <Button label="상세보기" size="small" @click="viewRecipe(favorite.recipeId)" />
-                            </div>
-                        </div>
+                            </template>
+                            <template #content>
+                                <div class="recipe-content">
+                                    <h3 class="recipe-title">{{ favorite.recipe.title }}</h3>
+                                    <div class="recipe-meta">
+                                        <div class="recipe-info">
+                                            <div v-if="getCookingTime(favorite.recipe)" class="info-item">
+                                                <i class="pi pi-clock"></i>
+                                                <span>{{ getCookingTime(favorite.recipe) }}</span>
+                                            </div>
+                                            <div v-if="getServings(favorite.recipe)" class="info-item">
+                                                <i class="pi pi-users"></i>
+                                                <span>{{ getServings(favorite.recipe) }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-sm text-gray-500 mt-1">
+                                            <i class="pi pi-calendar"></i>
+                                            <span>{{ formatDate(favorite.createdAt) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </Card>
                     </div>
                 </div>
 
@@ -89,6 +94,7 @@
 import { httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
 import Button from 'primevue/button';
+import Card from 'primevue/card';
 import Paginator from 'primevue/paginator';
 import ProgressSpinner from 'primevue/progressspinner';
 import Tag from 'primevue/tag';
@@ -175,6 +181,22 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('ko-KR');
 };
 
+// 조회수 포맷팅 (만/억 단위 처리)
+const formatCount = (count) => {
+    if (!count || count === 0) return null;
+    if (count >= 100000000) {
+        const eok = count / 100000000;
+        const rounded = Math.round(eok * 10) / 10;
+        return rounded % 1 === 0 ? `${Math.round(rounded)}억` : `${rounded}억`;
+    }
+    if (count >= 10000) {
+        const man = count / 10000;
+        const rounded = Math.round(man * 10) / 10;
+        return rounded % 1 === 0 ? `${Math.round(rounded)}만` : `${rounded}만`;
+    }
+    return count.toLocaleString();
+};
+
 const onPageChange = (event) => {
     first.value = event.first;
     rows.value = event.rows;
@@ -225,31 +247,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.recipe-section {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--surface-border);
-}
-
-.recipe-list-item {
-    border-bottom: 1px solid var(--surface-border);
-    cursor: pointer;
-}
-
-.recipe-list-item:last-child {
-    border-bottom: none;
-}
-
-.recipe-thumbnail {
-    width: 120px;
-    height: 120px;
-    min-width: 120px;
-    min-height: 120px;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 8px;
-    display: block;
-    flex-shrink: 0;
-    cursor: pointer;
-}
+/* 레시피 목록 카드 스타일은 layout _recipe-card-list.scss 공통 사용 */
 </style>

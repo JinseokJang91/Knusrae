@@ -86,13 +86,20 @@
         <!-- body : 레시피 목록 섹션 -->
         <div class="recipe-section">
             <div class="flex justify-between items-center mb-3">
-                <h2 class="text-2xl font-semibold text-gray-900 m-0">
-                    {{ getCategoryTitle() + '(' + totalDisplayRecipes + ')' }}
-                </h2>
-                <div class="flex gap-2">
-                    <Button icon="pi pi-th-large" :class="viewMode === 'grid' ? 'p-button-primary' : 'p-button-secondary'" size="small" @click="viewMode = 'grid'" />
-                    <Button icon="pi pi-list" :class="viewMode === 'list' ? 'p-button-primary' : 'p-button-secondary'" size="small" @click="viewMode = 'list'" />
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-gray-900 m-0">{{ getCategoryTitle() }}</h2>
+                    <div class="recipe-count-bubble">
+                        <span class="text-primary font-bold">{{ totalDisplayRecipes.toLocaleString() }}</span>개의 레시피가 준비되어 있어요!
+                    </div>
                 </div>
+                <SelectButton
+                    v-model="sortBy"
+                    :options="sortOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    class="recipe-sort-buttons"
+                    @change="onSortChange"
+                />
             </div>
 
             <!-- 로딩 상태 -->
@@ -112,7 +119,7 @@
             <!-- 레시피 목록이 있는 경우 -->
             <div v-else-if="displayRecipes.length > 0">
                 <!-- 그리드 뷰 (카드 형태) -->
-                <div v-if="viewMode === 'grid'" class="recipe-grid">
+                <div class="recipe-grid">
                     <div v-for="recipe in displayRecipes" :key="recipe.id" class="recipe-card-wrapper" @click="viewRecipe(recipe.id)">
                         <Card class="recipe-card h-full">
                             <template #header>
@@ -173,55 +180,6 @@
                     </div>
                 </div>
 
-                <!-- 리스트 뷰 -->
-                <div v-else class="recipe-list">
-                    <div v-for="recipe in displayRecipes" :key="recipe.id" class="recipe-list-item">
-                        <div class="flex items-center gap-3 p-3 rounded hover:bg-gray-50 transition-colors duration-150">
-                            <img :src="recipe.thumbnail" :alt="recipe.title" class="recipe-thumbnail" />
-                            <div class="flex-1">
-                                <h4 class="text-lg font-semibold text-gray-900 m-0 mb-1">{{ recipe.title }}</h4>
-                                <div class="flex items-center gap-3 text-sm text-gray-500">
-                                    <div v-if="recipe.cookingTime" class="flex items-center gap-1">
-                                        <i class="pi pi-clock"></i>
-                                        <span>{{ recipe.cookingTime }}</span>
-                                    </div>
-                                    <div v-if="recipe.servings" class="flex items-center gap-1">
-                                        <i class="pi pi-users"></i>
-                                        <span>{{ recipe.servings }}</span>
-                                    </div>
-                                    <Tag v-if="recipe.primaryCategoryName || getCategoryName(recipe.category)" :value="recipe.primaryCategoryName || getCategoryName(recipe.category)" severity="info" />
-                                    <!-- 조회수 표시 (키워드 태그 우측) -->
-                                    <span v-if="formatCount(recipe.hits)" class="text-sm text-gray-600">
-                                        조회수 {{ formatCount(recipe.hits) }}
-                                    </span>
-                                    <!-- 댓글 개수 표시 (조회수 우측) -->
-                                    <span v-if="formatCount(recipe.commentCount)" class="text-sm text-gray-600 cursor-pointer hover:text-primary" @click.stop="scrollToComments(recipe.id)">
-                                        댓글 {{ formatCount(recipe.commentCount) }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <div v-if="recipe.memberNickname || recipe.memberName" class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
-                                        <img 
-                                            v-if="recipe.memberProfileImage" 
-                                            :src="recipe.memberProfileImage" 
-                                            alt="작성자 프로필" 
-                                            class="w-full h-full object-cover"
-                                        />
-                                        <i v-else class="pi pi-user text-gray-600 text-xs"></i>
-                                    </div>
-                                    <span class="text-sm text-gray-600">{{ recipe.memberNickname || recipe.memberName }}</span>
-                                </div>
-                                <div class="flex flex-col gap-2">
-                                    <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="small" rounded @click="toggleFavorite(recipe.id)" />
-                                    <Button label="상세보기" size="small" @click="viewRecipe(recipe.id)" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- footer : 페이지네이션 -->
                 <div class="flex justify-center mt-4">
                     <Paginator v-model:first="first" :rows="rows" :totalRecords="totalDisplayRecipes" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
@@ -245,7 +203,7 @@ import AutoComplete from 'primevue/autocomplete';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Dialog from 'primevue/dialog';
-import Dropdown from 'primevue/dropdown';
+import SelectButton from 'primevue/selectbutton';
 import InputText from 'primevue/inputtext';
 import Paginator from 'primevue/paginator';
 import ProgressSpinner from 'primevue/progressspinner';
@@ -268,7 +226,6 @@ const searchResults = ref([]);
 const searchQuery = ref('');
 const searchCategory = ref(null);
 const searchDifficulty = ref(null);
-const viewMode = ref('grid');
 // 카테고리 검색(자동완성)용
 const categorySearchSelected = ref(null);
 const categorySearchSuggestions = ref([]);
@@ -310,16 +267,42 @@ const filteredRecipes = computed(() => {
     return filtered;
 });
 
-// 카테고리 body > 레시피
-const displayRecipes = computed(() => {
+// 정렬 옵션 (최신순, 조회순, 댓글순)
+const SORT_LATEST = 'latest';
+const SORT_HITS = 'hits';
+const SORT_COMMENTS = 'comments';
+const sortOptions = [
+    { label: '최신순', value: SORT_LATEST },
+    { label: '조회순', value: SORT_HITS },
+    { label: '댓글순', value: SORT_COMMENTS }
+];
+const sortBy = ref(SORT_LATEST);
+
+// 정렬된 레시피 목록 (표시용 소스)
+const sortedRecipes = computed(() => {
     const source = searchResults.value.length > 0 ? searchResults.value : filteredRecipes.value;
-    return source.slice(first.value, first.value + rows.value);
+    const list = [...source];
+    if (sortBy.value === SORT_LATEST) {
+        list.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA;
+        });
+    } else if (sortBy.value === SORT_HITS) {
+        list.sort((a, b) => (b.hits ?? 0) - (a.hits ?? 0));
+    } else if (sortBy.value === SORT_COMMENTS) {
+        list.sort((a, b) => (b.commentCount ?? 0) - (a.commentCount ?? 0));
+    }
+    return list;
 });
 
-// 카테고리 footer > 페이징 처리
-const totalDisplayRecipes = computed(() => {
-    return searchResults.value.length > 0 ? searchResults.value.length : filteredRecipes.value.length;
+// 카테고리 body > 레시피 (정렬된 목록에서 페이지 슬라이스)
+const displayRecipes = computed(() => {
+    return sortedRecipes.value.slice(first.value, first.value + rows.value);
 });
+
+// 카테고리 footer > 페이징 처리 (정렬된 목록 개수)
+const totalDisplayRecipes = computed(() => sortedRecipes.value.length);
 
 // 선택된 메인 카테고리의 서브 카테고리 목록 (details)
 const selectedMainCategoryDetails = computed(() => {
@@ -533,6 +516,11 @@ const selectMainCategory = (codeId) => {
     first.value = 0;
 };
 
+// 정렬 변경 시 첫 페이지로
+const onSortChange = () => {
+    first.value = 0;
+};
+
 // Function > Button > body 카테고리 선택 시 목록 필터링
 const selectCategory = (categoryValue) => {
     selectedCategory.value = selectedCategory.value === categoryValue ? null : categoryValue;
@@ -734,41 +722,26 @@ onMounted(() => {
     font-size: 3rem;
 }
 
-.recipe-card {
-    transition:
-        transform 0.2s,
-        box-shadow 0.2s;
+/* 정렬 버튼: 오렌지 톤 테마 (PrimeVue 4 SelectButton = ToggleButton, .p-togglebutton / .p-togglebutton-checked) */
+.recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton) {
+    border-color: #fdba74;
+    color: #c2410c;
+    background: #fff7ed;
 }
-
-.recipe-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+.recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton:hover) {
+    border-color: #fb923c;
+    color: #9a3412;
+    background: #ffedd5;
 }
-
-.recipe-list-item {
-    border-bottom: 1px solid var(--surface-border);
+.recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton.p-togglebutton-checked) {
+    border-color: #ea580c;
+    background: #f97316;
+    color: #fff;
 }
-
-.recipe-list-item:last-child {
-    border-bottom: none;
-}
-
-.recipe-thumbnail {
-    width: 80px;
-    height: 80px;
-    min-width: 80px;
-    min-height: 80px;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 8px;
-    display: block;
-    flex-shrink: 0;
-}
-
-.recipe-section {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--surface-border);
+.recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton.p-togglebutton-checked:hover) {
+    background: #ea580c;
+    border-color: #c2410c;
+    color: #fff;
 }
 
 /* 카테고리 선택기 스타일 */
@@ -878,165 +851,8 @@ onMounted(() => {
     border-color: var(--primary-color, #1f2937);
 }
 
-/* 레시피 그리드 스타일 */
-.recipe-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.recipe-card-wrapper {
-    transition: transform 0.2s ease;
-    cursor: pointer;
-}
-
-.recipe-card-wrapper:hover {
-    transform: translateY(-4px);
-}
-
-.recipe-card {
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-}
-
-.recipe-card:hover {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-}
-
-/* 레시피 이미지 스타일 */
-.recipe-image-container {
-    position: relative;
-    width: 100%;
-    height: 300px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.recipe-image {
-    width: 100%;
-    height: 100%;
-    min-width: 100%;
-    min-height: 100%;
-    object-fit: cover;
-    object-position: center;
-    transition: transform 0.3s ease;
-    display: block;
-}
-
-.recipe-card:hover .recipe-image {
-    transform: scale(1.05);
-}
-
-.recipe-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, transparent 50%, rgba(0, 0, 0, 0.5) 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 1rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.recipe-card:hover .recipe-overlay {
-    opacity: 1;
-}
-
-.recipe-actions {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
-}
-
-.recipe-category-tag {
-    align-self: flex-start;
-}
-
-
-.recipe-hits-overlay {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    padding: 0.5rem 1rem;
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    font-size: 0.85rem;
-    border-radius: 8px 0 0 0;
-    z-index: 1;
-}
-
-.recipe-comment-count {
-    text-align: left;
-}
-
-.recipe-info-tag {
-    font-size: 0.85rem;
-}
-
-/* 레시피 콘텐츠 스타일 */
-.recipe-content {
-    padding: 1rem;
-}
-
-.recipe-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-color);
-    margin: 0 0 1rem 0;
-    line-height: 1.4;
-}
-
-.recipe-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.recipe-rating {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.rating-text {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-color);
-}
-
-.recipe-info {
-    display: flex;
-    gap: 1rem;
-}
-
-.info-item {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.85rem;
-    color: var(--text-color-secondary);
-}
-
-.info-item i {
-    font-size: 0.8rem;
-}
-
-/* 반응형 디자인 */
+/* 반응형 디자인 (레시피 그리드/카드는 _recipe-card-list.scss 공통) */
 @media (max-width: 768px) {
-    .recipe-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
     .category-selector {
         padding: 1rem;
     }

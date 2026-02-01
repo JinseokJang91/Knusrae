@@ -9,3 +9,5 @@
 @use './_responsive'; // 반응형
 @use './_utils'; // 유틸
 @use './_typography'; // 타이포그래피
+@use './_recipe-sort-buttons'; // 레시피 정렬 버튼 오렌지 테마
+@use './_recipe-card-list'; // 레시피 목록 카드 공통 (Category, SearchResult, Favorites)

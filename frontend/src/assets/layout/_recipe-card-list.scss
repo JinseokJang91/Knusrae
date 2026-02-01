@@ -1,0 +1,289 @@
+/* 레시피 목록 카드 공통 스타일 (Category, SearchResult, Favorites 등) */
+
+.recipe-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--surface-border);
+}
+
+/* 레시피 개수 말풍선 (Category, SearchResult 등) */
+.recipe-count-bubble {
+    position: relative;
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    border: 2px solid #fdba74;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(251, 146, 60, 0.15);
+}
+
+.recipe-count-bubble::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid #fdba74;
+}
+
+.recipe-count-bubble::after {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid #fff7ed;
+}
+
+.recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    align-items: stretch;
+}
+
+.recipe-card-wrapper {
+    transition: transform 0.2s ease;
+    cursor: pointer;
+    display: flex;
+}
+
+.recipe-card-wrapper:hover {
+    transform: translateY(-4px);
+}
+
+.recipe-card {
+    border-radius: 16px;
+    overflow: visible;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
+    background: linear-gradient(180deg, #fed7aa 0%, #ffedd5 50%, #fff7ed 100%);
+}
+
+.recipe-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* 전역 SCSS에서는 :deep() 미지원 → 일반 자손 선택자 사용 (flex로 설명 영역 동일 높이) */
+.recipe-card .p-card-header {
+    padding: 10px 10px 6px 10px;
+    flex-shrink: 0;
+}
+
+.recipe-card .p-card-body {
+    padding: 0 10px 10px 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.recipe-card .p-card-content {
+    padding: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.recipe-image-container {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.recipe-image {
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.3s ease;
+    display: block;
+}
+
+.recipe-card:hover .recipe-image {
+    transform: scale(1.05);
+}
+
+.recipe-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, transparent 50%, rgba(0, 0, 0, 0.5) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.recipe-card:hover .recipe-overlay {
+    opacity: 1;
+}
+
+.recipe-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.recipe-category-tag {
+    align-self: flex-start;
+}
+
+.recipe-hits-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 0.85rem;
+    border-radius: 12px 0 0 0;
+    z-index: 1;
+}
+
+.recipe-comment-count {
+    text-align: left;
+}
+
+.recipe-info-tag {
+    font-size: 0.85rem;
+}
+
+/* 설명 영역 - 말풍선 스타일 (꼬리 왼쪽), 그리드 내 동일 높이 */
+.recipe-content {
+    position: relative;
+    padding: 0.65rem 0.85rem 0.85rem;
+    background: var(--surface-ground, #fafafa);
+    border-radius: 12px;
+    border: 1px solid rgba(253, 186, 116, 0.4);
+    border-top: 1px solid rgba(253, 186, 116, 0.5);
+    box-shadow: 0 -1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 2px 8px rgba(0, 0, 0, 0.04);
+    flex: 1 1 auto;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+}
+
+.recipe-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 1.25rem;
+    transform: translateY(-100%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid var(--surface-ground, #fafafa);
+    filter: drop-shadow(0 -1px 0 rgba(253, 186, 116, 0.5));
+}
+
+.recipe-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* 검색 결과 하이라이트용 (SearchResult 등) */
+.recipe-title mark {
+    background-color: #fef08a;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: inherit;
+    font-size: inherit;
+    font-family: inherit;
+    color: inherit;
+    line-height: inherit;
+}
+
+.recipe-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.recipe-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rating-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.recipe-info {
+    display: flex;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--text-color);
+}
+
+.info-item i {
+    font-size: 0.8rem;
+    color: var(--text-color-secondary);
+}
+
+.recipe-content .recipe-author span,
+.recipe-content .recipe-comment-count span {
+    font-size: 0.875rem;
+    color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+    .recipe-image-container {
+        height: 260px;
+    }
+
+    .recipe-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
