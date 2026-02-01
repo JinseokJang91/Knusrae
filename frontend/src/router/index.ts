@@ -107,16 +107,6 @@ const routes: RouteRecordRaw[] = [
                 name: 'ingredientRegister',
                 component: () => import('@/views/pages/ingredient/IngredientRegister.vue')
             },
-            {
-                path: '/ingredient/storage',
-                name: 'storage',
-                component: () => import('@/views/pages/ingredient/Storage.vue')
-            },
-            {
-                path: '/ingredient/preparation',
-                name: 'preparation',
-                component: () => import('@/views/pages/ingredient/Preparation.vue')
-            },
             // 4-3. 랭킹
             {
                 path: '/ranking',

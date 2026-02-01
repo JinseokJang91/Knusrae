@@ -7,7 +7,7 @@
             </div>
         </div>
 
-        <div class="mb-6 p-4 bg-gray-50 border-l-4 border-gray-500 rounded-r">
+        <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
             <p class="text-gray-700 italic">
                 셰프님이 누군가를 위해 정성들인 이 요리처럼, 레시피에서도 셰프님의 따뜻한 정성을 보여주세요.
             </p>

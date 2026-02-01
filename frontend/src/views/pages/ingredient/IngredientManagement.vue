@@ -1,63 +1,65 @@
 <template>
-    <div class="ingredient-management">
-        <div class="page-header mb-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">재료 관리</h1>
-                    <p class="text-gray-600 mt-2">재료의 보관법과 손질법을 확인하세요</p>
-                </div>
-            </div>
+    <div class="ingredient-panel">
+        <div class="tab-headers">
+            <button
+                type="button"
+                class="tab-header"
+                :class="{ 'tab-header--active': activeTab === 'storage' }"
+                :aria-pressed="activeTab === 'storage'"
+                :aria-selected="activeTab === 'storage'"
+                @click="activeTab = 'storage'"
+            >
+                <span>재료 보관법</span>
+            </button>
+            <button
+                type="button"
+                class="tab-header"
+                :class="{ 'tab-header--active': activeTab === 'preparation' }"
+                :aria-pressed="activeTab === 'preparation'"
+                :aria-selected="activeTab === 'preparation'"
+                @click="activeTab = 'preparation'"
+            >
+                <i class="pi pi-cut" aria-hidden="true"></i>
+                <span>재료 손질법</span>
+            </button>
         </div>
 
-        <Tabs v-model:value="activeTab" class="ingredient-tabs">
-            <TabList>
-                <Tab value="storage">
-                    <div class="flex items-center gap-2">
-                        <i class="pi pi-box"></i>
-                        <span>재료 보관법</span>
-                    </div>
-                </Tab>
-                <Tab value="preparation">
-                    <div class="flex items-center gap-2">
-                        <i class="pi pi-cut"></i>
-                        <span>재료 손질법</span>
-                    </div>
-                </Tab>
-            </TabList>
-
-            <TabPanels>
-                <TabPanel value="storage">
-                    <IngredientList 
-                        type="storage"
-                        :selected-group-id="selectedGroupId"
-                        :search-query="searchQuery"
-                        @group-selected="handleGroupSelected"
-                        @search-changed="handleSearchChanged"
-                    />
-                </TabPanel>
-                
-                <TabPanel value="preparation">
-                    <IngredientList 
-                        type="preparation"
-                        :selected-group-id="selectedGroupId"
-                        :search-query="searchQuery"
-                        @group-selected="handleGroupSelected"
-                        @search-changed="handleSearchChanged"
-                    />
-                </TabPanel>
-            </TabPanels>
-        </Tabs>
+        <div class="tab-content">
+            <section
+                v-show="activeTab === 'storage'"
+                class="tab-panel"
+                aria-label="재료 보관법"
+                :aria-hidden="activeTab !== 'storage'"
+            >
+                <IngredientList
+                    type="storage"
+                    :selected-group-id="selectedGroupId"
+                    :search-query="searchQuery"
+                    @group-selected="handleGroupSelected"
+                    @search-changed="handleSearchChanged"
+                />
+            </section>
+            <section
+                v-show="activeTab === 'preparation'"
+                class="tab-panel"
+                aria-label="재료 손질법"
+                :aria-hidden="activeTab !== 'preparation'"
+            >
+                <IngredientList
+                    type="preparation"
+                    :selected-group-id="selectedGroupId"
+                    :search-query="searchQuery"
+                    @group-selected="handleGroupSelected"
+                    @search-changed="handleSearchChanged"
+                />
+            </section>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import Tabs from 'primevue/tabs';
-import TabList from 'primevue/tablist';
-import Tab from 'primevue/tab';
-import TabPanels from 'primevue/tabpanels';
-import TabPanel from 'primevue/tabpanel';
 import IngredientList from '@/components/ingredient/IngredientList.vue';
 
 const route = useRoute();
@@ -139,35 +141,81 @@ watch(() => route.query, (newQuery) => {
 </script>
 
 <style scoped>
-.ingredient-management {
-    padding: 24px;
-    max-width: 1400px;
-    margin: 0 auto;
+/* Category.vue 카테고리 영역(.category-selector)과 동일한 테두리/radius */
+.ingredient-panel {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
-.page-header {
-    margin-bottom: 24px;
+.tab-headers {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--surface-border);
+    margin-bottom: 1rem;
+    flex-shrink: 0;
 }
 
-.ingredient-tabs {
-    margin-top: 24px;
+.tab-header {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color-secondary);
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
 }
 
-::deep(.p-tabs) {
-    .p-tablist {
-        background: transparent;
-        border-bottom: 2px solid var(--surface-border);
-        margin-bottom: 24px;
+.tab-header:hover {
+    color: var(--text-color);
+    background: var(--surface-hover);
+}
+
+.tab-header--active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    background: var(--primary-color-alpha-20, rgba(0, 0, 0, 0.04));
+}
+
+.tab-header__badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.2rem 0.5rem;
+    border-radius: 9999px;
+    background: var(--primary-color);
+    color: var(--primary-color-text);
+}
+
+.tab-content {
+    flex: 1;
+    min-height: 0;
+}
+
+.tab-panel {
+    min-height: 0;
+    padding: 1rem 0 0;
+}
+
+@media (max-width: 768px) {
+    .ingredient-panel {
+        padding: 1rem;
     }
 
-    .p-tab {
-        padding: 16px 24px;
-        font-size: 16px;
-        font-weight: 600;
-    }
-
-    .p-tabpanels {
-        padding: 24px 0;
+    .tab-header {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
     }
 }
 </style>

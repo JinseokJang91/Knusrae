@@ -64,6 +64,8 @@
     transform: translateY(-4px);
 }
 
+/* 카드 전체 오렌지톤 (상단 진함 → 하단 연함, 이미지 강조). .p-card 기본 배경 덮어쓰기 */
+.recipe-card.p-card,
 .recipe-card {
     border-radius: 16px;
     overflow: visible;
@@ -74,7 +76,7 @@
     width: 100%;
     min-height: 0;
     flex: 1 1 auto;
-    background: linear-gradient(180deg, #fed7aa 0%, #ffedd5 50%, #fff7ed 100%);
+    background: linear-gradient(180deg, #fed7aa 0%, #ffedd5 50%, #fff7ed 100%) !important;
 }
 
 .recipe-card:hover {

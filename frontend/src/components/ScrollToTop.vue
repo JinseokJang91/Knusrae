@@ -48,21 +48,25 @@ onUnmounted(() => {
     width: 3rem;
     height: 3rem;
     border-radius: 50%;
-    background: #FF9800;
+    background: var(--primary-color, #f97316); /* 앱 버튼과 동일한 오렌지톤 (orange-500) */
     color: white;
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
     z-index: 1000;
     transition: all 0.3s ease;
-    
+
+    &:hover {
+        background: #ea580c; /* hover 시 진한 오렌지 (orange-600) */
+    }
+
     i {
         font-size: 1.25rem;
     }
-    
+
     &:active {
         transform: translateY(0);
     }

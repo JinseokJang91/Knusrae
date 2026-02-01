@@ -3,10 +3,9 @@
         <!-- 검색 바 -->
         <div class="search-bar mb-6">
             <span class="p-input-icon-left w-full">
-                <i class="pi pi-search" />
                 <InputText 
                     v-model="localSearchQuery" 
-                    placeholder="재료명을 검색하세요..." 
+                    placeholder="재료명을 검색하세요...(예: 감자, 계란)" 
                     class="w-full"
                     @input="handleSearchInput"
                 />
@@ -20,6 +19,9 @@
             @select="handleGroupSelect"
             class="mb-6"
         />
+
+        <!-- 그룹 선택 ↔ 재료 목록 구분 -->
+        <div class="list-section-divider" aria-hidden="true"></div>
 
         <!-- 로딩 상태 -->
         <div v-if="loading" class="text-center py-8">
@@ -134,17 +136,18 @@ const loadGroups = async () => {
 const loadIngredients = async () => {
     loading.value = true;
     error.value = null;
-    
+
     try {
         const result = await getIngredients({
             groupId: selectedGroupId.value || undefined,
             searchQuery: localSearchQuery.value || undefined,
+            type: props.type,
             limit: 100,
             offset: 0
         });
-        
+
         ingredients.value = result.ingredients;
-        
+
         // 그룹 목록이 비어있으면 로드
         if (groups.value.length === 0) {
             groups.value = result.groups;
@@ -157,7 +160,7 @@ const loadIngredients = async () => {
     }
 };
 
-// props 변경 감지
+// props 변경 감지 (탭/그룹/검색 변경 시 재조회)
 watch(() => props.selectedGroupId, (newValue) => {
     selectedGroupId.value = newValue ?? null;
     loadIngredients();
@@ -165,6 +168,10 @@ watch(() => props.selectedGroupId, (newValue) => {
 
 watch(() => props.searchQuery, (newValue) => {
     localSearchQuery.value = newValue || '';
+    loadIngredients();
+});
+
+watch(() => props.type, () => {
     loadIngredients();
 });
 
@@ -181,5 +188,12 @@ onMounted(() => {
 
 .search-bar {
     max-width: 600px;
+}
+
+/* 재료 그룹 선택 ↔ 재료 목록 구분선 */
+.list-section-divider {
+    height: 1px;
+    margin: 1.5rem 0 1.25rem;
+    background: var(--surface-border);
 }
 </style>

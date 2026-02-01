@@ -27,22 +27,25 @@ export async function getIngredientGroups(): Promise<IngredientGroup[]> {
 
 /**
  * 재료 목록 조회
+ * @param params.type 'storage' = 보관법 등록된 재료만, 'preparation' = 손질법 등록된 재료만, 미지정 = 전체
  */
 export async function getIngredients(params?: {
   groupId?: number;
   searchQuery?: string;
+  type?: 'storage' | 'preparation';
   limit?: number;
   offset?: number;
 }): Promise<IngredientListResponse> {
   const queryParams = new URLSearchParams();
   if (params?.groupId) queryParams.append('groupId', params.groupId.toString());
   if (params?.searchQuery) queryParams.append('searchQuery', params.searchQuery);
+  if (params?.type) queryParams.append('type', params.type);
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.offset) queryParams.append('offset', params.offset.toString());
-  
+
   const response = await httpJson(
-    BASE_URL, 
-    `/api/ingredients?${queryParams}`, 
+    BASE_URL,
+    `/api/ingredients?${queryParams}`,
     { method: 'GET' }
   );
   return {

@@ -16,6 +16,7 @@ declare module 'vue' {
     CategorySections: typeof import('./src/components/dashboard/CategorySections.vue')['default']
     Dropdown: typeof import('primevue/dropdown')['default']
     Editor: typeof import('primevue/editor')['default']
+    Galleria: typeof import('primevue/galleria')['default']
     IngredientCard: typeof import('./src/components/ingredient/IngredientCard.vue')['default']
     IngredientDetailDialog: typeof import('./src/components/ingredient/IngredientDetailDialog.vue')['default']
     IngredientGrid: typeof import('./src/components/ingredient/IngredientGrid.vue')['default']
