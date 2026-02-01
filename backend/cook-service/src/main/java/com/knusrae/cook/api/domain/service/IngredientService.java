@@ -7,6 +7,7 @@ import com.knusrae.cook.api.domain.entity.IngredientStorage;
 import com.knusrae.cook.api.domain.repository.*;
 import com.knusrae.cook.api.dto.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,32 +41,79 @@ public class IngredientService {
                 .map(IngredientGroupDto::fromEntity)
                 .collect(Collectors.toList());
     }
-    
+
     /**
-     * 재료 목록 조회 (그룹, 검색어 필터링 지원)
+     * 타입에 따라 그룹 목록 반환
+     * - storage: 보관법이 등록된 재료가 있는 그룹만
+     * - preparation: 손질법이 등록된 재료가 있는 그룹만
+     * - 그 외: 전체 그룹
      */
-    public IngredientListResponseDto getIngredients(Long groupId, String searchQuery, int limit, int offset) {
+    private List<IngredientGroupDto> getGroupsForType(String type) {
+        if ("storage".equalsIgnoreCase(type)) {
+            List<Long> groupIds = storageRepository.findDistinctGroupIds();
+            if (groupIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return groupRepository.findAllByIdInOrderBySortOrderAsc(groupIds)
+                    .stream()
+                    .map(IngredientGroupDto::fromEntity)
+                    .collect(Collectors.toList());
+        }
+        if ("preparation".equalsIgnoreCase(type)) {
+            List<Long> groupIds = preparationRepository.findDistinctGroupIds();
+            if (groupIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return groupRepository.findAllByIdInOrderBySortOrderAsc(groupIds)
+                    .stream()
+                    .map(IngredientGroupDto::fromEntity)
+                    .collect(Collectors.toList());
+        }
+        return getAllGroups();
+    }
+
+    /**
+     * 재료 목록 조회 (그룹, 검색어, 타입 필터링 지원)
+     * @param type "storage" = 보관법 등록된 재료만, "preparation" = 손질법 등록된 재료만, null/기타 = 전체
+     */
+    public IngredientListResponseDto getIngredients(Long groupId, String searchQuery, String type, int limit, int offset) {
         Specification<Ingredient> spec = Specification.where(null);
         
         if (groupId != null) {
-            spec = spec.and((root, query, cb) -> 
+            spec = spec.and((root, query, cb) ->
                     cb.equal(root.get("group").get("id"), groupId)
             );
         }
         
         if (searchQuery != null && !searchQuery.isBlank()) {
             String searchPattern = "%" + searchQuery.toLowerCase() + "%";
-            spec = spec.and((root, query, cb) -> 
+            spec = spec.and((root, query, cb) ->
                     cb.like(cb.lower(root.get("name")), searchPattern)
             );
         }
         
+        if ("storage".equalsIgnoreCase(type)) {
+            spec = spec.and((root, query, cb) -> {
+                Subquery<Long> sq = query.subquery(Long.class);
+                var storageRoot = sq.from(IngredientStorage.class);
+                sq.select(storageRoot.get("ingredient").get("id"));
+                return cb.in(root.get("id")).value(sq);
+            });
+        } else if ("preparation".equalsIgnoreCase(type)) {
+            spec = spec.and((root, query, cb) -> {
+                Subquery<Long> sq = query.subquery(Long.class);
+                var prepRoot = sq.from(IngredientPreparation.class);
+                sq.select(prepRoot.get("ingredient").get("id"));
+                return cb.in(root.get("id")).value(sq);
+            });
+        }
+        
         Pageable pageable = PageRequest.of(offset / limit, limit);
         Page<Ingredient> page = ingredientRepository.findAll(spec, pageable);
-        
-        // 그룹 목록도 함께 반환
-        List<IngredientGroupDto> groups = getAllGroups();
-        
+
+        // 탭별 조회 시에는 해당 타입(보관법/손질법)이 등록된 재료가 있는 그룹만 반환
+        List<IngredientGroupDto> groups = getGroupsForType(type);
+
         return IngredientListResponseDto.builder()
                 .groups(groups)
                 .ingredients(page.getContent().stream()

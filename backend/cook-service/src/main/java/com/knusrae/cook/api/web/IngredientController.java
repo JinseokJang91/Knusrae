@@ -37,23 +37,25 @@ public class IngredientController {
     
     /**
      * 재료 목록 조회
+     * @param type "storage" = 보관법 등록된 재료만, "preparation" = 손질법 등록된 재료만, 미지정 = 전체
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getIngredients(
             @RequestParam(required = false) Long groupId,
             @RequestParam(required = false) String searchQuery,
+            @RequestParam(required = false) String type,
             @RequestParam(defaultValue = "50") int limit,
             @RequestParam(defaultValue = "0") int offset) {
         
-        log.debug("GET /api/ingredients - groupId={}, searchQuery={}, limit={}, offset={}", 
-                groupId, searchQuery, limit, offset);
+        log.debug("GET /api/ingredients - groupId={}, searchQuery={}, type={}, limit={}, offset={}",
+                groupId, searchQuery, type, limit, offset);
         
         // limit 최대값 제한
         if (limit > 100) {
             limit = 100;
         }
         
-        IngredientListResponseDto result = ingredientService.getIngredients(groupId, searchQuery, limit, offset);
+        IngredientListResponseDto result = ingredientService.getIngredients(groupId, searchQuery, type, limit, offset);
         
         Map<String, Object> response = new HashMap<>();
         response.put("ingredients", result.getIngredients());
