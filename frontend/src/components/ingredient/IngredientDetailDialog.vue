@@ -28,61 +28,10 @@
             <div class="content-section">
                 <ToastUiViewer :key="content" :initial-value="content" />
             </div>
-
-            <div class="request-section mt-6 pt-6 border-t">
-                <Button 
-                    label="이 재료 정보 요청하기" 
-                    icon="pi pi-send"
-                    severity="secondary"
-                    outlined
-                    @click="showRequestDialog = true"
-                />
-            </div>
         </div>
 
         <template #footer>
             <Button label="닫기" @click="handleClose" />
-        </template>
-    </Dialog>
-
-    <!-- 요청 다이얼로그 -->
-    <Dialog
-        v-model:visible="showRequestDialog"
-        header="재료 정보 요청"
-        :modal="true"
-        :style="{ width: '90vw', maxWidth: '500px' }"
-    >
-        <div class="request-form">
-            <div class="mb-4">
-                <label class="block mb-2 font-semibold">재료명</label>
-                <InputText v-model="requestForm.ingredientName" class="w-full" disabled />
-            </div>
-            
-            <div class="mb-4">
-                <label class="block mb-2 font-semibold">요청 유형</label>
-                <Select 
-                    v-model="requestForm.requestType" 
-                    :options="requestTypes"
-                    optionLabel="label"
-                    optionValue="value"
-                    class="w-full"
-                />
-            </div>
-            
-            <div class="mb-4">
-                <label class="block mb-2 font-semibold">메시지 (선택사항)</label>
-                <Textarea 
-                    v-model="requestForm.message" 
-                    rows="4"
-                    class="w-full"
-                    placeholder="요청 사항을 입력하세요..."
-                />
-            </div>
-        </div>
-
-        <template #footer>
-            <Button label="취소" severity="secondary" outlined @click="showRequestDialog = false" />
-            <Button label="요청하기" @click="handleRequestSubmit" :loading="requestLoading" />
         </template>
     </Dialog>
 </template>
@@ -91,13 +40,9 @@
 import { ref, computed, watch } from 'vue';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
-import Select from 'primevue/select';
-import Textarea from 'primevue/textarea';
 import ProgressSpinner from 'primevue/progressspinner';
-import { useToast } from 'primevue/usetoast';
 import ToastUiViewer from '@/components/editor/ToastUiViewer.vue';
-import { getIngredientStorage, getIngredientPreparation, createIngredientRequest } from '@/api/ingredientApi';
+import { getIngredientStorage, getIngredientPreparation } from '@/api/ingredientApi';
 import type { Ingredient, IngredientType } from '@/types/ingredient';
 
 const props = defineProps<{
@@ -110,24 +55,10 @@ const emit = defineEmits<{
     (e: 'close'): void;
 }>();
 
-const toast = useToast();
 const loading = ref(false);
 const error = ref<string | null>(null);
 const content = ref<string>('');
 const summary = ref<string>('');
-const showRequestDialog = ref(false);
-const requestLoading = ref(false);
-
-const requestForm = ref({
-    ingredientName: '',
-    requestType: 'STORAGE' as 'STORAGE' | 'PREPARATION',
-    message: ''
-});
-
-const requestTypes = [
-    { label: '보관법', value: 'STORAGE' },
-    { label: '손질법', value: 'PREPARATION' }
-];
 
 const dialogTitle = computed(() => {
     if (!props.ingredient) return '';
@@ -163,56 +94,8 @@ const handleClose = () => {
     emit('close');
 };
 
-const handleRequestSubmit = async () => {
-    if (!requestForm.value.ingredientName) {
-        toast.add({
-            severity: 'warn',
-            summary: '알림',
-            detail: '재료명을 입력해주세요.',
-            life: 3000
-        });
-        return;
-    }
-    
-    requestLoading.value = true;
-    
-    try {
-        await createIngredientRequest({
-            ingredientName: requestForm.value.ingredientName,
-            requestType: requestForm.value.requestType,
-            message: requestForm.value.message || undefined
-        });
-        
-        toast.add({
-            severity: 'success',
-            summary: '요청 완료',
-            detail: '재료 정보 요청이 접수되었습니다.',
-            life: 3000
-        });
-        
-        showRequestDialog.value = false;
-        requestForm.value = {
-            ingredientName: '',
-            requestType: 'STORAGE',
-            message: ''
-        };
-    } catch (err: any) {
-        console.error('요청 생성 실패:', err);
-        toast.add({
-            severity: 'error',
-            summary: '오류',
-            detail: err.message || '요청 생성에 실패했습니다.',
-            life: 3000
-        });
-    } finally {
-        requestLoading.value = false;
-    }
-};
-
 watch(() => props.visible, (newValue) => {
     if (newValue && props.ingredient) {
-        requestForm.value.ingredientName = props.ingredient.name;
-        requestForm.value.requestType = props.type === 'storage' ? 'STORAGE' : 'PREPARATION';
         loadContent();
     } else {
         content.value = '';
@@ -238,9 +121,5 @@ watch(() => props.visible, (newValue) => {
 
 .content-section :deep(.toastui-editor-contents) {
     font-size: 1rem;
-}
-
-.request-section {
-    text-align: center;
 }
 </style>

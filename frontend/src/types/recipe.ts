@@ -124,6 +124,14 @@ export interface Recipe {
     servings?: string;
 }
 
+/** 찜 목록 API 응답 항목 */
+export interface FavoriteItem {
+    id: number;
+    recipeId: number;
+    recipe: Recipe & { cookingTips?: RecipeCookingTip[] };
+    createdAt: string;
+}
+
 // 인기도 통계
 export interface PopularityStats {
     popularityScore: number;

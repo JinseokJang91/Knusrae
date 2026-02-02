@@ -98,6 +98,57 @@ export async function getMyIngredientRequests(): Promise<IngredientRequestRespon
   return response.requests || [];
 }
 
+export interface AdminIngredientRequestsResponse {
+  requests: IngredientRequestResponse[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+/**
+ * 관리자용 재료 정보 요청 목록 조회
+ */
+export async function getAdminIngredientRequests(params?: {
+  page?: number;
+  size?: number;
+  status?: string;
+}): Promise<AdminIngredientRequestsResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.page != null) queryParams.append('page', params.page.toString());
+  if (params?.size != null) queryParams.append('size', params.size.toString());
+  if (params?.status) queryParams.append('status', params.status);
+
+  const response = await httpJson(
+    BASE_URL,
+    `/api/ingredients/requests/admin?${queryParams}`,
+    { method: 'GET' }
+  );
+  return {
+    requests: response.requests || [],
+    totalCount: response.totalCount ?? 0,
+    totalPages: response.totalPages ?? 0,
+    currentPage: response.currentPage ?? 0
+  };
+}
+
+/**
+ * 재료 정보 요청 상태 업데이트 (관리자 전용)
+ */
+export async function updateIngredientRequestStatus(
+  requestId: number,
+  status: string
+): Promise<IngredientRequestResponse> {
+  const response = await httpJson(
+    BASE_URL,
+    `/api/ingredients/requests/${requestId}/status`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    }
+  );
+  return response.data;
+}
+
 /**
  * 재료 그룹 등록 (관리자 전용)
  */

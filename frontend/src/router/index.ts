@@ -84,6 +84,11 @@ const routes: RouteRecordRaw[] = [
                 name: 'adminIngredientManagementRegister',
                 component: () => import('@/views/pages/ingredient/IngredientRegister.vue')
             },
+            {
+                path: '/admin/ingredient-requests',
+                name: 'adminIngredientRequestList',
+                component: () => import('@/views/pages/admin/IngredientRequestList.vue')
+            },
             // 4. 메인 메뉴
             // 4-1. 전체 레시피
             {

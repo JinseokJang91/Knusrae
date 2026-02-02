@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted } from 'vue';
 import ConfirmDialog from 'primevue/confirmdialog';
 import AppToast from '@/components/common/AppToast.vue';

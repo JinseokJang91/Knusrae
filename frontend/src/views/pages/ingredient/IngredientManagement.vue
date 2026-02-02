@@ -178,15 +178,10 @@ watch(() => route.query, (newQuery) => {
     transition: color 0.2s, background 0.2s, border-color 0.2s;
 }
 
-.tab-header:hover {
-    color: var(--text-color);
-    background: var(--surface-hover);
-}
-
 .tab-header--active {
-    color: var(--primary-color);
-    border-bottom-color: var(--primary-color);
-    background: var(--primary-color-alpha-20, rgba(0, 0, 0, 0.04));
+    color: #fff;
+    border-bottom-color: #ea580c;
+    background: #f97316;
 }
 
 .tab-header__badge {

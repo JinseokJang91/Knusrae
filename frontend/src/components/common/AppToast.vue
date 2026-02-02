@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import Toast from 'primevue/toast';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';

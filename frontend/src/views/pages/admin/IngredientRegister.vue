@@ -46,16 +46,64 @@
                     </div>
 
                     <div class="field">
-                        <label for="imageUrl" class="block text-sm font-medium text-gray-700 mb-2">
-                            이미지 URL (선택)
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            이미지 (선택)
                         </label>
-                        <InputText
-                            id="imageUrl"
-                            v-model="form.imageUrl"
-                            placeholder="https://..."
-                            class="w-full"
-                            maxlength="200"
-                        />
+                        <div class="image-input-section space-y-3">
+                            <div class="flex gap-2">
+                                <InputText
+                                    id="imageUrl"
+                                    v-model="form.imageUrl"
+                                    placeholder="이미지 URL 입력 (https://...)"
+                                    class="flex-1"
+                                    maxlength="500"
+                                    :disabled="!!imageFile"
+                                />
+                                <span class="self-center text-gray-400 text-sm">또는</span>
+                                <div class="relative">
+                                    <input
+                                        ref="imageFileInputRef"
+                                        type="file"
+                                        accept="image/*"
+                                        class="hidden"
+                                        @change="onImageFileChange"
+                                    />
+                                    <Button
+                                        type="button"
+                                        label="파일 선택"
+                                        icon="pi pi-upload"
+                                        severity="secondary"
+                                        :loading="imageUploading"
+                                        :disabled="imageUploading"
+                                        @click="triggerImageFileSelect"
+                                    />
+                                </div>
+                            </div>
+                            <div v-if="imagePreview || form.imageUrl" class="image-preview-area flex items-center gap-3">
+                                <img
+                                    v-if="imagePreview"
+                                    :src="imagePreview"
+                                    alt="미리보기"
+                                    class="w-20 h-20 object-cover rounded border border-gray-200"
+                                />
+                                <img
+                                    v-else-if="form.imageUrl"
+                                    :src="form.imageUrl"
+                                    alt="미리보기"
+                                    class="w-20 h-20 object-cover rounded border border-gray-200"
+                                    @error="onPreviewImageError"
+                                />
+                                <Button
+                                    v-if="imagePreview || form.imageUrl"
+                                    type="button"
+                                    icon="pi pi-times"
+                                    severity="secondary"
+                                    text
+                                    rounded
+                                    @click="clearImage"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     <div class="field">
@@ -91,7 +139,7 @@ import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
 import Select from 'primevue/select';
 import Button from 'primevue/button';
-import { createIngredient, getIngredientGroups } from '@/api/ingredientApi';
+import { createIngredient, getIngredientGroups, uploadContentImage } from '@/api/ingredientApi';
 import type { IngredientGroup } from '@/types/ingredient';
 
 const router = useRouter();
@@ -113,6 +161,55 @@ const form = ref({
 });
 const submitting = ref(false);
 const errors = ref<{ groupId?: string; name?: string }>({});
+const imageFileInputRef = ref<HTMLInputElement | null>(null);
+const imageFile = ref<File | null>(null);
+const imagePreview = ref<string | null>(null);
+const imageUploading = ref(false);
+
+const triggerImageFileSelect = () => {
+    imageFileInputRef.value?.click();
+};
+
+const onImageFileChange = async (e: Event) => {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        toast.add({ severity: 'warn', summary: '파일 형식', detail: '이미지 파일만 업로드할 수 있습니다.', life: 3000 });
+        input.value = '';
+        return;
+    }
+    imageFile.value = file;
+    imagePreview.value = URL.createObjectURL(file);
+    imageUploading.value = true;
+    try {
+        const { url } = await uploadContentImage(file);
+        form.value.imageUrl = url;
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.';
+        toast.add({ severity: 'error', summary: '업로드 실패', detail: msg, life: 5000 });
+        clearImage();
+    } finally {
+        imageUploading.value = false;
+        input.value = '';
+    }
+};
+
+const onPreviewImageError = () => {
+    // URL이 유효하지 않은 이미지인 경우 무시
+};
+
+const clearImage = () => {
+    form.value.imageUrl = '';
+    imageFile.value = null;
+    if (imagePreview.value) {
+        URL.revokeObjectURL(imagePreview.value);
+        imagePreview.value = null;
+    }
+    if (imageFileInputRef.value) {
+        imageFileInputRef.value.value = '';
+    }
+};
 
 const loadGroups = async () => {
     groupsLoading.value = true;

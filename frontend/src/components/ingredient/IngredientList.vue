@@ -1,8 +1,8 @@
 <template>
     <div class="ingredient-list">
-        <!-- 검색 바 -->
-        <div class="search-bar mb-6">
-            <span class="p-input-icon-left w-full">
+        <!-- 검색 바 + 재료 정보 요청 버튼 -->
+        <div class="search-row mb-6">
+            <span class="p-input-icon-left search-bar">
                 <InputText 
                     v-model="localSearchQuery" 
                     placeholder="재료명을 검색하세요...(예: 감자, 계란)" 
@@ -10,6 +10,14 @@
                     @input="handleSearchInput"
                 />
             </span>
+            <Button 
+                label="재료 정보 요청하기" 
+                icon="pi pi-send"
+                severity="secondary"
+                outlined
+                class="request-btn"
+                @click="openRequestDialog"
+            />
         </div>
 
         <!-- 재료 그룹 선택 -->
@@ -60,6 +68,51 @@
             :type="type"
             @close="handleDetailClose"
         />
+
+        <!-- 재료 정보 요청 다이얼로그 -->
+        <Dialog
+            v-model:visible="showRequestDialog"
+            header="재료 정보 요청"
+            :modal="true"
+            :style="{ width: '90vw', maxWidth: '500px' }"
+        >
+            <div class="request-form">
+                <div class="mb-4">
+                    <label class="block mb-2 font-semibold">재료명</label>
+                    <InputText 
+                        v-model="requestForm.ingredientName" 
+                        class="w-full" 
+                        placeholder="요청할 재료명을 입력하세요"
+                    />
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block mb-2 font-semibold">요청 유형</label>
+                    <Select 
+                        v-model="requestForm.requestType" 
+                        :options="requestTypes"
+                        optionLabel="label"
+                        optionValue="value"
+                        class="w-full"
+                    />
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block mb-2 font-semibold">메시지 (선택사항)</label>
+                    <Textarea 
+                        v-model="requestForm.message" 
+                        rows="4"
+                        class="w-full"
+                        placeholder="요청 사항을 입력하세요..."
+                    />
+                </div>
+            </div>
+
+            <template #footer>
+                <Button label="취소" severity="secondary" outlined @click="showRequestDialog = false" />
+                <Button label="요청하기" @click="handleRequestSubmit" :loading="requestLoading" />
+            </template>
+        </Dialog>
     </div>
 </template>
 
@@ -67,8 +120,12 @@
 import { ref, onMounted, watch } from 'vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
+import Select from 'primevue/select';
+import Textarea from 'primevue/textarea';
 import ProgressSpinner from 'primevue/progressspinner';
-import { getIngredientGroups, getIngredients } from '@/api/ingredientApi';
+import { useToast } from 'primevue/usetoast';
+import { getIngredientGroups, getIngredients, createIngredientRequest } from '@/api/ingredientApi';
 import type { IngredientGroup, Ingredient, IngredientType } from '@/types/ingredient';
 import IngredientGroupSelector from './IngredientGroupSelector.vue';
 import IngredientGrid from './IngredientGrid.vue';
@@ -93,6 +150,21 @@ const localSearchQuery = ref(props.searchQuery || '');
 const selectedGroupId = ref<number | null>(props.selectedGroupId || null);
 const detailDialogVisible = ref(false);
 const selectedIngredient = ref<Ingredient | null>(null);
+const showRequestDialog = ref(false);
+const requestLoading = ref(false);
+
+const requestForm = ref({
+    ingredientName: '',
+    requestType: 'STORAGE' as 'STORAGE' | 'PREPARATION',
+    message: ''
+});
+
+const requestTypes = [
+    { label: '보관법', value: 'STORAGE' },
+    { label: '손질법', value: 'PREPARATION' }
+];
+
+const toast = useToast();
 
 // 검색 디바운스 (300ms)
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -122,6 +194,57 @@ const handleIngredientClick = (ingredient: Ingredient) => {
 const handleDetailClose = () => {
     detailDialogVisible.value = false;
     selectedIngredient.value = null;
+};
+
+const openRequestDialog = () => {
+    requestForm.value.requestType = props.type === 'storage' ? 'STORAGE' : 'PREPARATION';
+    showRequestDialog.value = true;
+};
+
+const handleRequestSubmit = async () => {
+    if (!requestForm.value.ingredientName.trim()) {
+        toast.add({
+            severity: 'warn',
+            summary: '알림',
+            detail: '재료명을 입력해주세요.',
+            life: 3000
+        });
+        return;
+    }
+    
+    requestLoading.value = true;
+    
+    try {
+        await createIngredientRequest({
+            ingredientName: requestForm.value.ingredientName.trim(),
+            requestType: requestForm.value.requestType,
+            message: requestForm.value.message?.trim() || undefined
+        });
+        
+        toast.add({
+            severity: 'success',
+            summary: '요청 완료',
+            detail: '재료 정보 요청이 접수되었습니다.',
+            life: 3000
+        });
+        
+        showRequestDialog.value = false;
+        requestForm.value = {
+            ingredientName: '',
+            requestType: props.type === 'storage' ? 'STORAGE' : 'PREPARATION',
+            message: ''
+        };
+    } catch (err: any) {
+        console.error('요청 생성 실패:', err);
+        toast.add({
+            severity: 'error',
+            summary: '오류',
+            detail: err.message || '요청 생성에 실패했습니다.',
+            life: 3000
+        });
+    } finally {
+        requestLoading.value = false;
+    }
 };
 
 const loadGroups = async () => {
@@ -186,8 +309,29 @@ onMounted(() => {
     min-height: 400px;
 }
 
+.search-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 .search-bar {
-    max-width: 600px;
+    flex: 0 1 600px;
+    min-width: 0;
+}
+
+/* RecipeDetail 댓글 이미지 첨부 버튼과 동일: bg-gray-100, hover:bg-gray-200, text-gray-700 */
+.request-btn {
+    flex-shrink: 0;
+    margin-left: auto;
+    background-color: #f3f4f6 !important;
+    color: #374151 !important;
+    border-color: #e5e7eb !important;
+}
+
+.request-btn:hover {
+    background-color: #e5e7eb !important;
+    border-color: #d1d5db !important;
 }
 
 /* 재료 그룹 선택 ↔ 재료 목록 구분선 */

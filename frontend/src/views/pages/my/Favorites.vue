@@ -1,6 +1,6 @@
 <template>
     <div class="favorites-content">
-        <div class="mb-6 p-4 bg-gray-50 border-l-4 border-gray-500 rounded-r">
+        <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
             <p class="text-gray-700 italic">
                 찜 버튼( <i class="pi pi-heart-fill"/> )을 클릭해 찜 목록에서 삭제할 수 있어요.
             </p>
@@ -90,7 +90,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
 import Button from 'primevue/button';
@@ -101,6 +101,11 @@ import Tag from 'primevue/tag';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { getApiBaseUrl } from '@/utils/constants';
+import type { FavoriteItem, Recipe, RecipeCookingTip } from '@/types/recipe';
+
+/** cookingTips를 가진 레시피 (찜 목록 API 응답 등) */
+type RecipeWithTips = Recipe & { cookingTips?: RecipeCookingTip[] };
+import type { PageState } from 'primevue/paginator';
 
 const router = useRouter();
 
@@ -108,12 +113,12 @@ const router = useRouter();
 const API_BASE_URL = getApiBaseUrl('cook');
 
 // 반응형 데이터
-const favoriteRecipes = ref([]);
-const currentMemberId = ref(null);
+const favoriteRecipes = ref<FavoriteItem[]>([]);
+const currentMemberId = ref<number | null>(null);
 const first = ref(0);
 const rows = ref(12);
 const loading = ref(false);
-const error = ref(null);
+const error = ref<string | null>(null);
 
 // 계산된 속성
 const totalFavorites = computed(() => favoriteRecipes.value.length);
@@ -139,17 +144,17 @@ const loadFavorites = async () => {
             { method: 'GET' }
         );
 
-        favoriteRecipes.value = response || [];
-    } catch (err) {
+        favoriteRecipes.value = (response as FavoriteItem[]) || [];
+    } catch (err: unknown) {
         console.error('찜 목록 로드 실패:', err);
-        error.value = err.message || '찜 목록을 불러오는데 실패했습니다.';
+        error.value = (err instanceof Error ? err.message : null) || '찜 목록을 불러오는데 실패했습니다.';
         favoriteRecipes.value = [];
     } finally {
         loading.value = false;
     }
 };
 
-const removeFavorite = async (recipeId) => {
+const removeFavorite = async (recipeId: number): Promise<void> => {
     if (!currentMemberId.value) {
         return;
     }
@@ -163,26 +168,26 @@ const removeFavorite = async (recipeId) => {
 
         // 로컬 상태에서 제거
         favoriteRecipes.value = favoriteRecipes.value.filter((fav) => fav.recipeId !== recipeId);
-    } catch (err) {
+    } catch (err: unknown) {
         console.error('찜 삭제 실패:', err);
     }
 };
 
-const viewRecipe = (recipeId) => {
+const viewRecipe = (recipeId: number): void => {
     router.push(`/recipe/${recipeId}`);
 };
 
-const browseRecipes = () => {
+const browseRecipes = (): void => {
     router.push('/recipe/category');
 };
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ko-KR');
 };
 
 // 조회수 포맷팅 (만/억 단위 처리)
-const formatCount = (count) => {
+const formatCount = (count: number | undefined | null): string | null => {
     if (!count || count === 0) return null;
     if (count >= 100000000) {
         const eok = count / 100000000;
@@ -197,31 +202,31 @@ const formatCount = (count) => {
     return count.toLocaleString();
 };
 
-const onPageChange = (event) => {
+const onPageChange = (event: PageState): void => {
     first.value = event.first;
     rows.value = event.rows;
 };
 
 // cookingTips에서 요리 시간 추출
-const getCookingTime = (recipe) => {
+const getCookingTime = (recipe: RecipeWithTips | undefined | null): string | null => {
     if (!recipe || !recipe.cookingTips || !Array.isArray(recipe.cookingTips)) {
         return null;
     }
-    const cookingTimeTip = recipe.cookingTips.find((tip) => tip.codeId === 'COOKING_TIME');
+    const cookingTimeTip = recipe.cookingTips.find((tip: RecipeCookingTip) => tip.codeId === 'COOKING_TIME');
     return cookingTimeTip?.detailName || null;
 };
 
 // cookingTips에서 인분 수 추출
-const getServings = (recipe) => {
+const getServings = (recipe: RecipeWithTips | undefined | null): string | null => {
     if (!recipe || !recipe.cookingTips || !Array.isArray(recipe.cookingTips)) {
         return null;
     }
-    const servingTip = recipe.cookingTips.find((tip) => tip.codeId === 'SERVINGS');
+    const servingTip = recipe.cookingTips.find((tip: RecipeCookingTip) => tip.codeId === 'SERVINGS');
     return servingTip?.detailName || null;
 };
 
 // 카테고리 이름 추출
-const getCategoryName = (recipe) => {
+const getCategoryName = (recipe: Recipe | undefined | null): string | null => {
     if (!recipe || !recipe.categories || !Array.isArray(recipe.categories) || recipe.categories.length === 0) {
         return null;
     }

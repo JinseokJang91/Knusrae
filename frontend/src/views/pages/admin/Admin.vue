@@ -24,6 +24,12 @@
                 class="admin-btn"
                 @click="router.push('/admin/ingredient-management/register')"
             />
+            <Button
+                label="재료 정보 요청 목록"
+                icon="pi pi-list"
+                class="admin-btn"
+                @click="router.push('/admin/ingredient-requests')"
+            />
         </div>
     </div>
 </template>

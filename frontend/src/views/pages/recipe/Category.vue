@@ -61,7 +61,7 @@
                             key="sub-all"
                             type="button"
                             :class="['category-chip', selectedCategory === null ? 'selected' : '']"
-                            aria-pressed="selectedCategory === null"
+                            :aria-pressed="selectedCategory === null"
                             aria-label="전체 카테고리 선택"
                             @click="selectCategory(null)"
                         >
@@ -196,47 +196,114 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { httpJson } from '@/utils/http';
 import { useAuthStore } from '@/stores/authStore';
 import AutoComplete from 'primevue/autocomplete';
+import type { AutoCompleteCompleteEvent, AutoCompleteOptionSelectEvent } from 'primevue/autocomplete';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
-import Dialog from 'primevue/dialog';
 import SelectButton from 'primevue/selectbutton';
-import InputText from 'primevue/inputtext';
 import Paginator from 'primevue/paginator';
+import type { PageState } from 'primevue/paginator';
 import ProgressSpinner from 'primevue/progressspinner';
-import Rating from 'primevue/rating';
 import Tag from 'primevue/tag';
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { getApiBaseUrl } from '@/utils/constants';
 
+// 타입 정의
+interface CategoryDetail {
+    detailCodeId: string;
+    codeName: string;
+}
+
+interface MainCategory {
+    codeId: string;
+    codeName: string;
+    details: CategoryDetail[];
+}
+
+interface Category {
+    value: string;
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+    recipeCount: number;
+    mainCategoryId?: string;
+}
+
+interface RecipeCategory {
+    codeId: string;
+    detailCodeId: string;
+    codeName?: string;
+    detailName?: string;
+}
+
+interface CookingTip {
+    codeId: string;
+    detailName?: string;
+}
+
+interface Recipe {
+    id: number;
+    title: string;
+    thumbnail: string;
+    category: string | null;
+    categoryIds: string[];
+    categoryKeys: string[];
+    primaryCategoryName: string | null;
+    cookingTime: string | null;
+    servings: string | null;
+    hits?: number;
+    isFavorite: boolean;
+    commentCount: number;
+    createdAt?: string;
+    memberNickname?: string;
+    memberName?: string;
+    memberProfileImage?: string;
+    categories?: RecipeCategory[];
+    cookingTips?: CookingTip[];
+}
+
+interface CategorySearchItem {
+    label: string;
+    mainCodeId: string;
+    detailCodeId: string | null;
+}
+
+interface SortOption {
+    label: string;
+    value: string;
+}
+
+const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
 // 반응형 데이터
-const categories = ref([]);
-const mainCategories = ref([]); // 메인 카테고리 목록 (codeName 필드를 가진 항목들)
-const recipes = ref([]);
-const selectedCategory = ref(null);
-const selectedMainCategory = ref(null); // 선택된 메인 카테고리
-const searchResults = ref([]);
-const searchQuery = ref('');
-const searchCategory = ref(null);
-const searchDifficulty = ref(null);
+const categories = ref<Category[]>([]);
+const mainCategories = ref<MainCategory[]>([]); // 메인 카테고리 목록 (codeName 필드를 가진 항목들)
+const recipes = ref<Recipe[]>([]);
+const selectedCategory = ref<string | null>(null);
+const selectedMainCategory = ref<string | null>(null); // 선택된 메인 카테고리
+const searchResults = ref<Recipe[]>([]);
 // 카테고리 검색(자동완성)용
-const categorySearchSelected = ref(null);
-const categorySearchSuggestions = ref([]);
-const first = ref(0);
-const rows = ref(12);
-const loading = ref(false);
-const error = ref(null);
+const categorySearchSelected = ref<CategorySearchItem | null>(null);
+const categorySearchSuggestions = ref<CategorySearchItem[]>([]);
+const first = ref<number>(0);
+const rows = ref<number>(12);
+const loading = ref<boolean>(false);
+const error = ref<string | null>(null);
+
+// 쇼트컷 모드 (AppTopbar 카테고리 드롭다운에서 진입)
+const shortcutMode = ref<boolean>(false);
+const shortcutName = ref<string>(''); // 쇼트컷 카테고리명 (예: "한식", "고기요리")
+const shortcutCodeId = ref<string>(''); // 쇼트컷 메인 카테고리 (예: "COOKING_STYLE")
+const shortcutDetailIds = ref<string[]>([]); // 쇼트컷 상세 코드 배열 (예: ["1001", "1002", "1003"])
 
 // 현재 로그인한 사용자 정보 (authStore에서 가져옴)
-const isLoggedIn = computed(() => authStore.isLoggedIn);
-const currentMemberInfo = computed(() => authStore.memberInfo);
 const currentMemberId = computed(() => authStore.memberInfo?.id || null);
 
 // API 기본 URL
@@ -247,8 +314,23 @@ const API_BASE_URL = getApiBaseUrl('cook');
 const filteredRecipes = computed(() => {
     let filtered = recipes.value;
     
-    // 서브 카테고리가 선택된 경우 해당 서브 카테고리로 필터링
-    if (selectedCategory.value) {
+    // 쇼트컷 모드: AppTopbar 카테고리 드롭다운에서 진입한 경우
+    // 복합 필터링 적용 (여러 detailCodeId 중 하나라도 포함되면 표시)
+    if (shortcutMode.value && shortcutCodeId.value && shortcutDetailIds.value.length > 0) {
+        filtered = filtered.filter((recipe) => {
+            if (!recipe.categoryKeys || recipe.categoryKeys.length === 0) {
+                return false;
+            }
+            // 쇼트컷의 codeId와 detailCodeIds 조합 중 하나라도 일치하면 true
+            return shortcutDetailIds.value.some((detailId) => {
+                const targetKey = `${shortcutCodeId.value}-${detailId}`;
+                return recipe.categoryKeys.includes(targetKey);
+            });
+        });
+    }
+    // 일반 모드: 기존 카테고리 탭/칩 선택
+    else if (selectedCategory.value) {
+        // 서브 카테고리가 선택된 경우 해당 서브 카테고리로 필터링
         filtered = filtered.filter((recipe) => {
             // categoryKeys 배열에 선택된 카테고리가 포함되어 있는지 확인
             // categoryKeys는 "codeId-detailCodeId" 형식의 문자열 배열
@@ -268,15 +350,15 @@ const filteredRecipes = computed(() => {
 });
 
 // 정렬 옵션 (최신순, 조회순, 댓글순)
-const SORT_LATEST = 'latest';
-const SORT_HITS = 'hits';
-const SORT_COMMENTS = 'comments';
-const sortOptions = [
+const SORT_LATEST = 'latest' as const;
+const SORT_HITS = 'hits' as const;
+const SORT_COMMENTS = 'comments' as const;
+const sortOptions: SortOption[] = [
     { label: '최신순', value: SORT_LATEST },
     { label: '조회순', value: SORT_HITS },
     { label: '댓글순', value: SORT_COMMENTS }
 ];
-const sortBy = ref(SORT_LATEST);
+const sortBy = ref<string>(SORT_LATEST);
 
 // 정렬된 레시피 목록 (표시용 소스)
 const sortedRecipes = computed(() => {
@@ -314,8 +396,8 @@ const selectedMainCategoryDetails = computed(() => {
 });
 
 // 검색용 플랫 카테고리 목록 (메인 전체 + 메인별 상세)
-const allCategoriesFlat = computed(() => {
-    const list = [];
+const allCategoriesFlat = computed((): CategorySearchItem[] => {
+    const list: CategorySearchItem[] = [];
     mainCategories.value.forEach((main) => {
         list.push({ label: `${main.codeName} (전체)`, mainCodeId: main.codeId, detailCodeId: null });
         (main.details || []).forEach((d) => {
@@ -327,7 +409,7 @@ const allCategoriesFlat = computed(() => {
 
 // Function > onMounted > 카테고리 조회
 // TODO 카테고리 목록 조회 API 연결 예정
-const loadCategories = async () => {
+const loadCategories = async (): Promise<void> => {
     try {
         const response = await httpJson(API_BASE_URL, '/api/common-codes?codeGroup=CATEGORY', {
             method: 'GET'
@@ -336,7 +418,7 @@ const loadCategories = async () => {
         const codes = Array.isArray(response) ? response : [];
         
         // 메인 카테고리 목록 저장 (codeName 필드를 가진 모든 항목들)
-        mainCategories.value = codes.map((code) => ({
+        mainCategories.value = codes.map((code: { codeId: string; codeName: string; details?: CategoryDetail[] }) => ({
             codeId: code.codeId,
             codeName: code.codeName,
             details: code.details || []
@@ -344,9 +426,9 @@ const loadCategories = async () => {
 
         // 모든 메인 카테고리의 서브 카테고리를 categories 배열에 저장
         categories.value = [];
-        codes.forEach((code) => {
+        codes.forEach((code: { codeId: string; details?: CategoryDetail[] }) => {
             if (Array.isArray(code.details)) {
-                code.details.forEach((detail) => {
+                code.details.forEach((detail: CategoryDetail) => {
                     categories.value.push({
                         value: detail.detailCodeId,
                         name: detail.codeName,
@@ -361,7 +443,7 @@ const loadCategories = async () => {
         });
 
         // 메인 카테고리 기본값: 미선택(전체 레시피)
-    } catch (error) {
+    } catch (err) {
         // 기본값 설정
         mainCategories.value = [
             {
@@ -385,7 +467,7 @@ const loadCategories = async () => {
 
 // Function > onMounted > 레시피 조회
 // 레시피의 모든 카테고리 키(codeId-detailCodeId)들을 추출하는 함수
-const extractCategoryKeys = (recipe) => {
+const extractCategoryKeys = (recipe: { categories?: RecipeCategory[] }): string[] => {
     if (!recipe || !recipe.categories || recipe.categories.length === 0) {
         return [];
     }
@@ -396,7 +478,7 @@ const extractCategoryKeys = (recipe) => {
 };
 
 // 레시피의 모든 카테고리 detailCodeId들을 추출하는 함수 (표시용)
-const extractCategoryIds = (recipe) => {
+const extractCategoryIds = (recipe: { categories?: RecipeCategory[] }): string[] => {
     if (!recipe || !recipe.categories || recipe.categories.length === 0) {
         return [];
     }
@@ -405,7 +487,7 @@ const extractCategoryIds = (recipe) => {
 };
 
 // Function > cookingTips에서 요리 시간 추출
-const extractCookingTime = (cookingTips) => {
+const extractCookingTime = (cookingTips: CookingTip[] | undefined): string | null => {
     if (!cookingTips || !Array.isArray(cookingTips)) {
         return null;
     }
@@ -414,7 +496,7 @@ const extractCookingTime = (cookingTips) => {
 };
 
 // Function > cookingTips에서 인분 수 추출
-const extractServings = (cookingTips) => {
+const extractServings = (cookingTips: CookingTip[] | undefined): string | null => {
     if (!cookingTips || !Array.isArray(cookingTips)) {
         return null;
     }
@@ -422,7 +504,7 @@ const extractServings = (cookingTips) => {
     return servingTip?.detailName || null;
 };
 
-const loadRecipes = async () => {
+const loadRecipes = async (): Promise<void> => {
     try {
         loading.value = true;
         error.value = null;
@@ -434,7 +516,7 @@ const loadRecipes = async () => {
         const data = response.data || response || [];
         
         // 사용자가 찜한 레시피 목록 가져오기
-        let favoriteRecipeIds = [];
+        let favoriteRecipeIds: number[] = [];
         if (currentMemberId.value) {
             try {
                 // 백엔드 API: GET /api/recipe/favorites/{memberId}
@@ -446,16 +528,16 @@ const loadRecipes = async () => {
                 
                 // API 응답이 배열인지 확인하고 recipeId 추출
                 if (Array.isArray(favoritesResponse)) {
-                    favoriteRecipeIds = favoritesResponse.map((fav) => fav.recipeId);
+                    favoriteRecipeIds = favoritesResponse.map((fav: { recipeId: number }) => fav.recipeId);
                 } else if (favoritesResponse.data && Array.isArray(favoritesResponse.data)) {
-                    favoriteRecipeIds = favoritesResponse.data.map((fav) => fav.recipeId);
+                    favoriteRecipeIds = favoritesResponse.data.map((fav: { recipeId: number }) => fav.recipeId);
                 }
             } catch (err) {
                 console.error('찜 목록을 가져올 수 없습니다:', err);
             }
         }
         
-        recipes.value = data.map((recipe) => {
+        recipes.value = data.map((recipe: any) => {
             // cookingTips에서 SERVING과 COOKING_TIME 추출
             const cookingTime = extractCookingTime(recipe.cookingTips);
             const servings = extractServings(recipe.cookingTips);
@@ -482,9 +564,9 @@ const loadRecipes = async () => {
                 servings,
                 isFavorite,
                 commentCount: recipe.commentCount || 0
-            };
+            } as Recipe;
         });
-    } catch (err) {
+    } catch (err: any) {
         console.error('레시피 로드 실패:', err);
         error.value = err.message || '레시피를 불러오는데 실패했습니다.';
 
@@ -503,7 +585,10 @@ const loadRecipes = async () => {
 };
 
 // Function > Button > 메인 카테고리 선택
-const selectMainCategory = (codeId) => {
+const selectMainCategory = (codeId: string): void => {
+    // 쇼트컷 모드 해제 (사용자가 메인 카테고리 탭을 클릭하면 일반 모드로 전환)
+    clearShortcutMode();
+    
     // 이미 선택된 메인을 다시 클릭하면 선택 해제(전체 레시피로)
     if (selectedMainCategory.value === codeId) {
         selectedMainCategory.value = null;
@@ -517,23 +602,23 @@ const selectMainCategory = (codeId) => {
 };
 
 // 정렬 변경 시 첫 페이지로
-const onSortChange = () => {
+const onSortChange = (): void => {
     first.value = 0;
 };
 
 // Function > Button > body 카테고리 선택 시 목록 필터링
-const selectCategory = (categoryValue) => {
-    selectedCategory.value = selectedCategory.value === categoryValue ? null : categoryValue;
+const selectCategory = (categoryValue: string | null): void => {
+    // 쇼트컷 모드 해제 (사용자가 서브 카테고리를 선택하면 일반 모드로 전환)
+    clearShortcutMode();
     
-    // 필터링된 레시피 개수 출력
-    const mainCategoryDetailIds = selectedMainCategoryDetails.value.map(detail => detail.detailCodeId);
+    selectedCategory.value = selectedCategory.value === categoryValue ? null : categoryValue;
     
     searchResults.value = [];
     first.value = 0;
 };
 
 // 카테고리 검색(자동완성): 입력 시 제안 목록 필터링
-const onCategorySearch = (event) => {
+const onCategorySearch = (event: AutoCompleteCompleteEvent): void => {
     const query = (event.query || '').trim().toLowerCase();
     if (!query) {
         // 포커스만 했을 때는 메인 카테고리(전체)만 표시
@@ -546,8 +631,11 @@ const onCategorySearch = (event) => {
 };
 
 // 카테고리 검색(자동완성): 항목 선택 시 메인/상세 적용 후 검색창 초기화
-const onCategorySearchSelect = (event) => {
-    const item = event.value;
+const onCategorySearchSelect = (event: AutoCompleteOptionSelectEvent): void => {
+    // 쇼트컷 모드 해제 (카테고리 검색에서 선택하면 일반 모드로 전환)
+    clearShortcutMode();
+    
+    const item = event.value as CategorySearchItem;
     if (!item) return;
     selectedMainCategory.value = item.mainCodeId;
     selectedCategory.value = item.detailCodeId ?? null;
@@ -556,14 +644,14 @@ const onCategorySearchSelect = (event) => {
     first.value = 0;
 };
 
-// const viewCategory = (categoryValue) => {
+// const viewCategory = (categoryValue: string): void => {
 //     selectedCategory.value = categoryValue;
 //     searchResults.value = [];
 //     first.value = 0;
 // };
 
 // Function > 대표 카테고리명 조회 (detailCodeId로 서브 카테고리 목록에서 이름 찾기, 폴백용)
-const getCategoryName = (categoryValue) => {
+const getCategoryName = (categoryValue: string | null | undefined): string | null => {
     if (!categoryValue) return null;
     // 서브 카테고리 목록에서 value(detailCodeId)가 일치하는 첫 번째 항목의 이름 반환
     const category = categories.value.find((cat) => cat.value === categoryValue);
@@ -571,7 +659,12 @@ const getCategoryName = (categoryValue) => {
 };
 
 // Function > header 타이틀 생성 (메인 카테고리 + 서브 카테고리)
-const getCategoryTitle = () => {
+const getCategoryTitle = (): string => {
+    // 쇼트컷 모드: AppTopbar 카테고리 드롭다운에서 진입한 경우
+    if (shortcutMode.value && shortcutName.value) {
+        return shortcutName.value;
+    }
+    
     // 아무것도 선택되지 않은 경우
     if (!selectedMainCategory.value) {
         return '전체 레시피';
@@ -594,7 +687,7 @@ const getCategoryTitle = () => {
 };
 
 // Function > 조회수/댓글 개수 포맷팅 (만/억 단위 처리)
-const formatCount = (count) => {
+const formatCount = (count: number | undefined): string | null => {
     if (!count || count === 0) return null;
     
     // 1억 이상인 경우
@@ -626,12 +719,12 @@ const formatCount = (count) => {
 };
 
 // Function > 레시피 상세 페이지 댓글 영역으로 이동
-const scrollToComments = (recipeId) => {
+const scrollToComments = (recipeId: number): void => {
     router.push(`/recipe/${recipeId}#comments`);
 };
 
 // Function > Button > 찜 목록 추가
-const toggleFavorite = async (recipeId) => {
+const toggleFavorite = async (recipeId: number): Promise<void> => {
     // 로그인 확인
     if (!currentMemberId.value) {
         return;
@@ -656,31 +749,76 @@ const toggleFavorite = async (recipeId) => {
 };
 
 // Function > 레시피 상세 조회
-const viewRecipe = (recipeId) => {
+const viewRecipe = (recipeId: number): void => {
     router.push(`/recipe/${recipeId}`);
 };
 
 // Function > Button > 북마크 추가
 // TODO 북마크 목록 데이터로 관리 시 API 연결 필요
-const bookmarkRecipe = (recipeId) => {
+const bookmarkRecipe = (_recipeId: number): void => {
     // 북마크 기능은 추후 구현 예정
 };
 
 // Function > 페이징
-const onPageChange = (event) => {
+const onPageChange = (event: PageState): void => {
     first.value = event.first;
     rows.value = event.rows;
 };
 
 // 카테고리 선택 감시
-watch(selectedCategory, (newCategory, oldCategory) => {
+watch(selectedCategory, (_newCategory: string | null, _oldCategory: string | null) => {
     first.value = 0; // 페이지 초기화
 });
 
+// 쇼트컷 모드 해제 (사용자가 메인 카테고리 탭을 클릭하면 일반 모드로 전환)
+const clearShortcutMode = (): void => {
+    if (shortcutMode.value) {
+        shortcutMode.value = false;
+        shortcutName.value = '';
+        shortcutCodeId.value = '';
+        shortcutDetailIds.value = [];
+        
+        // URL에서 쇼트컷 파라미터 제거
+        router.replace({ path: '/recipe/category', query: {} });
+    }
+};
+
+// 쿼리 파라미터 처리 (쇼트컷 모드 설정)
+const handleQueryParams = (): void => {
+    const { shortcut, codeId, details, name } = route.query;
+    
+    if (shortcut && codeId && details && name) {
+        // 쇼트컷 모드 활성화
+        shortcutMode.value = true;
+        shortcutName.value = String(name);
+        shortcutCodeId.value = String(codeId);
+        shortcutDetailIds.value = String(details).split(',').filter(Boolean);
+        
+        // 기존 카테고리 선택 초기화
+        selectedMainCategory.value = null;
+        selectedCategory.value = null;
+        first.value = 0;
+    } else {
+        // 쇼트컷 모드 비활성화 (일반 카테고리 탐색)
+        shortcutMode.value = false;
+        shortcutName.value = '';
+        shortcutCodeId.value = '';
+        shortcutDetailIds.value = [];
+    }
+};
+
+// 쿼리 파라미터 변경 감시 (페이지 내에서 카테고리 변경 시)
+watch(() => route.query, () => {
+    handleQueryParams();
+}, { deep: true });
+
 // 생명주기
 onMounted(() => {
+    // 쿼리 파라미터 처리 (쇼트컷 모드 확인)
+    handleQueryParams();
+    
     // 로그인 여부와 관계없이 카테고리 및 레시피 조회
-    const initializeData = async () => {
+    const initializeData = async (): Promise<void> => {
         await loadCategories();
         await loadRecipes();
     };
