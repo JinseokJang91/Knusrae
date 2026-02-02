@@ -7,7 +7,6 @@ import com.knusrae.cook.api.domain.entity.IngredientStorage;
 import com.knusrae.cook.api.domain.repository.*;
 import com.knusrae.cook.api.dto.*;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -92,27 +91,11 @@ public class IngredientService {
             );
         }
         
-        if ("storage".equalsIgnoreCase(type)) {
-            spec = spec.and((root, query, cb) -> {
-                Subquery<Long> sq = query.subquery(Long.class);
-                var storageRoot = sq.from(IngredientStorage.class);
-                sq.select(storageRoot.get("ingredient").get("id"));
-                return cb.in(root.get("id")).value(sq);
-            });
-        } else if ("preparation".equalsIgnoreCase(type)) {
-            spec = spec.and((root, query, cb) -> {
-                Subquery<Long> sq = query.subquery(Long.class);
-                var prepRoot = sq.from(IngredientPreparation.class);
-                sq.select(prepRoot.get("ingredient").get("id"));
-                return cb.in(root.get("id")).value(sq);
-            });
-        }
-        
+        // type(storage/preparation) 필터 제거: 등록만 하고 보관법·손질법을 아직 넣지 않은 재료도 목록에 보이도록 전체 재료 반환
         Pageable pageable = PageRequest.of(offset / limit, limit);
         Page<Ingredient> page = ingredientRepository.findAll(spec, pageable);
 
-        // 탭별 조회 시에는 해당 타입(보관법/손질법)이 등록된 재료가 있는 그룹만 반환
-        List<IngredientGroupDto> groups = getGroupsForType(type);
+        List<IngredientGroupDto> groups = getAllGroups();
 
         return IngredientListResponseDto.builder()
                 .groups(groups)
