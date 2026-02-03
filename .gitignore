@@ -377,7 +377,8 @@ gradle-app.setting
 /frontend/.vscode/
 /frontend/.npm-cache/
 
-/frontend/docs/design/
+### design documents
+docs/design/
 
 .vscode/
 .cursor/
