@@ -377,6 +377,8 @@ gradle-app.setting
 /frontend/.vscode/
 /frontend/.npm-cache/
 
+/frontend/docs/design/
+
 .vscode/
 .cursor/
 .shrimp/

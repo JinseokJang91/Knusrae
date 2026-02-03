@@ -19,795 +19,63 @@
 
         <!-- 레시피 상세 내용 -->
         <div v-else-if="recipe" class="max-w-6xl mx-auto px-4 py-8">
-            <!-- 헤더 섹션 -->
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-                <!-- 메인 이미지 -->
-                <div class="relative w-full h-96 bg-white">
-                    <img 
-                        v-if="mainImage" 
-                        :src="mainImage.url" 
-                        :alt="recipe.title"
-                        class="w-full mx-auto h-full object-cover"
-                    />
-                    <div v-else class="flex items-center justify-center h-full text-white text-6xl">
-                        🍳
-                    </div>
-                    
-                    <!-- 뒤로가기 버튼 -->
-                    <div class="absolute top-4 left-4 z-10">
-                        <Button 
-                            @click="goBack"
-                            icon="pi pi-arrow-left"
-                            size="large"
-                            rounded />
-                    </div>
+            <RecipeDetailHeader
+                :recipe="recipe"
+                :main-image="mainImage"
+                :cooking-tips-data="cookingTipsData"
+                :is-liked="isLiked"
+                :format-number="formatNumber"
+                @go-back="goBack"
+                @toggle-like="toggleLike"
+                @share="shareRecipe"
+            />
 
-                    <!-- 좋아요 버튼 -->
-                    <div class="absolute top-4 right-4 z-10">
-                        <Button 
-                            @click="toggleLike" 
-                            :icon="isLiked ? 'pi pi-heart-fill' : 'pi pi-heart'" 
-                            :class="isLiked ? 'p-button-danger' : 'p-button-secondary'" 
-                            size="large" 
-                            rounded />
-                    </div>
-                </div>
+            <RecipeDetailIngredients :ingredient-groups="recipe.ingredientGroups || []" />
 
-                <!-- 레시피 기본 정보 -->
-                <div class="p-8">
-                    <div class="flex items-start justify-between mb-6">
-                        <div class="flex-1">
-                            <h1 class="text-4xl font-bold text-gray-800 mb-4">{{ recipe.title }}</h1>
-                            <div class="recipe-intro-bubble" v-if="recipe.introduction">
-                                <p class="recipe-intro-bubble__text">{{ recipe.introduction }}</p>
-                            </div>
-                            
-                            <!-- 태그 -->
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <span
-                                    v-for="category in recipe.categories"
-                                    :key="`${category.codeId}-${category.detailCodeId}`"
-                                    class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium"
-                                >
-                                    {{ category.detailName || category.codeName }}
-                                </span>
-                            </div>
+            <RecipeDetailSteps :steps="recipe.steps || []" />
 
-                            <!-- 레시피 상세 정보-->
-                            <div v-if="cookingTipsData.servings || cookingTipsData.cookingTime || cookingTipsData.difficulty" class="flex items-center justify-between gap-6 mb-4 p-4 bg-gray-50 rounded-lg">
-                                <!-- 요리 정보 (cookingTips) -->
-                                <div class="flex flex-wrap gap-6">
-                                    <!-- 인분 수 -->
-                                    <div v-if="cookingTipsData.servings" class="flex items-center space-x-2">
-                                        <i class="pi pi-users text-gray-600 text-xl"></i>
-                                        <span class="text-gray-700 font-medium">{{ cookingTipsData.servings }}</span>
-                                    </div>
-                                    
-                                    <!-- 요리 시간 -->
-                                    <div v-if="cookingTipsData.cookingTime" class="flex items-center space-x-2">
-                                        <i class="pi pi-clock text-gray-600 text-xl"></i>
-                                        <span class="text-gray-700 font-medium">{{ cookingTipsData.cookingTime }}</span>
-                                    </div>
-                                    
-                                    <!-- 난이도 -->
-                                    <div v-if="cookingTipsData.difficulty" class="flex items-center space-x-2">
-                                        <i class="pi pi-star text-yellow-600 text-xl"></i>
-                                        <span class="text-gray-700 font-medium">{{ cookingTipsData.difficulty }}</span>
-                                    </div>
-                                </div>
-
-                                <!-- 통계 정보 -->
-                                <div class="flex items-center space-x-6 text-gray-600">
-                                    <div class="text-center">
-                                        <div class="text-2xl font-bold text-gray-600">{{ formatNumber(recipe.hits) }}</div>
-                                        <div class="text-sm">조회수</div>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-2xl font-bold text-gray-600">{{ formatNumber(recipe.stats?.totalComments) }}</div>
-                                        <div class="text-sm">댓글</div>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-2xl font-bold text-red-600">{{ formatNumber(recipe.stats?.favoriteCount) }}</div>
-                                        <div class="text-sm">찜</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 작성자 정보 -->
-                    <div class="flex items-center justify-between py-4 border-t border-gray-200">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-                                <img 
-                                    v-if="recipe.memberProfileImage" 
-                                    :src="recipe.memberProfileImage" 
-                                    alt="작성자 프로필" 
-                                    class="w-full h-full object-cover"
-                                />
-                                <i v-else class="pi pi-user text-gray-600"></i>
-                            </div>
-                            <div>
-                                <div class="text-lg font-medium text-gray-800">{{ recipe.memberNickname || recipe.memberName }}</div>
-                                <!-- <div class="text-sm text-gray-500">{{ formatDate(recipe.createdAt) }}</div> -->
-                            </div>
-                        </div>
-                        
-                        <!-- 공유 버튼 -->
-                        <button 
-                            @click="shareRecipe"
-                            class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                            <i class="pi pi-share-alt"></i>
-                            <span>공유</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 준비물 섹션 (따뜻한 톤: orange) -->
-            <div v-if="recipe.ingredientGroups && recipe.ingredientGroups.length > 0" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
-                    <i class="pi pi-shopping-cart mr-3 text-orange-600"></i>
-                    준비물
-                </h2>
-                
-                <div class="space-y-6">
-                    <div 
-                        v-for="(group, groupIndex) in recipe.ingredientGroups" 
-                        :key="`group-${groupIndex}-${group.order}`"
-                        class="bg-orange-50 rounded-xl p-6"
-                    >
-                        <!-- 그룹 제목 -->
-                        <div class="flex items-center mb-4">
-                            <div class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mr-3">
-                                {{ groupIndex + 1 }}
-                            </div>
-                            <h3 class="text-xl font-semibold text-gray-800">
-                                {{ group.customTypeName || group.detailName || '재료' }}
-                            </h3>
-                        </div>
-
-                        <!-- 항목 목록 -->
-                        <div v-if="group.items && group.items.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div 
-                                v-for="(item, itemIndex) in group.items" 
-                                :key="`item-${groupIndex}-${itemIndex}-${item.name}`"
-                                class="flex items-center p-3 bg-white rounded-lg border border-orange-200"
-                            >
-                                <i class="pi pi-circle-fill text-orange-400 text-xs mr-3"></i>
-                                <span class="text-gray-800 text-lg font-medium flex-1">{{ item.name }}</span>
-                                <span class="text-gray-600 text-lg ml-2">
-                                    <template v-if="item.quantity">{{ item.quantity }}{{ item.customUnitName || item.detailName }}</template>
-                                    <template v-else-if="item.customUnitName || item.detailName">{{ item.customUnitName || item.detailName }}</template>
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- 항목이 없는 경우 -->
-                        <div v-else class="text-orange-700/70 text-center py-4">
-                            항목이 없습니다.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 조리 순서 섹션 (오렌지톤 + 말풍선 설명) -->
-            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
-                    <i class="pi pi-list mr-3 text-orange-600"></i>
-                    조리 순서
-                </h2>
-                
-                <div class="space-y-8">
-                    <div 
-                        v-for="(step, index) in recipe.steps" 
-                        :key="`step-${index}-${step.order}`"
-                        class="bg-orange-50 rounded-xl p-6"
-                    >
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                            <!-- 좌측: 이미지 -->
-                            <div>
-                                <div class="relative w-full overflow-hidden rounded-lg shadow-md bg-white border border-orange-100">
-                                    <img 
-                                        v-if="step.imageUrl"
-                                        :src="step.imageUrl"
-                                        :alt="`단계 ${index + 1} 이미지`"
-                                        class="w-full h-72 object-cover"
-                                    />
-                                    <div v-else class="w-full h-72 flex items-center justify-center text-5xl text-orange-200 bg-orange-50">
-                                        🖼️
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 우측: 설명 (말풍선) -->
-                            <div class="flex items-start gap-4">
-                                <div class="w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0">
-                                    {{ index + 1 }}
-                                </div>
-                                <div class="recipe-step-bubble flex-1 min-w-0">
-                                    <p class="recipe-step-bubble__text">
-                                        {{ step.text }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 이미지 갤러리 섹션 (PrimeVue Galleria Thumbnail) -->
-            <div v-if="recipe.images && recipe.images.length > 0" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
-                    <i class="pi pi-images mr-3 text-gray-500"></i>
-                    이미지 갤러리
-                </h2>
-                <Galleria
-                    :value="recipe.images"
-                    :num-visible="5"
-                    :responsive-options="galleriaResponsiveOptions"
-                    thumbnails-position="bottom"
-                    container-class="galleria-thumbnail-container"
-                    show-item-navigators
-                    show-thumbnail-navigators
-                >
-                    <template #item="slotProps">
-                        <img
-                            :src="slotProps.item.url"
-                            :alt="slotProps.item.fileName || '갤러리 이미지'"
-                            class="w-full block object-contain max-h-[480px] rounded-lg"
-                        />
-                    </template>
-                    <template #thumbnail="slotProps">
-                        <img
-                            :src="slotProps.item.url"
-                            :alt="slotProps.item.fileName || '썸네일'"
-                            class="w-full block object-cover rounded cursor-pointer"
-                        />
-                    </template>
-                </Galleria>
-            </div>
+            <RecipeDetailGallery :images="recipe.images || []" />
 
             <!-- 댓글 섹션 -->
-            <div id="comments" class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
-                    <i class="pi pi-comments mr-3 text-gray-500"></i>
-                    댓글 ({{ comments.length }})
-                </h2>
-                
-                <!-- 댓글 작성 -->
-                <div class="mb-6">
-                    <!-- 로그인 상태: 댓글 작성 폼 -->
-                    <div v-if="isLoggedIn" class="flex space-x-4">
-                        <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                            <img 
-                                v-if="authStore.memberProfileImage" 
-                                :src="authStore.memberProfileImage" 
-                                alt="프로필" 
-                                class="w-full h-full object-cover"
-                            />
-                            <i v-else class="pi pi-user text-orange-600"></i>
-                        </div>
-                        <div class="flex-1">
-                            <textarea 
-                                v-model="newComment"
-                                @focus="focusCommentTextarea"
-                                :disabled="isRecipeAuthor"
-                                :placeholder="isRecipeAuthor ? '작성자는 답글만 작성이 가능합니다' : '댓글을 작성해주세요...'"
-                                class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
-                                :class="{ 'bg-gray-100 cursor-not-allowed': isRecipeAuthor }"
-                                rows="3"
-                            ></textarea>
-                            
-                            <!-- 이미지 미리보기 -->
-                            <div v-if="newCommentImagePreview" class="mt-2 relative inline-block">
-                                <img 
-                                    :src="newCommentImagePreview" 
-                                    alt="미리보기" 
-                                    class="w-24 h-24 object-cover rounded-lg border border-gray-300"
-                                />
-                                <button 
-                                    @click="removeCommentImage"
-                                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                                >
-                                    <i class="pi pi-times text-xs"></i>
-                                </button>
-                            </div>
-                            
-                            <div class="flex justify-between items-center mt-2">
-                                <label class="cursor-pointer" :class="{ 'opacity-50 cursor-not-allowed': isRecipeAuthor }">
-                                    <input 
-                                        type="file" 
-                                        accept="image/*" 
-                                        @change="handleCommentImageSelect"
-                                        :disabled="isRecipeAuthor"
-                                        class="hidden"
-                                    />
-                                    <div class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-                                        <i class="pi pi-image"></i>
-                                        <span>이미지 첨부</span>
-                                    </div>
-                                </label>
-                                <button 
-                                    @click="submitComment"
-                                    :disabled="!newComment.trim() || isRecipeAuthor"
-                                    class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    댓글 작성
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 비로그인 상태: 안내 메시지 -->
-                    <div v-else class="p-6 bg-orange-50 rounded-lg border border-orange-200 text-center">
-                        <i class="pi pi-lock text-gray-400 text-3xl mb-2"></i>
-                        <p class="text-gray-600 mb-3">댓글을 작성하려면 로그인이 필요합니다.</p>
-                        <button 
-                            @click="router.push({ path: '/auth/login', query: { redirect: route.fullPath } })"
-                            class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                        >
-                            로그인하기
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 댓글 목록 -->
-                <div class="space-y-6">
-                    <div 
-                        v-for="comment in comments" 
-                        :key="comment.id"
-                        class="space-y-4"
-                    >
-                        <!-- 최상위 댓글 -->
-                        <div class="flex space-x-4 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
-                            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                <img 
-                                    v-if="comment.memberProfileImage" 
-                                    :src="comment.memberProfileImage" 
-                                    alt="프로필" 
-                                    class="w-full h-full object-cover"
-                                />
-                                <i v-else class="pi pi-user text-orange-600"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="font-medium text-gray-800">
-                                            {{ comment.memberNickname || comment.memberName }}
-                                        </span>
-                                        <span class="text-sm text-gray-500">{{ formatDate(comment.createdAt) }}</span>
-                                        <span v-if="comment.updatedAt && comment.updatedAt !== comment.createdAt" class="text-xs text-gray-400">(수정됨)</span>
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        <template v-if="isMyComment(comment)">
-                                            <button 
-                                                @click="startEditComment(comment)"
-                                                class="text-sm text-gray-500 hover:text-gray-700"
-                                            >
-                                                수정
-                                            </button>
-                                            <button 
-                                                @click="deleteComment(comment.id)"
-                                                class="text-sm text-red-500 hover:text-red-700"
-                                            >
-                                                삭제
-                                            </button>
-                                        </template>
-                                        <button 
-                                            v-if="!isMyComment(comment)"
-                                            @click="toggleReplyForm(comment)"
-                                            class="text-sm text-gray-800 hover:text-gray-600 font-medium"
-                                        >
-                                            답글
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- 댓글 내용 (수정 모드) -->
-                                <div v-if="editingCommentId === comment.id">
-                                    <textarea 
-                                        v-model="editingContent"
-                                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none mb-2"
-                                        rows="2"
-                                    ></textarea>
-                                    
-                                    <!-- 이미지 미리보기 (수정 모드) -->
-                                    <div v-if="editingImagePreview" class="mb-2 relative inline-block">
-                                        <img 
-                                            :src="editingImagePreview" 
-                                            alt="미리보기" 
-                                            class="w-24 h-24 object-cover rounded-lg border border-gray-300"
-                                        />
-                                        <button 
-                                            @click="removeEditImage"
-                                            class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                                        >
-                                            <i class="pi pi-times text-xs"></i>
-                                        </button>
-                                    </div>
-                                    
-                                    <div class="flex justify-between items-center">
-                                        <label class="cursor-pointer">
-                                            <input 
-                                                type="file" 
-                                                accept="image/*" 
-                                                @change="handleEditImageSelect"
-                                                class="hidden"
-                                            />
-                                            <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
-                                                <i class="pi pi-image text-sm"></i>
-                                                <span>이미지 변경</span>
-                                            </div>
-                                        </label>
-                                        <div class="flex space-x-2">
-                                            <button 
-                                                @click="cancelEditComment"
-                                                class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-                                            >
-                                                취소
-                                            </button>
-                                            <button 
-                                                @click="updateComment(comment.id)"
-                                                :disabled="!editingContent.trim()"
-                                                class="px-4 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                            >
-                                                수정 완료
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- 댓글 내용 (일반 모드) -->
-                                <div v-else>
-                                    <div class="flex items-start gap-4">
-                                        <p class="text-gray-700 mb-2 whitespace-pre-wrap flex-1">{{ comment.content }}</p>
-                                        <!-- 댓글 이미지 -->
-                                        <div 
-                                            v-if="comment.imageUrl" 
-                                            @click="openImageModal({url: comment.imageUrl}, 0)"
-                                            class="w-20 h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity"
-                                        >
-                                            <img 
-                                                :src="comment.imageUrl" 
-                                                alt="댓글 이미지" 
-                                                class="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- 답글 펼치기/접기 버튼 -->
-                                    <button 
-                                        v-if="comment.children && comment.children.length > 0"
-                                        @click="toggleRepliesVisibility(comment.id)"
-                                        class="text-sm text-gray-600 hover:text-gray-800 font-medium mt-2"
-                                    >
-                                        <i :class="expandedComments.has(comment.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="mr-1"></i>
-                                        {{ expandedComments.has(comment.id) ? '접기' : `답글 (${comment.children.length})` }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 최상위 댓글에 대한 답글 작성 폼 (답글 목록 위) -->
-                        <div v-if="replyingToCommentId === comment.id && !comment.parentId" class="ml-14 flex space-x-4 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
-                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                <img 
-                                    v-if="authStore.memberProfileImage" 
-                                    :src="authStore.memberProfileImage" 
-                                    alt="프로필" 
-                                    class="w-full h-full object-cover"
-                                />
-                                <i v-else class="pi pi-user text-orange-600 text-sm"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-xs text-gray-600 font-medium mb-2">
-                                    <i class="pi pi-at mr-1"></i>{{ replyingToComment ? (replyingToComment.memberNickname || replyingToComment.memberName) : '' }}님에게 답글 작성
-                                </div>
-                                <textarea 
-                                    v-model="replyContent"
-                                    placeholder="답글을 작성해주세요..."
-                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
-                                    rows="2"
-                                ></textarea>
-                                
-                                <!-- 이미지 미리보기 (답글) -->
-                                <div v-if="replyImagePreview" class="mt-2 relative inline-block">
-                                    <img 
-                                        :src="replyImagePreview" 
-                                        alt="미리보기" 
-                                        class="w-24 h-24 object-cover rounded-lg border border-gray-300"
-                                    />
-                                    <button 
-                                        @click="removeReplyImage"
-                                        class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                                    >
-                                        <i class="pi pi-times text-xs"></i>
-                                    </button>
-                                </div>
-                                
-                                <div class="flex justify-between items-center mt-2">
-                                    <label class="cursor-pointer">
-                                        <input 
-                                            type="file" 
-                                            accept="image/*" 
-                                            @change="handleReplyImageSelect"
-                                            class="hidden"
-                                        />
-                                        <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-white text-gray-700 rounded hover:bg-gray-100 transition-colors border border-gray-300">
-                                            <i class="pi pi-image text-sm"></i>
-                                            <span>이미지 첨부</span>
-                                        </div>
-                                    </label>
-                                    <div class="flex space-x-2">
-                                        <button 
-                                            @click="cancelReply"
-                                            type="button"
-                                            class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-                                        >
-                                            취소
-                                        </button>
-                                        <button 
-                                            @click="submitReply"
-                                            type="button"
-                                            :disabled="!replyContent.trim() || !replyingToComment"
-                                            class="px-4 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                        >
-                                            답글 작성
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 답글 목록 (펼쳐진 경우에만 표시) -->
-                        <div v-if="comment.children && comment.children.length > 0 && expandedComments.has(comment.id)" class="ml-14 space-y-4">
-                            <!-- 각 답글을 감싸는 컨테이너 -->
-                            <div 
-                                v-for="reply in comment.children" 
-                                :key="reply.id"
-                                class="space-y-4"
-                            >
-                                <!-- 답글 내용 -->
-                                <div class="flex space-x-4 p-4 bg-orange-100 rounded-lg border-l-4 border-orange-400">
-                                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                        <img 
-                                            v-if="reply.memberProfileImage" 
-                                            :src="reply.memberProfileImage" 
-                                            alt="프로필" 
-                                            class="w-full h-full object-cover"
-                                        />
-                                        <i v-else class="pi pi-user text-orange-600 text-sm"></i>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="flex items-center space-x-2">
-                                                <span class="font-medium text-gray-800">
-                                                    {{ reply.memberNickname || reply.memberName }}
-                                                </span>
-                                                <span class="text-sm text-gray-500">{{ formatDate(reply.createdAt) }}</span>
-                                                <span v-if="reply.updatedAt && reply.updatedAt !== reply.createdAt" class="text-xs text-gray-400">(수정됨)</span>
-                                            </div>
-                                            <div class="flex items-center space-x-2">
-                                                <template v-if="isMyComment(reply)">
-                                                    <button 
-                                                        @click="startEditComment(reply)"
-                                                        class="text-sm text-gray-500 hover:text-gray-700"
-                                                    >
-                                                        수정
-                                                    </button>
-                                                    <button 
-                                                        @click="deleteComment(reply.id)"
-                                                        class="text-sm text-red-500 hover:text-red-700"
-                                                    >
-                                                        삭제
-                                                    </button>
-                                                </template>
-                                                <button 
-                                                    v-if="!isMyComment(reply)"
-                                                    @click="toggleReplyForm(reply)"
-                                                    class="text-sm text-gray-800 hover:text-gray-600 font-medium"
-                                                >
-                                                    답글
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- 답글 내용 (수정 모드) -->
-                                        <div v-if="editingCommentId === reply.id">
-                                            <textarea 
-                                                v-model="editingContent"
-                                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none mb-2"
-                                                rows="2"
-                                            ></textarea>
-                                            
-                                            <!-- 이미지 미리보기 (수정 모드) -->
-                                            <div v-if="editingImagePreview" class="mb-2 relative inline-block">
-                                                <img 
-                                                    :src="editingImagePreview" 
-                                                    alt="미리보기" 
-                                                    class="w-24 h-24 object-cover rounded-lg border border-gray-300"
-                                                />
-                                                <button 
-                                                    @click="removeEditImage"
-                                                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                                                >
-                                                    <i class="pi pi-times text-xs"></i>
-                                                </button>
-                                            </div>
-                                            
-                                            <div class="flex justify-between items-center">
-                                                <label class="cursor-pointer">
-                                                    <input 
-                                                        type="file" 
-                                                        accept="image/*" 
-                                                        @change="handleEditImageSelect"
-                                                        class="hidden"
-                                                    />
-                                                    <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
-                                                        <i class="pi pi-image text-sm"></i>
-                                                        <span>이미지 변경</span>
-                                                    </div>
-                                                </label>
-                                                <div class="flex space-x-2">
-                                                    <button 
-                                                        @click="cancelEditComment"
-                                                        class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-                                                    >
-                                                        취소
-                                                    </button>
-                                                    <button 
-                                                        @click="updateComment(reply.id)"
-                                                        :disabled="!editingContent.trim()"
-                                                        class="px-4 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                                    >
-                                                        수정 완료
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- 답글 내용 (일반 모드) -->
-                                        <div v-else>
-                                            <div class="flex items-start gap-4">
-                                                <!-- 답글 내용 (닉네임 prefix 강조) -->
-                                                <p class="text-gray-700 whitespace-pre-wrap flex-1">
-                                                    <template v-if="reply.content.startsWith('@')">
-                                                        <span class="font-bold text-gray-600">{{ reply.content.split(' ')[0] }}</span>
-                                                        {{ reply.content.substring(reply.content.indexOf(' ')) }}
-                                                    </template>
-                                                    <template v-else>
-                                                        {{ reply.content }}
-                                                    </template>
-                                                </p>
-                                                <!-- 답글 이미지 -->
-                                                <div 
-                                                    v-if="reply.imageUrl" 
-                                                    @click="openImageModal({url: reply.imageUrl}, 0)"
-                                                    class="w-20 h-20 flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 transition-opacity"
-                                                >
-                                                    <img 
-                                                        :src="reply.imageUrl" 
-                                                        alt="답글 이미지" 
-                                                        class="w-full h-full object-cover"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            
-                                <!-- 답글에 대한 답글 작성 폼 -->
-                                <div v-if="replyingToCommentId === reply.id" class="flex space-x-4 p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
-                                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                        <img 
-                                            v-if="authStore.memberProfileImage" 
-                                            :src="authStore.memberProfileImage" 
-                                            alt="프로필" 
-                                            class="w-full h-full object-cover"
-                                        />
-                                        <i v-else class="pi pi-user text-orange-600 text-sm"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="text-xs text-gray-600 font-medium mb-2">
-                                            <i class="pi pi-at mr-1"></i>{{ replyingToComment?.memberNickname || replyingToComment?.memberName }}님에게 답글 작성
-                                        </div>
-                                        <textarea 
-                                            v-model="replyContent"
-                                            placeholder="답글을 작성해주세요..."
-                                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
-                                            rows="2"
-                                        ></textarea>
-                                        
-                                        <!-- 이미지 미리보기 (답글) -->
-                                        <div v-if="replyImagePreview" class="mt-2 relative inline-block">
-                                            <img 
-                                                :src="replyImagePreview" 
-                                                alt="미리보기" 
-                                                class="w-24 h-24 object-cover rounded-lg border border-gray-300"
-                                            />
-                                            <button 
-                                                @click="removeReplyImage"
-                                                class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
-                                            >
-                                                <i class="pi pi-times text-xs"></i>
-                                            </button>
-                                        </div>
-                                        
-                                        <div class="flex justify-between items-center mt-2">
-                                            <label class="cursor-pointer">
-                                                <input 
-                                                    type="file" 
-                                                    accept="image/*" 
-                                                    @change="handleReplyImageSelect"
-                                                    class="hidden"
-                                                />
-                                                <div class="flex items-center space-x-2 px-3 py-1 text-sm bg-white text-gray-700 rounded hover:bg-gray-100 transition-colors border border-gray-300">
-                                                    <i class="pi pi-image text-sm"></i>
-                                                    <span>이미지 첨부</span>
-                                                </div>
-                                            </label>
-                                            <div class="flex space-x-2">
-                                                <button 
-                                                    @click="cancelReply"
-                                                    type="button"
-                                                    class="px-4 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
-                                                >
-                                                    취소
-                                                </button>
-                                                <button 
-                                                    @click="submitReply"
-                                                    :disabled="!replyContent.trim() || !replyingToComment"
-                                                    type="button"
-                                                    class="px-4 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                                >
-                                                    답글 작성
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 댓글이 없는 경우 -->
-                    <div v-if="comments.length === 0" class="text-center py-12">
-                        <i class="pi pi-comments text-gray-300 text-5xl mb-4"></i>
-                        <p class="text-gray-500">첫 번째 댓글을 작성해보세요!</p>
-                    </div>
-                    
-                    <!-- Pagination -->
-                    <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-8">
-                        <button 
-                            @click="loadPage(currentPage - 1)"
-                            :disabled="currentPage === 0"
-                            class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            <i class="pi pi-chevron-left"></i>
-                        </button>
-                        
-                        <div class="flex gap-2">
-                            <button 
-                                v-for="page in totalPages" 
-                                :key="page"
-                                @click="loadPage(page - 1)"
-                                :class="currentPage === page - 1 ? 'bg-gray-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
-                                class="px-4 py-2 border border-gray-300 rounded-lg transition-colors"
-                            >
-                                {{ page }}
-                            </button>
-                        </div>
-                        
-                        <button 
-                            @click="loadPage(currentPage + 1)"
-                            :disabled="currentPage === totalPages - 1"
-                            class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            <i class="pi pi-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <RecipeComments
+                :comments="comments"
+                :is-logged-in="isLoggedIn"
+                :is-recipe-author="isRecipeAuthor"
+                :member-profile-image="authStore.memberProfileImage"
+                v-model:new-comment="newComment"
+                :new-comment-image-preview="newCommentImagePreview"
+                v-model:reply-content="replyContent"
+                :reply-image-preview="replyImagePreview"
+                :replying-to-comment-id="replyingToCommentId"
+                :replying-to-comment="replyingToComment"
+                :editing-comment-id="editingCommentId"
+                v-model:editing-content="editingContent"
+                :editing-image-preview="editingImagePreview"
+                :expanded-comments="expandedComments"
+                :total-pages="totalPages"
+                :current-page="currentPage"
+                :current-member-id="currentMemberId"
+                :format-date="formatDate"
+                @submit-comment="submitComment"
+                @focus-comment-textarea="focusCommentTextarea"
+                @comment-image-select="handleCommentImageSelect"
+                @remove-comment-image="removeCommentImage"
+                @go-login="router.push({ path: '/auth/login', query: { redirect: route.fullPath } })"
+                @submit-reply="submitReply"
+                @cancel-reply="cancelReply"
+                @reply-image-select="handleReplyImageSelect"
+                @remove-reply-image="removeReplyImage"
+                @toggle-reply-form="toggleReplyForm"
+                @start-edit-comment="startEditComment"
+                @cancel-edit-comment="cancelEditComment"
+                @edit-image-select="handleEditImageSelect"
+                @remove-edit-image="removeEditImage"
+                @update-comment="updateComment"
+                @delete-comment="deleteComment"
+                @toggle-replies-visibility="toggleRepliesVisibility"
+                @load-page="loadPage"
+                @open-image="(payload) => openImageModal(payload, 0)"
+            />
 
         </div>
 
@@ -841,6 +109,11 @@
 </template>
 
 <script setup lang="ts">
+import RecipeComments from '@/components/recipe/RecipeComments.vue';
+import RecipeDetailGallery from '@/components/recipe/RecipeDetailGallery.vue';
+import RecipeDetailHeader from '@/components/recipe/RecipeDetailHeader.vue';
+import RecipeDetailIngredients from '@/components/recipe/RecipeDetailIngredients.vue';
+import RecipeDetailSteps from '@/components/recipe/RecipeDetailSteps.vue';
 import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { httpJson, httpForm } from '@/utils/http';
@@ -934,14 +207,6 @@ const cookingTipsData = computed(() => {
         difficulty: difficultyText
     };
 });
-
-// Galleria Thumbnail 반응형 옵션 (breakpoint px → 썸네일 개수)
-const galleriaResponsiveOptions = [
-    { breakpoint: '1400px', numVisible: 5 },
-    { breakpoint: '992px', numVisible: 4 },
-    { breakpoint: '768px', numVisible: 3 },
-    { breakpoint: '576px', numVisible: 2 }
-];
 
 // 난이도 공통코드 로드
 const loadDifficultyCodes = async () => {
@@ -1064,11 +329,13 @@ const loadPage = async (page: number) => {
 };
 
 const toggleRepliesVisibility = (commentId: number) => {
-    if (expandedComments.value.has(commentId)) {
-        expandedComments.value.delete(commentId);
+    const next = new Set(expandedComments.value);
+    if (next.has(commentId)) {
+        next.delete(commentId);
     } else {
-        expandedComments.value.add(commentId);
+        next.add(commentId);
     }
+    expandedComments.value = next;
 };
 
 const goBack = () => {
@@ -1333,7 +600,7 @@ const toggleReplyForm = (comment: any) => {
         // 답글 목록을 펼침
         const rootCommentId = comment.parentId || comment.id;
         if (!expandedComments.value.has(rootCommentId)) {
-            expandedComments.value.add(rootCommentId);
+            expandedComments.value = new Set([...expandedComments.value, rootCommentId]);
         }
     }
 };
@@ -1479,10 +746,6 @@ const deleteComment = async (commentId: number) => {
     });
 };
 
-const isMyComment = (comment: any) => {
-    return comment.memberId === currentMemberId.value;
-};
-
 const openImageModal = (image: any, index: number, event?: Event) => {
     if (event) {
         event.stopPropagation();
@@ -1567,12 +830,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Galleria Thumbnail 컨테이너 (갤러리 섹션 내 레이아웃) */
-:deep(.galleria-thumbnail-container) {
-    max-width: 100%;
-}
-
-/* 커스텀 스타일 */
 .animate-spin {
     animation: spin 1s linear infinite;
 }
@@ -1580,94 +837,5 @@ onMounted(() => {
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
-}
-
-/* 레시피 설명 말풍선 (태그와 동일한 앰버 톤) */
-.recipe-intro-bubble {
-    position: relative;
-    max-width: 100%;
-    margin-bottom: 1rem;
-    padding: 1rem 1.25rem;
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-    border-radius: 20px;
-    border: 2px solid #fcd34d;
-    box-shadow: 0 2px 8px rgba(252, 211, 77, 0.2);
-}
-
-/* 꼬리 테두리 (위쪽으로 뾰족) */
-.recipe-intro-bubble::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 1.5rem;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid #fcd34d;
-}
-
-/* 꼬리 내부 (말풍선 배경과 동일) */
-.recipe-intro-bubble::after {
-    content: '';
-    position: absolute;
-    top: -5px;
-    left: 1.6rem;
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 8px solid #fffbeb;
-}
-
-.recipe-intro-bubble__text {
-    margin: 0;
-    font-size: 1.125rem;
-    line-height: 1.65;
-    color: #92400e;
-}
-
-/* 조리 순서 설명 말풍선 (태그와 동일한 앰버 톤, 꼬리가 이미지 쪽을 향함) */
-.recipe-step-bubble {
-    position: relative;
-    padding: 1rem 1.25rem;
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-    border-radius: 20px;
-    border: 2px solid #fcd34d;
-    box-shadow: 0 2px 8px rgba(252, 211, 77, 0.2);
-}
-
-/* 꼬리 테두리 (왼쪽으로 뾰족 → 이미지 방향) */
-.recipe-step-bubble::before {
-    content: '';
-    position: absolute;
-    top: 1.5rem;
-    left: -10px;
-    width: 0;
-    height: 0;
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    border-right: 10px solid #fcd34d;
-}
-
-/* 꼬리 내부 */
-.recipe-step-bubble::after {
-    content: '';
-    position: absolute;
-    top: calc(1.5rem + 2px);
-    left: -6px;
-    width: 0;
-    height: 0;
-    border-top: 8px solid transparent;
-    border-bottom: 8px solid transparent;
-    border-right: 8px solid #fffbeb;
-}
-
-.recipe-step-bubble__text {
-    margin: 0;
-    font-size: 1.125rem;
-    line-height: 1.65;
-    color: #92400e;
-    white-space: pre-line;
 }
 </style>

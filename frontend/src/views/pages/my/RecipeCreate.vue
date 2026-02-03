@@ -14,373 +14,61 @@
         </div>
 
         <div class="flex flex-col gap-6">
-            <!-- 기본 정보: 대표 사진, 제목, 소개 -->
-            <div class="border border-gray-200 rounded-lg p-5 bg-white">
-                <div class="flex items-center gap-1 mb-1">
-                    <h3 class="text-xl font-semibold text-gray-600">
-                        <span class="mr-1">기본 정보</span>
-                        <i 
-                            ref="el => { if (el) guideIconRefs.basic = el as HTMLElement; }"
-                            class="pi pi-question-circle help-button" 
-                            @click="showGuide('basic', $event)" 
-                            style="cursor: pointer;"
-                        />
-                        <Popover 
-                            :ref="el => { if (el) guidePopoverRefs.basic = el; }"
-                            :target="guideIconRefs.basic"
-                            :showCloseIcon="true"
-                            :dismissable="true"
-                        >
-                            <div class="p-2">
-                                <img :src="guideImages.basic" alt="기본 정보 가이드" class="max-w-full h-auto" />
-                            </div>
-                        </Popover>
-                    </h3>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <div class="md:col-span-2">
-                        <label class="block mb-2 font-medium"><b>대표 사진</b></label>
-                        <input ref="thumbnailInputRef" type="file" accept="image/*" @change="onThumbnailChange" :disabled="submitting" class="hidden" />
-                        <div 
-                            class="relative w-full aspect-[5/3] bg-gray-200 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-300 hover:border-gray-400 transition-colors flex items-center justify-center"
-                            @click="() => !submitting && thumbnailInputRef?.click()"
-                        >
-                            <div v-if="!form.thumbnailPreview" class="text-center text-gray-500">
-                                <span class="pi pi-image text-4xl block mb-2"></span>
-                                <span class="text-sm">이미지를 클릭하여 추가하세요</span>
-                            </div>
-                            <div v-else class="group relative w-full h-full">
-                                <img :src="form.thumbnailPreview" alt="thumbnail preview" class="w-full h-full object-cover rounded-md" />
-                                <button 
-                                    class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                    @click.stop="clearThumbnail"
-                                    :disabled="submitting"
-                                >
-                                    <span class="pi pi-times"></span>
-                                </button>
-                            </div>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-1">등록 시 썸네일이 대표 이미지로 사용됩니다.</p>
-                    </div>
+            <RecipeFormBasicInfo
+                ref="basicInfoFormRef"
+                :title="form.title"
+                :description="form.description"
+                :thumbnail-preview="form.thumbnailPreview"
+                :disabled="submitting"
+                :validation-errors="validationErrors"
+                :guide-image="guideImages.basic"
+                @update:title="form.title = $event"
+                @update:description="form.description = $event"
+                @update:thumbnail="onThumbnailUpdate"
+                @clear-thumbnail="clearThumbnail"
+                @clear-validation="clearValidationError"
+            />
 
-                    <div class="md:col-span-3 flex flex-col gap-4">
-                        <div>
-                            <label class="block mb-2 font-medium"><b>제목</b></label>
-                            <InputText 
-                                ref="titleInputRef"
-                                v-model.trim="form.title" 
-                                placeholder="레시피 제목을 입력하세요" 
-                                class="w-full"
-                                :class="{ 'border-red-500': validationErrors.title }"
-                                @input="clearValidationError('title')"
-                            />
-                        </div>
-                        <div class="flex-1">
-                            <label class="block mb-2 font-medium"><b>소개</b></label>
-                            <Textarea v-model.trim="form.description" placeholder="간단한 소개나 메모를 작성하세요" class="w-full" :rows="9" />
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <RecipeFormIngredients
+                v-model="form.ingredientGroups"
+                :ingredient-type-options="ingredientTypeOptions"
+                :unit-options="unitOptions"
+                :ingredient-types-loading="ingredientTypesLoading"
+                :ingredient-types-error="ingredientTypesError"
+                :units-loading="unitsLoading"
+                :units-error="unitsError"
+                :validation-errors="validationErrors"
+                :disabled="submitting"
+                :guide-image="guideImages.ingredients"
+                @clear-validation="clearValidationError"
+            />
 
-            <!-- 준비물 -->
-            <div class="border border-gray-200 rounded-lg p-5 bg-white">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                        <h3 class="text-xl font-semibold text-gray-600">
-                            <span class="mr-1">준비물</span>
-                            <i 
-                                ref="el => { if (el) guideIconRefs.ingredients = el as HTMLElement; }"
-                                class="pi pi-question-circle help-button" 
-                                @click="showGuide('ingredients', $event)" 
-                                style="cursor: pointer;"
-                            />
-                            <Popover 
-                                :ref="el => { if (el) guidePopoverRefs.ingredients = el; }"
-                                :target="guideIconRefs.ingredients"
-                                :showCloseIcon="true"
-                                :dismissable="true"
-                            >
-                                <div class="p-2">
-                                    <img :src="guideImages.ingredients" alt="준비물 가이드" class="max-w-full h-auto" />
-                                </div>
-                            </Popover>
-                        </h3>
-                    </div>
-                    <Button label="그룹 추가" icon="pi pi-plus" @click="addIngredientGroup" :disabled="submitting" />
-                </div>
-                <div v-if="form.ingredientGroups.length === 0" class="p-3 text-gray-500 border rounded">
-                    아직 준비물 그룹이 없습니다. '그룹 추가'를 눌러 시작하세요.
-                </div>
+            <RecipeFormClassification
+                :category-options="categoryOptions"
+                :categories="form.categories"
+                :categories-loading="categoriesLoading"
+                :categories-error="categoriesError"
+                :cooking-tips-options="cookingTipsOptions"
+                :cooking-tips="form.cookingTips"
+                :cooking-tips-loading="cookingTipsLoading"
+                :cooking-tips-error="cookingTipsError"
+                :validation-errors="validationErrors"
+                :disabled="submitting"
+                :guide-image="guideImages.classification"
+                @update:categories="form.categories = $event"
+                @update:cooking-tips="form.cookingTips = $event"
+                @clear-validation="clearValidationError"
+            />
 
-                <div v-for="(group, groupIndex) in form.ingredientGroups" :key="group.id" class="border rounded p-4 mb-4 bg-gray-50">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3 flex-1">
-                            <div class="font-medium text-gray-700">그룹 {{ groupIndex + 1 }}</div>
-                            <div class="flex-1 max-w-xs">
-                                <Message v-if="ingredientTypesError" severity="error" :closable="false" class="mb-2">
-                                    {{ ingredientTypesError }}
-                                </Message>
-                                <div v-else-if="ingredientTypesLoading" class="p-2 text-sm text-gray-500">
-                                    로딩 중...
-                                </div>
-                                <Select v-else
-                                    v-model="group.type" 
-                                    :options="getIngredientTypeOptions()" 
-                                    optionLabel="label" 
-                                    optionValue="value"
-                                    placeholder="주제를 선택하세요"
-                                    class="w-full"
-                                    :class="{ 'border-red-500': validationErrors[`group-type-${group.id}`] }"
-                                    @change="clearValidationError(`group-type-${group.id}`)"
-                                    filter
-                                    showClear
-                                />
-                            </div>
-                            <!-- 직접 입력 필드 (type이 'CUSTOM'일 때만 표시) -->
-                            <div v-if="group.type === 'CUSTOM'" class="flex-1 max-w-xs">
-                                <InputText 
-                                    v-model.trim="group.customTypeName"
-                                    placeholder="그룹 타입을 직접 입력하세요"
-                                    class="w-full"
-                                />
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveIngredientGroupUp(groupIndex)" :disabled="groupIndex === 0 || submitting" />
-                            <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveIngredientGroupDown(groupIndex)" :disabled="groupIndex === form.ingredientGroups.length - 1 || submitting" />
-                            <Button icon="pi pi-trash" severity="danger" size="small" @click="removeIngredientGroup(groupIndex)" :disabled="submitting" />
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <Button label="항목 추가" icon="pi pi-plus" size="small" @click="addIngredientItem(groupIndex)" :disabled="submitting" />
-                    </div>
-
-                    <div v-if="group.items.length === 0" class="p-2 text-sm text-gray-400 border border-dashed rounded mb-2">
-                        이 그룹에 항목이 없습니다. '항목 추가'를 눌러 추가하세요.
-                    </div>
-
-                    <div v-for="(item, itemIndex) in group.items" :key="item.id" class="border rounded p-3 mb-2 bg-white">
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="text-sm text-gray-600">항목 {{ itemIndex + 1 }}</div>
-                            <div class="flex gap-2">
-                                <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveIngredientItemUp(groupIndex, itemIndex)" :disabled="itemIndex === 0 || submitting" />
-                                <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveIngredientItemDown(groupIndex, itemIndex)" :disabled="itemIndex === group.items.length - 1 || submitting" />
-                                <Button icon="pi pi-trash" severity="danger" size="small" @click="removeIngredientItem(groupIndex, itemIndex)" :disabled="submitting" />
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block mb-2 text-sm">이름</label>
-                                <InputText v-model.trim="item.name" placeholder="재료명을 입력하세요" class="w-full" />
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm">수량 <span class="text-gray-400 text-xs">(선택사항, 분수 입력 가능: 1/2, 3/4 등)</span></label>
-                                <InputText v-model.trim="item.quantity" placeholder="수량을 입력하세요 (예: 1, 1.5, 1/2)" class="w-full" />
-                            </div>
-                            <div>
-                                <label class="block mb-2 text-sm">단위 <span class="text-gray-400 text-xs">(선택사항)</span></label>
-                                <Message v-if="unitsError" severity="error" :closable="false" class="mb-2 text-xs">
-                                    {{ unitsError }}
-                                </Message>
-                                <div v-else-if="unitsLoading" class="p-2 text-xs text-gray-500">
-                                    로딩 중...
-                                </div>
-                                <div v-else class="flex flex-col gap-2">
-                                    <Select
-                                        v-model="item.unit" 
-                                        :options="getUnitOptions()" 
-                                        optionLabel="label" 
-                                        optionValue="value"
-                                        placeholder="단위를 선택하세요 (선택사항)"
-                                        class="w-full"
-                                        :class="{ 'border-red-500': validationErrors[`item-unit-${item.id}`] }"
-                                        @change="clearValidationError(`item-unit-${item.id}`)"
-                                        filter
-                                        showClear
-                                    />
-                                    <!-- 직접 입력 필드 (unit이 'CUSTOM'일 때만 표시) -->
-                                    <InputText 
-                                        v-if="item.unit === 'CUSTOM'"
-                                        v-model.trim="item.customUnitName"
-                                        placeholder="단위를 직접 입력하세요"
-                                        class="w-full"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 분류 정보: 카테고리, 요리팁 -->
-            <div class="border border-gray-200 rounded-lg p-5 bg-white">
-                <div class="flex items-center gap-1 mb-1">
-                    <h3 class="text-xl font-semibold text-gray-600">
-                        <span class="mr-1">분류 정보</span>
-                        <i 
-                            ref="el => { if (el) guideIconRefs.classification = el as HTMLElement; }"
-                            class="pi pi-question-circle help-button" 
-                            @click="showGuide('classification', $event)" 
-                            style="cursor: pointer;"
-                        />
-                        <Popover 
-                            :ref="el => { if (el) guidePopoverRefs.classification = el; }"
-                            :target="guideIconRefs.classification"
-                            :showCloseIcon="true"
-                            :dismissable="true"
-                        >
-                            <div class="p-2">
-                                <img :src="guideImages.classification" alt="분류 정보 가이드" class="max-w-full h-auto" />
-                            </div>
-                        </Popover>
-                    </h3>
-                </div>
-                <div class="flex flex-col gap-6">
-                    <div>
-                        <label class="block mb-2 font-medium"><b>카테고리</b></label>
-                        <Message v-if="categoriesError" severity="error" :closable="false" class="mb-2">
-                            {{ categoriesError }}
-                        </Message>
-                        <div v-else>
-                            <div v-if="categoriesLoading" class="p-3 text-gray-500 border border-dashed rounded">
-                                카테고리 정보를 불러오는 중입니다...
-                            </div>
-                            <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div v-for="option in categoryOptions" :key="option.codeId" class="flex flex-col gap-2" :data-category-id="`category-${option.codeId}`">
-                                    <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>
-                                    <Select 
-                                        v-model="form.categories[option.codeId]" 
-                                        :options="getCommonCodeDetailOptions(option)" 
-                                        optionLabel="label" 
-                                        optionValue="value"
-                                        placeholder="선택하세요"
-                                        class="w-full"
-                                        :class="{ 'border-red-500': validationErrors[`category-${option.codeId}`] }"
-                                        @change="clearValidationError(`category-${option.codeId}`)"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block mb-2 font-medium"><b>요리팁</b></label>
-                        <Message v-if="cookingTipsError" severity="error" :closable="false" class="mb-2">
-                            {{ cookingTipsError }}
-                        </Message>
-                        <div v-else>
-                            <div v-if="cookingTipsLoading" class="p-3 text-gray-500 border border-dashed rounded">
-                                요리팁 정보를 불러오는 중입니다...
-                            </div>
-                            <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div v-for="option in cookingTipsOptions" :key="option.codeId" class="flex flex-col gap-2" :data-cooking-tip-id="`cookingTip-${option.codeId}`">
-                                    <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>
-                                    <Select 
-                                        v-model="form.cookingTips[option.codeId]" 
-                                        :options="getCommonCodeDetailOptions(option)" 
-                                        optionLabel="label" 
-                                        optionValue="value"
-                                        placeholder="선택하세요"
-                                        class="w-full"
-                                        :class="{ 'border-red-500': validationErrors[`cookingTip-${option.codeId}`] }"
-                                        @change="clearValidationError(`cookingTip-${option.codeId}`)"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 조리 순서 -->
-            <div class="border border-gray-200 rounded-lg p-5 bg-white">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                        <h3 class="text-xl font-semibold text-gray-600">
-                            <span class="mr-1">조리 순서</span>
-                            <i 
-                                ref="el => { if (el) guideIconRefs.steps = el as HTMLElement; }"
-                                class="pi pi-question-circle help-button" 
-                                @click="showGuide('steps', $event)" 
-                                style="cursor: pointer;"
-                            />
-                            <Popover 
-                                :ref="el => { if (el) guidePopoverRefs.steps = el; }"
-                                :target="guideIconRefs.steps"
-                                :showCloseIcon="true"
-                                :dismissable="true"
-                            >
-                                <div class="p-2">
-                                    <img :src="guideImages.steps" alt="조리 순서 가이드" class="max-w-full h-auto" />
-                                </div>
-                            </Popover>
-                        </h3>
-                    </div>
-                    <div data-step-add-button>
-                        <Button label="단계 추가" icon="pi pi-plus" @click="addStep" :disabled="submitting" />
-                    </div>
-                </div>
-                <div v-if="form.steps.length === 0" class="p-3 text-gray-500 border rounded">
-                    아직 단계가 없습니다. '단계 추가'를 눌러 시작하세요.
-                </div>
-
-                <div v-for="(step, index) in form.steps" :key="step.id" class="border rounded p-3 mb-3 bg-gray-50" :data-step-index="index">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="font-medium">단계 {{ index + 1 }}</div>
-                        <div class="flex gap-2">
-                            <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveStepUp(index)" :disabled="index === 0 || submitting" />
-                            <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveStepDown(index)" :disabled="index === form.steps.length - 1 || submitting" />
-                            <Button icon="pi pi-trash" severity="danger" size="small" @click="removeStep(index)" :disabled="submitting" />
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        <div class="md:col-span-2">
-                            <label class="block mb-2">이미지</label>
-                            <input 
-                                :ref="el => { if (el) stepInputRefs[step.id] = el as HTMLInputElement }" 
-                                type="file" 
-                                accept="image/*" 
-                                @change="onStepImageChange($event, step)" 
-                                :disabled="submitting" 
-                                class="hidden" 
-                            />
-                            <div 
-                                class="relative w-full aspect-[5/3] bg-gray-200 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-300 hover:border-gray-400 transition-colors flex items-center justify-center"
-                                @click="() => !submitting && stepInputRefs[step.id]?.click()"
-                            >
-                                <div v-if="!step.previewUrl" class="text-center text-gray-500">
-                                    <span class="pi pi-image text-4xl block mb-2"></span>
-                                    <span class="text-sm">이미지를 클릭하여 추가하세요</span>
-                                </div>
-                                <div v-else class="group relative w-full h-full">
-                                    <img :src="step.previewUrl" alt="step preview" class="w-full h-full object-cover rounded-md" />
-                                    <button 
-                                        class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                        @click.stop="clearStepImage(step)"
-                                        :disabled="submitting"
-                                    >
-                                        <span class="pi pi-times"></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="md:col-span-3">
-                            <label class="block mb-2">설명</label>
-                            <Textarea 
-                                v-model.trim="step.text" 
-                                placeholder="이 단계에서의 설명을 작성하세요" 
-                                class="w-full" 
-                                :class="{ 'border-red-500': validationErrors[`step-text-${index}`] }"
-                                :rows="9"
-                                @input="clearValidationError(`step-text-${index}`)"
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <RecipeFormSteps
+                v-model="form.steps"
+                :validation-errors="validationErrors"
+                :disabled="submitting"
+                :guide-image="guideImages.steps"
+                @step-image-change="onStepImageChange"
+                @step-image-clear="onStepImageClear"
+                @clear-validation="clearValidationError"
+            />
 
             <!-- 설정 및 저장 -->
             <div class="border border-gray-200 rounded-lg p-5 bg-white">
@@ -436,57 +124,26 @@
 </template>
 
 <script setup lang="ts">
+import RecipeFormBasicInfo from '@/components/recipe/form/RecipeFormBasicInfo.vue';
+import RecipeFormClassification from '@/components/recipe/form/RecipeFormClassification.vue';
+import RecipeFormIngredients from '@/components/recipe/form/RecipeFormIngredients.vue';
+import RecipeFormSteps from '@/components/recipe/form/RecipeFormSteps.vue';
 import { httpForm, httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
 import { GUIDE_IMAGES, getApiBaseUrl } from '@/utils/constants';
 import { useErrorHandler } from '@/utils/errorHandler';
+import type { CommonCodeOption, IngredientGroupDraft, RecipeStepDraft } from '@/types/recipeForm';
 import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
 import Popover from 'primevue/popover';
 import Select from 'primevue/select';
-import Textarea from 'primevue/textarea';
 import { useConfirm } from 'primevue/useconfirm';
 
 const router = useRouter();
 const confirm = useConfirm();
 const { handleApiCallVoid } = useErrorHandler();
-
-// 타입 정의
-interface RecipeStepDraft {
-    id: string;
-    file?: File | null;
-    previewUrl?: string;
-    text: string;
-}
-
-interface IngredientItemDraft {
-    id: string;
-    name: string;
-    quantity: string | null; // 수량 (분수 입력 지원: "1/2", "3/4", "1.5" 등)
-    unit: string;
-    customUnitName?: string;  // 직접 입력 단위
-}
-
-interface IngredientGroupDraft {
-    id: string;
-    type: string;
-    customTypeName?: string;  // 직접 입력 타입
-    items: IngredientItemDraft[];
-}
-
-interface CommonCodeDetailOption {
-    detailCodeId: string;
-    codeName: string;
-}
-
-interface CommonCodeOption {
-    codeId: string;
-    codeName: string;
-    details: CommonCodeDetailOption[];
-}
 
 interface RecipeDraft {
     title: string;
@@ -516,10 +173,8 @@ const ingredientTypeOptions = ref<CommonCodeOption[]>([]);
 const unitsLoading = ref(false);
 const unitsError = ref<string | null>(null);
 const unitOptions = ref<CommonCodeOption[]>([]);
-const thumbnailInputRef = ref<HTMLInputElement | null>(null);
-const stepInputRefs = ref<Record<string, HTMLInputElement>>({});
-const titleInputRef = ref<InstanceType<typeof InputText> | null>(null);
 const validationErrors = ref<Record<string, boolean>>({});
+const basicInfoFormRef = ref<InstanceType<typeof RecipeFormBasicInfo> | null>(null);
 const hasUnsavedChanges = ref(false);
 const isSubmitSuccessful = ref(false);
 const guideIconRefs = ref<Record<string, HTMLElement | null>>({});
@@ -551,23 +206,38 @@ const form = reactive<RecipeDraft>({
 });
 
 // 유틸리티 함수
-function generateId(): string {
-    return crypto.randomUUID();
-}
-
-function swapArrayItems<T>(array: T[], index1: number, index2: number): void {
-    if (index1 < 0 || index2 < 0 || index1 >= array.length || index2 >= array.length) return;
-    [array[index1], array[index2]] = [array[index2], array[index1]];
-}
-
-function handleImageFile(file: File | undefined, currentPreview: string | undefined): string {
-    if (!file) return currentPreview || '';
-    if (currentPreview) URL.revokeObjectURL(currentPreview);
-    return URL.createObjectURL(file);
-}
-
 function clearImagePreview(previewUrl: string | undefined): void {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
+}
+
+function onThumbnailUpdate(payload: { file: File; preview: string }): void {
+    clearImagePreview(form.thumbnailPreview);
+    form.thumbnailFile = payload.file;
+    form.thumbnailPreview = payload.preview;
+}
+
+function clearThumbnail(): void {
+    clearImagePreview(form.thumbnailPreview);
+    form.thumbnailPreview = '';
+    form.thumbnailFile = null;
+}
+
+function onStepImageChange(stepId: string, file: File, previewUrl: string): void {
+    const step = form.steps.find((s) => s.id === stepId);
+    if (step) {
+        clearImagePreview(step.previewUrl);
+        step.file = file;
+        step.previewUrl = previewUrl;
+    }
+}
+
+function onStepImageClear(stepId: string): void {
+    const step = form.steps.find((s) => s.id === stepId);
+    if (step) {
+        clearImagePreview(step.previewUrl);
+        step.previewUrl = '';
+        step.file = null;
+    }
 }
 
 // 검증 관련
@@ -632,14 +302,7 @@ function validateForm(): { valid: boolean; firstErrorField?: string; firstErrorF
 function focusFirstError(field: string): void {
     if (field === 'title') {
         nextTick(() => {
-            if (titleInputRef.value) {
-                const component = titleInputRef.value as any;
-                const inputElement = component.$el?.querySelector('input') || component.$el;
-                if (inputElement && typeof inputElement.focus === 'function') {
-                    inputElement.focus();
-                    inputElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }
+            basicInfoFormRef.value?.focusTitle?.();
         });
     } else if (field === 'steps') {
         nextTick(() => {
@@ -801,163 +464,6 @@ function getCommonCodeDetailOptions(option: CommonCodeOption) {
             value: detail.detailCodeId
         }))
     ];
-}
-
-// 재료 타입 옵션 변환
-function getIngredientTypeOptions() {
-    if (!ingredientTypeOptions.value || ingredientTypeOptions.value.length === 0) {
-        return [{ label: '직접 입력', value: 'CUSTOM' }];
-    }
-    // 모든 code를 평탄화하여 옵션으로 변환
-    const options = ingredientTypeOptions.value.flatMap(option => 
-        option.details.map(detail => ({
-            label: detail.codeName,
-            value: detail.detailCodeId // detail의 고유 ID를 사용해야 함
-        }))
-    );
-    // 직접 입력 옵션 추가
-    return [...options, { label: '직접 입력', value: 'CUSTOM' }];
-}
-
-// 단위 옵션 변환
-function getUnitOptions() {
-    if (!unitOptions.value || unitOptions.value.length === 0) {
-        return [{ label: '직접 입력', value: 'CUSTOM' }];
-    }
-    // 모든 code를 평탄화하여 옵션으로 변환
-    const options = unitOptions.value.flatMap(option => 
-        option.details.map(detail => ({
-            label: detail.codeName,
-            value: detail.detailCodeId // detail의 고유 ID를 사용해야 함
-        }))
-    );
-    // 직접 입력 옵션 추가
-    return [...options, { label: '직접 입력', value: 'CUSTOM' }];
-}
-
-// 준비물 관련 함수
-function addIngredientGroup(): void {
-    form.ingredientGroups.push({ 
-        id: generateId(), 
-        type: '',
-        items: []
-    });
-}
-
-function removeIngredientGroup(groupIndex: number): void {
-    form.ingredientGroups.splice(groupIndex, 1);
-}
-
-function moveIngredientGroupUp(groupIndex: number): void {
-    if (groupIndex > 0) {
-        swapArrayItems(form.ingredientGroups, groupIndex - 1, groupIndex);
-    }
-}
-
-function moveIngredientGroupDown(groupIndex: number): void {
-    if (groupIndex < form.ingredientGroups.length - 1) {
-        swapArrayItems(form.ingredientGroups, groupIndex, groupIndex + 1);
-    }
-}
-
-function addIngredientItem(groupIndex: number): void {
-    const group = form.ingredientGroups[groupIndex];
-    if (group) {
-        group.items.push({ 
-            id: generateId(), 
-            name: '', 
-            quantity: null,
-            unit: '' 
-        });
-    }
-}
-
-function removeIngredientItem(groupIndex: number, itemIndex: number): void {
-    const group = form.ingredientGroups[groupIndex];
-    if (group) {
-        group.items.splice(itemIndex, 1);
-    }
-}
-
-function moveIngredientItemUp(groupIndex: number, itemIndex: number): void {
-    const group = form.ingredientGroups[groupIndex];
-    if (group && itemIndex > 0) {
-        swapArrayItems(group.items, itemIndex - 1, itemIndex);
-    }
-}
-
-function moveIngredientItemDown(groupIndex: number, itemIndex: number): void {
-    const group = form.ingredientGroups[groupIndex];
-    if (group && itemIndex < group.items.length - 1) {
-        swapArrayItems(group.items, itemIndex, itemIndex + 1);
-    }
-}
-
-// 조리 순서 관련 함수
-function addStep(): void {
-    form.steps.push({ 
-        id: generateId(), 
-        file: null, 
-        text: '', 
-        previewUrl: '' 
-    });
-}
-
-function removeStep(index: number): void {
-    const [removed] = form.steps.splice(index, 1);
-    if (removed?.previewUrl) {
-        clearImagePreview(removed.previewUrl);
-    }
-}
-
-function moveStepUp(index: number): void {
-    if (index > 0) {
-        swapArrayItems(form.steps, index - 1, index);
-    }
-}
-
-function moveStepDown(index: number): void {
-    if (index < form.steps.length - 1) {
-        swapArrayItems(form.steps, index, index + 1);
-    }
-}
-
-// 이미지 처리 함수
-function onStepImageChange(e: Event, step: RecipeStepDraft): void {
-    const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    
-    step.file = file;
-    step.previewUrl = handleImageFile(file, step.previewUrl);
-}
-
-function onThumbnailChange(e: Event): void {
-    const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    
-    form.thumbnailFile = file;
-    form.thumbnailPreview = handleImageFile(file, form.thumbnailPreview);
-}
-
-function clearThumbnail(): void {
-    clearImagePreview(form.thumbnailPreview);
-    form.thumbnailPreview = '';
-    form.thumbnailFile = null;
-    if (thumbnailInputRef.value) {
-        thumbnailInputRef.value.value = '';
-    }
-}
-
-function clearStepImage(step: RecipeStepDraft): void {
-    clearImagePreview(step.previewUrl);
-    step.previewUrl = '';
-    step.file = null;
-    const inputRef = stepInputRefs.value[step.id];
-    if (inputRef) {
-        inputRef.value = '';
-    }
 }
 
 // 폼 제출 관련

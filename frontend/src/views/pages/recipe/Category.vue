@@ -102,96 +102,48 @@
                 />
             </div>
 
-            <!-- 로딩 상태 -->
-            <div v-if="loading" class="text-center py-8">
-                <ProgressSpinner />
-                <p class="text-gray-600 mt-3">레시피를 불러오는 중...</p>
-            </div>
-
-            <!-- 에러 상태 -->
-            <div v-else-if="error" class="text-center py-8">
-                <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-                <h3 class="text-2xl font-semibold text-gray-600 mb-2">레시피를 불러올 수 없습니다</h3>
-                <p class="text-gray-600 mb-4">{{ error }}</p>
-                <Button label="다시 시도" @click="loadRecipes" />
-            </div>
+            <!-- 로딩 / 에러 / 빈 상태 -->
+            <PageStateBlock
+                v-if="loading"
+                state="loading"
+                loading-message="레시피를 불러오는 중..."
+            />
+            <PageStateBlock
+                v-else-if="error"
+                state="error"
+                error-title="레시피를 불러올 수 없습니다"
+                :error-message="error"
+                retry-label="다시 시도"
+                @retry="loadRecipes"
+            />
+            <PageStateBlock
+                v-else-if="displayRecipes.length === 0"
+                state="empty"
+                empty-icon="pi pi-book"
+                empty-title="레시피가 없습니다"
+                :empty-message="selectedCategory ? '선택한 카테고리에 레시피가 없습니다.' : '등록된 레시피가 없습니다.'"
+            />
 
             <!-- 레시피 목록이 있는 경우 -->
-            <div v-else-if="displayRecipes.length > 0">
-                <!-- 그리드 뷰 (카드 형태) -->
+            <template v-else>
                 <div class="recipe-grid">
-                    <div v-for="recipe in displayRecipes" :key="recipe.id" class="recipe-card-wrapper" @click="viewRecipe(recipe.id)">
-                        <Card class="recipe-card h-full">
-                            <template #header>
-                                <div class="recipe-image-container">
-                                    <img :src="recipe.thumbnail" :alt="recipe.title" class="recipe-image" />
-                                    <div class="recipe-overlay">
-                                        <div class="recipe-actions">
-                                            <Button :icon="recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="recipe.isFavorite ? 'p-button-danger' : 'p-button-secondary'" size="large" rounded @click.stop="toggleFavorite(recipe.id)" />
-                                            <Button icon="pi pi-bookmark" severity="secondary" size="large" rounded @click.stop="bookmarkRecipe(recipe.id)" />
-                                        </div>
-                                        <Tag v-if="recipe.primaryCategoryName || getCategoryName(recipe.category)" :value="recipe.primaryCategoryName || getCategoryName(recipe.category)" severity="info" class="recipe-category-tag" />
-                                    </div>
-                                    <!-- 조회수 표시 (이미지 우측 하단) -->
-                                    <div v-if="formatCount(recipe.hits)" class="recipe-hits-overlay">
-                                        조회수 {{ formatCount(recipe.hits) }}
-                                    </div>
-                                </div>
-                            </template>
-                            <template #content>
-                                <div class="recipe-content">
-                                    <h3 class="recipe-title">{{ recipe.title }}</h3>
-                                    <div class="recipe-meta">
-                                        <div class="recipe-info">
-                                            <div v-if="recipe.cookingTime" class="info-item">
-                                                <i class="pi pi-clock"></i>
-                                                <span>{{ recipe.cookingTime }}</span>
-                                            </div>
-                                            <div v-if="recipe.servings" class="info-item">
-                                                <i class="pi pi-users"></i>
-                                                <span>{{ recipe.servings }}</span>
-                                            </div>
-                                        </div>
-                                        <div v-if="recipe.memberNickname || recipe.memberName" class="recipe-author mt-2 flex items-center gap-2">
-                                            <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                <img 
-                                                    v-if="recipe.memberProfileImage" 
-                                                    :src="recipe.memberProfileImage" 
-                                                    alt="작성자 프로필" 
-                                                    class="w-full h-full object-cover"
-                                                />
-                                                <i v-else class="pi pi-user text-gray-600 text-xs"></i>
-                                            </div>
-                                            <span class="text-sm text-gray-600">{{ recipe.memberNickname || recipe.memberName }}</span>
-                                        </div>
-                                        <!-- 댓글 개수 표시 (닉네임 하단, 좌측 정렬) -->
-                                        <div v-if="formatCount(recipe.commentCount)" class="recipe-comment-count mt-1">
-                                            <span class="text-sm text-gray-600 cursor-pointer hover:text-primary" @click.stop="scrollToComments(recipe.id)">
-                                                댓글 {{ formatCount(recipe.commentCount) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                            <template #footer>
-                                <!-- <Button label="상세보기" class="w-full" @click="viewRecipe(recipe.id)" /> -->
-                            </template>
-                        </Card>
-                    </div>
+                    <RecipeGridCard
+                        v-for="recipe in displayRecipes"
+                        :key="recipe.id"
+                        :recipe="recipe"
+                        :category-label="recipe.primaryCategoryName || getCategoryName(recipe.category)"
+                        show-bookmark
+                        show-comment-count
+                        @click="viewRecipe"
+                        @favorite="toggleFavorite"
+                        @bookmark="bookmarkRecipe"
+                        @scroll-to-comments="scrollToComments"
+                    />
                 </div>
-
-                <!-- footer : 페이지네이션 -->
                 <div class="flex justify-center mt-4">
                     <Paginator v-model:first="first" :rows="rows" :totalRecords="totalDisplayRecipes" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
                 </div>
-            </div>
-
-            <!-- 빈 상태 -->
-            <div v-else class="text-center py-8">
-                <i class="pi pi-book text-6xl text-300 mb-4"></i>
-                <h3 class="text-2xl font-semibold text-gray-600 mb-2">레시피가 없습니다</h3>
-                <p class="text-gray-600 mb-4">{{ selectedCategory ? '선택한 카테고리에 레시피가 없습니다.' : '등록된 레시피가 없습니다.' }}</p>
-            </div>
+            </template>
         </div>
     </div>
 </template>
@@ -201,13 +153,11 @@ import { httpJson } from '@/utils/http';
 import { useAuthStore } from '@/stores/authStore';
 import AutoComplete from 'primevue/autocomplete';
 import type { AutoCompleteCompleteEvent, AutoCompleteOptionSelectEvent } from 'primevue/autocomplete';
-import Button from 'primevue/button';
-import Card from 'primevue/card';
 import SelectButton from 'primevue/selectbutton';
 import Paginator from 'primevue/paginator';
 import type { PageState } from 'primevue/paginator';
-import ProgressSpinner from 'primevue/progressspinner';
-import Tag from 'primevue/tag';
+import PageStateBlock from '@/components/common/PageStateBlock.vue';
+import RecipeGridCard from '@/components/recipe/RecipeGridCard.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getApiBaseUrl } from '@/utils/constants';
@@ -684,38 +634,6 @@ const getCategoryTitle = (): string => {
     const subCategory = selectedMainCategoryDetails.value.find((detail) => detail.detailCodeId === selectedCategory.value);
     const subCategoryName = subCategory ? subCategory.codeName : selectedCategory.value;
     return `${mainCategoryName} > ${subCategoryName}`;
-};
-
-// Function > 조회수/댓글 개수 포맷팅 (만/억 단위 처리)
-const formatCount = (count: number | undefined): string | null => {
-    if (!count || count === 0) return null;
-    
-    // 1억 이상인 경우
-    if (count >= 100000000) {
-        const eok = count / 100000000;
-        // 백만 자리에서 반올림 (소수점 첫째 자리까지)
-        const rounded = Math.round(eok * 10) / 10;
-        // 소수점이 0이면 정수로 표시
-        if (rounded % 1 === 0) {
-            return `${Math.round(rounded)}억`;
-        }
-        return `${rounded}억`;
-    }
-    
-    // 1만 이상인 경우
-    if (count >= 10000) {
-        const man = count / 10000;
-        // 백의 자리에서 반올림 (소수점 첫째 자리까지)
-        const rounded = Math.round(man * 10) / 10;
-        // 소수점이 0이면 정수로 표시
-        if (rounded % 1 === 0) {
-            return `${Math.round(rounded)}만`;
-        }
-        return `${rounded}만`;
-    }
-    
-    // 1만 미만인 경우
-    return count.toLocaleString();
 };
 
 // Function > 레시피 상세 페이지 댓글 영역으로 이동

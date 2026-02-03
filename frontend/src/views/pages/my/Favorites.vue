@@ -14,90 +14,62 @@
                 </h2>
             </div>
 
-            <!-- 로딩 상태 -->
-            <div v-if="loading" class="text-center py-8">
-                <ProgressSpinner />
-                <p class="text-gray-600 mt-3">찜 목록을 불러오는 중...</p>
-            </div>
-
-            <!-- 에러 상태 -->
-            <div v-else-if="error" class="text-center py-8">
-                <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-                <h3 class="text-2xl font-semibold text-gray-600 mb-2">찜 목록을 불러올 수 없습니다</h3>
-                <p class="text-gray-600 mb-4">{{ error }}</p>
-                <Button label="다시 시도" @click="loadFavorites" />
-            </div>
+            <!-- 로딩 / 에러 / 빈 상태 -->
+            <PageStateBlock
+                v-if="loading"
+                state="loading"
+                loading-message="찜 목록을 불러오는 중..."
+            />
+            <PageStateBlock
+                v-else-if="error"
+                state="error"
+                error-title="찜 목록을 불러올 수 없습니다"
+                :error-message="error"
+                retry-label="다시 시도"
+                @retry="loadFavorites"
+            />
+            <PageStateBlock
+                v-else-if="displayFavorites.length === 0"
+                state="empty"
+                empty-icon="pi pi-heart"
+                empty-title="찜한 레시피가 없습니다"
+                empty-message="마음에 드는 레시피를 찜해보세요!"
+                empty-button-label="레시피 둘러보기"
+                @empty-action="browseRecipes"
+            />
 
             <!-- 레시피 목록이 있는 경우 -->
-            <div v-else-if="displayFavorites.length > 0">
-                <!-- 그리드 뷰 (카드 형태) -->
+            <template v-else>
                 <div class="recipe-grid">
-                    <div v-for="favorite in displayFavorites" :key="favorite.id" class="recipe-card-wrapper" @click="viewRecipe(favorite.recipeId)">
-                        <Card class="recipe-card h-full">
-                            <template #header>
-                                <div class="recipe-image-container">
-                                    <img :src="favorite.recipe.thumbnail || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400'" :alt="favorite.recipe.title" class="recipe-image" />
-                                    <div class="recipe-overlay">
-                                        <div class="recipe-actions">
-                                            <Button icon="pi pi-heart-fill" class="p-button-danger" size="large" rounded @click.stop="removeFavorite(favorite.recipeId)" />
-                                        </div>
-                                        <Tag v-if="getCategoryName(favorite.recipe)" :value="getCategoryName(favorite.recipe)" severity="info" class="recipe-category-tag" />
-                                    </div>
-                                    <div v-if="formatCount(favorite.recipe.hits)" class="recipe-hits-overlay">
-                                        조회수 {{ formatCount(favorite.recipe.hits) }}
-                                    </div>
-                                </div>
-                            </template>
-                            <template #content>
-                                <div class="recipe-content">
-                                    <h3 class="recipe-title">{{ favorite.recipe.title }}</h3>
-                                    <div class="recipe-meta">
-                                        <div class="recipe-info">
-                                            <div v-if="getCookingTime(favorite.recipe)" class="info-item">
-                                                <i class="pi pi-clock"></i>
-                                                <span>{{ getCookingTime(favorite.recipe) }}</span>
-                                            </div>
-                                            <div v-if="getServings(favorite.recipe)" class="info-item">
-                                                <i class="pi pi-users"></i>
-                                                <span>{{ getServings(favorite.recipe) }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="text-sm text-gray-500 mt-1">
-                                            <i class="pi pi-calendar"></i>
-                                            <span>{{ formatDate(favorite.createdAt) }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </Card>
-                    </div>
+                    <RecipeGridCard
+                        v-for="favorite in displayFavorites"
+                        :key="favorite.id"
+                        :recipe="getRecipeGridItem(favorite)"
+                        :category-label="getCategoryName(favorite.recipe)"
+                        :date-text="formatDate(favorite.createdAt)"
+                        :show-bookmark="false"
+                        :show-comment-count="false"
+                        :favorites-mode="true"
+                        :show-author="false"
+                        @click="viewRecipe"
+                        @favorite="removeFavorite"
+                    />
                 </div>
-
-                <!-- footer : 페이지네이션 -->
                 <div class="flex justify-center mt-4">
                     <Paginator v-model:first="first" :rows="rows" :totalRecords="totalFavorites" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
                 </div>
-            </div>
-
-            <!-- 빈 상태 -->
-            <div v-else class="text-center py-8">
-                <i class="pi pi-heart text-6xl text-300 mb-4"></i>
-                <h3 class="text-2xl font-semibold text-gray-600 mb-2">찜한 레시피가 없습니다</h3>
-                <p class="text-gray-600 mb-4">마음에 드는 레시피를 찜해보세요!</p>
-                <Button label="레시피 둘러보기" @click="browseRecipes" />
-            </div>
+            </template>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import PageStateBlock from '@/components/common/PageStateBlock.vue';
+import RecipeGridCard from '@/components/recipe/RecipeGridCard.vue';
+import type { RecipeGridItem } from '@/components/recipe/RecipeGridCard.vue';
 import { httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
-import Button from 'primevue/button';
-import Card from 'primevue/card';
 import Paginator from 'primevue/paginator';
-import ProgressSpinner from 'primevue/progressspinner';
-import Tag from 'primevue/tag';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { getApiBaseUrl } from '@/utils/constants';
@@ -181,25 +153,23 @@ const browseRecipes = (): void => {
     router.push('/recipe/category');
 };
 
+/** RecipeGridCard에 넘길 레시피 객체 (찜 목록용) */
+const getRecipeGridItem = (favorite: FavoriteItem): RecipeGridItem => ({
+    id: favorite.recipe.id,
+    title: favorite.recipe.title,
+    thumbnail: favorite.recipe.thumbnail,
+    cookingTime: getCookingTime(favorite.recipe) ?? undefined,
+    servings: getServings(favorite.recipe) ?? undefined,
+    hits: favorite.recipe.hits,
+    isFavorite: true,
+    memberNickname: favorite.recipe.memberNickname,
+    memberName: favorite.recipe.memberName,
+    memberProfileImage: favorite.recipe.memberProfileImage
+});
+
 const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ko-KR');
-};
-
-// 조회수 포맷팅 (만/억 단위 처리)
-const formatCount = (count: number | undefined | null): string | null => {
-    if (!count || count === 0) return null;
-    if (count >= 100000000) {
-        const eok = count / 100000000;
-        const rounded = Math.round(eok * 10) / 10;
-        return rounded % 1 === 0 ? `${Math.round(rounded)}억` : `${rounded}억`;
-    }
-    if (count >= 10000) {
-        const man = count / 10000;
-        const rounded = Math.round(man * 10) / 10;
-        return rounded % 1 === 0 ? `${Math.round(rounded)}만` : `${rounded}만`;
-    }
-    return count.toLocaleString();
 };
 
 const onPageChange = (event: PageState): void => {

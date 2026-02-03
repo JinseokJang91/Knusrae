@@ -1,0 +1,183 @@
+<template>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+        <!-- 메인 이미지 -->
+        <div class="relative w-full h-96 bg-white">
+            <img
+                v-if="mainImage"
+                :src="mainImage.url"
+                :alt="recipe.title"
+                class="w-full mx-auto h-full object-cover"
+            />
+            <div v-else class="flex items-center justify-center h-full text-white text-6xl">
+                🍳
+            </div>
+
+            <!-- 뒤로가기 버튼 -->
+            <div class="absolute top-4 left-4 z-10">
+                <Button
+                    @click="$emit('go-back')"
+                    icon="pi pi-arrow-left"
+                    size="large"
+                    rounded
+                />
+            </div>
+
+            <!-- 좋아요 버튼 -->
+            <div class="absolute top-4 right-4 z-10">
+                <Button
+                    @click="$emit('toggle-like')"
+                    :icon="isLiked ? 'pi pi-heart-fill' : 'pi pi-heart'"
+                    :class="isLiked ? 'p-button-danger' : 'p-button-secondary'"
+                    size="large"
+                    rounded
+                />
+            </div>
+        </div>
+
+        <!-- 레시피 기본 정보 -->
+        <div class="p-8">
+            <div class="flex items-start justify-between mb-6">
+                <div class="flex-1">
+                    <h1 class="text-4xl font-bold text-gray-800 mb-4">{{ recipe.title }}</h1>
+                    <div class="recipe-intro-bubble" v-if="recipe.introduction">
+                        <p class="recipe-intro-bubble__text">{{ recipe.introduction }}</p>
+                    </div>
+
+                    <!-- 태그 -->
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span
+                            v-for="category in recipe.categories"
+                            :key="`${category.codeId}-${category.detailCodeId}`"
+                            class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium"
+                        >
+                            {{ category.detailName || category.codeName }}
+                        </span>
+                    </div>
+
+                    <!-- 레시피 상세 정보 (요리팁 + 통계) -->
+                    <div
+                        v-if="cookingTipsData.servings || cookingTipsData.cookingTime || cookingTipsData.difficulty"
+                        class="flex items-center justify-between gap-6 mb-4 p-4 bg-gray-50 rounded-lg"
+                    >
+                        <div class="flex flex-wrap gap-6">
+                            <div v-if="cookingTipsData.servings" class="flex items-center space-x-2">
+                                <i class="pi pi-users text-gray-600 text-xl"></i>
+                                <span class="text-gray-700 font-medium">{{ cookingTipsData.servings }}</span>
+                            </div>
+                            <div v-if="cookingTipsData.cookingTime" class="flex items-center space-x-2">
+                                <i class="pi pi-clock text-gray-600 text-xl"></i>
+                                <span class="text-gray-700 font-medium">{{ cookingTipsData.cookingTime }}</span>
+                            </div>
+                            <div v-if="cookingTipsData.difficulty" class="flex items-center space-x-2">
+                                <i class="pi pi-star text-yellow-600 text-xl"></i>
+                                <span class="text-gray-700 font-medium">{{ cookingTipsData.difficulty }}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-6 text-gray-600">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-gray-600">{{ formatNumber(recipe.hits) }}</div>
+                                <div class="text-sm">조회수</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-gray-600">{{ formatNumber(recipe.stats?.totalComments) }}</div>
+                                <div class="text-sm">댓글</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-red-600">{{ formatNumber(recipe.stats?.favoriteCount) }}</div>
+                                <div class="text-sm">찜</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 작성자 정보 -->
+            <div class="flex items-center justify-between py-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                        <img
+                            v-if="recipe.memberProfileImage"
+                            :src="recipe.memberProfileImage"
+                            alt="작성자 프로필"
+                            class="w-full h-full object-cover"
+                        />
+                        <i v-else class="pi pi-user text-gray-600"></i>
+                    </div>
+                    <div>
+                        <div class="text-lg font-medium text-gray-800">{{ recipe.memberNickname || recipe.memberName }}</div>
+                    </div>
+                </div>
+                <button
+                    @click="$emit('share')"
+                    class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                    <i class="pi pi-share-alt"></i>
+                    <span>공유</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import Button from 'primevue/button';
+import type { RecipeDetail, RecipeImage } from '@/types/recipe';
+
+defineProps<{
+    recipe: RecipeDetail;
+    mainImage: RecipeImage | null;
+    cookingTipsData: { servings: string | null; cookingTime: string | null; difficulty: string | null };
+    isLiked: boolean;
+    formatNumber: (num: number | null | undefined) => string;
+}>();
+
+defineEmits<{
+    'go-back': [];
+    'toggle-like': [];
+    share: [];
+}>();
+</script>
+
+<style scoped>
+.recipe-intro-bubble {
+    position: relative;
+    max-width: 100%;
+    margin-bottom: 1rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-radius: 20px;
+    border: 2px solid #fcd34d;
+    box-shadow: 0 2px 8px rgba(252, 211, 77, 0.2);
+}
+
+.recipe-intro-bubble::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 1.5rem;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid #fcd34d;
+}
+
+.recipe-intro-bubble::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 1.6rem;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #fffbeb;
+}
+
+.recipe-intro-bubble__text {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.65;
+    color: #92400e;
+}
+</style>
