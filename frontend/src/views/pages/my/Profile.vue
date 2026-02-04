@@ -73,11 +73,10 @@
 </template>
 
 <script setup lang="ts">
+import { updateProfile } from '@/api/memberApi';
 import { computed, onMounted, reactive, ref } from 'vue';
-import { httpForm } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
 import { useAuthStore } from '@/stores/authStore';
-import { getApiBaseUrl } from '@/utils/constants';
 import type { ProfileFormState } from '@/types/profile';
 
 const authStore = useAuthStore();
@@ -115,8 +114,7 @@ const onProfileImageChange = (event: Event) => {
 const onSave = async () => {
     try {
         loading.value = true;
-        const API_BASE_URL = getApiBaseUrl('member');
-        
+
         const formData = new FormData();
         if (form.name) formData.append('name', form.name);
         if (form.nickname) formData.append('nickname', form.nickname);
@@ -125,9 +123,7 @@ const onSave = async () => {
             formData.append('profileImage', profileImageFile.value);
         }
 
-        await httpForm(API_BASE_URL, '/api/member/profile', formData, {
-            method: 'PUT'
-        });
+        await updateProfile(formData);
 
         // 프로필 정보 다시 불러오기
         await loadMemberInfo();

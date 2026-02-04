@@ -128,9 +128,10 @@ import RecipeFormBasicInfo from '@/components/recipe/form/RecipeFormBasicInfo.vu
 import RecipeFormClassification from '@/components/recipe/form/RecipeFormClassification.vue';
 import RecipeFormIngredients from '@/components/recipe/form/RecipeFormIngredients.vue';
 import RecipeFormSteps from '@/components/recipe/form/RecipeFormSteps.vue';
-import { httpForm, httpJson } from '@/utils/http';
+import { getCommonCodesByGroup, getCommonCodesByCodeId } from '@/api/commonCodeApi';
+import { createRecipe } from '@/api/recipeApi';
 import { fetchMemberInfo } from '@/utils/auth';
-import { GUIDE_IMAGES, getApiBaseUrl } from '@/utils/constants';
+import { GUIDE_IMAGES } from '@/utils/constants';
 import { useErrorHandler } from '@/utils/errorHandler';
 import type { CommonCodeOption, RecipeDraft } from '@/types/recipeForm';
 import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
@@ -349,15 +350,10 @@ function focusFirstError(field: string): void {
     }
 }
 
-// 공통 코드 로딩
-async function loadCommonCodes(codeGroup: 'CATEGORY' | 'COOKINGTIP' | 'INGREDIENTS_GROUP' | 'INGREDIENTS_UNIT'): Promise<CommonCodeOption[]> {
+// 공통 코드 로딩 (codeGroup: CATEGORY, COOKINGTIP)
+async function loadCommonCodes(codeGroup: 'CATEGORY' | 'COOKINGTIP'): Promise<CommonCodeOption[]> {
     try {
-        const response = await httpJson(
-            getApiBaseUrl('cook'),
-            `/api/common-codes?codeGroup=${codeGroup}`,
-            { method: 'GET' }
-        );
-        return Array.isArray(response) ? response : [];
+        return await getCommonCodesByGroup(codeGroup);
     } catch (e) {
         console.error(`${codeGroup} 정보를 불러오지 못했습니다.`, e);
         throw e;
@@ -402,13 +398,7 @@ async function loadIngredientsGroupOptions(): Promise<void> {
     ingredientTypesLoading.value = true;
     ingredientTypesError.value = null;
     try {
-        // codeId 파라미터로 INGREDIENTS으로 시작하는 코드들을 조회
-        const response = await httpJson(
-            getApiBaseUrl('cook'),
-            `/api/common-codes?codeId=INGREDIENTS_GROUP`,
-            { method: 'GET' }
-        );
-        ingredientTypeOptions.value = Array.isArray(response) ? response : [];
+        ingredientTypeOptions.value = await getCommonCodesByCodeId('INGREDIENTS_GROUP');
     } catch (e) {
         ingredientTypesError.value = '재료 타입 정보를 불러오지 못했습니다.';
     } finally {
@@ -420,13 +410,7 @@ async function loadIngredientsUnitOptions(): Promise<void> {
     unitsLoading.value = true;
     unitsError.value = null;
     try {
-        // codeId 파라미터로 INGREDIEN으로 시작하는 단위 코드들을 조회
-        const response = await httpJson(
-            getApiBaseUrl('cook'),
-            `/api/common-codes?codeId=INGREDIENTS_UNIT`,
-            { method: 'GET' }
-        );
-        unitOptions.value = Array.isArray(response) ? response : [];
+        unitOptions.value = await getCommonCodesByCodeId('INGREDIENTS_UNIT');
     } catch (e) {
         unitsError.value = '단위 정보를 불러오지 못했습니다.';
     } finally {
@@ -542,9 +526,7 @@ async function submit(): Promise<void> {
     formData.append('mainImageIndex', '0');
 
     const success = await handleApiCallVoid(
-        () => httpForm(getApiBaseUrl('cook'), '/api/recipe', formData, { 
-            method: 'POST' 
-        }),
+        () => createRecipe(formData),
         '레시피 등록 중 오류가 발생했습니다.',
         '등록 실패'
     );

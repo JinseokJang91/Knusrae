@@ -5,7 +5,7 @@ import { openOAuthPopup } from '@/utils/oauth';
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
-import { getApiBaseUrl } from '@/utils/constants';
+import { getTestAccounts, testLogin, type TestAccount } from '@/api/authApi';
 
 const router = useRouter();
 const route = useRoute();
@@ -13,7 +13,7 @@ const authStore = useAuthStore();
 
 const isDevelopment = import.meta.env.DEV;
 const showTestAccounts = ref(false);
-const testAccounts = ref<any[]>([]);
+const testAccounts = ref<TestAccount[]>([]);
 const loadingTestAccounts = ref(false);
 
 // redirect 경로 가져오기 (쿼리 파라미터 또는 기본값)
@@ -70,21 +70,11 @@ function goBack() {
 
 async function loadTestAccounts() {
     if (!isDevelopment) return;
-    
+
     loadingTestAccounts.value = true;
     try {
-        const API_BASE_URL = getApiBaseUrl('auth');
-        const response = await fetch(`${API_BASE_URL}/api/auth/test/accounts`, {
-            method: 'GET',
-            credentials: 'include',
-        });
-        
-        if (response.ok) {
-            testAccounts.value = await response.json();
-            showTestAccounts.value = true;
-        } else {
-            alert('테스트 계정 목록을 가져오는데 실패했습니다.');
-        }
+        testAccounts.value = await getTestAccounts();
+        showTestAccounts.value = true;
     } catch (error) {
         console.error('테스트 계정 로드 에러:', error);
         alert('테스트 계정 목록을 가져오는 중 오류가 발생했습니다.');
@@ -95,25 +85,13 @@ async function loadTestAccounts() {
 
 async function loginWithTestAccount(email: string) {
     try {
-        const API_BASE_URL = getApiBaseUrl('auth');
-        const response = await fetch(`${API_BASE_URL}/api/auth/test/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ email }),
-        });
-        
-        if (response.ok) {
+        const result = await testLogin(email);
+        if (result.success) {
             alert(`${email} 계정으로 로그인되었습니다!`);
             await authStore.login();
-            
-            // redirect 경로로 이동
             redirectAfterLogin();
         } else {
-            const error = await response.json();
-            alert(`로그인 실패: ${error.message || '알 수 없는 오류'}`);
+            alert(`로그인 실패: ${result.message || '알 수 없는 오류'}`);
         }
     } catch (error) {
         console.error('테스트 로그인 에러:', error);

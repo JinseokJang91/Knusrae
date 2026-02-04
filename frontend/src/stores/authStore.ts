@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+import { logout as logoutApi } from '@/api/authApi';
 import { refreshToken, fetchMemberInfo, isAdminEmail } from '@/utils/auth';
-import { getApiBaseUrl } from '@/utils/constants';
 import type { MemberInfo } from '@/types/auth';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -85,15 +85,10 @@ export const useAuthStore = defineStore('auth', () => {
      */
     async function logout(): Promise<void> {
         try {
-            const API_BASE_URL = getApiBaseUrl('auth');
-            await fetch(`${API_BASE_URL}/api/auth/logout`, {
-                method: 'POST',
-                credentials: 'include'
-            });
+            await logoutApi();
         } catch (error) {
             console.error('로그아웃 API 호출 실패:', error);
         } finally {
-            // 상태 초기화
             isAuthenticated.value = false;
             memberInfo.value = null;
         }

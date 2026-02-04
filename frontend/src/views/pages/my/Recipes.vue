@@ -74,29 +74,24 @@
 </template>
 
 <script setup lang="ts">
-import { httpJson } from '@/utils/http';
+import { getRecipeListByMember, deleteRecipe } from '@/api/recipeApi';
 import { fetchMemberInfo } from '@/utils/auth';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
-import { getApiBaseUrl } from '@/utils/constants';
 import type { Recipe } from '@/types/recipe';
 
-// API 호출을 위한 기본 URL 및 공용 HTTP 유틸
-const API_COOK_BASE_URL = getApiBaseUrl('cook');
 const router = useRouter();
 const confirm = useConfirm();
 
-// 1. 레시피 목록 조회 (로그인 유저의 레시피)
 const fetchRecipes = async (): Promise<Recipe[]> => {
     const currentMember = await fetchMemberInfo();
     if (!currentMember?.id) return [];
-    return await httpJson(API_COOK_BASE_URL, `/api/recipe/list/member/${currentMember.id}`, { method: 'GET' });
+    return await getRecipeListByMember(currentMember.id);
 };
 
-// 2. 레시피 삭제
-const deleteRecipe = async (id: number): Promise<void> => {
-    await httpJson(API_COOK_BASE_URL, `/api/recipe/${id}`, { method: 'DELETE' });
+const deleteRecipeById = async (id: number): Promise<void> => {
+    await deleteRecipe(id);
 };
 
 // 컴포넌트 상태
@@ -146,7 +141,7 @@ const handleDeleteRecipe = async (id: number) => {
             loading.value = true;
             error.value = null;
             try {
-                await deleteRecipe(id);
+                await deleteRecipeById(id);
                 // 삭제 후 목록 새로고침
                 await loadRecipes();
             } catch (err) {

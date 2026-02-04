@@ -67,12 +67,11 @@
 import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import RecipeGridCard from '@/components/recipe/RecipeGridCard.vue';
 import type { RecipeGridItem } from '@/types/recipe';
-import { httpJson } from '@/utils/http';
+import { getFavorites, removeFavorite } from '@/api/recipeApi';
 import { fetchMemberInfo } from '@/utils/auth';
 import Paginator from 'primevue/paginator';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { getApiBaseUrl } from '@/utils/constants';
 import type { FavoriteItem, Recipe, RecipeCookingTip } from '@/types/recipe';
 
 /** cookingTips를 가진 레시피 (찜 목록 API 응답 등) */
@@ -80,9 +79,6 @@ type RecipeWithTips = Recipe & { cookingTips?: RecipeCookingTip[] };
 import type { PageState } from 'primevue/paginator';
 
 const router = useRouter();
-
-// API 기본 URL
-const API_BASE_URL = getApiBaseUrl('cook');
 
 // 반응형 데이터
 const favoriteRecipes = ref<FavoriteItem[]>([]);
@@ -110,13 +106,7 @@ const loadFavorites = async () => {
         loading.value = true;
         error.value = null;
 
-        const response = await httpJson(
-            API_BASE_URL,
-            `/api/recipe/favorites/${currentMemberId.value}`,
-            { method: 'GET' }
-        );
-
-        favoriteRecipes.value = (response as FavoriteItem[]) || [];
+        favoriteRecipes.value = await getFavorites(currentMemberId.value);
     } catch (err: unknown) {
         console.error('찜 목록 로드 실패:', err);
         error.value = (err instanceof Error ? err.message : null) || '찜 목록을 불러오는데 실패했습니다.';
@@ -132,11 +122,7 @@ const removeFavorite = async (recipeId: number): Promise<void> => {
     }
 
     try {
-        await httpJson(
-            API_BASE_URL,
-            `/api/recipe/favorites?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
-            { method: 'DELETE' }
-        );
+        await removeFavorite(currentMemberId.value, recipeId);
 
         // 로컬 상태에서 제거
         favoriteRecipes.value = favoriteRecipes.value.filter((fav) => fav.recipeId !== recipeId);

@@ -116,12 +116,22 @@ import RecipeDetailIngredients from '@/components/recipe/RecipeDetailIngredients
 import RecipeDetailSteps from '@/components/recipe/RecipeDetailSteps.vue';
 import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { httpJson, httpForm } from '@/utils/http';
 import { useConfirm } from 'primevue/useconfirm';
 import { useAuthStore } from '@/stores/authStore';
 import { useErrorHandler } from '@/utils/errorHandler';
-import { getApiBaseUrl } from '@/utils/constants';
 import { useAppToast } from '@/utils/toast';
+import {
+    getRecipeDetail,
+    checkFavorite,
+    getComments,
+    toggleFavorite as toggleFavoriteApi,
+    createComment,
+    createCommentWithImage,
+    updateComment as updateCommentApi,
+    updateCommentWithImage,
+    deleteComment as deleteCommentApi
+} from '@/api/recipeApi';
+import { getCommonCodesByGroup } from '@/api/commonCodeApi';
 import { createRecipeView } from '@/api/recipeViewApi';
 import type { RecipeDetail, RecipeComment, RecipeImage, RecipeStep } from '@/types/recipe';
 
@@ -211,18 +221,11 @@ const cookingTipsData = computed(() => {
 // 난이도 공통코드 로드
 const loadDifficultyCodes = async () => {
     try {
-        const response = await httpJson(
-            getApiBaseUrl('cook'),
-            `/api/common-codes?codeGroup=COOKINGTIP`,
-            { method: 'GET' }
-        );
-        
-        const codes = Array.isArray(response) ? response : [];
-        const difficultyCode = codes.find((code: { codeId: string; details?: Array<{ detailCodeId: string; codeName: string }> }) => code.codeId === 'DIFFICULTY');
-        
-        if (difficultyCode && difficultyCode.details) {
+        const codes = await getCommonCodesByGroup('COOKINGTIP');
+        const difficultyCode = codes.find((code) => code.codeId === 'DIFFICULTY');
+        if (difficultyCode?.details) {
             difficultyCodes.value.clear();
-            difficultyCode.details.forEach((detail: { detailCodeId: string; codeName: string }) => {
+            difficultyCode.details.forEach((detail) => {
                 difficultyCodes.value.set(detail.detailCodeId, detail.codeName);
             });
         }
@@ -238,11 +241,7 @@ const fetchRecipeDetail = async () => {
         error.value = null;
         
         const recipeId = route.params.id;
-        const response = await httpJson<RecipeDetail>(
-            getApiBaseUrl('cook'),
-            `/api/recipe/${recipeId}`,
-            { method: 'GET' }
-        );
+        const response = await getRecipeDetail(Number(recipeId));
         
         // 백엔드 응답의 steps 필드명을 프론트엔드 타입에 맞게 변환
         if (response.steps && Array.isArray(response.steps)) {
@@ -291,12 +290,8 @@ const recordRecipeView = async (recipeId: number) => {
 const checkFavoriteStatus = async () => {
     try {
         const recipeId = route.params.id;
-        const response = await httpJson<{ isFavorite: boolean }>(
-            getApiBaseUrl('cook'),
-            `/api/recipe/favorites/check?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
-            { method: 'GET' }
-        );
-        
+        if (!currentMemberId.value) return;
+        const response = await checkFavorite(currentMemberId.value, Number(recipeId));
         isLiked.value = response.isFavorite;
     } catch (err) {
         console.error('찜 여부 확인 실패:', err);
@@ -306,11 +301,7 @@ const checkFavoriteStatus = async () => {
 const fetchComments = async (page: number = 0) => {
     try {
         const recipeId = route.params.id;
-        const response = await httpJson<{ comments?: RecipeComment[]; currentPage: number; totalPages: number; totalComments: number }>(
-            getApiBaseUrl('cook'),
-            `/api/recipe/comments/${recipeId}/page?page=${page}&size=${pageSize}`,
-            { method: 'GET' }
-        );
+        const response = await getComments(Number(recipeId), page, pageSize);
         // API는 답글 목록을 replies로 반환하므로, 템플릿에서 사용하는 children으로 정규화
         const rawComments = response.comments ?? [];
         comments.value = rawComments.map((c: RecipeComment & { replies?: RecipeComment[] }) => ({
@@ -344,22 +335,13 @@ const goBack = () => {
 };
 
 const toggleLike = async () => {
-    // 로그인 확인
-    if (!isLoggedIn.value || !currentMemberId.value) {
-        return;
-    }
-    
+    if (!isLoggedIn.value || !currentMemberId.value) return;
     const recipeId = route.params.id;
     const response = await handleApiCall(
-        () => httpJson<{ isFavorite: boolean }>(
-            getApiBaseUrl('cook'),
-            `/api/recipe/favorites/toggle?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
-            { method: 'PUT' }
-        ),
+        () => toggleFavoriteApi(currentMemberId.value!, Number(recipeId)),
         '찜 기능을 사용할 수 없습니다.',
         '찜 토글 실패'
     );
-    
     if (response) {
         isLiked.value = response.isFavorite;
     }
@@ -431,12 +413,7 @@ const submitComment = async () => {
         formData.append('image', newCommentImage.value);
         
         const success = await handleApiCallVoid(
-            () => httpForm(
-                getApiBaseUrl('cook'),
-                `/api/recipe/comments/${recipeId}/with-image`,
-                formData,
-                { method: 'POST' }
-            ),
+            () => createCommentWithImage(Number(recipeId), formData),
             '댓글 작성 중 오류가 발생했습니다.',
             '댓글 작성 실패'
         );
@@ -448,20 +425,13 @@ const submitComment = async () => {
             await fetchComments(0);
         }
     } else {
-        // 이미지가 없으면 JSON으로 전송
         const success = await handleApiCallVoid(
-            () => httpJson(
-                getApiBaseUrl('cook'),
-                `/api/recipe/comments/${recipeId}`,
-                {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        memberId: currentMemberId.value,
-                        content: newComment.value,
-                        parentId: null
-                    })
-                }
-            ),
+            () =>
+                createComment(Number(recipeId), {
+                    memberId: currentMemberId.value!,
+                    content: newComment.value,
+                    parentId: null
+                }),
             '댓글 작성 중 오류가 발생했습니다.',
             '댓글 작성 실패'
         );
@@ -535,12 +505,7 @@ const submitReply = async () => {
         formData.append('image', replyImage.value);
         
         const success = await handleApiCallVoid(
-            () => httpForm(
-                getApiBaseUrl('cook'),
-                `/api/recipe/comments/${recipeId}/with-image`,
-                formData,
-                { method: 'POST' }
-            ),
+            () => createCommentWithImage(Number(recipeId), formData),
             '답글 작성 중 오류가 발생했습니다.',
             '답글 작성 실패'
         );
@@ -554,20 +519,13 @@ const submitReply = async () => {
             await fetchComments(currentPage.value);
         }
     } else {
-        // 이미지가 없으면 JSON으로 전송
         const success = await handleApiCallVoid(
-            () => httpJson(
-                getApiBaseUrl('cook'),
-                `/api/recipe/comments/${recipeId}`,
-                {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        memberId: currentMemberId.value,
-                        content: contentWithPrefix,
-                        parentId: parentId
-                    })
-                }
-            ),
+            () =>
+                createComment(Number(recipeId), {
+                    memberId: currentMemberId.value!,
+                    content: contentWithPrefix,
+                    parentId: parentId
+                }),
             '답글 작성 중 오류가 발생했습니다.',
             '답글 작성 실패'
         );
@@ -671,26 +629,12 @@ const updateComment = async (commentId: number) => {
             if (editingImage.value) {
                 formData.append('image', editingImage.value);
             }
-            
-            await httpForm(
-                getApiBaseUrl('cook'),
-                `/api/recipe/comments/${commentId}/with-image`,
-                formData,
-                { method: 'PUT' }
-            );
+            await updateCommentWithImage(commentId, formData);
         } else {
-            // 이미지가 변경되지 않은 경우
-            await httpJson(
-                getApiBaseUrl('cook'),
-                `/api/recipe/comments/${commentId}`,
-                {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        memberId: currentMemberId.value,
-                        content: editingContent.value
-                    })
-                }
-            );
+            await updateCommentApi(commentId, {
+                memberId: currentMemberId.value!,
+                content: editingContent.value
+            });
         }
         
         editingCommentId.value = null;
@@ -725,11 +669,7 @@ const deleteComment = async (commentId: number) => {
             error.value = null;
             
             const success = await handleApiCallVoid(
-                () => httpJson(
-                    getApiBaseUrl('cook'),
-                    `/api/recipe/comments/${commentId}?memberId=${currentMemberId.value}`,
-                    { method: 'DELETE' }
-                ),
+                () => deleteCommentApi(commentId, currentMemberId.value!),
                 '댓글 삭제 중 오류가 발생했습니다.',
                 '댓글 삭제 실패'
             );

@@ -131,11 +131,12 @@ import RecipeFormBasicInfo from '@/components/recipe/form/RecipeFormBasicInfo.vu
 import RecipeFormClassification from '@/components/recipe/form/RecipeFormClassification.vue';
 import RecipeFormIngredients from '@/components/recipe/form/RecipeFormIngredients.vue';
 import RecipeFormSteps from '@/components/recipe/form/RecipeFormSteps.vue';
-import { httpForm, httpJson } from '@/utils/http';
-import { GUIDE_IMAGES, getApiBaseUrl } from '@/utils/constants';
+import { getCommonCodesByGroup, getCommonCodesByCodeId } from '@/api/commonCodeApi';
+import { getRecipeDetail, updateRecipe } from '@/api/recipeApi';
+import { GUIDE_IMAGES } from '@/utils/constants';
 import { useErrorHandler } from '@/utils/errorHandler';
 import type { CommonCodeOption, RecipeDraft } from '@/types/recipeForm';
-import type { RecipeCategory, RecipeCookingTip, RecipeDetail, RecipeImage, RecipeIngredientGroup, RecipeIngredientItem, RecipeStep } from '@/types/recipe';
+import type { RecipeCategory, RecipeCookingTip, RecipeImage, RecipeIngredientGroup, RecipeIngredientItem, RecipeStep } from '@/types/recipe';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
@@ -212,10 +213,7 @@ onMounted(() => {
 
 async function loadRecipeData() {
     try {
-        const API_COOK_BASE_URL = getApiBaseUrl('cook');
-        const response = await httpJson<RecipeDetail>(API_COOK_BASE_URL, `/api/recipe/${recipeId.value}`, {
-            method: 'GET'
-        });
+        const response = await getRecipeDetail(recipeId.value);
 
         // 레시피 기본 정보 설정
         form.title = response.title ?? '';
@@ -298,20 +296,12 @@ async function loadCategoryOptions() {
     categoriesLoading.value = true;
     categoriesError.value = null;
     try {
-        const response = await httpJson(getApiBaseUrl('cook'), '/api/common-codes?codeGroup=CATEGORY', {
-            method: 'GET'
+        categoryOptions.value = await getCommonCodesByGroup('CATEGORY');
+        categoryOptions.value.forEach((option) => {
+            if (form.categories[option.codeId] === undefined) {
+                form.categories[option.codeId] = '';
+            }
         });
-
-        if (Array.isArray(response)) {
-            categoryOptions.value = response;
-            categoryOptions.value.forEach((option) => {
-                if (form.categories[option.codeId] === undefined) {
-                    form.categories[option.codeId] = '';
-                }
-            });
-        } else {
-            categoryOptions.value = [];
-        }
     } catch (e) {
         console.error('카테고리 정보를 불러오지 못했습니다.', e);
         categoriesError.value = '카테고리 정보를 불러오지 못했습니다.';
@@ -324,20 +314,12 @@ async function loadCookingTipsOptions() {
     cookingTipsLoading.value = true;
     cookingTipsError.value = null;
     try {
-        const response = await httpJson(getApiBaseUrl('cook'), '/api/common-codes?codeGroup=COOKINGTIP', {
-            method: 'GET'
+        cookingTipsOptions.value = await getCommonCodesByGroup('COOKINGTIP');
+        cookingTipsOptions.value.forEach((option) => {
+            if (form.cookingTips[option.codeId] === undefined) {
+                form.cookingTips[option.codeId] = '';
+            }
         });
-
-        if (Array.isArray(response)) {
-            cookingTipsOptions.value = response;
-            cookingTipsOptions.value.forEach((option) => {
-                if (form.cookingTips[option.codeId] === undefined) {
-                    form.cookingTips[option.codeId] = '';
-                }
-            });
-        } else {
-            cookingTipsOptions.value = [];
-        }
     } catch (e) {
         console.error('요리팁 정보를 불러오지 못했습니다.', e);
         cookingTipsError.value = '요리팁 정보를 불러오지 못했습니다.';
@@ -350,12 +332,7 @@ async function loadIngredientsGroupOptions() {
     ingredientTypesLoading.value = true;
     ingredientTypesError.value = null;
     try {
-        const response = await httpJson(
-            getApiBaseUrl('cook'),
-            '/api/common-codes?codeId=INGREDIENTS_GROUP',
-            { method: 'GET' }
-        );
-        ingredientTypeOptions.value = Array.isArray(response) ? response : [];
+        ingredientTypeOptions.value = await getCommonCodesByCodeId('INGREDIENTS_GROUP');
     } catch (e) {
         ingredientTypesError.value = '재료 타입 정보를 불러오지 못했습니다.';
     } finally {
@@ -367,12 +344,7 @@ async function loadIngredientsUnitOptions() {
     unitsLoading.value = true;
     unitsError.value = null;
     try {
-        const response = await httpJson(
-            getApiBaseUrl('cook'),
-            '/api/common-codes?codeId=INGREDIENTS_UNIT',
-            { method: 'GET' }
-        );
-        unitOptions.value = Array.isArray(response) ? response : [];
+        unitOptions.value = await getCommonCodesByCodeId('INGREDIENTS_UNIT');
     } catch (e) {
         unitsError.value = '단위 정보를 불러오지 못했습니다.';
     } finally {
@@ -569,7 +541,7 @@ async function submit() {
 
         // 실제 API 엔드포인트로 전송 (토큰 자동 첨부) - PUT 메서드로 수정
         const success = await handleApiCallVoid(
-            () => httpForm(getApiBaseUrl('cook'), `/api/recipe/${recipeId.value}`, formData, { method: 'PUT' }),
+            () => updateRecipe(recipeId.value, formData),
             '레시피 수정 중 오류가 발생했습니다.',
             '수정 실패'
         );

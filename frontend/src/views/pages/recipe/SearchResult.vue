@@ -77,7 +77,8 @@
 </template>
 
 <script setup lang="ts">
-import { httpJson } from '@/utils/http';
+import { getCommonCodesByGroup } from '@/api/commonCodeApi';
+import { getFavorites, toggleFavorite as toggleFavoriteApi } from '@/api/recipeApi';
 import { useAuthStore } from '@/stores/authStore';
 import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import RecipeGridCard from '@/components/recipe/RecipeGridCard.vue';
@@ -86,7 +87,6 @@ import SelectButton from 'primevue/selectbutton';
 import Paginator from 'primevue/paginator';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getApiBaseUrl } from '@/utils/constants';
 import type { PageState } from 'primevue/paginator';
 import type { Recipe, RecipeCategory } from '@/types/recipe';
 
@@ -115,9 +115,6 @@ const searchKeyword = ref<string>('');
 
 // 현재 로그인한 사용자 정보
 const currentMemberId = computed(() => authStore.memberInfo?.id || null);
-
-// API 기본 URL
-const API_BASE_URL = getApiBaseUrl('cook');
 
 // 카테고리 목록 (카테고리 이름 표시용)
 const categories = ref<Array<{ value: string; name: string; mainCategoryId?: string }>>([]);
@@ -178,16 +175,11 @@ const getCategoryName = (categoryValue: string | null | undefined) => {
 // 카테고리 목록 로드 (카테고리 이름 표시용)
 const loadCategories = async () => {
     try {
-        const response = await httpJson(API_BASE_URL, '/api/common-codes?codeGroup=CATEGORY', {
-            method: 'GET'
-        });
-
-        const codes = Array.isArray(response) ? response : [];
-        
+        const codes = await getCommonCodesByGroup('CATEGORY');
         categories.value = [];
-        codes.forEach((code: { codeId: string; details?: Array<{ detailCodeId: string; codeName: string }> }) => {
+        codes.forEach((code) => {
             if (Array.isArray(code.details)) {
-                code.details.forEach((detail: { detailCodeId: string; codeName: string }) => {
+                code.details.forEach((detail) => {
                     categories.value.push({
                         value: detail.detailCodeId,
                         name: detail.codeName,
@@ -255,21 +247,11 @@ const performSearch = async () => {
 
         const searchResults = await searchRecipes(searchKeyword.value);
         
-        // 사용자가 찜한 레시피 목록 가져오기
         let favoriteRecipeIds: number[] = [];
         if (currentMemberId.value) {
             try {
-                const favoritesResponse = await httpJson<{ recipeId: number }[] | { data?: { recipeId: number }[] }>(
-                    getApiBaseUrl('cook'),
-                    `/api/recipe/favorites/${currentMemberId.value}`,
-                    { method: 'GET' }
-                );
-                
-                if (Array.isArray(favoritesResponse)) {
-                    favoriteRecipeIds = favoritesResponse.map((fav) => fav.recipeId);
-                } else if (favoritesResponse.data && Array.isArray(favoritesResponse.data)) {
-                    favoriteRecipeIds = favoritesResponse.data.map((fav) => fav.recipeId);
-                }
+                const favoritesList = await getFavorites(currentMemberId.value);
+                favoriteRecipeIds = favoritesList.map((fav) => fav.recipeId);
             } catch (err) {
                 console.error('찜 목록을 가져올 수 없습니다:', err);
             }
@@ -323,12 +305,7 @@ const toggleFavorite = async (recipeId: number) => {
         const recipe = recipes.value.find((r) => r.id === recipeId);
         if (!recipe) return;
 
-        const response = await httpJson<{ isFavorite: boolean }>(
-            getApiBaseUrl('cook'),
-            `/api/recipe/favorites/toggle?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
-            { method: 'PUT' }
-        );
-
+        const response = await toggleFavoriteApi(currentMemberId.value, recipeId);
         recipe.isFavorite = response.isFavorite;
     } catch (err) {
         console.error('찜 토글 실패:', err);

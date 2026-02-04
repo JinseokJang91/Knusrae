@@ -149,7 +149,8 @@
 </template>
 
 <script setup lang="ts">
-import { httpJson } from '@/utils/http';
+import { getCommonCodesByGroup } from '@/api/commonCodeApi';
+import { getRecipeListAll, getFavorites, toggleFavorite as toggleFavoriteApi } from '@/api/recipeApi';
 import { useAuthStore } from '@/stores/authStore';
 import AutoComplete from 'primevue/autocomplete';
 import type { AutoCompleteCompleteEvent, AutoCompleteOptionSelectEvent } from 'primevue/autocomplete';
@@ -160,7 +161,6 @@ import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import RecipeGridCard from '@/components/recipe/RecipeGridCard.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getApiBaseUrl } from '@/utils/constants';
 import type {
     Category,
     CategoryDetail,
@@ -200,10 +200,6 @@ const shortcutDetailIds = ref<string[]>([]); // 쇼트컷 상세 코드 배열 (
 
 // 현재 로그인한 사용자 정보 (authStore에서 가져옴)
 const currentMemberId = computed(() => authStore.memberInfo?.id || null);
-
-// API 기본 URL
-// TODO 테스트는 로컬로 진행, 추후 분기처리로 EC2 연결 예정
-const API_BASE_URL = getApiBaseUrl('cook');
 
 // 카테고리 header > 표시된 레시피 > 개수
 const filteredRecipes = computed(() => {
@@ -303,15 +299,10 @@ const allCategoriesFlat = computed((): CategorySearchItem[] => {
 });
 
 // Function > onMounted > 카테고리 조회
-// TODO 카테고리 목록 조회 API 연결 예정
 const loadCategories = async (): Promise<void> => {
     try {
-        const response = await httpJson<MainCategory[] | unknown>(API_BASE_URL, '/api/common-codes?codeGroup=CATEGORY', {
-            method: 'GET'
-        });
+        const codes = (await getCommonCodesByGroup('CATEGORY')) as MainCategory[];
 
-        const codes: MainCategory[] = Array.isArray(response) ? response : [];
-        
         // 메인 카테고리 목록 저장 (codeName 필드를 가진 모든 항목들)
         mainCategories.value = codes.map((code: MainCategory) => ({
             codeId: code.codeId,
@@ -404,34 +395,18 @@ const loadRecipes = async (): Promise<void> => {
         loading.value = true;
         error.value = null;
 
-        const response = await httpJson<ApiRecipe[] | { data?: ApiRecipe[] }>(API_BASE_URL, '/api/recipe/list/all', {
-            method: 'GET'
-        });
+        const data = await getRecipeListAll();
 
-        const data: ApiRecipe[] = Array.isArray(response) ? response : (response as { data?: ApiRecipe[] }).data ?? [];
-        
-        // 사용자가 찜한 레시피 목록 가져오기
         let favoriteRecipeIds: number[] = [];
         if (currentMemberId.value) {
             try {
-                // 백엔드 API: GET /api/recipe/favorites/{memberId}
-                const favoritesResponse = await httpJson<{ recipeId: number }[] | { data?: { recipeId: number }[] }>(
-                    getApiBaseUrl('cook'),
-                    `/api/recipe/favorites/${currentMemberId.value}`,
-                    { method: 'GET' }
-                );
-                
-                // API 응답이 배열인지 확인하고 recipeId 추출
-                if (Array.isArray(favoritesResponse)) {
-                    favoriteRecipeIds = favoritesResponse.map((fav) => fav.recipeId);
-                } else if (favoritesResponse.data && Array.isArray(favoritesResponse.data)) {
-                    favoriteRecipeIds = favoritesResponse.data.map((fav) => fav.recipeId);
-                }
+                const favoritesList = await getFavorites(currentMemberId.value);
+                favoriteRecipeIds = favoritesList.map((fav) => fav.recipeId);
             } catch (err) {
                 console.error('찜 목록을 가져올 수 없습니다:', err);
             }
         }
-        
+
         recipes.value = (data as ApiRecipe[]).map((recipe: ApiRecipe) => {
             // cookingTips에서 SERVING과 COOKING_TIME 추출
             const cookingTime = extractCookingTime(recipe.cookingTips);
@@ -603,14 +578,7 @@ const toggleFavorite = async (recipeId: number): Promise<void> => {
         const recipe = recipes.value.find((r) => r.id === recipeId);
         if (!recipe) return;
 
-        // API 호출
-        const response = await httpJson<{ isFavorite: boolean }>(
-            getApiBaseUrl('cook'),
-            `/api/recipe/favorites/toggle?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
-            { method: 'PUT' }
-        );
-
-        // 상태 업데이트
+        const response = await toggleFavoriteApi(currentMemberId.value, recipeId);
         recipe.isFavorite = response.isFavorite;
     } catch (err) {
         console.error('찜 토글 실패:', err);
