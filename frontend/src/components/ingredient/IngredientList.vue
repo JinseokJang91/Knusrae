@@ -234,12 +234,12 @@ const handleRequestSubmit = async () => {
             requestType: props.type === 'storage' ? 'STORAGE' : 'PREPARATION',
             message: ''
         };
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('요청 생성 실패:', err);
         toast.add({
             severity: 'error',
             summary: '오류',
-            detail: err.message || '요청 생성에 실패했습니다.',
+            detail: err instanceof Error ? err.message : '요청 생성에 실패했습니다.',
             life: 3000
         });
     } finally {
@@ -275,9 +275,9 @@ const loadIngredients = async () => {
         if (groups.value.length === 0) {
             groups.value = result.groups;
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('재료 목록 로딩 실패:', err);
-        error.value = err.message || '재료를 불러올 수 없습니다.';
+        error.value = err instanceof Error ? err.message : '재료를 불러올 수 없습니다.';
     } finally {
         loading.value = false;
     }

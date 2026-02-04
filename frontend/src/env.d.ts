@@ -20,9 +20,18 @@ interface ImportMeta {
     readonly env: ImportMetaEnv;
 }
 
+/** 네이버 로그인 SDK (스크립트 로드 시 전역 노출) — 최소 인터페이스 */
+interface NaverLoginSdk {
+    Login?: {
+        init?(options: Record<string, unknown>): void;
+        getLoginStatus?(callback: (status: unknown) => void): void;
+        logout?(): void;
+    };
+}
+
 declare global {
     interface Window {
-        naver: any;
+        naver?: NaverLoginSdk;
     }
-    const naver: any;
+    const naver: NaverLoginSdk | undefined;
 }

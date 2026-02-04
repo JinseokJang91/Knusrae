@@ -82,9 +82,9 @@ const loadContent = async () => {
             content.value = data.content;
             summary.value = data.summary;
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('재료 정보 로딩 실패:', err);
-        error.value = err.message || '정보를 불러올 수 없습니다.';
+        error.value = err instanceof Error ? err.message : '정보를 불러올 수 없습니다.';
     } finally {
         loading.value = false;
     }

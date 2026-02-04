@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import type { OAuthPostMessage } from '@/types/auth';
 
 interface Props {
     provider: 'naver' | 'kakao' | 'google';
@@ -62,7 +63,7 @@ function handleError(errorMessage: string) {
     });
 }
 
-function sendMessageToParent(message: any) {
+function sendMessageToParent(message: OAuthPostMessage) {
     const sendMessage = () => {
         try {
             if (!window.opener) {

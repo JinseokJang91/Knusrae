@@ -1,5 +1,6 @@
 import { httpJson } from '@/utils/http';
 import { getApiBaseUrl } from '@/utils/constants';
+import type { MemberInfo } from '@/types/auth';
 
 /**
  * Token Refresh API 호출
@@ -32,11 +33,11 @@ export async function refreshToken(): Promise<boolean> {
     }
 }
 
-export async function fetchMemberInfo(): Promise<any> {
+export async function fetchMemberInfo(): Promise<MemberInfo | null> {
     try {
         // member-service의 BASE URL 사용 (환경 변수가 있으면 사용, 없으면 기본값)
         const API_BASE_URL = getApiBaseUrl('member');
-        const memberInfo = await httpJson(API_BASE_URL, '/api/member/me', {
+        const memberInfo = await httpJson<MemberInfo>(API_BASE_URL, '/api/member/me', {
             method: 'GET'
         });
 

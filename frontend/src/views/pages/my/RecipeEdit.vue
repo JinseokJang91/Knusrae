@@ -134,7 +134,8 @@ import RecipeFormSteps from '@/components/recipe/form/RecipeFormSteps.vue';
 import { httpForm, httpJson } from '@/utils/http';
 import { GUIDE_IMAGES, getApiBaseUrl } from '@/utils/constants';
 import { useErrorHandler } from '@/utils/errorHandler';
-import type { CommonCodeOption, IngredientGroupDraft, RecipeStepDraft } from '@/types/recipeForm';
+import type { CommonCodeOption, RecipeDraft } from '@/types/recipeForm';
+import type { RecipeCategory, RecipeCookingTip, RecipeDetail, RecipeImage, RecipeIngredientGroup, RecipeIngredientItem, RecipeStep } from '@/types/recipe';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
@@ -148,20 +149,6 @@ const route = useRoute();
 const recipeId = computed(() => Number(route.params.id));
 const confirm = useConfirm();
 const { handleApiCallVoid } = useErrorHandler();
-
-interface RecipeDraft {
-    title: string;
-    description: string;
-    status: 'DRAFT' | 'PUBLISHED';
-    visibility: 'PUBLIC' | 'PRIVATE';
-    memberId: number;
-    thumbnailFile?: File | null;
-    thumbnailPreview?: string;
-    steps: RecipeStepDraft[];
-    ingredientGroups: IngredientGroupDraft[];
-    categories: Record<string, string>;
-    cookingTips: Record<string, string>;
-}
 
 const initialLoading = ref(true);
 const submitting = ref(false);
@@ -226,20 +213,20 @@ onMounted(() => {
 async function loadRecipeData() {
     try {
         const API_COOK_BASE_URL = getApiBaseUrl('cook');
-        const response = await httpJson(API_COOK_BASE_URL, `/api/recipe/${recipeId.value}`, {
+        const response = await httpJson<RecipeDetail>(API_COOK_BASE_URL, `/api/recipe/${recipeId.value}`, {
             method: 'GET'
         });
 
         // 레시피 기본 정보 설정
-        form.title = response.title || '';
-        form.description = response.introduction || '';
+        form.title = response.title ?? '';
+        form.description = response.introduction ?? '';
         form.status = response.status || 'DRAFT';
         form.visibility = response.visibility || 'PUBLIC';
         form.memberId = response.memberId || 1;
 
-        // 썸네일 설정 (메인 이미지)
+        // 썸네일 설정 (메인 이미지) — API는 mainImage 또는 isMainImage 반환
         if (response.images && Array.isArray(response.images)) {
-            const mainImage = response.images.find((img: any) => img.mainImage);
+            const mainImage = response.images.find((img: RecipeImage & { mainImage?: boolean }) => img.mainImage ?? img.isMainImage);
             if (mainImage) {
                 form.thumbnailPreview = mainImage.url;
             }
@@ -247,25 +234,25 @@ async function loadRecipeData() {
 
         // 카테고리 설정
         if (response.categories && Array.isArray(response.categories)) {
-            response.categories.forEach((cat: any) => {
+            (response.categories as RecipeCategory[]).forEach((cat: RecipeCategory) => {
                 form.categories[cat.codeId] = cat.detailCodeId;
             });
         }
 
         // 요리팁 설정
         if (response.cookingTips && Array.isArray(response.cookingTips)) {
-            response.cookingTips.forEach((tip: any) => {
+            (response.cookingTips as RecipeCookingTip[]).forEach((tip: RecipeCookingTip) => {
                 form.cookingTips[tip.codeId] = tip.detailCodeId;
             });
         }
 
         // 준비물 설정
         if (response.ingredientGroups && Array.isArray(response.ingredientGroups)) {
-            form.ingredientGroups = response.ingredientGroups.map((group: any) => ({
+            form.ingredientGroups = (response.ingredientGroups as RecipeIngredientGroup[]).map((group: RecipeIngredientGroup) => ({
                 id: crypto.randomUUID(),
                 type: group.detailCodeId || (group.customTypeName ? 'CUSTOM' : ''),
                 customTypeName: group.customTypeName || '',
-                items: Array.isArray(group.items) ? group.items.map((item: any) => ({
+                items: Array.isArray(group.items) ? (group.items as RecipeIngredientItem[]).map((item: RecipeIngredientItem) => ({
                     id: crypto.randomUUID(),
                     name: item.name || '',
                     quantity: item.quantity || null, // String으로 직접 저장 (분수 입력 지원)
@@ -275,15 +262,16 @@ async function loadRecipeData() {
             }));
         }
 
-        // 단계 설정 (각 단계의 이미지 포함)
+        // 단계 설정 (각 단계의 이미지 포함) — API는 description, image 등 반환
         if (response.steps && Array.isArray(response.steps)) {
-            form.steps = response.steps.map((step: any) => {
+            const stepsFromApi = response.steps as (RecipeStep & { description?: string; image?: string })[];
+            form.steps = stepsFromApi.map((step: RecipeStep & { description?: string; image?: string }) => {
                 return {
                     id: crypto.randomUUID(),
                     file: null,
-                    text: step.description || '',
-                    previewUrl: step.image || '',
-                    existingImageUrl: step.image || ''
+                    text: step.description ?? step.text ?? '',
+                    previewUrl: step.image ?? step.imageUrl ?? '',
+                    existingImageUrl: step.image ?? step.imageUrl ?? ''
                 };
             });
         }

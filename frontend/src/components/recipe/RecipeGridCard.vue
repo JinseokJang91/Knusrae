@@ -84,21 +84,7 @@ import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Tag from 'primevue/tag';
 import { computed } from 'vue';
-
-/** 그리드 카드에서 사용하는 레시피 필드 */
-export interface RecipeGridItem {
-    id: number;
-    title: string;
-    thumbnail?: string;
-    cookingTime?: string | null;
-    servings?: string | null;
-    hits?: number;
-    commentCount?: number;
-    isFavorite?: boolean;
-    memberNickname?: string;
-    memberName?: string;
-    memberProfileImage?: string;
-}
+import type { RecipeGridItem } from '@/types/recipe';
 
 const props = withDefaults(
     defineProps<{

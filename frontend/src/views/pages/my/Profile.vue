@@ -78,16 +78,7 @@ import { httpForm } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
 import { useAuthStore } from '@/stores/authStore';
 import { getApiBaseUrl } from '@/utils/constants';
-
-interface ProfileFormState {
-    name: string;
-    nickname: string;
-    email: string;
-    bio: string;
-    profileImage: string;
-    followerCount: number;
-    followingCount: number;
-}
+import type { ProfileFormState } from '@/types/profile';
 
 const authStore = useAuthStore();
 const form = reactive<ProfileFormState>({

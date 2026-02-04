@@ -87,14 +87,26 @@ import Paginator from 'primevue/paginator';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getApiBaseUrl } from '@/utils/constants';
-import type { Recipe } from '@/types/recipe';
+import type { PageState } from 'primevue/paginator';
+import type { Recipe, RecipeCategory } from '@/types/recipe';
+
+/** 검색 결과 목록용 레시피 (카테고리/찜 등 UI 필드 포함) */
+type SearchResultRecipe = Recipe & {
+    categoryKeys: string[];
+    categoryIds: string[];
+    category: string | null;
+    cookingTime: string | null;
+    servings: string | null;
+    isFavorite: boolean;
+    commentCount: number;
+};
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
 // 반응형 데이터
-const recipes = ref<Recipe[]>([]);
+const recipes = ref<SearchResultRecipe[]>([]);
 const first = ref(0);
 const rows = ref(12);
 const loading = ref(false);
@@ -247,23 +259,23 @@ const performSearch = async () => {
         let favoriteRecipeIds: number[] = [];
         if (currentMemberId.value) {
             try {
-                const favoritesResponse = await httpJson(
+                const favoritesResponse = await httpJson<{ recipeId: number }[] | { data?: { recipeId: number }[] }>(
                     getApiBaseUrl('cook'),
                     `/api/recipe/favorites/${currentMemberId.value}`,
                     { method: 'GET' }
                 );
                 
                 if (Array.isArray(favoritesResponse)) {
-                    favoriteRecipeIds = favoritesResponse.map((fav: any) => fav.recipeId);
+                    favoriteRecipeIds = favoritesResponse.map((fav) => fav.recipeId);
                 } else if (favoritesResponse.data && Array.isArray(favoritesResponse.data)) {
-                    favoriteRecipeIds = favoritesResponse.data.map((fav: any) => fav.recipeId);
+                    favoriteRecipeIds = favoritesResponse.data.map((fav) => fav.recipeId);
                 }
             } catch (err) {
                 console.error('찜 목록을 가져올 수 없습니다:', err);
             }
         }
         
-        recipes.value = searchResults.map((recipe: any) => {
+        recipes.value = searchResults.map((recipe: Recipe) => {
             const cookingTime = extractCookingTime(recipe.cookingTips);
             const servings = extractServings(recipe.cookingTips);
 
@@ -271,8 +283,8 @@ const performSearch = async () => {
             
             const categoryKeys = extractCategoryKeys(recipe);
             const categoryIds = extractCategoryIds(recipe);
-            const keywordCategory = recipe.categories?.find((cat: any) => cat.codeId === 'COOKING_KEYWORD');
-            const primaryCategoryId = keywordCategory?.detailCodeId || categoryIds[0] || null;
+            const keywordCategory = recipe.categories?.find((cat: RecipeCategory) => cat.codeId === 'COOKING_KEYWORD');
+            const primaryCategoryId = keywordCategory?.detailCodeId ?? categoryIds[0] ?? null;
 
             return {
                 ...recipe,
@@ -282,14 +294,14 @@ const performSearch = async () => {
                 cookingTime,
                 servings,
                 isFavorite,
-                commentCount: recipe.commentCount || 0
-            };
+                commentCount: recipe.commentCount ?? 0
+            } as SearchResultRecipe;
         });
 
         first.value = 0; // 검색 시 첫 페이지로 이동
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('검색 실패:', err);
-        error.value = err.message || '검색 중 오류가 발생했습니다.';
+        error.value = err instanceof Error ? err.message : '검색 중 오류가 발생했습니다.';
         recipes.value = [];
     } finally {
         loading.value = false;
@@ -311,13 +323,13 @@ const toggleFavorite = async (recipeId: number) => {
         const recipe = recipes.value.find((r) => r.id === recipeId);
         if (!recipe) return;
 
-        const response = await httpJson(
+        const response = await httpJson<{ isFavorite: boolean }>(
             getApiBaseUrl('cook'),
             `/api/recipe/favorites/toggle?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
             { method: 'PUT' }
         );
 
-        (recipe as any).isFavorite = response.isFavorite;
+        recipe.isFavorite = response.isFavorite;
     } catch (err) {
         console.error('찜 토글 실패:', err);
     }
@@ -339,7 +351,7 @@ const onSortChange = () => {
 };
 
 // 페이징
-const onPageChange = (event: any) => {
+const onPageChange = (event: PageState) => {
     first.value = event.first;
     rows.value = event.rows;
 };

@@ -66,7 +66,7 @@
 <script setup lang="ts">
 import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import RecipeGridCard from '@/components/recipe/RecipeGridCard.vue';
-import type { RecipeGridItem } from '@/components/recipe/RecipeGridCard.vue';
+import type { RecipeGridItem } from '@/types/recipe';
 import { httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
 import Paginator from 'primevue/paginator';

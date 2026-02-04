@@ -132,7 +132,7 @@ import { httpForm, httpJson } from '@/utils/http';
 import { fetchMemberInfo } from '@/utils/auth';
 import { GUIDE_IMAGES, getApiBaseUrl } from '@/utils/constants';
 import { useErrorHandler } from '@/utils/errorHandler';
-import type { CommonCodeOption, IngredientGroupDraft, RecipeStepDraft } from '@/types/recipeForm';
+import type { CommonCodeOption, RecipeDraft } from '@/types/recipeForm';
 import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import Button from 'primevue/button';
@@ -144,20 +144,6 @@ import { useConfirm } from 'primevue/useconfirm';
 const router = useRouter();
 const confirm = useConfirm();
 const { handleApiCallVoid } = useErrorHandler();
-
-interface RecipeDraft {
-    title: string;
-    description: string;
-    status: 'DRAFT' | 'PUBLISHED';
-    visibility: 'PUBLIC' | 'PRIVATE';
-    memberId: number;
-    thumbnailFile?: File | null;
-    thumbnailPreview?: string;
-    steps: RecipeStepDraft[];
-    ingredientGroups: IngredientGroupDraft[];
-    categories: Record<string, string>;
-    cookingTips: Record<string, string>;
-}
 
 // 반응형 상태
 const submitting = ref(false);

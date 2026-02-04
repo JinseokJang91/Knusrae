@@ -161,72 +161,17 @@ import RecipeGridCard from '@/components/recipe/RecipeGridCard.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getApiBaseUrl } from '@/utils/constants';
-
-// 타입 정의
-interface CategoryDetail {
-    detailCodeId: string;
-    codeName: string;
-}
-
-interface MainCategory {
-    codeId: string;
-    codeName: string;
-    details: CategoryDetail[];
-}
-
-interface Category {
-    value: string;
-    name: string;
-    description: string;
-    icon: string;
-    color: string;
-    recipeCount: number;
-    mainCategoryId?: string;
-}
-
-interface RecipeCategory {
-    codeId: string;
-    detailCodeId: string;
-    codeName?: string;
-    detailName?: string;
-}
-
-interface CookingTip {
-    codeId: string;
-    detailName?: string;
-}
-
-interface Recipe {
-    id: number;
-    title: string;
-    thumbnail: string;
-    category: string | null;
-    categoryIds: string[];
-    categoryKeys: string[];
-    primaryCategoryName: string | null;
-    cookingTime: string | null;
-    servings: string | null;
-    hits?: number;
-    isFavorite: boolean;
-    commentCount: number;
-    createdAt?: string;
-    memberNickname?: string;
-    memberName?: string;
-    memberProfileImage?: string;
-    categories?: RecipeCategory[];
-    cookingTips?: CookingTip[];
-}
-
-interface CategorySearchItem {
-    label: string;
-    mainCodeId: string;
-    detailCodeId: string | null;
-}
-
-interface SortOption {
-    label: string;
-    value: string;
-}
+import type {
+    Category,
+    CategoryDetail,
+    CategoryRecipeItem,
+    CategorySearchItem,
+    MainCategory,
+    SortOption,
+    RecipeCategory,
+    RecipeCookingTip
+} from '@/types/category';
+import type { Recipe as ApiRecipe } from '@/types/recipe';
 
 const route = useRoute();
 const router = useRouter();
@@ -235,10 +180,10 @@ const authStore = useAuthStore();
 // 반응형 데이터
 const categories = ref<Category[]>([]);
 const mainCategories = ref<MainCategory[]>([]); // 메인 카테고리 목록 (codeName 필드를 가진 항목들)
-const recipes = ref<Recipe[]>([]);
+const recipes = ref<CategoryRecipeItem[]>([]);
 const selectedCategory = ref<string | null>(null);
 const selectedMainCategory = ref<string | null>(null); // 선택된 메인 카테고리
-const searchResults = ref<Recipe[]>([]);
+const searchResults = ref<CategoryRecipeItem[]>([]);
 // 카테고리 검색(자동완성)용
 const categorySearchSelected = ref<CategorySearchItem | null>(null);
 const categorySearchSuggestions = ref<CategorySearchItem[]>([]);
@@ -361,22 +306,22 @@ const allCategoriesFlat = computed((): CategorySearchItem[] => {
 // TODO 카테고리 목록 조회 API 연결 예정
 const loadCategories = async (): Promise<void> => {
     try {
-        const response = await httpJson(API_BASE_URL, '/api/common-codes?codeGroup=CATEGORY', {
+        const response = await httpJson<MainCategory[] | unknown>(API_BASE_URL, '/api/common-codes?codeGroup=CATEGORY', {
             method: 'GET'
         });
 
-        const codes = Array.isArray(response) ? response : [];
+        const codes: MainCategory[] = Array.isArray(response) ? response : [];
         
         // 메인 카테고리 목록 저장 (codeName 필드를 가진 모든 항목들)
-        mainCategories.value = codes.map((code: { codeId: string; codeName: string; details?: CategoryDetail[] }) => ({
+        mainCategories.value = codes.map((code: MainCategory) => ({
             codeId: code.codeId,
             codeName: code.codeName,
-            details: code.details || []
+            details: code.details ?? []
         }));
 
         // 모든 메인 카테고리의 서브 카테고리를 categories 배열에 저장
         categories.value = [];
-        codes.forEach((code: { codeId: string; details?: CategoryDetail[] }) => {
+        codes.forEach((code: MainCategory) => {
             if (Array.isArray(code.details)) {
                 code.details.forEach((detail: CategoryDetail) => {
                     categories.value.push({
@@ -437,7 +382,7 @@ const extractCategoryIds = (recipe: { categories?: RecipeCategory[] }): string[]
 };
 
 // Function > cookingTips에서 요리 시간 추출
-const extractCookingTime = (cookingTips: CookingTip[] | undefined): string | null => {
+const extractCookingTime = (cookingTips: RecipeCookingTip[] | undefined): string | null => {
     if (!cookingTips || !Array.isArray(cookingTips)) {
         return null;
     }
@@ -446,7 +391,7 @@ const extractCookingTime = (cookingTips: CookingTip[] | undefined): string | nul
 };
 
 // Function > cookingTips에서 인분 수 추출
-const extractServings = (cookingTips: CookingTip[] | undefined): string | null => {
+const extractServings = (cookingTips: RecipeCookingTip[] | undefined): string | null => {
     if (!cookingTips || !Array.isArray(cookingTips)) {
         return null;
     }
@@ -459,18 +404,18 @@ const loadRecipes = async (): Promise<void> => {
         loading.value = true;
         error.value = null;
 
-        const response = await httpJson(API_BASE_URL, '/api/recipe/list/all', {
+        const response = await httpJson<ApiRecipe[] | { data?: ApiRecipe[] }>(API_BASE_URL, '/api/recipe/list/all', {
             method: 'GET'
         });
 
-        const data = response.data || response || [];
+        const data: ApiRecipe[] = Array.isArray(response) ? response : (response as { data?: ApiRecipe[] }).data ?? [];
         
         // 사용자가 찜한 레시피 목록 가져오기
         let favoriteRecipeIds: number[] = [];
         if (currentMemberId.value) {
             try {
                 // 백엔드 API: GET /api/recipe/favorites/{memberId}
-                const favoritesResponse = await httpJson(
+                const favoritesResponse = await httpJson<{ recipeId: number }[] | { data?: { recipeId: number }[] }>(
                     getApiBaseUrl('cook'),
                     `/api/recipe/favorites/${currentMemberId.value}`,
                     { method: 'GET' }
@@ -478,16 +423,16 @@ const loadRecipes = async (): Promise<void> => {
                 
                 // API 응답이 배열인지 확인하고 recipeId 추출
                 if (Array.isArray(favoritesResponse)) {
-                    favoriteRecipeIds = favoritesResponse.map((fav: { recipeId: number }) => fav.recipeId);
+                    favoriteRecipeIds = favoritesResponse.map((fav) => fav.recipeId);
                 } else if (favoritesResponse.data && Array.isArray(favoritesResponse.data)) {
-                    favoriteRecipeIds = favoritesResponse.data.map((fav: { recipeId: number }) => fav.recipeId);
+                    favoriteRecipeIds = favoritesResponse.data.map((fav) => fav.recipeId);
                 }
             } catch (err) {
                 console.error('찜 목록을 가져올 수 없습니다:', err);
             }
         }
         
-        recipes.value = data.map((recipe: any) => {
+        recipes.value = (data as ApiRecipe[]).map((recipe: ApiRecipe) => {
             // cookingTips에서 SERVING과 COOKING_TIME 추출
             const cookingTime = extractCookingTime(recipe.cookingTips);
             const servings = extractServings(recipe.cookingTips);
@@ -513,21 +458,27 @@ const loadRecipes = async (): Promise<void> => {
                 cookingTime,
                 servings,
                 isFavorite,
-                commentCount: recipe.commentCount || 0
-            } as Recipe;
+                commentCount: recipe.commentCount ?? 0
+            } as CategoryRecipeItem;
         });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('레시피 로드 실패:', err);
-        error.value = err.message || '레시피를 불러오는데 실패했습니다.';
+        error.value = err instanceof Error ? err.message : '레시피를 불러오는데 실패했습니다.';
 
         // API 실패 시 더미 데이터 사용 (primaryCategoryName으로 카드 태그 표시)
+        const fallbackRecipe = (r: Omit<CategoryRecipeItem, 'status' | 'visibility' | 'memberId'>): CategoryRecipeItem => ({
+            ...r,
+            status: 'PUBLISHED',
+            visibility: 'PUBLIC',
+            memberId: 0
+        });
         recipes.value = [
-            { id: 1, title: '김치찌개', thumbnail: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400', category: '1001', categoryIds: ['1001'], categoryKeys: ['COOKING_STYLE-1001'], primaryCategoryName: '한식', cookingTime: '30분', servings: '2인분', hits: 1250, isFavorite: false, commentCount: 173 },
-            { id: 2, title: '짜장면', thumbnail: 'https://images.unsplash.com/photo-1563379091339-03246963d4d8?w=400', category: '1003', categoryIds: ['1003'], categoryKeys: ['COOKING_STYLE-1003'], primaryCategoryName: '중식', cookingTime: '20분', servings: '2인분', hits: 980, isFavorite: false, commentCount: 45 },
-            { id: 3, title: '초밥', thumbnail: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400', category: '1004', categoryIds: ['1004'], categoryKeys: ['COOKING_STYLE-1004'], primaryCategoryName: '일식', cookingTime: '45분', servings: '4인분', hits: 2100, isFavorite: false, commentCount: 1435 },
-            { id: 4, title: '파스타', thumbnail: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400', category: '1005', categoryIds: ['1005'], categoryKeys: ['COOKING_STYLE-1005'], primaryCategoryName: '이탈리안', cookingTime: '25분', servings: '2인분', hits: 1560, isFavorite: true, commentCount: 0 },
-            { id: 5, title: '치즈케이크', thumbnail: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400', category: '1001', categoryIds: ['1001'], categoryKeys: ['COOKING_DESSERT-1001'], primaryCategoryName: '쿠키', cookingTime: '90분', servings: '8인분', hits: 890, isFavorite: true, commentCount: 12 },
-            { id: 6, title: '불고기', thumbnail: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400', category: '1001', categoryIds: ['1001'], categoryKeys: ['COOKING_STYLE-1001'], primaryCategoryName: '한식', cookingTime: '15분', servings: '3인분', hits: 1750, isFavorite: false, commentCount: 89 }
+            fallbackRecipe({ id: 1, title: '김치찌개', thumbnail: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400', category: '1001', categoryIds: ['1001'], categoryKeys: ['COOKING_STYLE-1001'], primaryCategoryName: '한식', cookingTime: '30분', servings: '2인분', hits: 1250, isFavorite: false, commentCount: 173 }),
+            fallbackRecipe({ id: 2, title: '짜장면', thumbnail: 'https://images.unsplash.com/photo-1563379091339-03246963d4d8?w=400', category: '1003', categoryIds: ['1003'], categoryKeys: ['COOKING_STYLE-1003'], primaryCategoryName: '중식', cookingTime: '20분', servings: '2인분', hits: 980, isFavorite: false, commentCount: 45 }),
+            fallbackRecipe({ id: 3, title: '초밥', thumbnail: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400', category: '1004', categoryIds: ['1004'], categoryKeys: ['COOKING_STYLE-1004'], primaryCategoryName: '일식', cookingTime: '45분', servings: '4인분', hits: 2100, isFavorite: false, commentCount: 1435 }),
+            fallbackRecipe({ id: 4, title: '파스타', thumbnail: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400', category: '1005', categoryIds: ['1005'], categoryKeys: ['COOKING_STYLE-1005'], primaryCategoryName: '이탈리안', cookingTime: '25분', servings: '2인분', hits: 1560, isFavorite: true, commentCount: 0 }),
+            fallbackRecipe({ id: 5, title: '치즈케이크', thumbnail: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400', category: '1001', categoryIds: ['1001'], categoryKeys: ['COOKING_DESSERT-1001'], primaryCategoryName: '쿠키', cookingTime: '90분', servings: '8인분', hits: 890, isFavorite: true, commentCount: 12 }),
+            fallbackRecipe({ id: 6, title: '불고기', thumbnail: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=400', category: '1001', categoryIds: ['1001'], categoryKeys: ['COOKING_STYLE-1001'], primaryCategoryName: '한식', cookingTime: '15분', servings: '3인분', hits: 1750, isFavorite: false, commentCount: 89 })
         ];
     } finally {
         loading.value = false;
@@ -653,7 +604,7 @@ const toggleFavorite = async (recipeId: number): Promise<void> => {
         if (!recipe) return;
 
         // API 호출
-        const response = await httpJson(
+        const response = await httpJson<{ isFavorite: boolean }>(
             getApiBaseUrl('cook'),
             `/api/recipe/favorites/toggle?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
             { method: 'PUT' }

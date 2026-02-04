@@ -21,7 +21,7 @@ export interface IngredientListResponse {
  * 재료 그룹 목록 조회
  */
 export async function getIngredientGroups(): Promise<IngredientGroup[]> {
-  const response = await httpJson(BASE_URL, '/api/ingredients/groups', { method: 'GET' });
+  const response = await httpJson<{ groups?: IngredientGroup[] }>(BASE_URL, '/api/ingredients/groups', { method: 'GET' });
   return response.groups || [];
 }
 
@@ -43,7 +43,7 @@ export async function getIngredients(params?: {
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.offset) queryParams.append('offset', params.offset.toString());
 
-  const response = await httpJson(
+  const response = await httpJson<IngredientListResponse>(
     BASE_URL,
     `/api/ingredients?${queryParams}`,
     { method: 'GET' }
@@ -59,7 +59,7 @@ export async function getIngredients(params?: {
  * 재료 보관법 조회
  */
 export async function getIngredientStorage(ingredientId: number): Promise<IngredientStorage> {
-  const response = await httpJson(
+  const response = await httpJson<{ data: IngredientStorage }>(
     BASE_URL, 
     `/api/ingredients/${ingredientId}/storage`, 
     { method: 'GET' }
@@ -71,7 +71,7 @@ export async function getIngredientStorage(ingredientId: number): Promise<Ingred
  * 재료 손질법 조회
  */
 export async function getIngredientPreparation(ingredientId: number): Promise<IngredientPreparation> {
-  const response = await httpJson(
+  const response = await httpJson<{ data: IngredientPreparation }>(
     BASE_URL, 
     `/api/ingredients/${ingredientId}/preparation`, 
     { method: 'GET' }
@@ -83,7 +83,7 @@ export async function getIngredientPreparation(ingredientId: number): Promise<In
  * 재료 정보 요청 생성
  */
 export async function createIngredientRequest(request: IngredientRequest): Promise<IngredientRequestResponse> {
-  const response = await httpJson(BASE_URL, '/api/ingredients/requests', {
+  const response = await httpJson<{ data: IngredientRequestResponse }>(BASE_URL, '/api/ingredients/requests', {
     method: 'POST',
     body: JSON.stringify(request)
   });
@@ -94,7 +94,7 @@ export async function createIngredientRequest(request: IngredientRequest): Promi
  * 사용자의 요청 목록 조회
  */
 export async function getMyIngredientRequests(): Promise<IngredientRequestResponse[]> {
-  const response = await httpJson(BASE_URL, '/api/ingredients/requests/my', { method: 'GET' });
+  const response = await httpJson<{ requests?: IngredientRequestResponse[] }>(BASE_URL, '/api/ingredients/requests/my', { method: 'GET' });
   return response.requests || [];
 }
 
@@ -118,7 +118,7 @@ export async function getAdminIngredientRequests(params?: {
   if (params?.size != null) queryParams.append('size', params.size.toString());
   if (params?.status) queryParams.append('status', params.status);
 
-  const response = await httpJson(
+  const response = await httpJson<AdminIngredientRequestsResponse>(
     BASE_URL,
     `/api/ingredients/requests/admin?${queryParams}`,
     { method: 'GET' }
@@ -138,7 +138,7 @@ export async function updateIngredientRequestStatus(
   requestId: number,
   status: string
 ): Promise<IngredientRequestResponse> {
-  const response = await httpJson(
+  const response = await httpJson<{ data: IngredientRequestResponse }>(
     BASE_URL,
     `/api/ingredients/requests/${requestId}/status`,
     {
@@ -157,7 +157,7 @@ export async function createIngredientGroup(request: {
   imageUrl?: string;
   sortOrder?: number;
 }): Promise<IngredientGroup> {
-  const response = await httpJson(BASE_URL, '/api/admin/ingredients/groups', {
+  const response = await httpJson<{ data: IngredientGroup }>(BASE_URL, '/api/admin/ingredients/groups', {
     method: 'POST',
     body: JSON.stringify(request)
   });
@@ -173,7 +173,7 @@ export async function createIngredient(request: {
   imageUrl?: string;
   sortOrder?: number;
 }): Promise<Ingredient> {
-  const response = await httpJson(BASE_URL, '/api/admin/ingredients', {
+  const response = await httpJson<{ data: Ingredient }>(BASE_URL, '/api/admin/ingredients', {
     method: 'POST',
     body: JSON.stringify(request)
   });
@@ -188,7 +188,7 @@ export async function createIngredientStorage(request: {
   content: string;
   summary?: string;
 }): Promise<IngredientStorage> {
-  const response = await httpJson(BASE_URL, '/api/admin/ingredients/storage', {
+  const response = await httpJson<{ data: IngredientStorage }>(BASE_URL, '/api/admin/ingredients/storage', {
     method: 'POST',
     body: JSON.stringify(request)
   });
@@ -203,7 +203,7 @@ export async function createIngredientPreparation(request: {
   content: string;
   summary?: string;
 }): Promise<IngredientPreparation> {
-  const response = await httpJson(BASE_URL, '/api/admin/ingredients/preparation', {
+  const response = await httpJson<{ data: IngredientPreparation }>(BASE_URL, '/api/admin/ingredients/preparation', {
     method: 'POST',
     body: JSON.stringify(request)
   });

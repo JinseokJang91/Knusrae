@@ -47,7 +47,7 @@ export async function searchRecipes(keyword: string): Promise<Recipe[]> {
 
     try {
         const encodedKeyword = encodeURIComponent(keyword.trim());
-        const response = await httpJson(
+        const response = await httpJson<Recipe[] | { data?: Recipe[] }>(
             API_BASE_URL,
             `/api/search/recipes?keyword=${encodedKeyword}`,
             {
@@ -56,7 +56,7 @@ export async function searchRecipes(keyword: string): Promise<Recipe[]> {
         );
 
         // 응답이 배열인지 확인
-        const data = Array.isArray(response) ? response : (response.data || []);
+        const data = Array.isArray(response) ? response : (response.data ?? []);
         return data;
     } catch (error) {
         console.error('레시피 검색 중 오류 발생:', error);

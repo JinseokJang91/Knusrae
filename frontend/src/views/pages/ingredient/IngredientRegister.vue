@@ -293,12 +293,12 @@ const handleSubmit = async () => {
 
         // 관리자 경로에서 왔으면 관리자페이지로, 아니면 재료 관리 화면으로
         router.push(route.path.startsWith('/admin') ? '/admin' : '/ingredient/management');
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('등록 실패:', error);
         toast.add({
             severity: 'error',
             summary: '등록 실패',
-            detail: error.message || '등록 중 오류가 발생했습니다.',
+            detail: error instanceof Error ? error.message : '등록 중 오류가 발생했습니다.',
             life: 5000
         });
     } finally {

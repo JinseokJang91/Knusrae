@@ -90,6 +90,7 @@ const confirm = useConfirm();
 // 1. 레시피 목록 조회 (로그인 유저의 레시피)
 const fetchRecipes = async (): Promise<Recipe[]> => {
     const currentMember = await fetchMemberInfo();
+    if (!currentMember?.id) return [];
     return await httpJson(API_COOK_BASE_URL, `/api/recipe/list/member/${currentMember.id}`, { method: 'GET' });
 };
 

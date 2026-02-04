@@ -26,6 +26,21 @@ export interface RecipeStepDraft {
     existingImageUrl?: string;
 }
 
+/** 레시피 등록/수정 폼 드래프트 (Create/Edit 공통) */
+export interface RecipeDraft {
+    title: string;
+    description: string;
+    status: 'DRAFT' | 'PUBLISHED';
+    visibility: 'PUBLIC' | 'PRIVATE';
+    memberId: number;
+    thumbnailFile?: File | null;
+    thumbnailPreview?: string;
+    steps: RecipeStepDraft[];
+    ingredientGroups: IngredientGroupDraft[];
+    categories: Record<string, string>;
+    cookingTips: Record<string, string>;
+}
+
 export interface CommonCodeDetailOption {
     detailCodeId: string;
     codeName: string;

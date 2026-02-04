@@ -74,7 +74,7 @@
                 @delete-comment="deleteComment"
                 @toggle-replies-visibility="toggleRepliesVisibility"
                 @load-page="loadPage"
-                @open-image="(payload) => openImageModal(payload, 0)"
+                @open-image="(payload) => openImageModalFromPayload(payload, 0)"
             />
 
         </div>
@@ -123,7 +123,7 @@ import { useErrorHandler } from '@/utils/errorHandler';
 import { getApiBaseUrl } from '@/utils/constants';
 import { useAppToast } from '@/utils/toast';
 import { createRecipeView } from '@/api/recipeViewApi';
-import type { RecipeDetail, RecipeComment, RecipeImage } from '@/types/recipe';
+import type { RecipeDetail, RecipeComment, RecipeImage, RecipeStep } from '@/types/recipe';
 
 const route = useRoute();
 const router = useRouter();
@@ -238,7 +238,7 @@ const fetchRecipeDetail = async () => {
         error.value = null;
         
         const recipeId = route.params.id;
-        const response = await httpJson(
+        const response = await httpJson<RecipeDetail>(
             getApiBaseUrl('cook'),
             `/api/recipe/${recipeId}`,
             { method: 'GET' }
@@ -246,10 +246,11 @@ const fetchRecipeDetail = async () => {
         
         // 백엔드 응답의 steps 필드명을 프론트엔드 타입에 맞게 변환
         if (response.steps && Array.isArray(response.steps)) {
-            response.steps = response.steps.map((step: any) => ({
-                order: step.step || step.order || 0,
-                text: step.description || step.text || '',
-                imageUrl: step.image || step.imageUrl || null
+            type StepFromApi = RecipeStep & { step?: number; description?: string; image?: string };
+            response.steps = (response.steps as StepFromApi[]).map((step: StepFromApi) => ({
+                order: step.step ?? step.order ?? 0,
+                text: step.description ?? step.text ?? '',
+                imageUrl: step.image ?? step.imageUrl ?? undefined
             }));
         }
         
@@ -290,7 +291,7 @@ const recordRecipeView = async (recipeId: number) => {
 const checkFavoriteStatus = async () => {
     try {
         const recipeId = route.params.id;
-        const response = await httpJson(
+        const response = await httpJson<{ isFavorite: boolean }>(
             getApiBaseUrl('cook'),
             `/api/recipe/favorites/check?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
             { method: 'GET' }
@@ -305,13 +306,13 @@ const checkFavoriteStatus = async () => {
 const fetchComments = async (page: number = 0) => {
     try {
         const recipeId = route.params.id;
-        const response = await httpJson(
+        const response = await httpJson<{ comments?: RecipeComment[]; currentPage: number; totalPages: number; totalComments: number }>(
             getApiBaseUrl('cook'),
             `/api/recipe/comments/${recipeId}/page?page=${page}&size=${pageSize}`,
             { method: 'GET' }
         );
         // API는 답글 목록을 replies로 반환하므로, 템플릿에서 사용하는 children으로 정규화
-        const rawComments = response.comments || [];
+        const rawComments = response.comments ?? [];
         comments.value = rawComments.map((c: RecipeComment & { replies?: RecipeComment[] }) => ({
             ...c,
             children: c.replies ?? c.children ?? []
@@ -350,7 +351,7 @@ const toggleLike = async () => {
     
     const recipeId = route.params.id;
     const response = await handleApiCall(
-        () => httpJson(
+        () => httpJson<{ isFavorite: boolean }>(
             getApiBaseUrl('cook'),
             `/api/recipe/favorites/toggle?memberId=${currentMemberId.value}&recipeId=${recipeId}`,
             { method: 'PUT' }
@@ -582,7 +583,7 @@ const submitReply = async () => {
     }
 };
 
-const toggleReplyForm = (comment: any) => {
+const toggleReplyForm = (comment: RecipeComment) => {
     // 로그인 확인
     if (!isLoggedIn.value) {
         return;
@@ -613,7 +614,7 @@ const cancelReply = () => {
     replyImagePreview.value = null;
 };
 
-const startEditComment = (comment: any) => {
+const startEditComment = (comment: RecipeComment) => {
     editingCommentId.value = comment.id;
     editingContent.value = comment.content;
     editingImagePreview.value = comment.imageUrl || null;
@@ -746,7 +747,12 @@ const deleteComment = async (commentId: number) => {
     });
 };
 
-const openImageModal = (image: any, index: number, event?: Event) => {
+const openImageModalFromPayload = (payload: RecipeImage | { url: string }, index: number) => {
+    const image: RecipeImage = 'isMainImage' in payload ? payload : { ...payload, isMainImage: false };
+    openImageModal(image, index);
+};
+
+const openImageModal = (image: RecipeImage, index: number, event?: Event) => {
     if (event) {
         event.stopPropagation();
         event.preventDefault();

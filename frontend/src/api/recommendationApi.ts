@@ -1,6 +1,7 @@
 // 레시피 추천 API
 import { httpJson } from '@/utils/http';
 import { getApiBaseUrl } from '@/utils/constants';
+import type { ApiResponse } from '@/types/common';
 import type { TodayRecommendationsResponse } from '@/types/recipe';
 
 const BASE_URL = getApiBaseUrl('cook');
@@ -22,7 +23,7 @@ export async function getTodayRecommendations(
     });
 
     const url = `/api/recipes/recommendations/today?${params}`;
-    const response = await httpJson(BASE_URL, url, {
+    const response = await httpJson<ApiResponse<TodayRecommendationsResponse>>(BASE_URL, url, {
         method: 'GET'
     });
     return response.data;

@@ -2,14 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { refreshToken, fetchMemberInfo, isAdminEmail } from '@/utils/auth';
 import { getApiBaseUrl } from '@/utils/constants';
-
-interface MemberInfo {
-    id?: number;
-    email?: string;
-    name?: string;
-    nickname?: string;
-    [key: string]: any;
-}
+import type { MemberInfo } from '@/types/auth';
 
 export const useAuthStore = defineStore('auth', () => {
     // State

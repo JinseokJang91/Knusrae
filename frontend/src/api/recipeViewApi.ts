@@ -1,6 +1,7 @@
 // 레시피 조회 기록 API
 import { httpJson } from '@/utils/http';
 import { getApiBaseUrl } from '@/utils/constants';
+import type { ApiResponse } from '@/types/common';
 import type { RecentViewsResponse, CreateViewResponse } from '@/types/recipe';
 
 const BASE_URL = getApiBaseUrl('cook');
@@ -13,7 +14,7 @@ const BASE_URL = getApiBaseUrl('cook');
  */
 export async function createRecipeView(recipeId: number): Promise<CreateViewResponse> {
     const url = `/api/recipes/${recipeId}/view`;
-    const response = await httpJson(BASE_URL, url, {
+    const response = await httpJson<ApiResponse<CreateViewResponse>>(BASE_URL, url, {
         method: 'POST'
     });
     return response.data;
@@ -38,7 +39,7 @@ export async function getRecentViews(
     });
 
     const url = `/api/members/${memberId}/recent-views?${params}`;
-    const response = await httpJson(
+    const response = await httpJson<ApiResponse<RecentViewsResponse>>(
         BASE_URL,
         url,
         {

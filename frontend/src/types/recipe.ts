@@ -117,11 +117,28 @@ export interface Recipe {
     memberProfileImage?: string;
     commentCount?: number;
     favoriteCount?: number;
-    // 검색 결과에서 사용되는 추가 속성
+    // 검색 결과/목록 API에서 사용되는 추가 속성
     isFavorite?: boolean;
     category?: string;
     cookingTime?: string;
     servings?: string;
+    /** 목록/검색 API 응답에서 제공될 수 있음 */
+    cookingTips?: RecipeCookingTip[];
+}
+
+/** 그리드/카드에서 사용하는 레시피 뷰 모델 (목록·검색·찜 등) */
+export interface RecipeGridItem {
+    id: number;
+    title: string;
+    thumbnail?: string;
+    cookingTime?: string | null;
+    servings?: string | null;
+    hits?: number;
+    commentCount?: number;
+    isFavorite?: boolean;
+    memberNickname?: string;
+    memberName?: string;
+    memberProfileImage?: string;
 }
 
 /** 찜 목록 API 응답 항목 */
