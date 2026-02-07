@@ -48,5 +48,18 @@ public class CommonCode {
         this.details.add(detail);
         detail.setCode(this);
     }
+
+    /** 관리자용: 코드 그룹/이름/사용여부 수정 */
+    public void updateInfo(String codeGroup, String codeName, String useYn) {
+        if (codeGroup != null) {
+            this.codeGroup = codeGroup;
+        }
+        if (codeName != null) {
+            this.codeName = codeName;
+        }
+        if (useYn != null) {
+            this.useYn = useYn;
+        }
+    }
 }
 

@@ -53,5 +53,18 @@ public class CommonCodeDetail {
     protected void setCode(CommonCode code) {
         this.code = code;
     }
+
+    /** 관리자용: 상세코드 이름/정렬/사용여부 수정 */
+    public void updateInfo(String codeName, Integer sort, String useYn) {
+        if (codeName != null) {
+            this.codeName = codeName;
+        }
+        if (sort != null) {
+            this.sort = sort;
+        }
+        if (useYn != null) {
+            this.useYn = useYn;
+        }
+    }
 }
 
