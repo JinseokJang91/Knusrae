@@ -7,16 +7,10 @@
 
         <div class="admin-buttons">
             <Button
-                label="재료 그룹 등록"
+                label="재료·재료 그룹 관리"
                 icon="pi pi-folder-plus"
                 class="admin-btn"
-                @click="router.push('/admin/ingredient-group/register')"
-            />
-            <Button
-                label="재료 등록"
-                icon="pi pi-plus-circle"
-                class="admin-btn"
-                @click="router.push('/admin/ingredient/register')"
+                @click="router.push('/admin/ingredient-groups')"
             />
             <Button
                 label="재료 관리 등록"
@@ -29,6 +23,12 @@
                 icon="pi pi-list"
                 class="admin-btn"
                 @click="router.push('/admin/ingredient-requests')"
+            />
+            <Button
+                label="공통코드 관리"
+                icon="pi pi-book"
+                class="admin-btn"
+                @click="router.push('/admin/common-codes')"
             />
         </div>
     </div>

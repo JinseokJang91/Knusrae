@@ -61,14 +61,6 @@
             <p class="text-gray-500">검색 조건을 변경해보세요.</p>
         </div>
 
-        <!-- 상세 정보 다이얼로그 -->
-        <IngredientDetailDialog
-            :visible="detailDialogVisible"
-            :ingredient="selectedIngredient"
-            :type="type"
-            @close="handleDetailClose"
-        />
-
         <!-- 재료 정보 요청 다이얼로그 -->
         <Dialog
             v-model:visible="showRequestDialog"
@@ -118,6 +110,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
@@ -129,7 +122,8 @@ import { getIngredientGroups, getIngredients, createIngredientRequest } from '@/
 import type { IngredientGroup, Ingredient, IngredientType } from '@/types/ingredient';
 import IngredientGroupSelector from './IngredientGroupSelector.vue';
 import IngredientGrid from './IngredientGrid.vue';
-import IngredientDetailDialog from './IngredientDetailDialog.vue';
+
+const router = useRouter();
 
 const props = defineProps<{
     type: IngredientType;
@@ -148,8 +142,6 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const localSearchQuery = ref(props.searchQuery || '');
 const selectedGroupId = ref<number | null>(props.selectedGroupId || null);
-const detailDialogVisible = ref(false);
-const selectedIngredient = ref<Ingredient | null>(null);
 const showRequestDialog = ref(false);
 const requestLoading = ref(false);
 
@@ -187,13 +179,11 @@ const handleGroupSelect = (groupId: number | null) => {
 };
 
 const handleIngredientClick = (ingredient: Ingredient) => {
-    selectedIngredient.value = ingredient;
-    detailDialogVisible.value = true;
-};
-
-const handleDetailClose = () => {
-    detailDialogVisible.value = false;
-    selectedIngredient.value = null;
+    router.push({
+        name: 'ingredientDetail',
+        params: { id: ingredient.id },
+        query: { type: props.type }
+    });
 };
 
 const openRequestDialog = () => {

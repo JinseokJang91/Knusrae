@@ -70,6 +70,11 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/pages/admin/Admin.vue')
             },
             {
+                path: '/admin/ingredient-groups',
+                name: 'adminIngredientGroupManagement',
+                component: () => import('@/views/pages/admin/IngredientGroupManagement.vue')
+            },
+            {
                 path: '/admin/ingredient-group/register',
                 name: 'adminIngredientGroupRegister',
                 component: () => import('@/views/pages/admin/IngredientGroupRegister.vue')
@@ -82,12 +87,17 @@ const routes: RouteRecordRaw[] = [
             {
                 path: '/admin/ingredient-management/register',
                 name: 'adminIngredientManagementRegister',
-                component: () => import('@/views/pages/ingredient/IngredientRegister.vue')
+                component: () => import('@/views/pages/admin/IngredientManagementRegister.vue')
             },
             {
                 path: '/admin/ingredient-requests',
                 name: 'adminIngredientRequestList',
                 component: () => import('@/views/pages/admin/IngredientRequestList.vue')
+            },
+            {
+                path: '/admin/common-codes',
+                name: 'adminCommonCodeManagement',
+                component: () => import('@/views/pages/admin/CommonCodeManagement.vue')
             },
             // 4. 메인 메뉴
             // 4-1. 전체 레시피
@@ -110,7 +120,12 @@ const routes: RouteRecordRaw[] = [
             {
                 path: '/ingredient/management/register',
                 name: 'ingredientRegister',
-                component: () => import('@/views/pages/ingredient/IngredientRegister.vue')
+                component: () => import('@/views/pages/admin/IngredientManagementRegister.vue')
+            },
+            {
+                path: '/ingredient/management/:id',
+                name: 'ingredientDetail',
+                component: () => import('@/views/pages/ingredient/IngredientDetail.vue')
             },
             // 4-3. 랭킹
             {
