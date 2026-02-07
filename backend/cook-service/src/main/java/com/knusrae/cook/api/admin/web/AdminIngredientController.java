@@ -70,6 +70,73 @@ public class AdminIngredientController {
         log.info("Created ingredient: {}", ingredient.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    /**
+     * 재료 그룹 수정
+     */
+    @PutMapping("/groups/{id}")
+    public ResponseEntity<Map<String, Object>> updateGroup(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> request) {
+        String name = request.get("name").toString();
+        String imageUrl = request.containsKey("imageUrl") ? request.get("imageUrl").toString() : null;
+        Integer sortOrder = request.containsKey("sortOrder") && request.get("sortOrder") != null
+                ? Integer.valueOf(request.get("sortOrder").toString()) : null;
+
+        log.debug("PUT /api/admin/ingredients/groups/{} - name={}", id, name);
+
+        IngredientGroupDto group = adminIngredientService.updateGroup(id, name, imageUrl, sortOrder);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", group);
+        log.info("Updated ingredient group: {}", id);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 재료 그룹 삭제 (하위 재료 함께 삭제)
+     */
+    @DeleteMapping("/groups/{id}")
+    public ResponseEntity<Void> deleteGroup(@PathVariable Long id) {
+        log.debug("DELETE /api/admin/ingredients/groups/{}", id);
+        adminIngredientService.deleteGroup(id);
+        log.info("Deleted ingredient group: {}", id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * 재료 수정
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> updateIngredient(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> request) {
+        Long groupId = Long.valueOf(request.get("groupId").toString());
+        String name = request.get("name").toString();
+        String imageUrl = request.containsKey("imageUrl") ? request.get("imageUrl").toString() : null;
+        Integer sortOrder = request.containsKey("sortOrder") && request.get("sortOrder") != null
+                ? Integer.valueOf(request.get("sortOrder").toString()) : null;
+
+        log.debug("PUT /api/admin/ingredients/{} - name={}", id, name);
+
+        IngredientDto ingredient = adminIngredientService.updateIngredient(id, groupId, name, imageUrl, sortOrder);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", ingredient);
+        log.info("Updated ingredient: {}", id);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 재료 삭제
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteIngredient(@PathVariable Long id) {
+        log.debug("DELETE /api/admin/ingredients/{}", id);
+        adminIngredientService.deleteIngredient(id);
+        log.info("Deleted ingredient: {}", id);
+        return ResponseEntity.noContent().build();
+    }
     
     /**
      * 재료 보관법 등록

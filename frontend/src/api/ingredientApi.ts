@@ -181,6 +181,54 @@ export async function createIngredient(request: {
 }
 
 /**
+ * 재료 그룹 수정 (관리자 전용)
+ */
+export async function updateIngredientGroup(
+  groupId: number,
+  request: { name: string; imageUrl?: string; sortOrder?: number }
+): Promise<IngredientGroup> {
+  const response = await httpJson<{ data: IngredientGroup }>(
+    BASE_URL,
+    `/api/admin/ingredients/groups/${groupId}`,
+    { method: 'PUT', body: JSON.stringify(request) }
+  );
+  return response.data;
+}
+
+/**
+ * 재료 그룹 삭제 (관리자 전용, 하위 재료 함께 삭제)
+ */
+export async function deleteIngredientGroup(groupId: number): Promise<void> {
+  await httpJson(BASE_URL, `/api/admin/ingredients/groups/${groupId}`, {
+    method: 'DELETE'
+  });
+}
+
+/**
+ * 재료 수정 (관리자 전용)
+ */
+export async function updateIngredient(
+  ingredientId: number,
+  request: { groupId: number; name: string; imageUrl?: string; sortOrder?: number }
+): Promise<Ingredient> {
+  const response = await httpJson<{ data: Ingredient }>(
+    BASE_URL,
+    `/api/admin/ingredients/${ingredientId}`,
+    { method: 'PUT', body: JSON.stringify(request) }
+  );
+  return response.data;
+}
+
+/**
+ * 재료 삭제 (관리자 전용)
+ */
+export async function deleteIngredient(ingredientId: number): Promise<void> {
+  await httpJson(BASE_URL, `/api/admin/ingredients/${ingredientId}`, {
+    method: 'DELETE'
+  });
+}
+
+/**
  * 재료 보관법 등록 (관리자 전용)
  */
 export async function createIngredientStorage(request: {

@@ -130,6 +130,70 @@ public class AdminIngredientService {
         preparationRepository.deleteById(preparationId);
     }
 
+    /**
+     * 재료 그룹 수정
+     */
+    public IngredientGroupDto updateGroup(Long groupId, String name, String imageUrl, Integer sortOrder) {
+        IngredientGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("재료 그룹을 찾을 수 없습니다: " + groupId));
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("재료 그룹명은 필수입니다.");
+        }
+        int order = Optional.ofNullable(sortOrder).orElse(0);
+        group.updateGroup(
+                name.trim(),
+                imageUrl != null && !imageUrl.isBlank() ? imageUrl.trim() : null,
+                order
+        );
+        IngredientGroup saved = groupRepository.save(group);
+        return IngredientGroupDto.fromEntity(saved);
+    }
+
+    /**
+     * 재료 그룹 삭제 (하위 재료가 있으면 먼저 삭제)
+     */
+    public void deleteGroup(Long groupId) {
+        IngredientGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("재료 그룹을 찾을 수 없습니다: " + groupId));
+        List<Ingredient> ingredients = ingredientRepository.findByGroupOrderBySortOrderAsc(group);
+        for (Ingredient ingredient : ingredients) {
+            ingredientRepository.delete(ingredient);
+        }
+        groupRepository.delete(group);
+    }
+
+    /**
+     * 재료 수정
+     */
+    public IngredientDto updateIngredient(Long ingredientId, Long groupId, String name, String imageUrl, Integer sortOrder) {
+        Ingredient ingredient = ingredientRepository.findById(ingredientId)
+                .orElseThrow(() -> new EntityNotFoundException("재료를 찾을 수 없습니다: " + ingredientId));
+        IngredientGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("재료 그룹을 찾을 수 없습니다: " + groupId));
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("재료명은 필수입니다.");
+        }
+        int order = Optional.ofNullable(sortOrder).orElse(0);
+        ingredient.updateIngredient(
+                name.trim(),
+                group,
+                imageUrl != null && !imageUrl.isBlank() ? imageUrl.trim() : null,
+                order
+        );
+        Ingredient saved = ingredientRepository.save(ingredient);
+        return IngredientDto.fromEntity(saved);
+    }
+
+    /**
+     * 재료 삭제
+     */
+    public void deleteIngredient(Long ingredientId) {
+        if (!ingredientRepository.existsById(ingredientId)) {
+            throw new EntityNotFoundException("재료를 찾을 수 없습니다: " + ingredientId);
+        }
+        ingredientRepository.deleteById(ingredientId);
+    }
+
     public String uploadContentImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("이미지 파일이 없습니다.");
