@@ -1,6 +1,24 @@
 <template>
     <div class="profile-content">
-        <div class="grid grid-cols-12 gap-6">
+        <!-- 초기 로딩 -->
+        <PageStateBlock
+            v-if="initialLoading"
+            state="loading"
+            loading-message="프로필 정보를 불러오는 중..."
+        />
+
+        <!-- 초기 로드 실패 -->
+        <PageStateBlock
+            v-else-if="initialError"
+            state="error"
+            error-title="프로필을 불러올 수 없습니다"
+            :error-message="initialError"
+            retry-label="다시 시도"
+            @retry="retryLoadMemberInfo"
+        />
+
+        <!-- 폼 -->
+        <div v-else class="grid grid-cols-12 gap-6">
             <div class="col-span-12 md:col-span-4">
                 <div class="p-4 border rounded-md flex flex-col items-center justify-center h-5/6">
                     <input 
@@ -27,45 +45,77 @@
             <div class="col-span-12 md:col-span-8">
                 <div class="grid grid-cols-12 gap-4">
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block text-sm mb-2">이름</label>
-                        <input v-model="form.name" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="이름" />
+                        <label class="block text-sm font-medium mb-2">이름</label>
+                        <InputText
+                            v-model="form.name"
+                            class="w-full"
+                            placeholder="이름"
+                            :disabled="saving"
+                        />
                     </div>
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block text-sm mb-2">닉네임</label>
-                        <input v-model="form.nickname" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="닉네임" />
+                        <label class="block text-sm font-medium mb-2">닉네임</label>
+                        <InputText
+                            v-model="form.nickname"
+                            class="w-full"
+                            placeholder="닉네임"
+                            :disabled="saving"
+                        />
                     </div>
                     <div class="col-span-12">
-                        <label class="block text-sm mb-2">이메일</label>
-                        <input v-model="form.email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 opacity-80" disabled />
+                        <label class="block text-sm font-medium mb-2">이메일</label>
+                        <InputText
+                            v-model="form.email"
+                            type="email"
+                            class="w-full"
+                            disabled
+                        />
+                        <p class="text-sm text-gray-500 mt-1">로그인 계정이라 수정할 수 없습니다.</p>
                     </div>
                     <div class="col-span-12">
-                        <label class="block text-sm mb-2">자기소개</label>
-                        <textarea 
-                            v-model="form.bio" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 resize-none" 
+                        <label class="block text-sm font-medium mb-2">자기소개</label>
+                        <Textarea
+                            v-model="form.bio"
+                            class="w-full"
                             placeholder="자기소개를 입력해주세요"
-                            rows="4"
-                        ></textarea>
+                            :rows="4"
+                            :disabled="saving"
+                        />
                     </div>
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block text-sm mb-2">팔로워</label>
-                        <div class="px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                        <label class="block text-sm font-medium mb-2">팔로워</label>
+                        <div class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-50 text-gray-700">
                             {{ form.followerCount || 0 }}
                         </div>
+                        <p class="text-sm text-gray-500 mt-1">준비 중입니다.</p>
                     </div>
                     <div class="col-span-12 md:col-span-6">
-                        <label class="block text-sm mb-2">팔로잉</label>
-                        <div class="px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                        <label class="block text-sm font-medium mb-2">팔로잉</label>
+                        <div class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-50 text-gray-700">
                             {{ form.followingCount || 0 }}
                         </div>
+                        <p class="text-sm text-gray-500 mt-1">준비 중입니다.</p>
                     </div>
                 </div>
 
                 <div class="mt-6 flex gap-2 justify-end">
-                    <button type="button" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600" @click="onSave">
-                        <span class="pi pi-save mr-2"></span>
-                        <span>저장</span>
-                    </button>
+                    <Button
+                        type="button"
+                        label="취소"
+                        icon="pi pi-times"
+                        severity="secondary"
+                        outlined
+                        :disabled="saving"
+                        @click="onCancel"
+                    />
+                    <Button
+                        type="button"
+                        label="저장"
+                        icon="pi pi-save"
+                        :loading="saving"
+                        :disabled="saving"
+                        @click="onSave"
+                    />
                 </div>
             </div>
         </div>
@@ -77,9 +127,16 @@ import { updateProfile } from '@/api/memberApi';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { fetchMemberInfo } from '@/utils/auth';
 import { useAuthStore } from '@/stores/authStore';
+import { useAppToast } from '@/utils/toast';
 import type { ProfileFormState } from '@/types/profile';
+import PageStateBlock from '@/components/common/PageStateBlock.vue';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import Textarea from 'primevue/textarea';
 
 const authStore = useAuthStore();
+const { showSuccess, showError } = useAppToast();
+
 const form = reactive<ProfileFormState>({
     name: '',
     nickname: '',
@@ -92,7 +149,12 @@ const form = reactive<ProfileFormState>({
 
 const profileImageInputRef = ref<HTMLInputElement | null>(null);
 const profileImageFile = ref<File | null>(null);
-const loading = ref(false);
+const initialLoading = ref(true);
+const initialError = ref<string | null>(null);
+const saving = ref(false);
+
+/** 저장된 스냅샷(취소 시 복원용) */
+const savedSnapshot = ref<ProfileFormState | null>(null);
 
 const initials = computed(() => {
     const base = form.name?.trim() || '사용자';
@@ -111,9 +173,46 @@ const onProfileImageChange = (event: Event) => {
     }
 };
 
+const loadMemberInfo = async () => {
+    initialError.value = null;
+    try {
+        const memberInfo = await fetchMemberInfo();
+        if (memberInfo) {
+            form.name = memberInfo.name || '';
+            form.nickname = memberInfo.nickname || '';
+            form.email = memberInfo.email || '';
+            form.bio = memberInfo.bio || '';
+            form.profileImage = memberInfo.profileImage || '';
+            form.followerCount = memberInfo.followerCount || 0;
+            form.followingCount = memberInfo.followingCount || 0;
+            savedSnapshot.value = { ...form };
+        }
+    } catch (error) {
+        console.error('회원 정보 조회 실패:', error);
+        initialError.value = (error instanceof Error ? error.message : null) || '회원 정보를 불러오지 못했습니다.';
+    } finally {
+        initialLoading.value = false;
+    }
+};
+
+const onCancel = () => {
+    if (savedSnapshot.value) {
+        form.name = savedSnapshot.value.name;
+        form.nickname = savedSnapshot.value.nickname;
+        form.bio = savedSnapshot.value.bio;
+        form.profileImage = savedSnapshot.value.profileImage;
+        profileImageFile.value = null;
+    }
+};
+
+const retryLoadMemberInfo = async () => {
+    initialLoading.value = true;
+    await loadMemberInfo();
+};
+
 const onSave = async () => {
     try {
-        loading.value = true;
+        saving.value = true;
 
         const formData = new FormData();
         if (form.name) formData.append('name', form.name);
@@ -125,32 +224,17 @@ const onSave = async () => {
 
         await updateProfile(formData);
 
-        // 프로필 정보 다시 불러오기
         await loadMemberInfo();
-        // authStore의 회원 정보도 업데이트하여 AppTopbar에 즉시 반영
         await authStore.loadMemberInfo();
         profileImageFile.value = null;
+
+        showSuccess('프로필이 저장되었습니다.');
     } catch (error) {
         console.error('프로필 저장 실패:', error);
+        const message = (error instanceof Error ? error.message : null) || '프로필 저장에 실패했습니다.';
+        showError(message);
     } finally {
-        loading.value = false;
-    }
-};
-
-const loadMemberInfo = async () => {
-    try {
-        const memberInfo = await fetchMemberInfo();
-        if (memberInfo) {
-            form.name = memberInfo.name || '';
-            form.nickname = memberInfo.nickname || '';
-            form.email = memberInfo.email || '';
-            form.bio = memberInfo.bio || '';
-            form.profileImage = memberInfo.profileImage || '';
-            form.followerCount = memberInfo.followerCount || 0;
-            form.followingCount = memberInfo.followingCount || 0;
-        }
-    } catch (error) {
-        console.error('회원 정보 조회 실패:', error);
+        saving.value = false;
     }
 };
 

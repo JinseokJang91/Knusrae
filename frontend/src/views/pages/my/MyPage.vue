@@ -1,8 +1,17 @@
 <template>
     <div class="mypage-container">
         <div class="card">
-            <h1 class="text-3xl font-bold mb-6">마이페이지</h1>
-            
+            <div class="mypage-header">
+                <h1 class="text-3xl font-bold m-0">마이페이지</h1>
+                <Button
+                    label="내 레시피 관리"
+                    icon="pi pi-book"
+                    severity="secondary"
+                    outlined
+                    @click="goToMyRecipes"
+                />
+            </div>
+
             <Tabs v-model:value="activeTab">
                 <TabList>
                     <Tab value="profile">
@@ -58,6 +67,7 @@ import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
+import Button from 'primevue/button';
 import Profile from './Profile.vue';
 import Comments from './Comments.vue';
 import Inquiries from './Inquiries.vue';
@@ -78,10 +88,14 @@ onMounted(() => {
 // 탭 변경 시 URL 쿼리 파라미터 업데이트
 watch(activeTab, (newTab) => {
     router.replace({ 
-        path: '/mypage', 
+        path: '/my', 
         query: { tab: newTab } 
     });
 });
+
+const goToMyRecipes = () => {
+    router.push('/my/recipes');
+};
 </script>
 
 <style lang="scss" scoped>
@@ -90,9 +104,17 @@ watch(activeTab, (newTab) => {
     max-width: 1400px;
     margin: 0 auto;
 
-    h1 {
-        color: var(--primary-color);
+    .mypage-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
         margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+
+        h1 {
+            color: var(--primary-color);
+        }
     }
 
     :deep(.p-tabs) {

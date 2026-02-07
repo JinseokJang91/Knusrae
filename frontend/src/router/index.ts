@@ -41,27 +41,31 @@ const routes: RouteRecordRaw[] = [
                 name: 'myRecipeEdit',
                 component: () => import('@/views/pages/my/RecipeEdit.vue')
             },
-            // 3. 프로필 / 마이페이지
+            // 3. 프로필 / 마이페이지 (정책: 나의 것은 모두 /my 아래)
             {
-                path: '/mypage',
+                path: '/my',
                 name: 'mypage',
                 component: () => import('@/views/pages/my/MyPage.vue')
             },
             {
+                path: '/mypage',
+                redirect: (to) => ({ path: '/my', query: to.query })
+            },
+            {
                 path: '/my/profile',
-                redirect: '/mypage?tab=profile'
+                redirect: '/my?tab=profile'
             },
             {
                 path: '/my/comments',
-                redirect: '/mypage?tab=comments'
+                redirect: '/my?tab=comments'
             },
             {
                 path: '/my/inquiries',
-                redirect: '/mypage?tab=inquiries'
+                redirect: '/my?tab=inquiries'
             },
             {
                 path: '/my/favorites',
-                redirect: '/mypage?tab=favorites'
+                redirect: '/my?tab=favorites'
             },
             // 3-1. 관리자 페이지
             {

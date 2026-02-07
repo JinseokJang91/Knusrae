@@ -20,7 +20,7 @@ const profileMenuItems = computed(() => {
         {
             label: '마이페이지',
             icon: 'pi pi-user',
-            command: () => handleMyMenuClick('/mypage', new Event('click'))
+            command: () => handleMyMenuClick('/my', new Event('click'))
         }
     ];
     if (authStore.isAdmin) {

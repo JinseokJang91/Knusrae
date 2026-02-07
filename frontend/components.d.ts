@@ -23,6 +23,7 @@ declare module 'vue' {
     IngredientGroupSelector: typeof import('./src/components/ingredient/IngredientGroupSelector.vue')['default']
     IngredientList: typeof import('./src/components/ingredient/IngredientList.vue')['default']
     InputNumber: typeof import('primevue/inputnumber')['default']
+    InputText: typeof import('primevue/inputtext')['default']
     PageStateBlock: typeof import('./src/components/common/PageStateBlock.vue')['default']
     PopularRecipes: typeof import('./src/components/dashboard/PopularRecipes.vue')['default']
     ProgressBar: typeof import('primevue/progressbar')['default']

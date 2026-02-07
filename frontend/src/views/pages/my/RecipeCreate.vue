@@ -133,6 +133,7 @@ import { createRecipe } from '@/api/recipeApi';
 import { fetchMemberInfo } from '@/utils/auth';
 import { GUIDE_IMAGES } from '@/utils/constants';
 import { useErrorHandler } from '@/utils/errorHandler';
+import { useAppToast } from '@/utils/toast';
 import type { CommonCodeOption, RecipeDraft } from '@/types/recipeForm';
 import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRouter } from 'vue-router';
@@ -145,6 +146,7 @@ import { useConfirm } from 'primevue/useconfirm';
 const router = useRouter();
 const confirm = useConfirm();
 const { handleApiCallVoid } = useErrorHandler();
+const { showError } = useAppToast();
 
 // 반응형 상태
 const submitting = ref(false);
@@ -536,8 +538,10 @@ async function submit(): Promise<void> {
         isSubmitSuccessful.value = true;
 
         router.push('/my/recipes');
+    } else {
+        showError('레시피 등록 중 오류가 발생했습니다.', '등록 실패');
     }
-    
+
     submitting.value = false;
 }
 
