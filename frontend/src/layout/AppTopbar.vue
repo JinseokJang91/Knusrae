@@ -6,6 +6,8 @@ import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import Menu from 'primevue/menu';
 import { getRecentSearchKeywords, deleteRecentSearchKeyword, deleteAllRecentSearchKeywords, saveRecentSearchKeyword, type RecentSearchKeyword } from '@/utils/search';
+import { RECIPE_CATEGORIES } from '@/data/recipeCategoryData';
+import type { RecipeCategory } from '@/types/recipeCategory';
 
 const router = useRouter();
 const confirm = useConfirm();
@@ -13,6 +15,12 @@ const authStore = useAuthStore();
 
 const searchQuery = ref('');
 const profileMenu = ref();
+const categoryDropdownRef = ref<HTMLElement | null>(null);
+
+// 카테고리 선택 시 드롭다운 닫기
+const closeCategoryDropdown = () => {
+    categoryDropdownRef.value?.classList.add('hidden');
+};
 
 // 프로필 메뉴 아이템 (관리자일 때 마이페이지 밑에 관리자페이지 추가)
 const profileMenuItems = computed(() => {
@@ -41,86 +49,6 @@ const recentKeywords = ref<RecentSearchKeyword[]>([]);
 const showRecentKeywords = ref(false);
 const recentKeywordsLoading = ref(false);
 
-// 요리 카테고리 목록 (DB 공통코드 매핑 포함)
-// filter: { codeId: 메인카테고리, detailCodeIds: 상세코드 배열 }
-// 복합 카테고리는 여러 detailCodeId를 포함하여 OR 조건으로 필터링
-const recipeCategories = [
-    { 
-        id: 1, 
-        name: '한식', 
-        icon: 'fa-solid fa-k',
-        filter: { codeId: 'COOKING_STYLE', detailCodeIds: ['1001'] }
-    },
-    { 
-        id: 2, 
-        name: '국·탕·찌개', 
-        icon: 'fa-solid fa-bowl-food',
-        filter: { codeId: 'COOKING_MENU_FORM', detailCodeIds: ['1002'] }
-    },
-    { 
-        id: 3, 
-        name: '밥·덮밥·볶음밥', 
-        icon: 'fa-solid fa-bowl-rice',
-        filter: { codeId: 'COOKING_MENU_FORM', detailCodeIds: ['1001'] }
-    },
-    { 
-        id: 4, 
-        name: '면·파스타', 
-        icon: 'fa-solid fa-plate-wheat', 
-        description: '라면/국수/파스타',
-        filter: { codeId: 'COOKING_MENU_FORM', detailCodeIds: ['1003', '1004', '1005'] }
-    },
-    { 
-        id: 5, 
-        name: '반찬·밑반찬', 
-        icon: 'fa-solid fa-box-archive',
-        filter: { codeId: 'COOKING_MENU_FORM', detailCodeIds: ['1014'] }
-    },
-    { 
-        id: 6, 
-        name: '고기요리', 
-        icon: 'fa-solid fa-drumstick-bite',
-        filter: { codeId: 'COOKING_MAIN_INGREDIENT', detailCodeIds: ['1001', '1002', '1003', '1022', '1023'] }
-    },
-    { 
-        id: 7, 
-        name: '해산물요리', 
-        icon: 'fa-solid fa-fish',
-        filter: { codeId: 'COOKING_MAIN_INGREDIENT', detailCodeIds: ['1004', '1005', '1006', '1007', '1008'] }
-    },
-    { 
-        id: 8, 
-        name: '샐러드·건강식', 
-        icon: 'fa-solid fa-leaf',
-        filter: { codeId: 'COOKING_MENU_FORM', detailCodeIds: ['1017'] }
-    },
-    { 
-        id: 9, 
-        name: '초간단·자취요리', 
-        icon: 'fa-solid fa-clock', 
-        description: '10~15분, 재료 적은 레시피',
-        filter: { codeId: 'COOKING_LEVEL', detailCodeIds: ['1001', '1002', '1007', '1012'] }
-    },
-    { 
-        id: 10, 
-        name: '도시락', 
-        icon: 'fa-solid fa-box',
-        filter: { codeId: 'COOKING_TARGET', detailCodeIds: ['1012'] }
-    },
-    { 
-        id: 11, 
-        name: '야식·안주', 
-        icon: 'fa-solid fa-beer-mug-empty',
-        filter: { codeId: 'COOKING_MENU_FORM', detailCodeIds: ['1019', '1020'] }
-    },
-    { 
-        id: 12, 
-        name: '디저트·베이킹', 
-        icon: 'fa-solid fa-cookie-bite',
-        filter: { codeId: 'COOKING_DESSERT', detailCodeIds: ['1001', '1002', '1003', '1004', '1005'] }
-    }
-];
-
 // 자동저장 설정 (localStorage에 저장 - 계정별로 분리)
 const getAutoSaveKey = (memberId?: number): string => {
     if (memberId) {
@@ -138,7 +66,7 @@ const getInitialAutoSaveValue = (): boolean => {
 const isAutoSaveEnabled = ref<boolean>(getInitialAutoSaveValue());
 
 // 카테고리 라우트 링크 생성 (필터 정보를 쿼리 파라미터로 변환)
-const getCategoryRouteLink = (category: { id: number; name: string; filter: { codeId: string; detailCodeIds: string[] } }) => {
+const getCategoryRouteLink = (category: RecipeCategory) => {
     const { codeId, detailCodeIds } = category.filter;
     return {
         path: '/recipe/category',
@@ -508,14 +436,15 @@ onMounted(() => {
                         <span>카테고리</span>
                         <i class="fa-solid fa-chevron-down ml-1 text-xs"></i>
                     </button>
-                    <div class="hidden category-dropdown">
+                    <div ref="categoryDropdownRef" class="hidden category-dropdown">
                         <div class="category-grid">
-                        <router-link 
-                            v-for="category in recipeCategories" 
-                            :key="category.id"
-                            :to="getCategoryRouteLink(category)"
-                            class="category-item"
-                        >
+                            <router-link 
+                                v-for="category in RECIPE_CATEGORIES" 
+                                :key="category.id"
+                                :to="getCategoryRouteLink(category)"
+                                class="category-item"
+                                @click="closeCategoryDropdown"
+                            >
                                 <i :class="category.icon"></i>
                                 <div class="category-info">
                                     <span class="category-name">{{ category.name }}</span>

@@ -131,7 +131,7 @@ const routes: RouteRecordRaw[] = [
                 name: 'ingredientDetail',
                 component: () => import('@/views/pages/ingredient/IngredientDetail.vue')
             },
-            // 4-3. 랭킹
+            // 4-3. 랭킹 (단일 페이지 + 탭, 기간별 경로는 /ranking으로 리다이렉트)
             {
                 path: '/ranking',
                 name: 'ranking',
@@ -140,12 +140,12 @@ const routes: RouteRecordRaw[] = [
             {
                 path: '/ranking/weekly',
                 name: 'weeklyRanking',
-                component: () => import('@/views/pages/ranking/WeeklyRanking.vue')
+                redirect: { path: '/ranking', query: { period: '7d' } }
             },
             {
                 path: '/ranking/monthly',
                 name: 'monthlyRanking',
-                component: () => import('@/views/pages/ranking/MonthlyRanking.vue')
+                redirect: { path: '/ranking', query: { period: '30d' } }
             },
             // 4-4. FAQ
             {

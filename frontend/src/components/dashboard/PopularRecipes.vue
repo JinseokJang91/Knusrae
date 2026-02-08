@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { getPopularRecipes } from '@/api/recipeApi';
 import RecipeListItem from '@/components/recipe/RecipeListItem.vue';
 import type { PopularRecipeItem } from '@/types/recipe';
 import { useAppToast } from '@/utils/toast';
+
+const router = useRouter();
 
 const { showError } = useAppToast();
 
@@ -38,6 +41,11 @@ const changePeriod = (period: '24h' | '7d' | '30d') => {
     selectedPeriod.value = period;
     loadPopularRecipes();
 };
+
+// 전체 랭킹 페이지로 이동 (현재 선택 기간 유지)
+function goToFullRanking() {
+    router.push({ path: '/ranking', query: { period: selectedPeriod.value } });
+}
 
 // TOP 3 레시피 (순위 표시용)
 const topThreeRecipes = computed(() => {
@@ -78,6 +86,15 @@ onMounted(() => {
                 <p class="text-gray-600">지금 가장 많은 사람들이 관심을 갖는 레시피를 확인해보세요</p>
             </div>
             
+            <div class="flex items-center gap-4">
+            <!-- 전체 랭킹 보기 -->
+            <button
+                type="button"
+                class="px-4 py-2 rounded-lg font-medium text-primary-500 border border-primary-500 hover:bg-primary-50 transition-colors"
+                @click="goToFullRanking"
+            >
+                전체 랭킹 보기
+            </button>
             <!-- 기간 선택 탭 -->
             <div class="flex gap-2">
                 <button
@@ -93,6 +110,7 @@ onMounted(() => {
                 >
                     {{ option.label }}
                 </button>
+            </div>
             </div>
         </div>
         
