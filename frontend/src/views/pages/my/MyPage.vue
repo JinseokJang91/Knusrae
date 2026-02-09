@@ -38,6 +38,12 @@
                             <span>찜 목록</span>
                         </div>
                     </Tab>
+                    <Tab value="bookmarks">
+                        <div class="flex items-center gap-2">
+                            <i class="pi pi-bookmark"></i>
+                            <span>북마크 관리</span>
+                        </div>
+                    </Tab>
                 </TabList>
 
                 <TabPanels>
@@ -52,6 +58,9 @@
                     </TabPanel>
                     <TabPanel value="favorites">
                         <Favorites />
+                    </TabPanel>
+                    <TabPanel value="bookmarks">
+                        <Bookmarks />
                     </TabPanel>
                 </TabPanels>
             </Tabs>
@@ -72,6 +81,7 @@ import Profile from './Profile.vue';
 import Comments from './Comments.vue';
 import Inquiries from './Inquiries.vue';
 import Favorites from './Favorites.vue';
+import Bookmarks from './Bookmarks.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -80,7 +90,7 @@ const activeTab = ref('profile');
 // URL 쿼리 파라미터에서 탭 정보 읽기
 onMounted(() => {
     const tab = route.query.tab as string;
-    if (tab && ['profile', 'comments', 'inquiries', 'favorites'].includes(tab)) {
+    if (tab && ['profile', 'comments', 'inquiries', 'favorites', 'bookmarks'].includes(tab)) {
         activeTab.value = tab;
     }
 });

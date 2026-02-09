@@ -132,6 +132,7 @@
                         :key="recipe.id"
                         :recipe="recipe"
                         :category-label="recipe.primaryCategoryName || getCategoryName(recipe.category)"
+                        :is-bookmarked="bookmarkedRecipeIds.has(recipe.id)"
                         show-bookmark
                         show-comment-count
                         @click="viewRecipe"
@@ -145,12 +146,20 @@
                 </div>
             </template>
         </div>
+
+        <!-- 북마크 Dialog -->
+        <BookmarkDialog
+            v-model:visible="bookmarkDialogVisible"
+            :recipe-id="bookmarkRecipeId"
+            @bookmarked="onBookmarked"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import { getCommonCodesByGroup } from '@/api/commonCodeApi';
 import { getRecipeListAll, getFavorites, toggleFavorite as toggleFavoriteApi } from '@/api/recipeApi';
+import { getFolders, getBookmarksByFolder } from '@/api/bookmarkApi';
 import { useAuthStore } from '@/stores/authStore';
 import AutoComplete from 'primevue/autocomplete';
 import type { AutoCompleteCompleteEvent, AutoCompleteOptionSelectEvent } from 'primevue/autocomplete';
@@ -159,6 +168,8 @@ import Paginator from 'primevue/paginator';
 import type { PageState } from 'primevue/paginator';
 import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import RecipeGridCard from '@/components/recipe/RecipeGridCard.vue';
+import BookmarkDialog from '@/components/bookmark/BookmarkDialog.vue';
+import { useAppToast } from '@/utils/toast';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import type {
@@ -176,6 +187,13 @@ import type { Recipe as ApiRecipe } from '@/types/recipe';
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const { showWarn } = useAppToast();
+
+// 북마크 Dialog
+const bookmarkDialogVisible = ref(false);
+const bookmarkRecipeId = ref<number | null>(null);
+// 북마크된 레시피 ID 집합 (카드 선택 상태 표시용)
+const bookmarkedRecipeIds = ref<Set<number>>(new Set());
 
 // 반응형 데이터
 const categories = ref<Category[]>([]);
@@ -436,6 +454,9 @@ const loadRecipes = async (): Promise<void> => {
                 commentCount: recipe.commentCount ?? 0
             } as CategoryRecipeItem;
         });
+
+        // 북마크된 레시피 ID 목록 로드 (카드 선택 상태 표시용)
+        await loadBookmarkedRecipeIds();
     } catch (err: unknown) {
         console.error('레시피 로드 실패:', err);
         error.value = err instanceof Error ? err.message : '레시피를 불러오는데 실패했습니다.';
@@ -590,10 +611,39 @@ const viewRecipe = (recipeId: number): void => {
     router.push(`/recipe/${recipeId}`);
 };
 
-// Function > Button > 북마크 추가
-// TODO 북마크 목록 데이터로 관리 시 API 연결 필요
-const bookmarkRecipe = (_recipeId: number): void => {
-    // 북마크 기능은 추후 구현 예정
+// Function > Button > 북마크 Dialog 열기
+const bookmarkRecipe = (recipeId: number): void => {
+    if (!currentMemberId.value) {
+        showWarn('로그인이 필요한 기능입니다.');
+        router.push({ path: '/auth/login', query: { redirect: route.fullPath } });
+        return;
+    }
+    bookmarkRecipeId.value = recipeId;
+    bookmarkDialogVisible.value = true;
+};
+
+const onBookmarked = async (): Promise<void> => {
+    // 토스트는 BookmarkDialog에서 이미 표시됨. 북마크 목록 갱신
+    await loadBookmarkedRecipeIds();
+};
+
+/** 로그인 사용자의 북마크된 레시피 ID 목록 로드 (카드 선택 상태 표시용) */
+const loadBookmarkedRecipeIds = async () => {
+    if (!currentMemberId.value) {
+        bookmarkedRecipeIds.value = new Set();
+        return;
+    }
+    try {
+        const folders = await getFolders();
+        const ids = new Set<number>();
+        for (const folder of folders) {
+            const bookmarks = await getBookmarksByFolder(folder.id);
+            bookmarks.forEach((b) => ids.add(b.recipeId));
+        }
+        bookmarkedRecipeIds.value = ids;
+    } catch {
+        bookmarkedRecipeIds.value = new Set();
+    }
 };
 
 // Function > 페이징

@@ -7,6 +7,7 @@
                     <div class="recipe-overlay">
                         <div class="recipe-actions">
                             <Button
+                                v-if="showFavorite"
                                 :icon="favoritesMode ? 'pi pi-heart-fill' : (recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart')"
                                 :class="recipe.isFavorite || favoritesMode ? 'p-button-danger' : 'p-button-secondary'"
                                 size="large"
@@ -15,8 +16,8 @@
                             />
                             <Button
                                 v-if="showBookmark"
-                                icon="pi pi-bookmark"
-                                severity="secondary"
+                                :icon="isBookmarked ? 'pi pi-bookmark-fill' : 'pi pi-bookmark'"
+                                :class="isBookmarked ? 'p-button-primary' : 'p-button-secondary'"
                                 size="large"
                                 rounded
                                 @click.stop="$emit('bookmark', recipe.id)"
@@ -93,8 +94,12 @@ const props = withDefaults(
         categoryLabel?: string | null;
         /** 검색어 하이라이트 (지정 시 제목에 하이라이트 적용) */
         highlightKeyword?: string | null;
+        /** 찜 버튼 표시 여부 (예: 북마크 페이지에서는 숨김) */
+        showFavorite?: boolean;
         /** 북마크 버튼 표시 여부 */
         showBookmark?: boolean;
+        /** 북마크 선택 여부 (하나라도 폴더에 저장된 경우 true) */
+        isBookmarked?: boolean;
         /** 댓글 개수 표시 여부 */
         showCommentCount?: boolean;
         /** 찜 목록 모드: 항상 찜 채움 아이콘, 클릭 시 제거 */
@@ -105,7 +110,9 @@ const props = withDefaults(
         dateText?: string | null;
     }>(),
     {
+        showFavorite: true,
         showBookmark: true,
+        isBookmarked: false,
         showCommentCount: true,
         favoritesMode: false,
         showAuthor: true,

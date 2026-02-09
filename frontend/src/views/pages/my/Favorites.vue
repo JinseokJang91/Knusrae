@@ -69,7 +69,6 @@ import RecipeGridCard from '@/components/recipe/RecipeGridCard.vue';
 import type { RecipeGridItem } from '@/types/recipe';
 import { getFavorites, removeFavorite as removeFavoriteApi } from '@/api/recipeApi';
 import { fetchMemberInfo } from '@/utils/auth';
-import { useAppToast } from '@/utils/toast';
 import Paginator from 'primevue/paginator';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -80,7 +79,6 @@ type RecipeWithTips = Recipe & { cookingTips?: RecipeCookingTip[] };
 import type { PageState } from 'primevue/paginator';
 
 const router = useRouter();
-const { showSuccess } = useAppToast();
 
 // 반응형 데이터
 const favoriteRecipes = ref<FavoriteItem[]>([]);
@@ -128,8 +126,6 @@ const onRemoveFavorite = async (recipeId: number): Promise<void> => {
 
         // 로컬 상태에서 제거
         favoriteRecipes.value = favoriteRecipes.value.filter((fav) => fav.recipeId !== recipeId);
-
-        showSuccess('찜 목록에서 제거되었습니다.');
     } catch (err: unknown) {
         console.error('찜 삭제 실패:', err);
     }

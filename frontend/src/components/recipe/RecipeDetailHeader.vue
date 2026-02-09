@@ -22,12 +22,19 @@
                 />
             </div>
 
-            <!-- 좋아요 버튼 -->
-            <div class="absolute top-4 right-4 z-10">
+            <!-- 액션 버튼 (좋아요, 북마크) -->
+            <div class="absolute top-4 right-4 z-10 flex gap-2">
                 <Button
                     @click="$emit('toggle-like')"
                     :icon="isLiked ? 'pi pi-heart-fill' : 'pi pi-heart'"
                     :class="isLiked ? 'p-button-danger' : 'p-button-secondary'"
+                    size="large"
+                    rounded
+                />
+                <Button
+                    @click="$emit('toggle-bookmark')"
+                    :icon="isBookmarked ? 'pi pi-bookmark-fill' : 'pi pi-bookmark'"
+                    :class="isBookmarked ? 'p-button-primary' : 'p-button-secondary'"
                     size="large"
                     rounded
                 />
@@ -128,12 +135,15 @@ defineProps<{
     mainImage: RecipeImage | null;
     cookingTipsData: { servings: string | null; cookingTime: string | null; difficulty: string | null };
     isLiked: boolean;
+    /** 북마크 선택 여부 (하나라도 폴더에 저장된 경우 true) */
+    isBookmarked?: boolean;
     formatNumber: (num: number | null | undefined) => string;
 }>();
 
 defineEmits<{
     'go-back': [];
     'toggle-like': [];
+    'toggle-bookmark': [];
     share: [];
 }>();
 </script>

@@ -10,6 +10,7 @@ declare module 'vue' {
     AppToast: typeof import('./src/components/common/AppToast.vue')['default']
     AutoComplete: typeof import('primevue/autocomplete')['default']
     Avatar: typeof import('primevue/avatar')['default']
+    BookmarkDialog: typeof import('./src/components/bookmark/BookmarkDialog.vue')['default']
     Button: typeof import('primevue/button')['default']
     Card: typeof import('primevue/card')['default']
     CategorySection: typeof import('./src/components/dashboard/CategorySection.vue')['default']
@@ -17,6 +18,7 @@ declare module 'vue' {
     Dialog: typeof import('primevue/dialog')['default']
     Dropdown: typeof import('primevue/dropdown')['default']
     Editor: typeof import('primevue/editor')['default']
+    FolderFormDialog: typeof import('./src/components/bookmark/FolderFormDialog.vue')['default']
     Galleria: typeof import('primevue/galleria')['default']
     IngredientCard: typeof import('./src/components/ingredient/IngredientCard.vue')['default']
     IngredientGrid: typeof import('./src/components/ingredient/IngredientGrid.vue')['default']
@@ -55,5 +57,6 @@ declare module 'vue' {
   }
   export interface ComponentCustomProperties {
     StyleClass: typeof import('primevue/styleclass')['default']
+    Tooltip: typeof import('primevue/tooltip')['default']
   }
 }

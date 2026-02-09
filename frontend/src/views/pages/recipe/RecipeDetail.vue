@@ -24,9 +24,11 @@
                 :main-image="mainImage"
                 :cooking-tips-data="cookingTipsData"
                 :is-liked="isLiked"
+                :is-bookmarked="isBookmarked"
                 :format-number="formatNumber"
                 @go-back="goBack"
                 @toggle-like="toggleLike"
+                @toggle-bookmark="openBookmarkDialog"
                 @share="shareRecipe"
             />
 
@@ -105,6 +107,13 @@
             </div>
         </div>
         </Teleport>
+
+        <!-- 북마크 Dialog -->
+        <BookmarkDialog
+            v-model:visible="bookmarkDialogVisible"
+            :recipe-id="recipe?.id || null"
+            @bookmarked="onBookmarked"
+        />
     </div>
 </template>
 
@@ -114,6 +123,7 @@ import RecipeDetailGallery from '@/components/recipe/RecipeDetailGallery.vue';
 import RecipeDetailHeader from '@/components/recipe/RecipeDetailHeader.vue';
 import RecipeDetailIngredients from '@/components/recipe/RecipeDetailIngredients.vue';
 import RecipeDetailSteps from '@/components/recipe/RecipeDetailSteps.vue';
+import BookmarkDialog from '@/components/bookmark/BookmarkDialog.vue';
 import { ref, onMounted, computed, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
@@ -133,6 +143,7 @@ import {
 } from '@/api/recipeApi';
 import { getCommonCodesByGroup } from '@/api/commonCodeApi';
 import { createRecipeView } from '@/api/recipeViewApi';
+import { checkBookmark } from '@/api/bookmarkApi';
 import type { RecipeDetail, RecipeComment, RecipeImage, RecipeStep } from '@/types/recipe';
 
 const route = useRoute();
@@ -161,6 +172,7 @@ const editingImage = ref<File | null>(null);
 const editingImagePreview = ref<string | null>(null);
 const editingRemoveImage = ref(false);
 const isLiked = ref(false);
+const isBookmarked = ref(false);
 const showImageModal = ref(false);
 const selectedImage = ref<RecipeImage | null>(null);
 const selectedImageIndex = ref(0);
@@ -259,6 +271,10 @@ const fetchRecipeDetail = async () => {
         if (currentMemberId.value) {
             await checkFavoriteStatus();
         }
+        // 북마크 여부 확인
+        if (authStore.isLoggedIn) {
+            await checkBookmarkStatus();
+        }
         
         // 조회 기록 생성 (로그인 사용자만)
         if (authStore.isLoggedIn) {
@@ -284,6 +300,17 @@ const recordRecipeView = async (recipeId: number) => {
     } catch (err) {
         // 조회 기록 생성 실패는 사용자에게 노출하지 않음
         console.error('Failed to record recipe view:', err);
+    }
+};
+
+const checkBookmarkStatus = async () => {
+    const recipeId = route.params.id;
+    if (!recipeId || !currentMemberId.value) return;
+    try {
+        const result = await checkBookmark(Number(recipeId));
+        isBookmarked.value = result.isBookmarked;
+    } catch {
+        isBookmarked.value = false;
     }
 };
 
@@ -773,6 +800,30 @@ onMounted(() => {
     };
     initializePage();
 });
+
+// ============================================
+// 북마크 기능
+// ============================================
+const bookmarkDialogVisible = ref(false);
+
+/**
+ * 북마크 Dialog 열기
+ */
+const openBookmarkDialog = () => {
+    if (!isLoggedIn.value) {
+        showWarn('로그인이 필요한 기능입니다.');
+        router.push({ path: '/auth/login', query: { redirect: route.fullPath } });
+        return;
+    }
+    bookmarkDialogVisible.value = true;
+};
+
+/**
+ * 북마크 완료 처리 (토스트는 BookmarkDialog에서 이미 표시됨)
+ */
+const onBookmarked = async () => {
+    await checkBookmarkStatus();
+};
 </script>
 
 <style scoped>
