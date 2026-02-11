@@ -70,7 +70,6 @@
                             class="w-full"
                             disabled
                         />
-                        <p class="text-sm text-gray-500 mt-1">로그인 계정이라 수정할 수 없습니다.</p>
                     </div>
                     <div class="col-span-12">
                         <label class="block text-sm font-medium mb-2">자기소개</label>

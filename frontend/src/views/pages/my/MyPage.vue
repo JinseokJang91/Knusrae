@@ -23,7 +23,7 @@
                     <Tab value="comments">
                         <div class="flex items-center gap-2">
                             <i class="pi pi-comments"></i>
-                            <span>댓글 관리</span>
+                            <span>내 댓글</span>
                         </div>
                     </Tab>
                     <Tab value="inquiries">

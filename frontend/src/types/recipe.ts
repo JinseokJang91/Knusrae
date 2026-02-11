@@ -99,6 +99,14 @@ export interface RecipeComment {
     updatedAt?: string;
 }
 
+/** 마이페이지 내 댓글 한 건: 댓글 + 레시피 요약 */
+export interface MyCommentItem {
+    comment: RecipeComment;
+    recipeId: number;
+    recipeTitle: string;
+    recipeThumbnail?: string | null;
+}
+
 export interface Recipe {
     id: number;
     title: string;

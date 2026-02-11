@@ -5,7 +5,8 @@ import type {
     Recipe,
     RecipeDetail,
     RecipeComment,
-    FavoriteItem
+    FavoriteItem,
+    MyCommentItem
 } from '@/types/recipe';
 
 const BASE_URL = getApiBaseUrl('cook');
@@ -127,6 +128,31 @@ export interface RecipeCommentsPageResponse {
     currentPage: number;
     totalPages: number;
     totalComments: number;
+}
+
+/** 내 댓글 목록 페이징 응답 */
+export interface MyCommentsPageResponse {
+    content: MyCommentItem[];
+    currentPage: number;
+    totalPages: number;
+    totalElements: number;
+    hasNext?: boolean;
+    hasPrevious?: boolean;
+}
+
+/**
+ * 내 댓글 목록 조회 (페이징, 레시피 요약 포함)
+ */
+export async function getMyComments(
+    memberId: number,
+    page: number,
+    size: number
+): Promise<MyCommentsPageResponse> {
+    return await httpJson<MyCommentsPageResponse>(
+        BASE_URL,
+        `/api/recipe/comments/member/${memberId}?page=${page}&size=${size}`,
+        { method: 'GET' }
+    );
 }
 
 /**
