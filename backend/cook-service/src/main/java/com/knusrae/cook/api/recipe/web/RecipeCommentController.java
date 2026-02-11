@@ -57,6 +57,20 @@ public class RecipeCommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
 
+    // READ - 특정 회원이 작성한 댓글 목록 조회 (페이징, 레시피 요약 포함)
+    @GetMapping("/member/{memberId}")
+    public ResponseEntity<Map<String, Object>> getCommentsByMemberId(
+            @PathVariable Long memberId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        log.debug("Fetching comments by member: memberId={}, page={}, size={}", memberId, page, size);
+        Map<String, Object> response = recipeCommentService.getCommentsByMemberId(memberId, page, size);
+        int count = ((List<?>) response.get("content")).size();
+        log.info("Retrieved {} comments for member: {} (page: {}, size: {})", count, memberId, page, size);
+        return ResponseEntity.ok(response);
+    }
+
     // READ - 특정 레시피의 댓글 목록 조회
     @GetMapping("/{recipeId}")
     public ResponseEntity<List<RecipeCommentDto>> getCommentsByRecipeId(@PathVariable Long recipeId) {

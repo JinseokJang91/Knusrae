@@ -8,6 +8,7 @@ import com.knusrae.cook.api.recipe.domain.entity.Recipe;
 import com.knusrae.cook.api.recipe.domain.entity.RecipeComment;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeCommentRepository;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeRepository;
+import com.knusrae.cook.api.recipe.dto.MemberCommentItemDto;
 import com.knusrae.cook.api.recipe.dto.RecipeCommentDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -276,5 +277,46 @@ public class RecipeCommentService {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + recipeId));
         return recipeCommentRepository.countByRecipe(recipe);
+    }
+
+    /**
+     * 특정 회원이 작성한 댓글 목록 조회 (페이징). 각 항목에 레시피 요약(recipeId, title, thumbnail) 포함.
+     */
+    public Map<String, Object> getCommentsByMemberId(Long memberId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RecipeComment> commentPage = recipeCommentRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId, pageable);
+        List<RecipeComment> comments = commentPage.getContent();
+        List<Long> memberIds = comments.stream()
+                .map(RecipeComment::getMemberId)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<Long, Member> memberMap = memberRepository.findAllById(memberIds).stream()
+                .collect(Collectors.toMap(Member::getId, m -> m));
+
+        List<MemberCommentItemDto> content = new ArrayList<>();
+        for (RecipeComment comment : comments) {
+            Member member = memberMap.get(comment.getMemberId());
+            String memberName = member != null ? member.getName() : "사용자";
+            String memberNickname = member != null ? member.getNickname() : null;
+            String memberProfileImage = member != null ? member.getProfileImage() : null;
+            RecipeCommentDto commentDto = RecipeCommentDto.fromEntity(comment, memberName, memberNickname, memberProfileImage);
+            Recipe recipe = comment.getRecipe();
+            MemberCommentItemDto item = MemberCommentItemDto.builder()
+                    .comment(commentDto)
+                    .recipeId(recipe.getId())
+                    .recipeTitle(recipe.getTitle())
+                    .recipeThumbnail(recipe.getThumbnail())
+                    .build();
+            content.add(item);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", content);
+        response.put("currentPage", commentPage.getNumber());
+        response.put("totalPages", commentPage.getTotalPages());
+        response.put("totalElements", commentPage.getTotalElements());
+        response.put("hasNext", commentPage.hasNext());
+        response.put("hasPrevious", commentPage.hasPrevious());
+        return response;
     }
 }
