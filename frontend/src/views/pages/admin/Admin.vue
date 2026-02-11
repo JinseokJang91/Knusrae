@@ -25,6 +25,12 @@
                 @click="router.push('/admin/ingredient-requests')"
             />
             <Button
+                label="1:1 문의 목록"
+                icon="pi pi-inbox"
+                class="admin-btn"
+                @click="router.push('/admin/inquiries')"
+            />
+            <Button
                 label="공통코드 관리"
                 icon="pi pi-book"
                 class="admin-btn"

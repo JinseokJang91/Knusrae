@@ -60,6 +60,11 @@ const routes: RouteRecordRaw[] = [
                 redirect: '/my?tab=comments'
             },
             {
+                path: '/my/inquiries/:id',
+                name: 'inquiryDetail',
+                component: () => import('@/views/pages/my/InquiryDetail.vue')
+            },
+            {
                 path: '/my/inquiries',
                 redirect: '/my?tab=inquiries'
             },
@@ -97,6 +102,11 @@ const routes: RouteRecordRaw[] = [
                 path: '/admin/ingredient-requests',
                 name: 'adminIngredientRequestList',
                 component: () => import('@/views/pages/admin/IngredientRequestList.vue')
+            },
+            {
+                path: '/admin/inquiries',
+                name: 'adminInquiryList',
+                component: () => import('@/views/pages/admin/AdminInquiryList.vue')
             },
             {
                 path: '/admin/common-codes',
