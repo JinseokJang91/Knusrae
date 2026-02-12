@@ -202,6 +202,28 @@ public class RecipeController {
     }
     
     /**
+     * 팔로잉 피드 조회 (팔로우한 크리에이터의 레시피)
+     * 
+     * @param authentication Spring Security Authentication 객체
+     * @param page 페이지 번호 (기본 0)
+     * @param size 페이지 크기 (기본 20)
+     * @return 팔로우한 크리에이터의 레시피 목록
+     */
+    @GetMapping("/following-feed")
+    public ResponseEntity<List<RecipeDto>> getFollowingFeed(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Long memberId = AuthenticationUtils.extractMemberId(authentication);
+        log.info("Fetching following feed: memberId={}, page={}, size={}", memberId, page, size);
+        
+        List<RecipeDto> recipes = recipeService.getFollowingFeed(memberId, page, size);
+        log.info("Retrieved {} recipes from following feed", recipes.size());
+        
+        return ResponseEntity.ok(recipes);
+    }
+    
+    /**
      * RecipeDto 검증
      */
     private void validateRecipeDto(RecipeDto dto) {

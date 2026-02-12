@@ -22,7 +22,10 @@ import com.knusrae.cook.api.recipe.domain.repository.RecipeRepository;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeCommentRepository;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeFavoriteRepository;
 import com.knusrae.common.domain.repository.MemberRepository;
+import com.knusrae.common.domain.repository.FollowRepository;
 import com.knusrae.cook.api.recipe.domain.constants.RecipeConstants;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +51,7 @@ public class RecipeService {
     private final ImageStorage imageStorage;
     private final RecipeImageRepository recipeImageRepository;
     private final RecipeStepRepository recipeStepRepository;
+    private final FollowRepository followRepository;
     private final CommonCodeDetailRepository commonCodeDetailRepository;
     private final MemberRepository memberRepository;
     private final EntityManager entityManager;
@@ -459,5 +463,41 @@ public class RecipeService {
             imageStorage.deleteByKey(image.getStorageKey());
         }
         recipeRepository.delete(recipe);
+    }
+    
+    /**
+     * 팔로잉 피드 조회 (팔로우한 크리에이터의 레시피)
+     * 
+     * @param memberId 회원 ID
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @return 팔로우한 크리에이터의 레시피 목록
+     */
+    public List<RecipeDto> getFollowingFeed(Long memberId, int page, int size) {
+        log.info("팔로잉 피드 조회: memberId={}, page={}, size={}", memberId, page, size);
+        
+        // 팔로우 중인 크리에이터 ID 목록 조회
+        List<Long> followingIds = followRepository.findFollowingIdsByFollowerId(memberId);
+        
+        if (followingIds.isEmpty()) {
+            log.info("팔로우 중인 크리에이터가 없습니다.");
+            return new ArrayList<>();
+        }
+        
+        log.info("팔로우 중인 크리에이터 수: {}", followingIds.size());
+        
+        // 팔로우한 크리에이터들의 레시피 조회 (최신순)
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Recipe> recipes = recipeRepository.findByMemberIdInAndStatusAndVisibility(
+                followingIds, 
+                Status.PUBLISHED, 
+                Visibility.PUBLIC,
+                pageRequest
+        );
+        
+        log.info("팔로잉 피드 레시피 수: {}", recipes.size());
+        
+        // 기존 메서드를 사용하여 썸네일, 회원 정보, 댓글 수 등을 설정
+        return setThumbnailsForRecipeList(recipes);
     }
 }

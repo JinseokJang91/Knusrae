@@ -88,5 +88,29 @@ public class Member {
             this.profileImage = profileImage;
         }
     }
+    
+    // 팔로워 카운트 증가
+    public void increaseFollowerCount() {
+        this.followerCount++;
+    }
+    
+    // 팔로워 카운트 감소
+    public void decreaseFollowerCount() {
+        if (this.followerCount > 0) {
+            this.followerCount--;
+        }
+    }
+    
+    // 팔로잉 카운트 증가
+    public void increaseFollowingCount() {
+        this.followingCount++;
+    }
+    
+    // 팔로잉 카운트 감소
+    public void decreaseFollowingCount() {
+        if (this.followingCount > 0) {
+            this.followingCount--;
+        }
+    }
 }
 

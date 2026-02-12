@@ -75,6 +75,45 @@ public class MemberController {
     }
 
     /**
+     * 특정 회원 정보 조회 (공개 프로필)
+     * 
+     * @param memberId 조회할 회원 ID
+     * @return 회원 정보 (민감 정보 제외)
+     */
+    @GetMapping("/{memberId}")
+    public ResponseEntity<MemberDto> retrieveMemberById(@PathVariable Long memberId) {
+        try {
+            log.info("GET /api/member/{} - 회원 정보 조회", memberId);
+
+            // Member 조회
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> {
+                        log.error("GET /api/member/{} - 회원을 찾을 수 없습니다.", memberId);
+                        return new RuntimeException("회원을 찾을 수 없습니다.");
+                    });
+
+            // DTO 변환 (민감 정보 제외: email, phone)
+            MemberDto memberDto = MemberDto.builder()
+                    .id(member.getId())
+                    .name(member.getName())
+                    .nickname(member.getNickname())
+                    .profileImage(member.getProfileImage())
+                    .bio(member.getBio())
+                    .followerCount(member.getFollowerCount())
+                    .followingCount(member.getFollowingCount())
+                    .build();
+
+            return ResponseEntity.ok(memberDto);
+        } catch (RuntimeException e) {
+            log.error("GET /api/member/{} - 회원 조회 실패: {}", memberId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (Exception e) {
+            log.error("GET /api/member/{} - 예상치 못한 오류 발생", memberId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * 프로필 정보 업데이트
      * 
      * @param authentication Spring Security Authentication 객체
