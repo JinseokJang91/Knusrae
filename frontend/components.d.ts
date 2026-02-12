@@ -20,6 +20,7 @@ declare module 'vue' {
     Dropdown: typeof import('primevue/dropdown')['default']
     Editor: typeof import('primevue/editor')['default']
     FolderFormDialog: typeof import('./src/components/bookmark/FolderFormDialog.vue')['default']
+    FollowListDialog: typeof import('./src/components/follow/FollowListDialog.vue')['default']
     Galleria: typeof import('primevue/galleria')['default']
     IngredientCard: typeof import('./src/components/ingredient/IngredientCard.vue')['default']
     IngredientGrid: typeof import('./src/components/ingredient/IngredientGrid.vue')['default']

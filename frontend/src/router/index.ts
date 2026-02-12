@@ -163,6 +163,19 @@ const routes: RouteRecordRaw[] = [
                 name: 'faq',
                 component: () => import('@/views/pages/community/FAQ.vue')
             },
+            // 5. 팔로우 관련
+            // 5-1. 다른 사용자 프로필
+            {
+                path: '/user/:id',
+                name: 'userProfile',
+                component: () => import('@/views/pages/user/UserProfile.vue')
+            },
+            // 5-2. 팔로잉 피드
+            {
+                path: '/feed/following',
+                name: 'followingFeed',
+                component: () => import('@/views/pages/feed/FollowingFeed.vue')
+            },
         ]
     },
     {

@@ -25,10 +25,15 @@
                 :cooking-tips-data="cookingTipsData"
                 :is-liked="isLiked"
                 :is-bookmarked="isBookmarked"
+                :is-recipe-author="isRecipeAuthor"
+                :is-following="isFollowing"
+                :follow-disabled="!isLoggedIn"
                 :format-number="formatNumber"
                 @go-back="goBack"
                 @toggle-like="toggleLike"
                 @toggle-bookmark="openBookmarkDialog"
+                @toggle-follow="toggleFollow"
+                @go-to-author-profile="goToAuthorProfile"
                 @share="shareRecipe"
             />
 
@@ -144,6 +149,7 @@ import {
 import { getCommonCodesByGroup } from '@/api/commonCodeApi';
 import { createRecipeView } from '@/api/recipeViewApi';
 import { checkBookmark } from '@/api/bookmarkApi';
+import { checkFollowing, followUser, unfollowUser } from '@/api/followApi';
 import type { RecipeDetail, RecipeComment, RecipeImage, RecipeStep } from '@/types/recipe';
 
 const route = useRoute();
@@ -173,6 +179,7 @@ const editingImagePreview = ref<string | null>(null);
 const editingRemoveImage = ref(false);
 const isLiked = ref(false);
 const isBookmarked = ref(false);
+const isFollowing = ref(false);
 const showImageModal = ref(false);
 const selectedImage = ref<RecipeImage | null>(null);
 const selectedImageIndex = ref(0);
@@ -276,6 +283,11 @@ const fetchRecipeDetail = async () => {
             await checkBookmarkStatus();
         }
         
+        // 팔로우 여부 확인 (로그인 사용자이고 본인 레시피가 아닌 경우)
+        if (authStore.isLoggedIn && response.memberId !== currentMemberId.value) {
+            await checkFollowStatus();
+        }
+        
         // 조회 기록 생성 (로그인 사용자만)
         if (authStore.isLoggedIn) {
             await recordRecipeView(Number(recipeId));
@@ -371,6 +383,47 @@ const toggleLike = async () => {
     );
     if (response) {
         isLiked.value = response.isFavorite;
+    }
+};
+
+const checkFollowStatus = async () => {
+    try {
+        if (!recipe.value?.memberId) return;
+        const response = await checkFollowing(recipe.value.memberId);
+        isFollowing.value = response.isFollowing;
+    } catch (err) {
+        console.error('팔로우 여부 확인 실패:', err);
+    }
+};
+
+const toggleFollow = async () => {
+    if (!isLoggedIn.value) {
+        showWarn('로그인이 필요한 기능입니다.');
+        router.push({ path: '/auth/login', query: { redirect: route.fullPath } });
+        return;
+    }
+    
+    if (!recipe.value?.memberId) return;
+    
+    try {
+        if (isFollowing.value) {
+            await unfollowUser(recipe.value.memberId);
+            isFollowing.value = false;
+            showSuccess('언팔로우했습니다.');
+        } else {
+            await followUser(recipe.value.memberId);
+            isFollowing.value = true;
+            showSuccess('팔로우했습니다.');
+        }
+    } catch (err) {
+        console.error('팔로우 토글 실패:', err);
+        showError('팔로우 처리에 실패했습니다.');
+    }
+};
+
+const goToAuthorProfile = () => {
+    if (recipe.value?.memberId) {
+        router.push(`/user/${recipe.value.memberId}`);
     }
 };
 

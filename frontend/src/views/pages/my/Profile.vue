@@ -83,17 +83,25 @@
                     </div>
                     <div class="col-span-12 md:col-span-6">
                         <label class="block text-sm font-medium mb-2">팔로워</label>
-                        <div class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-50 text-gray-700">
-                            {{ form.followerCount || 0 }}
+                        <div 
+                            class="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between"
+                            @click="showFollowersDialog = true"
+                        >
+                            <span>{{ form.followerCount || 0 }}</span>
+                            <i class="pi pi-angle-right text-gray-400"></i>
                         </div>
-                        <p class="text-sm text-gray-500 mt-1">준비 중입니다.</p>
+                        <p class="text-sm text-gray-500 mt-1">클릭하여 목록 보기</p>
                     </div>
                     <div class="col-span-12 md:col-span-6">
                         <label class="block text-sm font-medium mb-2">팔로잉</label>
-                        <div class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-50 text-gray-700">
-                            {{ form.followingCount || 0 }}
+                        <div 
+                            class="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between"
+                            @click="showFollowingsDialog = true"
+                        >
+                            <span>{{ form.followingCount || 0 }}</span>
+                            <i class="pi pi-angle-right text-gray-400"></i>
                         </div>
-                        <p class="text-sm text-gray-500 mt-1">준비 중입니다.</p>
+                        <p class="text-sm text-gray-500 mt-1">클릭하여 목록 보기</p>
                     </div>
                 </div>
 
@@ -118,6 +126,23 @@
                 </div>
             </div>
         </div>
+
+        <!-- 팔로워/팔로잉 목록 Dialog -->
+        <FollowListDialog
+            v-if="authStore.memberInfo?.id"
+            v-model:visible="showFollowersDialog"
+            :memberId="authStore.memberInfo.id"
+            type="followers"
+            @update:visible="handleDialogClose"
+        />
+        
+        <FollowListDialog
+            v-if="authStore.memberInfo?.id"
+            v-model:visible="showFollowingsDialog"
+            :memberId="authStore.memberInfo.id"
+            type="followings"
+            @update:visible="handleDialogClose"
+        />
     </div>
 </template>
 
@@ -132,6 +157,7 @@ import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
+import FollowListDialog from '@/components/follow/FollowListDialog.vue';
 
 const authStore = useAuthStore();
 const { showSuccess, showError } = useAppToast();
@@ -151,6 +177,8 @@ const profileImageFile = ref<File | null>(null);
 const initialLoading = ref(true);
 const initialError = ref<string | null>(null);
 const saving = ref(false);
+const showFollowersDialog = ref(false);
+const showFollowingsDialog = ref(false);
 
 /** 저장된 스냅샷(취소 시 복원용) */
 const savedSnapshot = ref<ProfileFormState | null>(null);
@@ -235,6 +263,11 @@ const onSave = async () => {
     } finally {
         saving.value = false;
     }
+};
+
+const handleDialogClose = async () => {
+    // Dialog가 닫힐 때 프로필 정보를 다시 로드하여 카운트 업데이트
+    await loadMemberInfo();
 };
 
 onMounted(() => {

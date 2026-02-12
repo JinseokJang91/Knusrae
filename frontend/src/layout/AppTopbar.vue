@@ -421,6 +421,10 @@ onMounted(() => {
                     <i class="fa-solid fa-ranking-star"></i>
                     <span>랭킹</span>
                 </router-link>
+                <router-link v-if="authStore.isLoggedIn" to="/feed/following" class="menu-item">
+                    <i class="pi pi-users"></i>
+                    <span>팔로잉 피드</span>
+                </router-link>
                 <div class="menu-item-wrapper">
                     <button
                         type="button"

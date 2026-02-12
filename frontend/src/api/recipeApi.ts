@@ -231,3 +231,15 @@ export async function deleteComment(commentId: number, memberId: number): Promis
         method: 'DELETE'
     });
 }
+
+/**
+ * 팔로잉 피드 조회 (팔로우한 크리에이터의 레시피)
+ */
+export async function getFollowingFeed(page: number = 0, size: number = 20): Promise<Recipe[]> {
+    const response = await httpJson<Recipe[]>(
+        BASE_URL,
+        `/api/recipe/following-feed?page=${page}&size=${size}`,
+        { method: 'GET' }
+    );
+    return response;
+}

@@ -101,7 +101,10 @@
             <!-- 작성자 정보 -->
             <div class="flex items-center justify-between py-4 border-t border-gray-200">
                 <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                    <div 
+                        class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                        @click="$emit('go-to-author-profile')"
+                    >
                         <img
                             v-if="recipe.memberProfileImage"
                             :src="recipe.memberProfileImage"
@@ -111,16 +114,35 @@
                         <i v-else class="pi pi-user text-gray-600"></i>
                     </div>
                     <div>
-                        <div class="text-lg font-medium text-gray-800">{{ recipe.memberNickname || recipe.memberName }}</div>
+                        <div 
+                            class="text-lg font-medium text-gray-800 cursor-pointer hover:text-primary-600 transition-colors"
+                            @click="$emit('go-to-author-profile')"
+                        >
+                            {{ recipe.memberNickname || recipe.memberName }}
+                        </div>
                     </div>
                 </div>
-                <button
-                    @click="$emit('share')"
-                    class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                    <i class="pi pi-share-alt"></i>
-                    <span>공유</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <!-- 팔로우 버튼 (본인이 아닌 경우만) -->
+                    <Button
+                        v-if="!isRecipeAuthor"
+                        :label="isFollowing ? '팔로잉' : '팔로우'"
+                        :icon="isFollowing ? 'pi pi-check' : 'pi pi-plus'"
+                        :severity="isFollowing ? 'secondary' : 'primary'"
+                        :outlined="isFollowing"
+                        size="small"
+                        @click="$emit('toggle-follow')"
+                        :disabled="followDisabled"
+                    />
+                    <!-- 공유 버튼 -->
+                    <button
+                        @click="$emit('share')"
+                        class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                        <i class="pi pi-share-alt"></i>
+                        <span>공유</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -138,12 +160,20 @@ defineProps<{
     /** 북마크 선택 여부 (하나라도 폴더에 저장된 경우 true) */
     isBookmarked?: boolean;
     formatNumber: (num: number | null | undefined) => string;
+    /** 현재 사용자가 레시피 작성자인지 여부 */
+    isRecipeAuthor?: boolean;
+    /** 팔로우 여부 */
+    isFollowing?: boolean;
+    /** 팔로우 버튼 비활성화 여부 (로그인하지 않은 경우) */
+    followDisabled?: boolean;
 }>();
 
 defineEmits<{
     'go-back': [];
     'toggle-like': [];
     'toggle-bookmark': [];
+    'toggle-follow': [];
+    'go-to-author-profile': [];
     share: [];
 }>();
 </script>
