@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "bookmark_folder",
        indexes = {
-           @Index(name = "idx_member_id", columnList = "member_id"),
-           @Index(name = "idx_member_sort", columnList = "member_id, sort_order")
+           @Index(name = "idx_bookmark_folder_member_id", columnList = "member_id"),
+           @Index(name = "idx_bookmark_folder_member_sort", columnList = "member_id, sort_order")
        })
 @Getter
 @Builder

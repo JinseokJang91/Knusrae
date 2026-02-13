@@ -89,27 +89,29 @@ public class Member {
         }
     }
     
-    // 팔로워 카운트 증가
+    // 팔로워 카운트 증가 (DB에 null인 경우 대비)
     public void increaseFollowerCount() {
-        this.followerCount++;
+        this.followerCount = (this.followerCount != null ? this.followerCount : 0L) + 1L;
     }
     
     // 팔로워 카운트 감소
     public void decreaseFollowerCount() {
-        if (this.followerCount > 0) {
-            this.followerCount--;
+        long current = this.followerCount != null ? this.followerCount : 0L;
+        if (current > 0) {
+            this.followerCount = current - 1L;
         }
     }
     
-    // 팔로잉 카운트 증가
+    // 팔로잉 카운트 증가 (DB에 null인 경우 대비)
     public void increaseFollowingCount() {
-        this.followingCount++;
+        this.followingCount = (this.followingCount != null ? this.followingCount : 0L) + 1L;
     }
     
     // 팔로잉 카운트 감소
     public void decreaseFollowingCount() {
-        if (this.followingCount > 0) {
-            this.followingCount--;
+        long current = this.followingCount != null ? this.followingCount : 0L;
+        if (current > 0) {
+            this.followingCount = current - 1L;
         }
     }
 }

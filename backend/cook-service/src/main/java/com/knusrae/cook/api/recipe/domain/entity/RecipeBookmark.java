@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
            @UniqueConstraint(columnNames = {"folder_id", "recipe_id"})
        },
        indexes = {
-           @Index(name = "idx_folder_id", columnList = "folder_id"),
-           @Index(name = "idx_member_id", columnList = "member_id"),
-           @Index(name = "idx_recipe_id", columnList = "recipe_id")
+           @Index(name = "idx_recipe_bookmark_folder_id", columnList = "folder_id"),
+           @Index(name = "idx_recipe_bookmark_member_id", columnList = "member_id"),
+           @Index(name = "idx_recipe_bookmark_recipe_id", columnList = "recipe_id")
        })
 @Getter
 @Builder
