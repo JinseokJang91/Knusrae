@@ -86,10 +86,17 @@
         <!-- body : 레시피 목록 섹션 -->
         <div class="recipe-section">
             <div class="flex justify-between items-center mb-3">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 flex-wrap">
                     <h2 class="text-2xl font-bold text-gray-900 m-0">{{ getCategoryTitle() }}</h2>
                     <div class="recipe-count-bubble">
                         <span class="text-primary font-bold">{{ totalDisplayRecipes.toLocaleString() }}</span>개의 레시피가 준비되어 있어요!
+                    </div>
+                    <div v-if="authStore.isLoggedIn" class="flex items-center gap-2" @mousedown.stop>
+                        <span class="text-sm text-gray-600 whitespace-nowrap">팔로잉 피드 보기</span>
+                        <ToggleSwitch
+                            v-model="showFollowingFeed"
+                            @update:modelValue="(value: boolean) => onFollowingFeedToggle(value)"
+                        />
                     </div>
                 </div>
                 <SelectButton
@@ -119,9 +126,9 @@
             <PageStateBlock
                 v-else-if="displayRecipes.length === 0"
                 state="empty"
-                empty-icon="pi pi-book"
-                empty-title="레시피가 없습니다"
-                :empty-message="selectedCategory ? '선택한 카테고리에 레시피가 없습니다.' : '등록된 레시피가 없습니다.'"
+                :empty-icon="showFollowingFeed ? 'pi pi-users' : 'pi pi-book'"
+                :empty-title="showFollowingFeed ? '팔로잉 피드가 비어있습니다' : '레시피가 없습니다'"
+                :empty-message="showFollowingFeed ? '팔로우한 크리에이터가 없거나, 아직 레시피를 등록하지 않았습니다.' : (selectedCategory ? '선택한 카테고리에 레시피가 없습니다.' : '등록된 레시피가 없습니다.')"
             />
 
             <!-- 레시피 목록이 있는 경우 -->
@@ -158,7 +165,7 @@
 
 <script setup lang="ts">
 import { getCommonCodesByGroup } from '@/api/commonCodeApi';
-import { getRecipeListAll, getFavorites, toggleFavorite as toggleFavoriteApi } from '@/api/recipeApi';
+import { getRecipeListAll, getFavorites, getFollowingFeed, toggleFavorite as toggleFavoriteApi } from '@/api/recipeApi';
 import { getFolders, getBookmarksByFolder } from '@/api/bookmarkApi';
 import { useAuthStore } from '@/stores/authStore';
 import AutoComplete from 'primevue/autocomplete';
@@ -269,9 +276,47 @@ const sortOptions: SortOption[] = [
 ];
 const sortBy = ref<string>(SORT_LATEST);
 
+// 팔로잉 피드 보기 토글 (로그인 사용자만 노출)
+const showFollowingFeed = ref<boolean>(false);
+const followingFeedRecipes = ref<CategoryRecipeItem[]>([]);
+
+// 팔로잉 피드에 카테고리 필터 적용 (filteredRecipes와 동일한 로직)
+const filteredFollowingFeedRecipes = computed(() => {
+    let filtered = followingFeedRecipes.value;
+    if (shortcutMode.value && shortcutCodeId.value && shortcutDetailIds.value.length > 0) {
+        filtered = filtered.filter((recipe) => {
+            if (!recipe.categoryKeys || recipe.categoryKeys.length === 0) return false;
+            return shortcutDetailIds.value.some((detailId) => {
+                const targetKey = `${shortcutCodeId.value}-${detailId}`;
+                return recipe.categoryKeys.includes(targetKey);
+            });
+        });
+    } else if (selectedCategory.value) {
+        const selectedKey = `${selectedMainCategory.value}-${selectedCategory.value}`;
+        filtered = filtered.filter(
+            (recipe) => recipe.categoryKeys && recipe.categoryKeys.includes(selectedKey)
+        );
+    } else if (selectedMainCategory.value) {
+        filtered = filtered.filter(
+            (recipe) =>
+                recipe.categoryKeys &&
+                recipe.categoryKeys.some((key) => key.startsWith(`${selectedMainCategory.value}-`))
+        );
+    }
+    return filtered;
+});
+
+// 정렬/표시용 소스: 팔로잉 피드 모드면 카테고리 필터 적용된 팔로잉 목록, 아니면 기존 카테고리/검색 목록
+const listSourceForSort = computed(() => {
+    if (showFollowingFeed.value) {
+        return filteredFollowingFeedRecipes.value;
+    }
+    return searchResults.value.length > 0 ? searchResults.value : filteredRecipes.value;
+});
+
 // 정렬된 레시피 목록 (표시용 소스)
 const sortedRecipes = computed(() => {
-    const source = searchResults.value.length > 0 ? searchResults.value : filteredRecipes.value;
+    const source = listSourceForSort.value;
     const list = [...source];
     if (sortBy.value === SORT_LATEST) {
         list.sort((a, b) => {
@@ -366,6 +411,63 @@ const loadCategories = async (): Promise<void> => {
                 recipeCount: 0
             }
         ];
+    }
+};
+
+// Function > 팔로잉 피드 보기 토글
+const onFollowingFeedToggle = async (value: boolean): Promise<void> => {
+    first.value = 0;
+    if (value) {
+        loading.value = true;
+        try {
+            await loadFollowingFeed();
+        } finally {
+            loading.value = false;
+        }
+    } else {
+        followingFeedRecipes.value = [];
+    }
+};
+
+// Function > 팔로잉 피드 레시피 조회 (API Recipe → CategoryRecipeItem 매핑)
+const loadFollowingFeed = async (): Promise<void> => {
+    if (!currentMemberId.value) {
+        followingFeedRecipes.value = [];
+        return;
+    }
+    try {
+        const feedRecipes = await getFollowingFeed(0, 100);
+        let favoriteRecipeIds: number[] = [];
+        try {
+            const favoritesList = await getFavorites(currentMemberId.value);
+            favoriteRecipeIds = favoritesList.map((fav) => fav.recipeId);
+        } catch {
+            // 무시
+        }
+        followingFeedRecipes.value = (feedRecipes as ApiRecipe[]).map((recipe: ApiRecipe) => {
+            const cookingTime = extractCookingTime(recipe.cookingTips);
+            const servings = extractServings(recipe.cookingTips);
+            const isFavorite = favoriteRecipeIds.includes(recipe.id);
+            const categoryKeys = extractCategoryKeys(recipe);
+            const categoryIds = extractCategoryIds(recipe);
+            const firstCategory = recipe.categories?.[0];
+            const primaryCategoryId = firstCategory?.detailCodeId || categoryIds[0] || null;
+            const primaryCategoryName = firstCategory?.detailName || firstCategory?.codeName || null;
+            return {
+                ...recipe,
+                categoryKeys,
+                categoryIds,
+                category: primaryCategoryId,
+                primaryCategoryName,
+                cookingTime,
+                servings,
+                isFavorite,
+                commentCount: recipe.commentCount ?? 0
+            } as CategoryRecipeItem;
+        });
+    } catch (err) {
+        console.error('팔로잉 피드 로드 실패:', err);
+        followingFeedRecipes.value = [];
     }
 };
 
@@ -557,6 +659,10 @@ const getCategoryName = (categoryValue: string | null | undefined): string | nul
 
 // Function > header 타이틀 생성 (메인 카테고리 + 서브 카테고리)
 const getCategoryTitle = (): string => {
+    // 팔로잉 피드 보기 모드
+    if (showFollowingFeed.value) {
+        return '팔로잉 피드';
+    }
     // 쇼트컷 모드: AppTopbar 카테고리 드롭다운에서 진입한 경우
     if (shortcutMode.value && shortcutName.value) {
         return shortcutName.value;
@@ -595,10 +701,11 @@ const toggleFavorite = async (recipeId: number): Promise<void> => {
         return;
     }
 
-    try {
-        const recipe = recipes.value.find((r) => r.id === recipeId);
-        if (!recipe) return;
+    const list = showFollowingFeed.value ? followingFeedRecipes.value : recipes.value;
+    const recipe = list.find((r) => r.id === recipeId);
+    if (!recipe) return;
 
+    try {
         const response = await toggleFavoriteApi(currentMemberId.value, recipeId);
         recipe.isFavorite = response.isFavorite;
     } catch (err) {
