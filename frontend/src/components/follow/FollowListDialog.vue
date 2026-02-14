@@ -36,7 +36,7 @@
                                 :key="follower.followId"
                                 class="follow-item"
                             >
-                                <div class="follow-user-info" @click="goToUserProfile(follower.followerId)">
+                                <div class="follow-member-info" @click="goToMemberProfile(follower.followerId)">
                                     <div class="follow-avatar">
                                         <img
                                             v-if="follower.followerProfileImage"
@@ -51,7 +51,7 @@
                                     label="프로필 보기"
                                     icon="pi pi-user"
                                     text
-                                    @click="goToUserProfile(follower.followerId)"
+                                    @click="goToMemberProfile(follower.followerId)"
                                 />
                             </div>
                         </div>
@@ -88,7 +88,7 @@
                                 :key="following.followId"
                                 class="follow-item"
                             >
-                                <div class="follow-user-info" @click="goToUserProfile(following.followingId)">
+                                <div class="follow-member-info" @click="goToMemberProfile(following.followingId)">
                                     <div class="follow-avatar">
                                         <img
                                             v-if="following.followingProfileImage"
@@ -104,7 +104,7 @@
                                         label="프로필 보기"
                                         icon="pi pi-user"
                                         text
-                                        @click="goToUserProfile(following.followingId)"
+                                        @click="goToMemberProfile(following.followingId)"
                                     />
                                     <Button
                                         v-if="isOwnList"
@@ -166,7 +166,7 @@ const emit = defineEmits<{
 
 const router = useRouter();
 const authStore = useAuthStore();
-const { showSuccess, showError } = useAppToast();
+const { showError } = useAppToast();
 
 const activeTab = ref<'followers' | 'followings'>(props.type);
 const pageSize = 20;
@@ -220,7 +220,6 @@ const loadFollowings = async (page: number = 0) => {
 const handleUnfollow = async (followingId: number) => {
     try {
         await unfollowUser(followingId);
-        showSuccess('언팔로우했습니다.');
         // 목록 새로고침
         await loadFollowings(Math.floor(followingsFirst.value / pageSize));
     } catch (err) {
@@ -229,9 +228,9 @@ const handleUnfollow = async (followingId: number) => {
     }
 };
 
-const goToUserProfile = (userId: number) => {
+const goToMemberProfile = (memberId: number) => {
     emit('update:visible', false);
-    router.push(`/user/${userId}`);
+    router.push(`/member/${memberId}`);
 };
 
 const onFollowersPageChange = (event: PageState) => {
@@ -287,7 +286,7 @@ watch(activeTab, (newTab) => {
                 background: var(--surface-100);
             }
             
-            .follow-user-info {
+            .follow-member-info {
                 display: flex;
                 align-items: center;
                 gap: 1rem;

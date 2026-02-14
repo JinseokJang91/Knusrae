@@ -4,6 +4,8 @@ html {
     height: 100%;
     font-size: 16px;
     line-height: 1.5;
+    /* 모달/다이얼로그 열릴 때 스크롤바 사라짐으로 인한 레이아웃 시프트 방지 */
+    scrollbar-gutter: stable;
 }
 
 body {
@@ -17,10 +19,17 @@ body {
     min-height: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* 모달 시 body가 스크롤 컨테이너인 경우 레이아웃 시프트 방지 (html과 동일) */
+    scrollbar-gutter: stable;
 }
 
 a {
     text-decoration: none;
+}
+
+/* scrollbar-gutter로 이미 스크롤바 공간을 확보했으므로, PrimeVue 모달의 padding-right 보정 제거 (이중 보정 시 본문이 왼쪽으로 쏠림) */
+body.p-overflow-hidden {
+    padding-right: 0 !important;
 }
 
 .layout-wrapper {

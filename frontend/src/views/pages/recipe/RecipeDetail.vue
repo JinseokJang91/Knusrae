@@ -34,7 +34,6 @@
                 @toggle-bookmark="openBookmarkDialog"
                 @toggle-follow="toggleFollow"
                 @go-to-author-profile="goToAuthorProfile"
-                @share="shareRecipe"
             />
 
             <RecipeDetailIngredients :ingredient-groups="recipe.ingredientGroups || []" />
@@ -82,6 +81,7 @@
                 @toggle-replies-visibility="toggleRepliesVisibility"
                 @load-page="loadPage"
                 @open-image="(payload) => openImageModalFromPayload(payload, 0)"
+                @go-to-member-profile="goToMemberProfile"
             />
 
         </div>
@@ -157,7 +157,7 @@ const router = useRouter();
 const confirm = useConfirm();
 const authStore = useAuthStore();
 const { handleApiCall, handleApiCallVoid } = useErrorHandler();
-const { showSuccess, showWarn, showError } = useAppToast();
+const { showWarn, showError } = useAppToast();
 
 // 반응형 데이터
 const loading = ref(true);
@@ -409,11 +409,9 @@ const toggleFollow = async () => {
         if (isFollowing.value) {
             await unfollowUser(recipe.value.memberId);
             isFollowing.value = false;
-            showSuccess('언팔로우했습니다.');
         } else {
             await followUser(recipe.value.memberId);
             isFollowing.value = true;
-            showSuccess('팔로우했습니다.');
         }
     } catch (err) {
         console.error('팔로우 토글 실패:', err);
@@ -423,22 +421,14 @@ const toggleFollow = async () => {
 
 const goToAuthorProfile = () => {
     if (recipe.value?.memberId) {
-        router.push(`/user/${recipe.value.memberId}`);
+        router.push(`/member/${recipe.value.memberId}`);
     }
 };
 
-const shareRecipe = () => {
-    if (!recipe.value) return;
-    if (navigator.share) {
-        navigator.share({
-            title: recipe.value.title,
-            text: recipe.value.description || recipe.value.introduction || '',
-            url: window.location.href
-        });
-    } else {
-        // 클립보드에 URL 복사
-        navigator.clipboard.writeText(window.location.href);
-        showSuccess('링크가 클립보드에 복사되었습니다.');
+/** 댓글/답글 작성자 프로필로 이동 */
+const goToMemberProfile = (memberId: number) => {
+    if (memberId) {
+        router.push(`/member/${memberId}`);
     }
 };
 

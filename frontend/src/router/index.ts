@@ -48,10 +48,6 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/pages/my/MyPage.vue')
             },
             {
-                path: '/mypage',
-                redirect: (to) => ({ path: '/my', query: to.query })
-            },
-            {
                 path: '/my/profile',
                 redirect: '/my?tab=profile'
             },
@@ -164,11 +160,11 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/pages/community/FAQ.vue')
             },
             // 5. 팔로우 관련
-            // 5-1. 다른 사용자 프로필
+            // 5-1. 다른 회원 프로필
             {
-                path: '/user/:id',
-                name: 'userProfile',
-                component: () => import('@/views/pages/user/UserProfile.vue')
+                path: '/member/:id',
+                name: 'memberProfile',
+                component: () => import('@/views/pages/member/MemberProfile.vue')
             },
             // 5-2. 팔로잉 피드
             {

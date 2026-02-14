@@ -74,7 +74,7 @@ export async function getFollowings(
 /**
  * 특정 회원 정보 조회 (공개 프로필)
  */
-export async function getUserProfile(memberId: number): Promise<{
+export async function getMemberProfile(memberId: number): Promise<{
   id: number;
   name: string;
   nickname: string;

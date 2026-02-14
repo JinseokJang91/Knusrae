@@ -82,7 +82,10 @@
             <div v-for="comment in comments" :key="comment.id" class="space-y-4">
                 <!-- 최상위 댓글 -->
                 <div class="flex space-x-4 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
-                    <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <div
+                        class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                        @click="comment.memberId && $emit('go-to-member-profile', comment.memberId)"
+                    >
                         <img
                             v-if="comment.memberProfileImage"
                             :src="comment.memberProfileImage"
@@ -94,7 +97,10 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center space-x-2">
-                                <span class="font-medium text-gray-800">{{ comment.memberNickname || comment.memberName }}</span>
+                                <span
+                                    class="font-medium text-gray-800 cursor-pointer hover:text-primary-600 transition-colors"
+                                    @click="comment.memberId && $emit('go-to-member-profile', comment.memberId)"
+                                >{{ comment.memberNickname || comment.memberName }}</span>
                                 <span class="text-sm text-gray-500">{{ formatDate(comment.createdAt) }}</span>
                                 <span v-if="comment.updatedAt && comment.updatedAt !== comment.createdAt" class="text-xs text-gray-400">(수정됨)</span>
                             </div>
@@ -227,7 +233,10 @@
                 <div v-if="comment.children && comment.children.length > 0 && expandedComments.has(comment.id)" class="ml-14 space-y-4">
                     <div v-for="reply in comment.children" :key="reply.id" class="space-y-4">
                         <div class="flex space-x-4 p-4 bg-orange-100 rounded-lg border-l-4 border-orange-400">
-                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            <div
+                                class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                                @click="reply.memberId && $emit('go-to-member-profile', reply.memberId)"
+                            >
                                 <img
                                     v-if="reply.memberProfileImage"
                                     :src="reply.memberProfileImage"
@@ -239,7 +248,10 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between mb-2">
                                     <div class="flex items-center space-x-2">
-                                        <span class="font-medium text-gray-800">{{ reply.memberNickname || reply.memberName }}</span>
+                                        <span
+                                            class="font-medium text-gray-800 cursor-pointer hover:text-primary-600 transition-colors"
+                                            @click="reply.memberId && $emit('go-to-member-profile', reply.memberId)"
+                                        >{{ reply.memberNickname || reply.memberName }}</span>
                                         <span class="text-sm text-gray-500">{{ formatDate(reply.createdAt) }}</span>
                                         <span v-if="reply.updatedAt && reply.updatedAt !== reply.createdAt" class="text-xs text-gray-400">(수정됨)</span>
                                     </div>
@@ -442,6 +454,7 @@ defineEmits<{
     'toggle-replies-visibility': [commentId: number];
     'load-page': [page: number];
     'open-image': [payload: { url: string }];
+    'go-to-member-profile': [memberId: number];
 }>();
 
 const isMyComment = (comment: RecipeComment) => comment.memberId === props.currentMemberId;

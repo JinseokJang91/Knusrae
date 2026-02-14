@@ -134,14 +134,6 @@
                         @click="$emit('toggle-follow')"
                         :disabled="followDisabled"
                     />
-                    <!-- 공유 버튼 -->
-                    <button
-                        @click="$emit('share')"
-                        class="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                        <i class="pi pi-share-alt"></i>
-                        <span>공유</span>
-                    </button>
                 </div>
             </div>
         </div>
@@ -174,7 +166,6 @@ defineEmits<{
     'toggle-bookmark': [];
     'toggle-follow': [];
     'go-to-author-profile': [];
-    share: [];
 }>();
 </script>
 
