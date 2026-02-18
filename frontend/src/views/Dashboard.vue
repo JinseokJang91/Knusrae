@@ -2,9 +2,11 @@
 import { computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import PopularRecipes from '@/components/dashboard/PopularRecipes.vue';
+import ThemeCollections from '@/components/dashboard/ThemeCollections.vue';
 import CategorySections from '@/components/dashboard/CategorySections.vue';
 import RecentViews from '@/components/dashboard/RecentViews.vue';
 import TodayRecommendations from '@/components/dashboard/TodayRecommendations.vue';
+import RecommendedCreators from '@/components/dashboard/RecommendedCreators.vue';
 
 const authStore = useAuthStore();
 
@@ -73,18 +75,32 @@ const greetingTitle = computed(() => {
                 <PopularRecipes />
             </div>
         </section>
+
+        <!-- 4. 테마 컬렉션 (큐레이션 섹션) -->
+        <section class="dashboard-section theme-section">
+            <div class="section-wrapper">
+                <ThemeCollections />
+            </div>
+        </section>
         
-        <!-- 4. 카테고리 섹션 (보조 섹션) -->
+        <!-- 5. 카테고리 섹션 (보조 섹션) -->
         <section class="dashboard-section secondary-section">
             <div class="section-wrapper">
                 <CategorySections />
             </div>
         </section>
         
-        <!-- 5. 최근 본 레시피 (개인화 섹션, 로그인 시만) -->
+        <!-- 6. 최근 본 레시피 (개인화 섹션, 로그인 시만) -->
         <section v-if="isLoggedIn" class="dashboard-section personal-section">
             <div class="section-wrapper">
                 <RecentViews />
+            </div>
+        </section>
+
+        <!-- 7. 추천 크리에이터 -->
+        <section class="dashboard-section creator-section">
+            <div class="section-wrapper">
+                <RecommendedCreators />
             </div>
         </section>
     </div>
@@ -160,6 +176,14 @@ const greetingTitle = computed(() => {
     }
 }
 
+// 테마 컬렉션 섹션
+.theme-section {
+    .section-wrapper {
+        background: linear-gradient(to bottom, rgba(139, 92, 246, 0.03) 0%, var(--surface-card) 100%);
+        border-color: rgba(139, 92, 246, 0.15);
+    }
+}
+
 // 보조 섹션 (카테고리)
 .secondary-section {
     .section-wrapper {
@@ -173,6 +197,14 @@ const greetingTitle = computed(() => {
     .section-wrapper {
         background: linear-gradient(to bottom, rgba(59, 130, 246, 0.03) 0%, var(--surface-card) 100%);
         border-color: rgba(59, 130, 246, 0.15);
+    }
+}
+
+// 크리에이터 섹션
+.creator-section {
+    .section-wrapper {
+        background: linear-gradient(to bottom, rgba(16, 185, 129, 0.03) 0%, var(--surface-card) 100%);
+        border-color: rgba(16, 185, 129, 0.15);
     }
 }
 
