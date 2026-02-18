@@ -12,18 +12,20 @@ import java.time.LocalDateTime;
 @ToString
 public class RecipeBookmarkDto {
     private Long id;
-    private Long folderId;
+    private Long recipeBookId;
     private Long recipeId;
     private Long memberId;
+    private String memo;
     private LocalDateTime createdAt;
     private RecipeSimpleDto recipe; // 레시피 정보
 
     public static RecipeBookmarkDto from(RecipeBookmark bookmark) {
         return RecipeBookmarkDto.builder()
                 .id(bookmark.getId())
-                .folderId(bookmark.getFolderId())
+                .recipeBookId(bookmark.getRecipeBookId())
                 .recipeId(bookmark.getRecipeId())
                 .memberId(bookmark.getMemberId())
+                .memo(bookmark.getMemo())
                 .createdAt(bookmark.getCreatedAt())
                 .build();
     }
@@ -31,9 +33,10 @@ public class RecipeBookmarkDto {
     public static RecipeBookmarkDto from(RecipeBookmark bookmark, RecipeSimpleDto recipeDto) {
         return RecipeBookmarkDto.builder()
                 .id(bookmark.getId())
-                .folderId(bookmark.getFolderId())
+                .recipeBookId(bookmark.getRecipeBookId())
                 .recipeId(bookmark.getRecipeId())
                 .memberId(bookmark.getMemberId())
+                .memo(bookmark.getMemo())
                 .createdAt(bookmark.getCreatedAt())
                 .recipe(recipeDto)
                 .build();

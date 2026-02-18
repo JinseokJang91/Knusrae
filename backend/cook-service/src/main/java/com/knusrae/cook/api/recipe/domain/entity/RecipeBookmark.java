@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "recipe_bookmark",
        uniqueConstraints = {
-           @UniqueConstraint(columnNames = {"folder_id", "recipe_id"})
+           @UniqueConstraint(columnNames = {"recipebook_id", "recipe_id"})
        },
        indexes = {
-           @Index(name = "idx_recipe_bookmark_folder_id", columnList = "folder_id"),
+           @Index(name = "idx_recipe_bookmark_recipebook_id", columnList = "recipebook_id"),
            @Index(name = "idx_recipe_bookmark_member_id", columnList = "member_id"),
            @Index(name = "idx_recipe_bookmark_recipe_id", columnList = "recipe_id")
        })
@@ -28,8 +28,8 @@ public class RecipeBookmark {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false, name = "folder_id")
-    private Long folderId;
+    @Column(nullable = false, name = "recipebook_id")
+    private Long recipeBookId;
     
     @Column(nullable = false, name = "recipe_id")
     private Long recipeId;
@@ -37,14 +37,23 @@ public class RecipeBookmark {
     @Column(nullable = false, name = "member_id")
     private Long memberId;
     
+    /** 사용자가 해당 북마크(레시피)에 남긴 메모 */
+    @Column(name = "memo", length = 500)
+    private String memo;
+
+    /** 메모 수정 (서비스 레이어에서만 사용) */
+    public void updateMemo(String memo) {
+        this.memo = memo != null && !memo.isBlank() ? memo.trim() : null;
+    }
+    
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
     
     // 연관관계 매핑
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "folder_id", insertable = false, updatable = false)
-    private BookmarkFolder folder;
+    @JoinColumn(name = "recipebook_id", insertable = false, updatable = false)
+    private RecipeBook recipeBook;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_id", insertable = false, updatable = false)

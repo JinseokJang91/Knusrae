@@ -2,10 +2,10 @@ package com.knusrae.cook.api.recipe.domain.service;
 
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
-import com.knusrae.cook.api.recipe.domain.entity.BookmarkFolder;
 import com.knusrae.cook.api.recipe.domain.entity.Recipe;
+import com.knusrae.cook.api.recipe.domain.entity.RecipeBook;
 import com.knusrae.cook.api.recipe.domain.entity.RecipeBookmark;
-import com.knusrae.cook.api.recipe.domain.repository.BookmarkFolderRepository;
+import com.knusrae.cook.api.recipe.domain.repository.RecipeBookRepository;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeBookmarkRepository;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeRepository;
 import com.knusrae.cook.api.recipe.dto.RecipeBookmarkDto;
@@ -25,151 +25,137 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 @Slf4j
 public class RecipeBookmarkService {
-    
+
     private final RecipeBookmarkRepository recipeBookmarkRepository;
-    private final BookmarkFolderRepository bookmarkFolderRepository;
+    private final RecipeBookRepository recipeBookRepository;
     private final RecipeRepository recipeRepository;
     private final MemberRepository memberRepository;
-    
-    /**
-     * 북마크 추가
-     */
+
     @Transactional
-    public RecipeBookmarkDto addBookmark(Long memberId, Long folderId, Long recipeId) {
-        log.info("Adding bookmark - memberId: {}, folderId: {}, recipeId: {}", memberId, folderId, recipeId);
-        
-        // 폴더 존재 확인
-        BookmarkFolder folder = bookmarkFolderRepository.findByMemberIdAndId(memberId, folderId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 폴더입니다."));
-        
-        // 레시피 존재 확인
+    public RecipeBookmarkDto addBookmark(Long memberId, Long recipeBookId, Long recipeId, String memo) {
+        log.info("Adding bookmark - memberId: {}, recipeBookId: {}, recipeId: {}", memberId, recipeBookId, recipeId);
+
+        RecipeBook recipeBook = recipeBookRepository.findByMemberIdAndId(memberId, recipeBookId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 레시피북입니다."));
+
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 레시피입니다."));
-        
-        // 중복 체크 (같은 폴더에 같은 레시피)
-        if (recipeBookmarkRepository.existsByFolderIdAndRecipeId(folderId, recipeId)) {
-            throw new IllegalStateException("이미 해당 폴더에 저장된 레시피입니다.");
+
+        if (recipeBookmarkRepository.existsByRecipeBookIdAndRecipeId(recipeBookId, recipeId)) {
+            throw new IllegalStateException("이미 해당 레시피북에 저장된 레시피입니다.");
         }
-        
+
         RecipeBookmark bookmark = RecipeBookmark.builder()
-                .folderId(folderId)
+                .recipeBookId(recipeBookId)
                 .recipeId(recipeId)
                 .memberId(memberId)
+                .memo(memo != null && !memo.isBlank() ? memo.trim() : null)
                 .build();
-        
+
         RecipeBookmark savedBookmark = recipeBookmarkRepository.save(bookmark);
         log.info("Bookmark added successfully - id: {}", savedBookmark.getId());
-        
         return RecipeBookmarkDto.from(savedBookmark);
     }
-    
-    /**
-     * 북마크 제거
-     */
+
     @Transactional
-    public void removeBookmark(Long memberId, Long folderId, Long recipeId) {
-        log.info("Removing bookmark - memberId: {}, folderId: {}, recipeId: {}", memberId, folderId, recipeId);
-        
-        // 폴더 존재 확인
-        bookmarkFolderRepository.findByMemberIdAndId(memberId, folderId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 폴더입니다."));
-        
-        // 북마크 존재 확인
-        RecipeBookmark bookmark = recipeBookmarkRepository.findByFolderIdAndRecipeId(folderId, recipeId)
+    public void removeBookmark(Long memberId, Long recipeBookId, Long recipeId) {
+        log.info("Removing bookmark - memberId: {}, recipeBookId: {}, recipeId: {}", memberId, recipeBookId, recipeId);
+
+        recipeBookRepository.findByMemberIdAndId(memberId, recipeBookId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 레시피북입니다."));
+
+        RecipeBookmark bookmark = recipeBookmarkRepository.findByRecipeBookIdAndRecipeId(recipeBookId, recipeId)
                 .orElseThrow(() -> new IllegalArgumentException("북마크가 존재하지 않습니다."));
-        
+
         recipeBookmarkRepository.delete(bookmark);
         log.info("Bookmark removed successfully - id: {}", bookmark.getId());
     }
-    
-    /**
-     * 폴더별 북마크 조회
-     */
-    public List<RecipeBookmarkDto> getBookmarksByFolder(Long memberId, Long folderId) {
-        log.info("Getting bookmarks by folder - memberId: {}, folderId: {}", memberId, folderId);
-        
-        // 폴더 존재 확인
-        bookmarkFolderRepository.findByMemberIdAndId(memberId, folderId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 폴더입니다."));
-        
-        List<RecipeBookmark> bookmarks = recipeBookmarkRepository.findByFolderIdOrderByCreatedAtDesc(folderId);
-        
+
+    public List<RecipeBookmarkDto> getBookmarksByRecipeBook(Long memberId, Long recipeBookId) {
+        log.info("Getting bookmarks by recipe book - memberId: {}, recipeBookId: {}", memberId, recipeBookId);
+
+        recipeBookRepository.findByMemberIdAndId(memberId, recipeBookId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 레시피북입니다."));
+
+        List<RecipeBookmark> bookmarks = recipeBookmarkRepository.findByRecipeBookIdOrderByCreatedAtDesc(recipeBookId);
         return bookmarks.stream()
                 .map(bookmark -> {
-                    Recipe recipe = recipeRepository.findById(bookmark.getRecipeId())
-                            .orElse(null);
-                    if (recipe == null) {
-                        return null;
-                    }
-                    
-                    Member member = memberRepository.findById(recipe.getMemberId())
-                            .orElse(null);
+                    Recipe recipe = recipeRepository.findById(bookmark.getRecipeId()).orElse(null);
+                    if (recipe == null) return null;
+                    Member member = memberRepository.findById(recipe.getMemberId()).orElse(null);
                     String memberName = member != null ? member.getName() : "Unknown";
-                    
                     RecipeSimpleDto recipeDto = RecipeSimpleDto.from(recipe, memberName);
                     return RecipeBookmarkDto.from(bookmark, recipeDto);
                 })
                 .filter(dto -> dto != null)
                 .collect(Collectors.toList());
     }
-    
-    /**
-     * 레시피가 저장된 폴더 목록 조회
-     */
+
     public Map<String, Object> checkBookmark(Long recipeId, Long memberId) {
         log.info("Checking bookmark - recipeId: {}, memberId: {}", recipeId, memberId);
-        
+
         List<RecipeBookmark> bookmarks = recipeBookmarkRepository.findByRecipeIdAndMemberId(recipeId, memberId);
-        List<Long> folderIds = bookmarks.stream()
-                .map(RecipeBookmark::getFolderId)
+        List<Long> recipeBookIds = bookmarks.stream()
+                .map(RecipeBookmark::getRecipeBookId)
                 .collect(Collectors.toList());
-        
+
         Map<String, Object> result = new HashMap<>();
-        result.put("folders", folderIds);
-        result.put("isBookmarked", !folderIds.isEmpty());
-        
+        result.put("recipeBooks", recipeBookIds);
+        result.put("isBookmarked", !recipeBookIds.isEmpty());
         return result;
     }
-    
-    /**
-     * 북마크를 다른 폴더로 이동
-     */
+
     @Transactional
-    public RecipeBookmarkDto moveBookmark(Long memberId, Long bookmarkId, Long targetFolderId) {
-        log.info("Moving bookmark - memberId: {}, bookmarkId: {}, targetFolderId: {}", 
-                memberId, bookmarkId, targetFolderId);
-        
-        // 북마크 조회
+    public RecipeBookmarkDto moveBookmark(Long memberId, Long bookmarkId, Long targetRecipeBookId) {
+        log.info("Moving bookmark - memberId: {}, bookmarkId: {}, targetRecipeBookId: {}",
+                memberId, bookmarkId, targetRecipeBookId);
+
         RecipeBookmark bookmark = recipeBookmarkRepository.findById(bookmarkId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 북마크입니다."));
-        
-        // 권한 확인
+
         if (!bookmark.getMemberId().equals(memberId)) {
             throw new IllegalArgumentException("북마크를 이동할 권한이 없습니다.");
         }
-        
-        // 대상 폴더 존재 확인
-        bookmarkFolderRepository.findByMemberIdAndId(memberId, targetFolderId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 폴더입니다."));
-        
-        // 대상 폴더에 이미 같은 레시피가 있는지 확인
-        if (recipeBookmarkRepository.existsByFolderIdAndRecipeId(targetFolderId, bookmark.getRecipeId())) {
-            throw new IllegalStateException("대상 폴더에 이미 같은 레시피가 저장되어 있습니다.");
+
+        recipeBookRepository.findByMemberIdAndId(memberId, targetRecipeBookId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 레시피북입니다."));
+
+        if (recipeBookmarkRepository.existsByRecipeBookIdAndRecipeId(targetRecipeBookId, bookmark.getRecipeId())) {
+            throw new IllegalStateException("대상 레시피북에 이미 같은 레시피가 저장되어 있습니다.");
         }
-        
-        // 기존 북마크 삭제 후 새로 생성 (이동)
+
         recipeBookmarkRepository.delete(bookmark);
-        
         RecipeBookmark newBookmark = RecipeBookmark.builder()
-                .folderId(targetFolderId)
+                .recipeBookId(targetRecipeBookId)
                 .recipeId(bookmark.getRecipeId())
                 .memberId(memberId)
+                .memo(bookmark.getMemo())
                 .build();
-        
         RecipeBookmark savedBookmark = recipeBookmarkRepository.save(newBookmark);
-        log.info("Bookmark moved successfully - from folder: {}, to folder: {}", 
-                bookmark.getFolderId(), targetFolderId);
-        
+        log.info("Bookmark moved successfully - to recipeBookId: {}", targetRecipeBookId);
         return RecipeBookmarkDto.from(savedBookmark);
+    }
+
+    @Transactional
+    public RecipeBookmarkDto updateMemo(Long memberId, Long bookmarkId, String memo) {
+        log.info("Updating bookmark memo - memberId: {}, bookmarkId: {}", memberId, bookmarkId);
+
+        RecipeBookmark bookmark = recipeBookmarkRepository.findById(bookmarkId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 북마크입니다."));
+
+        if (!bookmark.getMemberId().equals(memberId)) {
+            throw new IllegalArgumentException("메모를 수정할 권한이 없습니다.");
+        }
+
+        bookmark.updateMemo(memo);
+        recipeBookmarkRepository.flush();
+        Recipe recipe = recipeRepository.findById(bookmark.getRecipeId()).orElse(null);
+        if (recipe == null) {
+            return RecipeBookmarkDto.from(bookmark);
+        }
+        Member member = memberRepository.findById(recipe.getMemberId()).orElse(null);
+        String memberName = member != null ? member.getName() : "Unknown";
+        RecipeSimpleDto recipeDto = RecipeSimpleDto.from(recipe, memberName);
+        return RecipeBookmarkDto.from(bookmark, recipeDto);
     }
 }
