@@ -7,60 +7,55 @@
         :draggable="false"
     >
         <div class="bookmark-dialog-content">
-            <!-- 로딩 상태 -->
             <div v-if="loading" class="flex justify-center items-center py-8">
                 <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
             </div>
 
-            <!-- 폴더 목록 -->
             <template v-else>
                 <div class="mb-4">
-                    <p class="text-gray-600 text-sm mb-3">레시피를 저장할 폴더를 선택하세요</p>
-                    
-                    <!-- 폴더가 없을 때 -->
-                    <div v-if="folders.length === 0" class="text-center py-6">
+                    <p class="text-gray-600 text-sm mb-3">레시피를 저장할 레시피북을 선택하세요</p>
+
+                    <div v-if="recipeBooks.length === 0" class="text-center py-6">
                         <i class="pi pi-bookmark text-4xl text-gray-300 mb-3"></i>
-                        <p class="text-gray-500 mb-4">아직 폴더가 없습니다</p>
+                        <p class="text-gray-500 mb-4">아직 레시피북이 없습니다</p>
                         <Button
-                            label="첫 번째 폴더 만들기"
+                            label="첫 번째 레시피북 만들기"
                             icon="pi pi-plus"
-                            @click="openFolderDialog()"
+                            @click="openRecipeBookDialog()"
                             outlined
                         />
                     </div>
 
-                    <!-- 폴더 목록 -->
-                    <div v-else class="folder-list">
+                    <div v-else class="recipe-book-list">
                         <div
-                            v-for="folder in folders"
-                            :key="folder.id"
-                            class="folder-item"
-                            :class="{ 'folder-item-selected': selectedFolderIds.includes(folder.id) }"
-                            @click="toggleFolder(folder.id)"
+                            v-for="recipeBook in recipeBooks"
+                            :key="recipeBook.id"
+                            class="recipe-book-item"
+                            :class="{ 'recipe-book-item-selected': selectedRecipeBookIds.includes(recipeBook.id) }"
+                            @click="toggleRecipeBook(recipeBook.id)"
                         >
                             <div class="flex items-center gap-3 flex-1">
                                 <i
                                     class="pi pi-bookmark text-2xl"
-                                    :style="{ color: getFolderColorHex(folder.color) }"
+                                    :style="{ color: getRecipeBookColorHex(recipeBook.color) }"
                                 ></i>
                                 <div class="flex-1">
-                                    <div class="font-medium">{{ folder.name }}</div>
-                                    <div class="text-sm text-gray-500">{{ folder.bookmarkCount }}개 레시피</div>
+                                    <div class="font-medium">{{ recipeBook.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ recipeBook.bookmarkCount }}개 레시피</div>
                                 </div>
                             </div>
                             <i
-                                v-if="selectedFolderIds.includes(folder.id)"
+                                v-if="selectedRecipeBookIds.includes(recipeBook.id)"
                                 class="pi pi-check text-xl text-primary"
                             ></i>
                         </div>
                     </div>
                 </div>
 
-                <!-- 새 폴더 만들기 버튼 -->
                 <Button
-                    label="새 폴더 만들기"
+                    label="새 레시피북 만들기"
                     icon="pi pi-plus"
-                    @click="openFolderDialog()"
+                    @click="openRecipeBookDialog()"
                     outlined
                     class="w-full"
                 />
@@ -77,10 +72,9 @@
         </template>
     </Dialog>
 
-    <!-- 폴더 생성 Dialog -->
-    <FolderFormDialog
-        v-model:visible="folderDialogVisible"
-        @folder-created="onFolderCreated"
+    <RecipeBookFormDialog
+        v-model:visible="recipeBookDialogVisible"
+        @recipe-book-created="onRecipeBookCreated"
     />
 </template>
 
@@ -88,10 +82,10 @@
 import { ref, watch, computed } from 'vue';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
-import FolderFormDialog from './FolderFormDialog.vue';
-import { getFolders, addBookmark, removeBookmark, checkBookmark } from '@/api/bookmarkApi';
-import { getFolderColorHex } from '@/types/bookmark';
-import type { BookmarkFolder } from '@/types/bookmark';
+import RecipeBookFormDialog from './RecipeBookFormDialog.vue';
+import { getRecipeBooks, addBookmark, removeBookmark, checkBookmark } from '@/api/bookmarkApi';
+import { getRecipeBookColorHex } from '@/types/bookmark';
+import type { RecipeBook } from '@/types/bookmark';
 import { useAppToast } from '@/utils/toast';
 
 const props = defineProps<{
@@ -108,19 +102,17 @@ const { showError } = useAppToast();
 
 const visible = ref(props.visible);
 const loading = ref(false);
-const folders = ref<BookmarkFolder[]>([]);
-const selectedFolderIds = ref<number[]>([]);
-const initialFolderIds = ref<number[]>([]);
-const folderDialogVisible = ref(false);
+const recipeBooks = ref<RecipeBook[]>([]);
+const selectedRecipeBookIds = ref<number[]>([]);
+const initialRecipeBookIds = ref<number[]>([]);
+const recipeBookDialogVisible = ref(false);
 
-/** 선택이 초기 상태와 달라졌을 때만 저장 가능 (전체 해제 후 저장 포함) */
 const hasChanges = computed(() => {
-    const add = selectedFolderIds.value.filter(id => !initialFolderIds.value.includes(id));
-    const remove = initialFolderIds.value.filter(id => !selectedFolderIds.value.includes(id));
+    const add = selectedRecipeBookIds.value.filter(id => !initialRecipeBookIds.value.includes(id));
+    const remove = initialRecipeBookIds.value.filter(id => !selectedRecipeBookIds.value.includes(id));
     return add.length > 0 || remove.length > 0;
 });
 
-// visible prop 변경 감지
 watch(() => props.visible, (newVal) => {
     visible.value = newVal;
     if (newVal && props.recipeId) {
@@ -128,76 +120,47 @@ watch(() => props.visible, (newVal) => {
     }
 });
 
-// visible 변경 시 emit
 watch(visible, (newVal) => {
     emit('update:visible', newVal);
 });
 
-/**
- * 데이터 로드
- */
 const loadData = async () => {
     if (!props.recipeId) return;
-
     try {
         loading.value = true;
-
-        // 폴더 목록 조회
-        folders.value = await getFolders();
-
-        // 현재 레시피가 저장된 폴더 확인
+        recipeBooks.value = await getRecipeBooks();
         const bookmarkStatus = await checkBookmark(props.recipeId);
-        selectedFolderIds.value = [...bookmarkStatus.folders];
-        initialFolderIds.value = [...bookmarkStatus.folders];
+        selectedRecipeBookIds.value = [...bookmarkStatus.recipeBooks];
+        initialRecipeBookIds.value = [...bookmarkStatus.recipeBooks];
     } catch (error) {
         console.error('데이터 로드 실패:', error);
-        showError('폴더 목록을 불러오는데 실패했습니다.');
+        showError('레시피북 목록을 불러오는데 실패했습니다.');
     } finally {
         loading.value = false;
     }
 };
 
-/**
- * 폴더 선택/해제 토글
- */
-const toggleFolder = (folderId: number) => {
-    const index = selectedFolderIds.value.indexOf(folderId);
+const toggleRecipeBook = (recipeBookId: number) => {
+    const index = selectedRecipeBookIds.value.indexOf(recipeBookId);
     if (index > -1) {
-        selectedFolderIds.value.splice(index, 1);
+        selectedRecipeBookIds.value.splice(index, 1);
     } else {
-        selectedFolderIds.value.push(folderId);
+        selectedRecipeBookIds.value.push(recipeBookId);
     }
 };
 
-/**
- * 북마크 저장
- */
 const saveBookmarks = async () => {
     if (!props.recipeId) return;
-
     try {
         loading.value = true;
-
-        // 추가할 폴더 (새로 선택된 폴더)
-        const foldersToAdd = selectedFolderIds.value.filter(
-            id => !initialFolderIds.value.includes(id)
-        );
-
-        // 제거할 폴더 (선택 해제된 폴더)
-        const foldersToRemove = initialFolderIds.value.filter(
-            id => !selectedFolderIds.value.includes(id)
-        );
-
-        // 북마크 추가
-        for (const folderId of foldersToAdd) {
-            await addBookmark(folderId, props.recipeId);
+        const toAdd = selectedRecipeBookIds.value.filter(id => !initialRecipeBookIds.value.includes(id));
+        const toRemove = initialRecipeBookIds.value.filter(id => !selectedRecipeBookIds.value.includes(id));
+        for (const recipeBookId of toAdd) {
+            await addBookmark(recipeBookId, props.recipeId);
         }
-
-        // 북마크 제거
-        for (const folderId of foldersToRemove) {
-            await removeBookmark(folderId, props.recipeId);
+        for (const recipeBookId of toRemove) {
+            await removeBookmark(recipeBookId, props.recipeId);
         }
-
         emit('bookmarked');
         closeDialog();
     } catch (error) {
@@ -208,33 +171,21 @@ const saveBookmarks = async () => {
     }
 };
 
-/**
- * 폴더 생성 Dialog 열기
- */
-const openFolderDialog = () => {
-    folderDialogVisible.value = true;
+const openRecipeBookDialog = () => {
+    recipeBookDialogVisible.value = true;
 };
 
-/**
- * 폴더 생성 완료 처리
- */
-const onFolderCreated = async (folder: BookmarkFolder) => {
-    // 폴더 목록 새로고침
-    folders.value = await getFolders();
-    
-    // 새로 생성된 폴더 자동 선택
-    if (!selectedFolderIds.value.includes(folder.id)) {
-        selectedFolderIds.value.push(folder.id);
+const onRecipeBookCreated = async (recipeBook: RecipeBook) => {
+    recipeBooks.value = await getRecipeBooks();
+    if (!selectedRecipeBookIds.value.includes(recipeBook.id)) {
+        selectedRecipeBookIds.value.push(recipeBook.id);
     }
 };
 
-/**
- * Dialog 닫기
- */
 const closeDialog = () => {
     visible.value = false;
-    selectedFolderIds.value = [];
-    initialFolderIds.value = [];
+    selectedRecipeBookIds.value = [];
+    initialRecipeBookIds.value = [];
 };
 </script>
 
@@ -243,7 +194,7 @@ const closeDialog = () => {
     min-height: 200px;
 }
 
-.folder-list {
+.recipe-book-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -251,7 +202,7 @@ const closeDialog = () => {
     overflow-y: auto;
 }
 
-.folder-item {
+.recipe-book-item {
     display: flex;
     align-items: center;
     padding: 1rem;
@@ -265,7 +216,7 @@ const closeDialog = () => {
         border-color: var(--primary-color);
     }
 
-    &.folder-item-selected {
+    &.recipe-book-item-selected {
         background-color: var(--primary-50);
         border-color: var(--primary-color);
     }

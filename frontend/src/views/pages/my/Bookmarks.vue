@@ -2,7 +2,7 @@
     <div class="bookmarks-content">
         <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
             <p class="text-gray-700 italic">
-                폴더를 선택해서 북마크한 레시피를 확인하세요. 폴더는 드래그하여 순서를 변경할 수 있어요.
+                레시피북을 선택해서 북마크한 레시피를 확인하세요. 레시피북은 드래그하여 순서를 변경할 수 있어요.
             </p>
         </div>
 
@@ -20,57 +20,57 @@
             error-title="북마크를 불러올 수 없습니다"
             :error-message="error"
             retry-label="다시 시도"
-            @retry="loadFolders"
+            @retry="loadRecipeBooks"
         />
 
         <!-- 메인 컨텐츠 -->
         <div v-else class="bookmarks-layout">
-            <!-- 좌측: 폴더 목록 -->
-            <div class="folder-sidebar">
-                <div class="folder-header">
-                    <h3 class="text-lg font-semibold m-0">내 폴더</h3>
+            <!-- 좌측: 레시피북 목록 -->
+            <div class="recipe-book-sidebar">
+                <div class="recipe-book-header">
+                    <h3 class="text-lg font-semibold m-0">내 레시피북</h3>
                     <Button
                         icon="pi pi-plus"
-                        label="새 폴더"
-                        @click="openFolderDialog()"
+                        label="새 레시피북"
+                        @click="openRecipeBookDialog()"
                         size="small"
                         outlined
                     />
                 </div>
 
-                <!-- 폴더가 없을 때 -->
-                <div v-if="folders.length === 0" class="empty-folders">
+                <!-- 레시피북이 없을 때 -->
+                <div v-if="recipeBooks.length === 0" class="empty-recipe-books">
                     <i class="pi pi-bookmark text-5xl text-gray-300 mb-3"></i>
-                    <p class="text-gray-500 mb-4">아직 폴더가 없습니다</p>
+                    <p class="text-gray-500 mb-4">아직 레시피북이 없습니다</p>
                     <Button
-                        label="첫 번째 폴더 만들기"
+                        label="첫 번째 레시피북 만들기"
                         icon="pi pi-plus"
-                        @click="openFolderDialog()"
+                        @click="openRecipeBookDialog()"
                         outlined
                     />
                 </div>
 
-                <!-- 폴더 목록 (드래그로 순서 변경) -->
-                <div v-else class="folder-list">
+                <!-- 레시피북 목록 (드래그로 순서 변경) -->
+                <div v-else class="recipe-book-list">
                     <div
-                        v-for="folder in folders"
-                        :key="folder.id"
-                        class="folder-item"
+                        v-for="recipeBook in recipeBooks"
+                        :key="recipeBook.id"
+                        class="recipe-book-item"
                         :class="{
-                            'folder-item-active': selectedFolder?.id === folder.id,
-                            'folder-item-dragging': draggedFolderId === folder.id,
-                            'folder-item-drag-over': dragOverFolderId === folder.id
+                            'recipe-book-item-active': selectedRecipeBook?.id === recipeBook.id,
+                            'recipe-book-item-dragging': draggedRecipeBookId === recipeBook.id,
+                            'recipe-book-item-drag-over': dragOverRecipeBookId === recipeBook.id
                         }"
-                        @click="selectFolder(folder)"
-                        @dragover.prevent="onFolderDragOver($event, folder)"
-                        @dragleave="onFolderDragLeave(folder)"
-                        @drop.prevent="onFolderDrop($event, folder)"
+                        @click="selectRecipeBook(recipeBook)"
+                        @dragover.prevent="onRecipeBookDragOver($event, recipeBook)"
+                        @dragleave="onRecipeBookDragLeave(recipeBook)"
+                        @drop.prevent="onRecipeBookDrop($event, recipeBook)"
                     >
                         <div
-                            class="folder-drag-handle"
+                            class="recipe-book-drag-handle"
                             draggable="true"
-                            @dragstart="onFolderDragStart($event, folder)"
-                            @dragend="onFolderDragEnd"
+                            @dragstart="onRecipeBookDragStart($event, recipeBook)"
+                            @dragend="onRecipeBookDragEnd"
                             title="드래그하여 순서 변경"
                         >
                             <i class="pi pi-bars"></i>
@@ -78,21 +78,21 @@
                         <div class="flex items-center gap-3 flex-1 min-w-0">
                             <i
                                 class="pi pi-bookmark text-2xl flex-shrink-0"
-                                :style="{ color: getFolderColorHex(folder.color) }"
+                                :style="{ color: getRecipeBookColorHex(recipeBook.color) }"
                             ></i>
                             <div class="flex-1 min-w-0">
-                                <div class="folder-name">{{ folder.name }}</div>
-                                <div class="folder-count">{{ folder.bookmarkCount }}개</div>
+                                <div class="recipe-book-name">{{ recipeBook.name }}</div>
+                                <div class="recipe-book-count">{{ recipeBook.bookmarkCount }}개</div>
                             </div>
                         </div>
                         
-                        <div class="folder-actions" @click.stop>
+                        <div class="recipe-book-actions" @click.stop>
                             <Button
                                 icon="pi pi-pencil"
                                 text
                                 rounded
                                 size="small"
-                                @click="openFolderDialog(folder)"
+                                @click="openRecipeBookDialog(recipeBook)"
                                 v-tooltip.top="'수정'"
                             />
                             <Button
@@ -101,7 +101,7 @@
                                 rounded
                                 size="small"
                                 severity="danger"
-                                @click="handleDeleteFolder(folder)"
+                                @click="handleDeleteRecipeBook(recipeBook)"
                                 v-tooltip.top="'삭제'"
                             />
                         </div>
@@ -111,28 +111,15 @@
 
             <!-- 우측: 북마크된 레시피 목록 -->
             <div class="bookmarks-main">
-                <!-- 폴더 선택 안 됨 -->
-                <div v-if="!selectedFolder" class="empty-state">
+                <!-- 레시피북 선택 안 됨 -->
+                <div v-if="!selectedRecipeBook" class="empty-state">
                     <i class="pi pi-bookmark text-6xl text-gray-300 mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">폴더를 선택하세요</h3>
-                    <p class="text-gray-500">좌측에서 폴더를 선택하면 저장된 레시피를 볼 수 있습니다</p>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">레시피북을 선택하세요</h3>
+                    <p class="text-gray-500">좌측에서 레시피북을 선택하면 저장된 레시피를 볼 수 있습니다</p>
                 </div>
 
-                <!-- 폴더 선택됨 -->
+                <!-- 레시피북 선택됨 -->
                 <template v-else>
-                    <div class="bookmarks-header">
-                        <div>
-                            <h2 class="text-2xl font-semibold m-0 flex items-center gap-3">
-                                <i
-                                    class="pi pi-bookmark"
-                                    :style="{ color: getFolderColorHex(selectedFolder.color) }"
-                                ></i>
-                                {{ selectedFolder.name }}
-                            </h2>
-                            <p class="text-gray-600 mt-1">{{ selectedFolder.bookmarkCount }}개의 레시피</p>
-                        </div>
-                    </div>
-
                     <!-- 북마크 로딩 -->
                     <PageStateBlock
                         v-if="bookmarksLoading"
@@ -151,31 +138,27 @@
                         @empty-action="browseRecipes"
                     />
 
-                    <!-- 북마크 목록 -->
-                    <div v-else class="recipe-grid">
-                        <RecipeGridCard
-                            v-for="bookmark in bookmarks"
-                            :key="bookmark.id"
-                            :recipe="getRecipeGridItem(bookmark)"
-                            :category-label="getCategoryName(bookmark.recipe)"
-                            :date-text="formatDate(bookmark.createdAt)"
-                            :show-favorite="false"
-                            :show-bookmark="false"
-                            :show-comment-count="false"
-                            :show-author="false"
-                            @click="viewRecipe"
-                        />
-                    </div>
+                    <!-- 열린 책 뷰 -->
+                    <OpenBookView
+                        v-else
+                        :recipe-book="selectedRecipeBook"
+                        :bookmarks="bookmarks"
+                        :get-recipe-grid-item="getRecipeGridItem"
+                        :get-category-name="getCategoryName"
+                        :format-date="formatDate"
+                        @recipe-click="viewRecipe"
+                        @memo-updated="onMemoUpdated"
+                    />
                 </template>
             </div>
         </div>
 
-        <!-- 폴더 생성/수정 Dialog -->
-        <FolderFormDialog
-            v-model:visible="folderDialogVisible"
-            :folder="editingFolder"
-            @folder-created="onFolderCreated"
-            @folder-updated="onFolderUpdated"
+        <!-- 레시피북 생성/수정 Dialog -->
+        <RecipeBookFormDialog
+            v-model:visible="recipeBookDialogVisible"
+            :recipe-book="editingRecipeBook"
+            @recipe-book-created="onRecipeBookCreated"
+            @recipe-book-updated="onRecipeBookUpdated"
         />
 
     </div>
@@ -186,11 +169,11 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from 'primevue/button';
 import PageStateBlock from '@/components/common/PageStateBlock.vue';
-import RecipeGridCard from '@/components/recipe/RecipeGridCard.vue';
-import FolderFormDialog from '@/components/bookmark/FolderFormDialog.vue';
-import { getFolders, getBookmarksByFolder, deleteFolder, reorderFolders } from '@/api/bookmarkApi';
-import { getFolderColorHex } from '@/types/bookmark';
-import type { BookmarkFolder, RecipeBookmark } from '@/types/bookmark';
+import OpenBookView from '@/components/bookmark/OpenBookView.vue';
+import RecipeBookFormDialog from '@/components/bookmark/RecipeBookFormDialog.vue';
+import { getRecipeBooks, getBookmarksByRecipeBook, deleteRecipeBook, reorderRecipeBooks } from '@/api/bookmarkApi';
+import { getRecipeBookColorHex } from '@/types/bookmark';
+import type { RecipeBook, RecipeBookmark } from '@/types/bookmark';
 import type { Recipe, RecipeCookingTip, RecipeGridItem, RecipeCategory } from '@/types/recipe';
 import { useAppToast } from '@/utils/toast';
 
@@ -199,56 +182,43 @@ const { showError } = useAppToast();
 
 const loading = ref(false);
 const error = ref<string | null>(null);
-const folders = ref<BookmarkFolder[]>([]);
-const selectedFolder = ref<BookmarkFolder | null>(null);
+const recipeBooks = ref<RecipeBook[]>([]);
+const selectedRecipeBook = ref<RecipeBook | null>(null);
 
 const bookmarksLoading = ref(false);
 const bookmarks = ref<RecipeBookmark[]>([]);
 
-const folderDialogVisible = ref(false);
-const editingFolder = ref<BookmarkFolder | null>(null);
+const recipeBookDialogVisible = ref(false);
+const editingRecipeBook = ref<RecipeBook | null>(null);
 
-/** 드래그 앤 드롭: 드래그 중인 폴더 id */
-const draggedFolderId = ref<number | null>(null);
-/** 드래그 앤 드롭: 드롭 대상 위에 있는 폴더 id */
-const dragOverFolderId = ref<number | null>(null);
+const draggedRecipeBookId = ref<number | null>(null);
+const dragOverRecipeBookId = ref<number | null>(null);
 
-/**
- * 폴더 목록 로드
- */
-const loadFolders = async () => {
+const loadRecipeBooks = async () => {
     try {
         loading.value = true;
         error.value = null;
-        folders.value = await getFolders();
-
-        // 첫 번째 폴더 자동 선택
-        if (folders.value.length > 0 && !selectedFolder.value) {
-            selectFolder(folders.value[0]);
+        recipeBooks.value = await getRecipeBooks();
+        if (recipeBooks.value.length > 0 && !selectedRecipeBook.value) {
+            selectRecipeBook(recipeBooks.value[0]);
         }
     } catch (err) {
-        console.error('폴더 목록 로드 실패:', err);
-        error.value = '폴더 목록을 불러오는데 실패했습니다.';
+        console.error('레시피북 목록 로드 실패:', err);
+        error.value = '레시피북 목록을 불러오는데 실패했습니다.';
     } finally {
         loading.value = false;
     }
 };
 
-/**
- * 폴더 선택
- */
-const selectFolder = async (folder: BookmarkFolder) => {
-    selectedFolder.value = folder;
-    await loadBookmarks(folder.id);
+const selectRecipeBook = async (recipeBook: RecipeBook) => {
+    selectedRecipeBook.value = recipeBook;
+    await loadBookmarks(recipeBook.id);
 };
 
-/**
- * 북마크 목록 로드
- */
-const loadBookmarks = async (folderId: number) => {
+const loadBookmarks = async (recipeBookId: number) => {
     try {
         bookmarksLoading.value = true;
-        bookmarks.value = await getBookmarksByFolder(folderId);
+        bookmarks.value = await getBookmarksByRecipeBook(recipeBookId);
     } catch (err) {
         console.error('북마크 로드 실패:', err);
         showError('북마크를 불러오는데 실패했습니다.');
@@ -259,74 +229,53 @@ const loadBookmarks = async (folderId: number) => {
 };
 
 /**
- * 폴더 생성 Dialog 열기
+ * 레시피북 생성 Dialog 열기
  */
-const openFolderDialog = (folder?: BookmarkFolder) => {
-    editingFolder.value = folder || null;
-    folderDialogVisible.value = true;
+const openRecipeBookDialog = (recipeBook?: RecipeBook) => {
+    editingRecipeBook.value = recipeBook || null;
+    recipeBookDialogVisible.value = true;
 };
 
-/**
- * 폴더 생성 완료
- */
-const onFolderCreated = async (folder: BookmarkFolder) => {
-    await loadFolders();
-    selectFolder(folder);
+const onRecipeBookCreated = async (recipeBook: RecipeBook) => {
+    await loadRecipeBooks();
+    selectRecipeBook(recipeBook);
 };
 
-/**
- * 폴더 수정 완료
- */
-const onFolderUpdated = async () => {
-    await loadFolders();
+const onRecipeBookUpdated = async () => {
+    await loadRecipeBooks();
 };
 
-/**
- * 폴더 드래그 시작
- */
-const onFolderDragStart = (_event: DragEvent, folder: BookmarkFolder) => {
-    draggedFolderId.value = folder.id;
+const onRecipeBookDragStart = (_event: DragEvent, recipeBook: RecipeBook) => {
+    draggedRecipeBookId.value = recipeBook.id;
     if (_event.dataTransfer) {
         _event.dataTransfer.effectAllowed = 'move';
-        _event.dataTransfer.setData('text/plain', String(folder.id));
+        _event.dataTransfer.setData('text/plain', String(recipeBook.id));
     }
 };
 
-/**
- * 폴더 드래그 종료
- */
-const onFolderDragEnd = () => {
-    draggedFolderId.value = null;
-    dragOverFolderId.value = null;
+const onRecipeBookDragEnd = () => {
+    draggedRecipeBookId.value = null;
+    dragOverRecipeBookId.value = null;
 };
 
-/**
- * 폴더 위로 드래그 오버
- */
-const onFolderDragOver = (_event: DragEvent, folder: BookmarkFolder) => {
-    if (draggedFolderId.value === null || draggedFolderId.value === folder.id) return;
-    dragOverFolderId.value = folder.id;
+const onRecipeBookDragOver = (_event: DragEvent, recipeBook: RecipeBook) => {
+    if (draggedRecipeBookId.value === null || draggedRecipeBookId.value === recipeBook.id) return;
+    dragOverRecipeBookId.value = recipeBook.id;
 };
 
-/**
- * 폴더에서 드래그 리브
- */
-const onFolderDragLeave = (folder: BookmarkFolder) => {
-    if (dragOverFolderId.value === folder.id) dragOverFolderId.value = null;
+const onRecipeBookDragLeave = (recipeBook: RecipeBook) => {
+    if (dragOverRecipeBookId.value === recipeBook.id) dragOverRecipeBookId.value = null;
 };
 
-/**
- * 폴더 드롭 시 순서 변경
- */
-const onFolderDrop = async (_event: DragEvent, targetFolder: BookmarkFolder) => {
-    const sourceId = draggedFolderId.value;
-    dragOverFolderId.value = null;
-    draggedFolderId.value = null;
-    if (sourceId == null || sourceId === targetFolder.id) return;
+const onRecipeBookDrop = async (_event: DragEvent, targetRecipeBook: RecipeBook) => {
+    const sourceId = draggedRecipeBookId.value;
+    dragOverRecipeBookId.value = null;
+    draggedRecipeBookId.value = null;
+    if (sourceId == null || sourceId === targetRecipeBook.id) return;
 
-    const currentOrder = folders.value.map((f) => f.id);
+    const currentOrder = recipeBooks.value.map((rb) => rb.id);
     const fromIndex = currentOrder.indexOf(sourceId);
-    const toIndex = currentOrder.indexOf(targetFolder.id);
+    const toIndex = currentOrder.indexOf(targetRecipeBook.id);
     if (fromIndex === -1 || toIndex === -1) return;
 
     const newOrder = [...currentOrder];
@@ -334,31 +283,25 @@ const onFolderDrop = async (_event: DragEvent, targetFolder: BookmarkFolder) => 
     newOrder.splice(toIndex, 0, sourceId);
 
     try {
-        const updated = await reorderFolders(newOrder);
-        folders.value = updated;
+        const updated = await reorderRecipeBooks(newOrder);
+        recipeBooks.value = updated;
     } catch (err) {
-        console.error('폴더 순서 변경 실패:', err);
-        showError('폴더 순서 변경에 실패했습니다.');
+        console.error('레시피북 순서 변경 실패:', err);
+        showError('레시피북 순서 변경에 실패했습니다.');
     }
 };
 
-/**
- * 폴더 삭제
- */
-const handleDeleteFolder = async (folder: BookmarkFolder) => {
+const handleDeleteRecipeBook = async (recipeBook: RecipeBook) => {
     try {
-        await deleteFolder(folder.id);
-
-        // 삭제된 폴더가 선택된 폴더였다면 선택 해제
-        if (selectedFolder.value?.id === folder.id) {
-            selectedFolder.value = null;
+        await deleteRecipeBook(recipeBook.id);
+        if (selectedRecipeBook.value?.id === recipeBook.id) {
+            selectedRecipeBook.value = null;
             bookmarks.value = [];
         }
-        
-        await loadFolders();
+        await loadRecipeBooks();
     } catch (err) {
-        console.error('폴더 삭제 실패:', err);
-        showError('폴더 삭제에 실패했습니다.');
+        console.error('레시피북 삭제 실패:', err);
+        showError('레시피북 삭제에 실패했습니다.');
     }
 };
 
@@ -421,6 +364,12 @@ const viewRecipe = (recipeId: number): void => {
     router.push(`/recipe/${recipeId}`);
 };
 
+const onMemoUpdated = async (): Promise<void> => {
+    if (selectedRecipeBook.value) {
+        await loadBookmarks(selectedRecipeBook.value.id);
+    }
+};
+
 /**
  * 레시피 둘러보기
  */
@@ -429,7 +378,7 @@ const browseRecipes = (): void => {
 };
 
 onMounted(() => {
-    loadFolders();
+    loadRecipeBooks();
 });
 </script>
 
@@ -445,7 +394,7 @@ onMounted(() => {
     }
 }
 
-.folder-sidebar {
+.recipe-book-sidebar {
     border-right: 1px solid var(--surface-border);
     padding-right: 2rem;
 
@@ -457,14 +406,14 @@ onMounted(() => {
     }
 }
 
-.folder-header {
+.recipe-book-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 1.5rem;
 }
 
-.empty-folders {
+.empty-recipe-books {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -473,13 +422,13 @@ onMounted(() => {
     text-align: center;
 }
 
-.folder-list {
+.recipe-book-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.folder-drag-handle {
+.recipe-book-drag-handle {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -501,7 +450,7 @@ onMounted(() => {
     }
 }
 
-.folder-item {
+.recipe-book-item {
     display: flex;
     align-items: center;
     padding: 1rem;
@@ -515,38 +464,38 @@ onMounted(() => {
         border-color: var(--primary-color);
     }
 
-    &.folder-item-active {
+    &.recipe-book-item-active {
         background-color: var(--primary-50);
         border-color: var(--primary-color);
     }
 
-    &.folder-item-dragging {
+    &.recipe-book-item-dragging {
         opacity: 0.6;
     }
 
-    &.folder-item-drag-over {
+    &.recipe-book-item-drag-over {
         border-color: var(--primary-color);
         background-color: var(--primary-50);
     }
 }
 
-.folder-name {
+.recipe-book-name {
     font-weight: 500;
     margin-bottom: 0.25rem;
 }
 
-.folder-count {
+.recipe-book-count {
     font-size: 0.85rem;
     color: var(--text-color-secondary);
 }
 
-.folder-actions {
+.recipe-book-actions {
     display: flex;
     gap: 0.25rem;
     opacity: 0;
     transition: opacity 0.2s;
 
-    .folder-item:hover & {
+    .recipe-book-item:hover & {
         opacity: 1;
     }
 }
@@ -562,9 +511,5 @@ onMounted(() => {
     justify-content: center;
     padding: 4rem 2rem;
     text-align: center;
-}
-
-.bookmarks-header {
-    margin-bottom: 2rem;
 }
 </style>

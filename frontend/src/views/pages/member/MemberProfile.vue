@@ -138,7 +138,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/utils/toast';
 import { getMemberProfile, checkFollowing, followUser, unfollowUser } from '@/api/followApi';
 import { getRecipeListByMember, getFavorites, toggleFavorite as toggleFavoriteApi } from '@/api/recipeApi';
-import { getFolders, getBookmarksByFolder } from '@/api/bookmarkApi';
+import { getRecipeBooks, getBookmarksByRecipeBook } from '@/api/bookmarkApi';
 import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import Button from 'primevue/button';
 import RecipeGridCard from '@/components/recipe/RecipeGridCard.vue';
@@ -237,10 +237,10 @@ const loadBookmarkedRecipeIds = async () => {
         return;
     }
     try {
-        const folders = await getFolders();
+        const recipeBooks = await getRecipeBooks();
         const ids = new Set<number>();
-        for (const folder of folders) {
-            const bookmarks = await getBookmarksByFolder(folder.id);
+        for (const recipeBook of recipeBooks) {
+            const bookmarks = await getBookmarksByRecipeBook(recipeBook.id);
             bookmarks.forEach((b) => ids.add(b.recipeId));
         }
         bookmarkedRecipeIds.value = ids;

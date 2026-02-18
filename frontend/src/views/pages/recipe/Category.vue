@@ -166,7 +166,7 @@
 <script setup lang="ts">
 import { getCommonCodesByGroup } from '@/api/commonCodeApi';
 import { getRecipeListAll, getFavorites, getFollowingFeed, toggleFavorite as toggleFavoriteApi } from '@/api/recipeApi';
-import { getFolders, getBookmarksByFolder } from '@/api/bookmarkApi';
+import { getRecipeBooks, getBookmarksByRecipeBook } from '@/api/bookmarkApi';
 import { useAuthStore } from '@/stores/authStore';
 import AutoComplete from 'primevue/autocomplete';
 import type { AutoCompleteCompleteEvent, AutoCompleteOptionSelectEvent } from 'primevue/autocomplete';
@@ -741,10 +741,10 @@ const loadBookmarkedRecipeIds = async () => {
         return;
     }
     try {
-        const folders = await getFolders();
+        const recipeBooks = await getRecipeBooks();
         const ids = new Set<number>();
-        for (const folder of folders) {
-            const bookmarks = await getBookmarksByFolder(folder.id);
+        for (const recipeBook of recipeBooks) {
+            const bookmarks = await getBookmarksByRecipeBook(recipeBook.id);
             bookmarks.forEach((b) => ids.add(b.recipeId));
         }
         bookmarkedRecipeIds.value = ids;

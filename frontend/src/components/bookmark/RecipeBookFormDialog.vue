@@ -2,30 +2,30 @@
     <Dialog
         v-model:visible="visible"
         modal
-        :header="isEditMode ? '폴더 수정' : '새 폴더 만들기'"
+        :header="isEditMode ? '레시피북 수정' : '새 레시피북 만들기'"
         :style="{ width: '450px' }"
         :draggable="false"
     >
-        <div class="folder-form">
-            <!-- 폴더 이름 -->
+        <div class="recipe-book-form">
+            <!-- 레시피북 이름 -->
             <div class="mb-4">
-                <label class="block mb-2 font-medium">폴더 이름</label>
+                <label class="block mb-2 font-medium">레시피북 이름</label>
                 <InputText
-                    v-model="folderName"
+                    v-model="recipeBookName"
                     placeholder="예: 한식 레시피, 간식 모음"
                     class="w-full"
                     :maxlength="50"
-                    @keyup.enter="saveFolder"
+                    @keyup.enter="saveRecipeBook"
                 />
-                <small class="text-gray-500">{{ folderName.length }}/50</small>
+                <small class="text-gray-500">{{ recipeBookName.length }}/50</small>
             </div>
 
-            <!-- 폴더 색상 -->
+            <!-- 레시피북 색상 -->
             <div class="mb-4">
-                <label class="block mb-2 font-medium">폴더 색상</label>
+                <label class="block mb-2 font-medium">레시피북 색상</label>
                 <div class="color-grid">
                     <div
-                        v-for="color in FOLDER_COLORS"
+                        v-for="color in RECIPE_BOOK_COLORS"
                         :key="color.name"
                         class="color-option"
                         :class="{ 'color-option-selected': selectedColor === color.name }"
@@ -50,11 +50,11 @@
                 <div class="preview-content">
                     <i
                         class="pi pi-bookmark text-3xl"
-                        :style="{ color: getFolderColorHex(selectedColor) }"
+                        :style="{ color: getRecipeBookColorHex(selectedColor) }"
                     ></i>
                     <div class="ml-3">
                         <div class="font-medium text-lg">
-                            {{ folderName || '폴더 이름' }}
+                            {{ recipeBookName || '레시피북 이름' }}
                         </div>
                         <div class="text-sm text-gray-500">0개 레시피</div>
                     </div>
@@ -66,8 +66,8 @@
             <Button label="취소" text @click="closeDialog" />
             <Button
                 :label="isEditMode ? '수정' : '만들기'"
-                @click="saveFolder"
-                :disabled="!folderName.trim() || loading"
+                @click="saveRecipeBook"
+                :disabled="!recipeBookName.trim() || loading"
                 :loading="loading"
             />
         </template>
@@ -79,31 +79,30 @@ import { ref, watch } from 'vue';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
-import { createFolder, updateFolder } from '@/api/bookmarkApi';
-import { FOLDER_COLORS, getFolderColorHex } from '@/types/bookmark';
-import type { BookmarkFolder } from '@/types/bookmark';
+import { createRecipeBook, updateRecipeBook } from '@/api/bookmarkApi';
+import { RECIPE_BOOK_COLORS, getRecipeBookColorHex } from '@/types/bookmark';
+import type { RecipeBook } from '@/types/bookmark';
 import { useAppToast } from '@/utils/toast';
 
 const props = defineProps<{
     visible: boolean;
-    folder?: BookmarkFolder | null;
+    recipeBook?: RecipeBook | null;
 }>();
 
 const emit = defineEmits<{
     (e: 'update:visible', value: boolean): void;
-    (e: 'folder-created', folder: BookmarkFolder): void;
-    (e: 'folder-updated', folder: BookmarkFolder): void;
+    (e: 'recipe-book-created', recipeBook: RecipeBook): void;
+    (e: 'recipe-book-updated', recipeBook: RecipeBook): void;
 }>();
 
 const { showError } = useAppToast();
 
 const visible = ref(props.visible);
 const loading = ref(false);
-const folderName = ref('');
+const recipeBookName = ref('');
 const selectedColor = ref('blue');
 const isEditMode = ref(false);
 
-// visible prop 변경 감지
 watch(() => props.visible, (newVal) => {
     visible.value = newVal;
     if (newVal) {
@@ -111,65 +110,48 @@ watch(() => props.visible, (newVal) => {
     }
 });
 
-// visible 변경 시 emit
 watch(visible, (newVal) => {
     emit('update:visible', newVal);
 });
 
-/**
- * 폼 초기화
- */
 const initForm = () => {
-    if (props.folder) {
-        // 수정 모드
+    if (props.recipeBook) {
         isEditMode.value = true;
-        folderName.value = props.folder.name;
-        selectedColor.value = props.folder.color;
+        recipeBookName.value = props.recipeBook.name;
+        selectedColor.value = props.recipeBook.color;
     } else {
-        // 생성 모드
         isEditMode.value = false;
-        folderName.value = '';
+        recipeBookName.value = '';
         selectedColor.value = 'blue';
     }
 };
 
-/**
- * 폴더 저장 (생성 또는 수정)
- */
-const saveFolder = async () => {
-    const trimmedName = folderName.value.trim();
-    
+const saveRecipeBook = async () => {
+    const trimmedName = recipeBookName.value.trim();
     if (!trimmedName) {
-        showError('폴더 이름을 입력해주세요.');
+        showError('레시피북 이름을 입력해주세요.');
         return;
     }
-
     try {
         loading.value = true;
-
-        let savedFolder: BookmarkFolder;
-
-        if (isEditMode.value && props.folder) {
-            // 폴더 수정
-            savedFolder = await updateFolder(props.folder.id, trimmedName, selectedColor.value);
-            emit('folder-updated', savedFolder);
+        let saved: RecipeBook;
+        if (isEditMode.value && props.recipeBook) {
+            saved = await updateRecipeBook(props.recipeBook.id, trimmedName, selectedColor.value);
+            emit('recipe-book-updated', saved);
         } else {
-            // 폴더 생성
-            savedFolder = await createFolder(trimmedName, selectedColor.value);
-            emit('folder-created', savedFolder);
+            saved = await createRecipeBook(trimmedName, selectedColor.value);
+            emit('recipe-book-created', saved);
         }
-
         closeDialog();
     } catch (error: any) {
-        console.error('폴더 저장 실패:', error);
-        
+        console.error('레시피북 저장 실패:', error);
         if (error.message && error.message.includes('409')) {
-            showError('이미 존재하는 폴더 이름입니다.');
+            showError('이미 존재하는 레시피북 이름입니다.');
         } else {
             showError(
                 isEditMode.value
-                    ? '폴더 수정에 실패했습니다.'
-                    : '폴더 생성에 실패했습니다.'
+                    ? '레시피북 수정에 실패했습니다.'
+                    : '레시피북 생성에 실패했습니다.'
             );
         }
     } finally {
@@ -177,19 +159,16 @@ const saveFolder = async () => {
     }
 };
 
-/**
- * Dialog 닫기
- */
 const closeDialog = () => {
     visible.value = false;
-    folderName.value = '';
+    recipeBookName.value = '';
     selectedColor.value = 'blue';
     isEditMode.value = false;
 };
 </script>
 
 <style scoped lang="scss">
-.folder-form {
+.recipe-book-form {
     padding: 0.5rem 0;
 }
 

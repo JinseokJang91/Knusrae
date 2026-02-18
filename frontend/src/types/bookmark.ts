@@ -1,6 +1,6 @@
 import type { Recipe } from './recipe';
 
-export interface BookmarkFolder {
+export interface RecipeBook {
     id: number;
     memberId: number;
     name: string;
@@ -13,21 +13,23 @@ export interface BookmarkFolder {
 
 export interface RecipeBookmark {
     id: number;
-    folderId: number;
+    recipeBookId: number;
     recipeId: number;
     memberId: number;
+    /** 사용자가 해당 북마크(레시피)에 남긴 메모 */
+    memo?: string | null;
     recipe: Recipe;
     createdAt: string;
 }
 
-export interface FolderColor {
+export interface RecipeBookColor {
     name: string;
     label: string;
     hex: string;
 }
 
-// 폴더 색상 옵션
-export const FOLDER_COLORS: FolderColor[] = [
+// 레시피북 색상 옵션
+export const RECIPE_BOOK_COLORS: RecipeBookColor[] = [
     { name: 'blue', label: '파란색', hex: '#3b82f6' },
     { name: 'red', label: '빨간색', hex: '#ef4444' },
     { name: 'green', label: '초록색', hex: '#10b981' },
@@ -38,14 +40,12 @@ export const FOLDER_COLORS: FolderColor[] = [
     { name: 'orange', label: '주황색', hex: '#f97316' }
 ];
 
-// 색상 이름으로 hex 코드 가져오기
-export function getFolderColorHex(colorName: string): string {
-    const color = FOLDER_COLORS.find(c => c.name === colorName);
-    return color?.hex || '#3b82f6'; // 기본값: blue
+export function getRecipeBookColorHex(colorName: string): string {
+    const color = RECIPE_BOOK_COLORS.find(c => c.name === colorName);
+    return color?.hex || '#3b82f6';
 }
 
-// 색상 이름으로 라벨 가져오기
-export function getFolderColorLabel(colorName: string): string {
-    const color = FOLDER_COLORS.find(c => c.name === colorName);
+export function getRecipeBookColorLabel(colorName: string): string {
+    const color = RECIPE_BOOK_COLORS.find(c => c.name === colorName);
     return color?.label || '파란색';
 }

@@ -98,7 +98,7 @@ const props = withDefaults(
         showFavorite?: boolean;
         /** 북마크 버튼 표시 여부 */
         showBookmark?: boolean;
-        /** 북마크 선택 여부 (하나라도 폴더에 저장된 경우 true) */
+        /** 북마크 선택 여부 (하나라도 레시피북에 저장된 경우 true) */
         isBookmarked?: boolean;
         /** 댓글 개수 표시 여부 */
         showCommentCount?: boolean;

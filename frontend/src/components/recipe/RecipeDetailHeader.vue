@@ -149,7 +149,7 @@ defineProps<{
     mainImage: RecipeImage | null;
     cookingTipsData: { servings: string | null; cookingTime: string | null; difficulty: string | null };
     isLiked: boolean;
-    /** 북마크 선택 여부 (하나라도 폴더에 저장된 경우 true) */
+    /** 북마크 선택 여부 (하나라도 레시피북에 저장된 경우 true) */
     isBookmarked?: boolean;
     formatNumber: (num: number | null | undefined) => string;
     /** 현재 사용자가 레시피 작성자인지 여부 */
