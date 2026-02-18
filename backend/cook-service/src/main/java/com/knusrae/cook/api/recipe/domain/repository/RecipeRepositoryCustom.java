@@ -37,4 +37,13 @@ public interface RecipeRepositoryCustom {
      * @return 조회수가 높은 레시피 목록
      */
     List<Recipe> findRecentPopularRecipes(Pageable pageable);
+
+    /**
+     * 크리에이터별 레시피 통계 조회 (회원ID, 레시피 수, 총 조회수)
+     * 공개된 승인 레시피만 집계
+     * 
+     * @param pageable 페이징 정보
+     * @return [memberId, recipeCount, totalHits] 배열 목록
+     */
+    List<Object[]> findCreatorStats(Pageable pageable);
 }

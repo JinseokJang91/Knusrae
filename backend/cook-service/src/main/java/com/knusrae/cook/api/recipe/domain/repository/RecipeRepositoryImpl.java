@@ -3,12 +3,14 @@ package com.knusrae.cook.api.recipe.domain.repository;
 import com.knusrae.cook.api.recipe.domain.entity.Recipe;
 import com.knusrae.cook.api.recipe.domain.enums.Status;
 import com.knusrae.cook.api.recipe.domain.enums.Visibility;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.knusrae.cook.api.recipe.domain.entity.QRecipe.recipe;
@@ -86,5 +88,31 @@ public class RecipeRepositoryImpl implements RecipeRepositoryCustom {
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .fetch();
+    }
+
+    @Override
+    public List<Object[]> findCreatorStats(Pageable pageable) {
+        List<Tuple> tuples = queryFactory
+                .select(recipe.memberId, recipe.memberId.count(), recipe.hits.sum())
+                .from(recipe)
+                .where(
+                        recipe.status.eq(Status.PUBLISHED),
+                        recipe.visibility.eq(Visibility.PUBLIC)
+                )
+                .groupBy(recipe.memberId)
+                .orderBy(recipe.hits.sum().desc())
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetch();
+
+        List<Object[]> result = new ArrayList<>();
+        for (Tuple tuple : tuples) {
+            result.add(new Object[]{
+                    tuple.get(recipe.memberId),
+                    tuple.get(recipe.memberId.count()),
+                    tuple.get(recipe.hits.sum())
+            });
+        }
+        return result;
     }
 }

@@ -29,7 +29,7 @@ public class MemberController {
     /**
      * 현재 로그인한 회원 정보 조회
      * JWT 토큰에서 회원 ID를 추출하여 Member 정보를 반환합니다.
-     * 
+     *
      * @param authentication Spring Security Authentication 객체 (JWT에서 추출된 회원 ID 포함)
      * @return 회원 정보 (MemberDto)
      */
@@ -76,7 +76,7 @@ public class MemberController {
 
     /**
      * 특정 회원 정보 조회 (공개 프로필)
-     * 
+     *
      * @param memberId 조회할 회원 ID
      * @return 회원 정보 (민감 정보 제외)
      */
@@ -115,12 +115,12 @@ public class MemberController {
 
     /**
      * 프로필 정보 업데이트
-     * 
+     *
      * @param authentication Spring Security Authentication 객체
-     * @param name 이름
-     * @param nickname 닉네임
-     * @param bio 자기소개
-     * @param profileImage 프로필 이미지 파일
+     * @param name           이름
+     * @param nickname       닉네임
+     * @param bio            자기소개
+     * @param profileImage   프로필 이미지 파일
      * @return 업데이트된 회원 정보
      */
     @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
