@@ -23,9 +23,11 @@ build/
 out/
 
 *.DS_Store
+Thumbs.db
 *.class
 *.swp
 *~
+*.bak
 
 .idea
 *.iml
@@ -53,7 +55,8 @@ bin/
 # AWS User-specific
 .idea/**/aws.xml
 
-# Generated files.idea/**/contentModel.xml
+# Generated files
+.idea/**/contentModel.xml
 
 # Sensitive or high-churn files
 .idea/**/dataSources/
@@ -173,6 +176,12 @@ fabric.properties
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Spring Boot local config (may contain secrets)
+**/application-local.yml
+**/application-local.properties
+**/application-*-local.yml
+**/application-*-local.properties
 
 ### Kotlin ###
 # Compiled class file
@@ -331,16 +340,12 @@ dist
 #
 # Recommended template: Node.gitignore
 
-# TODO: where does this rule come from?
+# VuePress/JSDoc build output
 docs/_book
-
-# TODO: where does this rule come from?
-test/
 
 ### Vuejs ###
 # Recommended template: Node.gitignore
-
-dist/
+# (dist/ already covered in Node section above)
 npm-debug.log
 yarn-error.log
 
@@ -378,7 +383,7 @@ gradle-app.setting
 /frontend/.npm-cache/
 
 ### design documents
-docs/design/
+docs/sample/
 
 .vscode/
 .cursor/
