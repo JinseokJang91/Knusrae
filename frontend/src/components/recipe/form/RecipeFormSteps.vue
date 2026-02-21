@@ -1,101 +1,3 @@
-<template>
-    <div class="border border-gray-200 rounded-lg p-5 bg-white">
-        <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
-                <h3 class="text-xl font-semibold text-gray-600">
-                    <span class="mr-1">조리 순서</span>
-                    <template v-if="guideImage">
-                        <i
-                            ref="guideIconRef"
-                            class="pi pi-question-circle help-button"
-                            style="cursor: pointer;"
-                            @click="(e) => guidePopoverRef?.toggle?.(e)"
-                        />
-                        <Popover
-                            ref="guidePopoverRef"
-                            :target="guideIconRef"
-                            :show-close-icon="true"
-                            :dismissable="true"
-                        >
-                            <div class="p-2">
-                                <img :src="guideImage" alt="조리 순서 가이드" class="max-w-full h-auto" />
-                            </div>
-                        </Popover>
-                    </template>
-                </h3>
-            </div>
-            <div data-step-add-button>
-                <Button label="단계 추가" icon="pi pi-plus" @click="addStep" :disabled="disabled" />
-            </div>
-        </div>
-        <div v-if="modelValue.length === 0" class="p-3 text-gray-500 border rounded">
-            아직 단계가 없습니다. '단계 추가'를 눌러 시작하세요.
-        </div>
-
-        <div
-            v-for="(step, index) in modelValue"
-            :key="step.id"
-            class="border rounded p-3 mb-3 bg-gray-50"
-            :data-step-index="index"
-        >
-            <div class="flex items-center justify-between mb-3">
-                <div class="font-medium">단계 {{ index + 1 }}</div>
-                <div class="flex gap-2">
-                    <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveStepUp(index)" :disabled="index === 0 || disabled" />
-                    <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveStepDown(index)" :disabled="index === modelValue.length - 1 || disabled" />
-                    <Button icon="pi pi-trash" severity="danger" size="small" @click="removeStep(index)" :disabled="disabled" />
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div class="md:col-span-2">
-                    <label class="block mb-2">이미지</label>
-                    <input
-                        :ref="(el) => setStepInputRef(step.id, el)"
-                        type="file"
-                        accept="image/*"
-                        class="hidden"
-                        :disabled="disabled"
-                        @change="onStepImageChange($event, step)"
-                    />
-                    <div
-                        class="relative w-full aspect-[5/3] bg-gray-200 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-300 hover:border-gray-400 transition-colors flex items-center justify-center"
-                        @click="() => !disabled && stepInputRefs[step.id]?.click()"
-                    >
-                        <div v-if="!step.previewUrl" class="text-center text-gray-500">
-                            <span class="pi pi-image text-4xl block mb-2"></span>
-                            <span class="text-sm">이미지를 클릭하여 추가하세요</span>
-                        </div>
-                        <div v-else class="group relative w-full h-full">
-                            <img :src="step.previewUrl" alt="step preview" class="w-full h-full object-cover rounded-md" />
-                            <button
-                                type="button"
-                                class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                :disabled="disabled"
-                                @click.stop="$emit('step-image-clear', step.id)"
-                            >
-                                <span class="pi pi-times"></span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="md:col-span-3">
-                    <label class="block mb-2">설명</label>
-                    <Textarea
-                        :model-value="step.text"
-                        placeholder="이 단계에서의 설명을 작성하세요"
-                        class="w-full"
-                        :class="{ 'border-red-500': validationErrors?.[`step-text-${index}`] }"
-                        :rows="9"
-                        @update:model-value="(v) => updateStepText(index, v)"
-                        @input="$emit('clear-validation', `step-text-${index}`)"
-                    />
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
-
 <script setup lang="ts">
 import Button from 'primevue/button';
 import Popover from 'primevue/popover';
@@ -141,10 +43,7 @@ function emitUpdate(steps: RecipeStepDraft[]): void {
 }
 
 function addStep(): void {
-    emitUpdate([
-        ...props.modelValue,
-        { id: generateRecipeFormId(), file: null, text: '', previewUrl: '' }
-    ]);
+    emitUpdate([...props.modelValue, { id: generateRecipeFormId(), file: null, text: '', previewUrl: '' }]);
 }
 
 function removeStep(index: number): void {
@@ -183,3 +82,77 @@ function onStepImageChange(e: Event, step: RecipeStepDraft): void {
     input.value = '';
 }
 </script>
+
+<template>
+    <div class="border border-gray-200 rounded-lg p-5 bg-white">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <h3 class="text-xl font-semibold text-gray-600">
+                    <span class="mr-1">조리 순서</span>
+                    <template v-if="guideImage">
+                        <i ref="guideIconRef" class="pi pi-question-circle help-button" style="cursor: pointer" @click="(e) => guidePopoverRef?.toggle?.(e)" />
+                        <Popover ref="guidePopoverRef" :target="guideIconRef" :show-close-icon="true" :dismissable="true">
+                            <div class="p-2">
+                                <img :src="guideImage" alt="조리 순서 가이드" class="max-w-full h-auto" />
+                            </div>
+                        </Popover>
+                    </template>
+                </h3>
+            </div>
+            <div data-step-add-button>
+                <Button label="단계 추가" icon="pi pi-plus" @click="addStep" :disabled="disabled" />
+            </div>
+        </div>
+        <div v-if="modelValue.length === 0" class="p-3 text-gray-500 border rounded">아직 단계가 없습니다. '단계 추가'를 눌러 시작하세요.</div>
+
+        <div v-for="(step, index) in modelValue" :key="step.id" class="border rounded p-3 mb-3 bg-gray-50" :data-step-index="index">
+            <div class="flex items-center justify-between mb-3">
+                <div class="font-medium">단계 {{ index + 1 }}</div>
+                <div class="flex gap-2">
+                    <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveStepUp(index)" :disabled="index === 0 || disabled" />
+                    <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveStepDown(index)" :disabled="index === modelValue.length - 1 || disabled" />
+                    <Button icon="pi pi-trash" severity="danger" size="small" @click="removeStep(index)" :disabled="disabled" />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block mb-2">이미지</label>
+                    <input :ref="(el) => setStepInputRef(step.id, el)" type="file" accept="image/*" class="hidden" :disabled="disabled" @change="onStepImageChange($event, step)" />
+                    <div
+                        class="relative w-full aspect-[5/3] bg-gray-200 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-300 hover:border-gray-400 transition-colors flex items-center justify-center"
+                        @click="() => !disabled && stepInputRefs[step.id]?.click()"
+                    >
+                        <div v-if="!step.previewUrl" class="text-center text-gray-500">
+                            <span class="pi pi-image text-4xl block mb-2"></span>
+                            <span class="text-sm">이미지를 클릭하여 추가하세요</span>
+                        </div>
+                        <div v-else class="group relative w-full h-full">
+                            <img :src="step.previewUrl" alt="step preview" class="w-full h-full object-cover rounded-md" />
+                            <button
+                                type="button"
+                                class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                :disabled="disabled"
+                                @click.stop="$emit('step-image-clear', step.id)"
+                            >
+                                <span class="pi pi-times"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block mb-2">설명</label>
+                    <Textarea
+                        :model-value="step.text"
+                        placeholder="이 단계에서의 설명을 작성하세요"
+                        class="w-full"
+                        :class="{ 'border-red-500': validationErrors?.[`step-text-${index}`] }"
+                        :rows="9"
+                        @update:model-value="(v) => updateStepText(index, v)"
+                        @input="$emit('clear-validation', `step-text-${index}`)"
+                    />
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

@@ -1,10 +1,5 @@
 // 문의 유형 코드 (백엔드와 동일)
-export type InquiryType =
-    | 'RECIPE_CONTENT'
-    | 'TECHNICAL'
-    | 'ACCOUNT'
-    | 'REPORT'
-    | 'ETC';
+export type InquiryType = 'RECIPE_CONTENT' | 'TECHNICAL' | 'ACCOUNT' | 'REPORT' | 'ETC';
 
 export const INQUIRY_TYPES: { value: InquiryType; label: string }[] = [
     { value: 'RECIPE_CONTENT', label: '레시피/콘텐츠' },

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import type { Recipe } from '@/types/recipe';
 
@@ -25,31 +24,23 @@ const goToRecipe = () => {
 </script>
 
 <template>
-    <div 
-        class="recipe-card" 
-        :class="{ compact }"
-        @click="goToRecipe"
-    >
+    <div class="recipe-card" :class="{ compact }" @click="goToRecipe">
         <div class="recipe-image-container">
-            <img 
-                :src="recipe.thumbnail || '/images/default-recipe.jpg'" 
-                :alt="recipe.title" 
-                class="recipe-image" 
-            />
+            <img :src="recipe.thumbnail || '/images/default-recipe.jpg'" :alt="recipe.title" class="recipe-image" />
         </div>
-        
+
         <div class="recipe-content">
             <h3 class="recipe-title">{{ recipe.title }}</h3>
             <p v-if="!compact && recipe.description" class="recipe-description">
                 {{ recipe.description }}
             </p>
-            
+
             <div class="recipe-meta">
                 <div class="recipe-author">
                     <i class="pi pi-user"></i>
                     <span>{{ recipe.memberNickname || recipe.memberName }}</span>
                 </div>
-                
+
                 <div v-if="showStats" class="recipe-stats">
                     <span><i class="pi pi-eye"></i> {{ formatNumber(recipe.hits) }}</span>
                     <span><i class="pi pi-heart"></i> {{ formatNumber(recipe.favoriteCount) }}</span>
@@ -171,11 +162,11 @@ const goToRecipe = () => {
     .recipe-card.compact {
         width: 240px;
     }
-    
+
     .recipe-content {
         padding: 12px;
     }
-    
+
     .recipe-title {
         font-size: 15px;
     }

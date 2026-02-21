@@ -1,99 +1,3 @@
-<template>
-    <div class="inquiry-detail">
-        <div class="page-header mb-4">
-            <div class="flex items-center gap-2 mb-2">
-                <Button icon="pi pi-arrow-left" text rounded @click="goToList" />
-                <h1 class="text-2xl font-bold text-gray-900 m-0">문의 상세</h1>
-            </div>
-        </div>
-
-        <PageStateBlock
-            v-if="loading"
-            state="loading"
-            loading-message="문의를 불러오는 중..."
-        />
-        <PageStateBlock
-            v-else-if="error"
-            state="error"
-            error-title="문의를 불러올 수 없습니다"
-            :error-message="error"
-            retry-label="다시 시도"
-            @retry="loadDetail"
-        />
-        <PageStateBlock
-            v-else-if="!detail"
-            state="empty"
-            empty-icon="pi pi-inbox"
-            empty-title="문의를 찾을 수 없습니다"
-            empty-message="권한이 없거나 삭제된 문의일 수 있습니다."
-            empty-button-label="목록으로"
-            @empty-action="goToList"
-        />
-
-        <Card v-else>
-            <template #content>
-                <div class="detail-body">
-                    <div class="detail-meta mb-4">
-                        <span class="inquiry-type-badge">{{ getInquiryTypeLabel(detail.inquiryType) }}</span>
-                        <span class="text-color-secondary text-sm ml-2">{{ formatDate(detail.createdAt) }}</span>
-                    </div>
-                    <h2 class="detail-title mb-3">{{ detail.title }}</h2>
-                    <div class="detail-content mb-4">{{ detail.content }}</div>
-                    <div v-if="detail.imageUrls && detail.imageUrls.length > 0" class="detail-images mb-4">
-                        <img
-                            v-for="(url, i) in detail.imageUrls"
-                            :key="i"
-                            :src="url"
-                            alt="첨부 이미지"
-                            class="detail-image"
-                        />
-                    </div>
-
-                    <Divider />
-
-                    <div class="reply-section">
-                        <h3 class="reply-heading mb-2">관리자 답변</h3>
-                        <div v-if="detail.reply" class="reply-content">
-                            <p class="m-0">{{ detail.reply.content }}</p>
-                            <small class="text-color-secondary">{{ formatDate(detail.reply.repliedAt) }}</small>
-                        </div>
-                        <p v-else class="text-color-secondary m-0">답변 대기 중입니다.</p>
-                    </div>
-                </div>
-            </template>
-            <template #footer>
-                <div class="flex justify-between flex-wrap gap-2">
-                    <Button label="목록으로" severity="secondary" outlined @click="goToList" />
-                    <div class="flex gap-2">
-                        <Button
-                            v-if="!detail.reply"
-                            label="수정"
-                            severity="secondary"
-                            outlined
-                            @click="openEditDialog"
-                        />
-                        <Button
-                            label="삭제"
-                            severity="danger"
-                            outlined
-                            @click="confirmDelete"
-                        />
-                    </div>
-                </div>
-            </template>
-        </Card>
-
-        <InquiryFormDialog
-            v-model:visible="formDialogVisible"
-            :inquiry-id="editingInquiryId"
-            @saved="onInquirySaved"
-            @closed="onFormClosed"
-        />
-
-        <ConfirmDialog group="inquiry-detail-delete" />
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -211,6 +115,61 @@ watch(
     }
 );
 </script>
+
+<template>
+    <div class="inquiry-detail">
+        <div class="page-header mb-4">
+            <div class="flex items-center gap-2 mb-2">
+                <Button icon="pi pi-arrow-left" text rounded @click="goToList" />
+                <h1 class="text-2xl font-bold text-gray-900 m-0">문의 상세</h1>
+            </div>
+        </div>
+
+        <PageStateBlock v-if="loading" state="loading" loading-message="문의를 불러오는 중..." />
+        <PageStateBlock v-else-if="error" state="error" error-title="문의를 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadDetail" />
+        <PageStateBlock v-else-if="!detail" state="empty" empty-icon="pi pi-inbox" empty-title="문의를 찾을 수 없습니다" empty-message="권한이 없거나 삭제된 문의일 수 있습니다." empty-button-label="목록으로" @empty-action="goToList" />
+
+        <Card v-else>
+            <template #content>
+                <div class="detail-body">
+                    <div class="detail-meta mb-4">
+                        <span class="inquiry-type-badge">{{ getInquiryTypeLabel(detail.inquiryType) }}</span>
+                        <span class="text-color-secondary text-sm ml-2">{{ formatDate(detail.createdAt) }}</span>
+                    </div>
+                    <h2 class="detail-title mb-3">{{ detail.title }}</h2>
+                    <div class="detail-content mb-4">{{ detail.content }}</div>
+                    <div v-if="detail.imageUrls && detail.imageUrls.length > 0" class="detail-images mb-4">
+                        <img v-for="(url, i) in detail.imageUrls" :key="i" :src="url" alt="첨부 이미지" class="detail-image" />
+                    </div>
+
+                    <Divider />
+
+                    <div class="reply-section">
+                        <h3 class="reply-heading mb-2">관리자 답변</h3>
+                        <div v-if="detail.reply" class="reply-content">
+                            <p class="m-0">{{ detail.reply.content }}</p>
+                            <small class="text-color-secondary">{{ formatDate(detail.reply.repliedAt) }}</small>
+                        </div>
+                        <p v-else class="text-color-secondary m-0">답변 대기 중입니다.</p>
+                    </div>
+                </div>
+            </template>
+            <template #footer>
+                <div class="flex justify-between flex-wrap gap-2">
+                    <Button label="목록으로" severity="secondary" outlined @click="goToList" />
+                    <div class="flex gap-2">
+                        <Button v-if="!detail.reply" label="수정" severity="secondary" outlined @click="openEditDialog" />
+                        <Button label="삭제" severity="danger" outlined @click="confirmDelete" />
+                    </div>
+                </div>
+            </template>
+        </Card>
+
+        <InquiryFormDialog v-model:visible="formDialogVisible" :inquiry-id="editingInquiryId" @saved="onInquirySaved" @closed="onFormClosed" />
+
+        <ConfirmDialog group="inquiry-detail-delete" />
+    </div>
+</template>
 
 <style scoped>
 .inquiry-detail {

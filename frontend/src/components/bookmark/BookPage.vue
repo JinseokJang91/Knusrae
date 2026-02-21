@@ -1,11 +1,3 @@
-<template>
-    <div class="book-page" :class="{ 'book-page--left': side === 'left', 'book-page--right': side === 'right' }">
-        <div class="book-page__inner">
-            <slot />
-        </div>
-    </div>
-</template>
-
 <script setup lang="ts">
 withDefaults(
     defineProps<{
@@ -15,6 +7,14 @@ withDefaults(
     { side: 'left' }
 );
 </script>
+
+<template>
+    <div class="book-page" :class="{ 'book-page--left': side === 'left', 'book-page--right': side === 'right' }">
+        <div class="book-page__inner">
+            <slot />
+        </div>
+    </div>
+</template>
 
 <style scoped lang="scss">
 .book-page {

@@ -1,352 +1,3 @@
-<template>
-    <div class="common-code-management">
-        <div class="page-header mb-6">
-            <div class="flex items-center gap-2 mb-2">
-                <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
-                <h1 class="text-3xl font-bold text-gray-900">공통코드 관리</h1>
-            </div>
-            <p class="text-gray-600 mt-2">공통코드(코드 그룹)를 조회·등록·수정·삭제할 수 있습니다.</p>
-        </div>
-
-        <Card>
-            <template #content>
-                <div class="flex justify-end mb-4">
-                    <Button
-                        label="공통코드 추가"
-                        icon="pi pi-plus"
-                        @click="openCreateDialog"
-                    />
-                </div>
-                <DataTable
-                    :value="list"
-                    :loading="loading"
-                    data-key="codeId"
-                    striped-rows
-                    class="p-datatable-sm"
-                    responsive-layout="scroll"
-                >
-                    <Column field="codeId" header="코드 ID" sortable />
-                    <Column field="codeGroup" header="코드 그룹" sortable />
-                    <Column field="codeName" header="코드명" sortable />
-                    <Column field="useYn" header="사용 여부">
-                        <template #body="{ data }">
-                            <Tag :value="data.useYn === 'Y' ? '사용' : '미사용'" :severity="data.useYn === 'Y' ? 'success' : 'secondary'" />
-                        </template>
-                    </Column>
-                    <Column header="작업" style="width: 160px">
-                        <template #body="{ data }">
-                            <div class="flex gap-2">
-                                <Button
-                                    icon="pi pi-pencil"
-                                    text
-                                    rounded
-                                    severity="secondary"
-                                    aria-label="수정"
-                                    @click="openEditDialog(data)"
-                                />
-                                <Button
-                                    icon="pi pi-trash"
-                                    text
-                                    rounded
-                                    severity="danger"
-                                    aria-label="삭제"
-                                    @click="confirmDelete(data)"
-                                />
-                            </div>
-                        </template>
-                    </Column>
-                    <template #empty>
-                        <div class="text-center text-gray-500 py-8">등록된 공통코드가 없습니다.</div>
-                    </template>
-                    <template #loading> 목록을 불러오는 중입니다. </template>
-                </DataTable>
-            </template>
-        </Card>
-
-        <!-- 등록 다이얼로그 -->
-        <Dialog
-            v-model:visible="createDialogVisible"
-            header="공통코드 등록"
-            modal
-            :style="{ width: '420px' }"
-            :closable="true"
-            @hide="resetCreateForm"
-        >
-            <div class="space-y-4 py-2">
-                <div class="field">
-                    <label for="create-codeId" class="block text-sm font-medium text-gray-700 mb-2">
-                        코드 ID <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="create-codeId"
-                        v-model="createForm.codeId"
-                        placeholder="예: MY_CODE_GROUP"
-                        class="w-full"
-                        :class="{ 'p-invalid': createErrors.codeId }"
-                        maxlength="30"
-                    />
-                    <small v-if="createErrors.codeId" class="p-error">{{ createErrors.codeId }}</small>
-                </div>
-                <div class="field">
-                    <label for="create-codeGroup" class="block text-sm font-medium text-gray-700 mb-2">
-                        코드 그룹 <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="create-codeGroup"
-                        v-model="createForm.codeGroup"
-                        placeholder="예: CATEGORY, INGREDIENTS"
-                        class="w-full"
-                        :class="{ 'p-invalid': createErrors.codeGroup }"
-                        maxlength="30"
-                    />
-                    <small v-if="createErrors.codeGroup" class="p-error">{{ createErrors.codeGroup }}</small>
-                </div>
-                <div class="field">
-                    <label for="create-codeName" class="block text-sm font-medium text-gray-700 mb-2">
-                        코드명 <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="create-codeName"
-                        v-model="createForm.codeName"
-                        placeholder="예: 재료그룹"
-                        class="w-full"
-                        :class="{ 'p-invalid': createErrors.codeName }"
-                        maxlength="50"
-                    />
-                    <small v-if="createErrors.codeName" class="p-error">{{ createErrors.codeName }}</small>
-                </div>
-                <div class="field">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">사용 여부</label>
-                    <SelectButton v-model="createForm.useYn" :options="useYnOptions" option-value="value" option-label="label" />
-                </div>
-            </div>
-            <template #footer>
-                <Button label="취소" severity="secondary" @click="createDialogVisible = false" />
-                <Button label="등록" icon="pi pi-check" :loading="createSubmitting" @click="submitCreate" />
-            </template>
-        </Dialog>
-
-        <!-- 수정 다이얼로그 (공통코드 + 상세코드 목록) -->
-        <Dialog
-            v-model:visible="editDialogVisible"
-            header="공통코드 수정"
-            modal
-            :style="{ width: '720px' }"
-            :closable="true"
-            @hide="resetEditForm"
-        >
-            <div v-if="editingCodeId" class="space-y-4 py-2">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="field">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">코드 ID</label>
-                        <InputText :model-value="editingCodeId" class="w-full" disabled />
-                    </div>
-                    <div class="field">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">사용 여부</label>
-                        <SelectButton v-model="editForm.useYn" :options="useYnOptions" option-value="value" option-label="label" />
-                    </div>
-                </div>
-                <div class="field">
-                    <label for="edit-codeGroup" class="block text-sm font-medium text-gray-700 mb-2">
-                        코드 그룹 <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="edit-codeGroup"
-                        v-model="editForm.codeGroup"
-                        class="w-full"
-                        :class="{ 'p-invalid': editErrors.codeGroup }"
-                        maxlength="30"
-                    />
-                    <small v-if="editErrors.codeGroup" class="p-error">{{ editErrors.codeGroup }}</small>
-                </div>
-                <div class="field">
-                    <label for="edit-codeName" class="block text-sm font-medium text-gray-700 mb-2">
-                        코드명 <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="edit-codeName"
-                        v-model="editForm.codeName"
-                        class="w-full"
-                        :class="{ 'p-invalid': editErrors.codeName }"
-                        maxlength="50"
-                    />
-                    <small v-if="editErrors.codeName" class="p-error">{{ editErrors.codeName }}</small>
-                </div>
-
-                <!-- 상세코드 섹션 -->
-                <div class="border-t pt-4 mt-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-sm font-medium text-gray-700">상세코드</label>
-                        <Button
-                            label="상세코드 추가"
-                            icon="pi pi-plus"
-                            size="small"
-                            severity="secondary"
-                            @click="openDetailAddDialog"
-                        />
-                    </div>
-                    <DataTable
-                        :value="editDetails"
-                        data-key="detailCodeId"
-                        striped-rows
-                        class="p-datatable-sm"
-                        responsive-layout="scroll"
-                    >
-                        <Column field="detailCodeId" header="상세코드 ID" style="min-width: 120px" />
-                        <Column field="codeName" header="코드명" style="min-width: 140px" />
-                        <Column field="sort" header="정렬">
-                            <template #body="{ data }">
-                                {{ data.sort ?? '-' }}
-                            </template>
-                        </Column>
-                        <Column field="useYn" header="사용">
-                            <template #body="{ data }">
-                                <Tag :value="data.useYn === 'Y' ? '사용' : '미사용'" :severity="data.useYn === 'Y' ? 'success' : 'secondary'" />
-                            </template>
-                        </Column>
-                        <Column header="작업" style="width: 100px">
-                            <template #body="{ data }">
-                                <div class="flex gap-1">
-                                    <Button
-                                        icon="pi pi-pencil"
-                                        text
-                                        rounded
-                                        size="small"
-                                        severity="secondary"
-                                        aria-label="상세코드 수정"
-                                        @click="openDetailEditDialog(data)"
-                                    />
-                                    <Button
-                                        icon="pi pi-trash"
-                                        text
-                                        rounded
-                                        size="small"
-                                        severity="danger"
-                                        aria-label="상세코드 삭제"
-                                        @click="confirmDetailDelete(data)"
-                                    />
-                                </div>
-                            </template>
-                        </Column>
-                        <template #empty>
-                            <div class="text-center text-gray-500 py-4">상세코드가 없습니다. 추가 버튼으로 등록하세요.</div>
-                        </template>
-                    </DataTable>
-                </div>
-            </div>
-            <template #footer>
-                <Button label="취소" severity="secondary" @click="editDialogVisible = false" />
-                <Button label="저장" icon="pi pi-check" :loading="editSubmitting" @click="submitEdit" />
-            </template>
-        </Dialog>
-
-        <!-- 상세코드 추가 다이얼로그 -->
-        <Dialog
-            v-model:visible="detailAddDialogVisible"
-            header="상세코드 추가"
-            modal
-            :style="{ width: '400px' }"
-            @hide="resetDetailAddForm"
-        >
-            <div class="space-y-4 py-2">
-                <div class="field">
-                    <label for="detail-add-id" class="block text-sm font-medium text-gray-700 mb-2">
-                        상세코드 ID <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="detail-add-id"
-                        v-model="detailAddForm.detailCodeId"
-                        placeholder="예: 1001"
-                        class="w-full"
-                        :class="{ 'p-invalid': detailAddErrors.detailCodeId }"
-                        maxlength="30"
-                    />
-                    <small v-if="detailAddErrors.detailCodeId" class="p-error">{{ detailAddErrors.detailCodeId }}</small>
-                </div>
-                <div class="field">
-                    <label for="detail-add-name" class="block text-sm font-medium text-gray-700 mb-2">
-                        코드명 <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="detail-add-name"
-                        v-model="detailAddForm.codeName"
-                        placeholder="예: 재료"
-                        class="w-full"
-                        :class="{ 'p-invalid': detailAddErrors.codeName }"
-                        maxlength="50"
-                    />
-                    <small v-if="detailAddErrors.codeName" class="p-error">{{ detailAddErrors.codeName }}</small>
-                </div>
-                <div class="field">
-                    <label for="detail-add-sort" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
-                    <InputNumber
-                        id="detail-add-sort"
-                        v-model="detailAddForm.sort"
-                        class="w-full"
-                        :min="0"
-                        placeholder="숫자"
-                    />
-                </div>
-                <div class="field">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">사용 여부</label>
-                    <SelectButton v-model="detailAddForm.useYn" :options="useYnOptions" option-value="value" option-label="label" />
-                </div>
-            </div>
-            <template #footer>
-                <Button label="취소" severity="secondary" @click="detailAddDialogVisible = false" />
-                <Button label="등록" icon="pi pi-check" :loading="detailSubmitting" @click="submitDetailAdd" />
-            </template>
-        </Dialog>
-
-        <!-- 상세코드 수정 다이얼로그 -->
-        <Dialog
-            v-model:visible="detailEditDialogVisible"
-            header="상세코드 수정"
-            modal
-            :style="{ width: '400px' }"
-            @hide="resetDetailEditForm"
-        >
-            <div v-if="editingDetailCodeId" class="space-y-4 py-2">
-                <div class="field">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">상세코드 ID</label>
-                    <InputText :model-value="editingDetailCodeId" class="w-full" disabled />
-                </div>
-                <div class="field">
-                    <label for="detail-edit-name" class="block text-sm font-medium text-gray-700 mb-2">
-                        코드명 <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="detail-edit-name"
-                        v-model="detailEditForm.codeName"
-                        class="w-full"
-                        :class="{ 'p-invalid': detailEditErrors.codeName }"
-                        maxlength="50"
-                    />
-                    <small v-if="detailEditErrors.codeName" class="p-error">{{ detailEditErrors.codeName }}</small>
-                </div>
-                <div class="field">
-                    <label for="detail-edit-sort" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
-                    <InputNumber
-                        id="detail-edit-sort"
-                        v-model="detailEditForm.sort"
-                        class="w-full"
-                        :min="0"
-                        placeholder="숫자"
-                    />
-                </div>
-                <div class="field">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">사용 여부</label>
-                    <SelectButton v-model="detailEditForm.useYn" :options="useYnOptions" option-value="value" option-label="label" />
-                </div>
-            </div>
-            <template #footer>
-                <Button label="취소" severity="secondary" @click="detailEditDialogVisible = false" />
-                <Button label="저장" icon="pi pi-check" :loading="detailSubmitting" @click="submitDetailEdit" />
-            </template>
-        </Dialog>
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -362,25 +13,8 @@ import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
 import SelectButton from 'primevue/selectbutton';
-import type {
-    CommonCodeListItem,
-    AdminCommonCode,
-    AdminCommonCodeDetailItem,
-    CommonCodeCreateRequest,
-    CommonCodeUpdateRequest,
-    CommonCodeDetailCreateRequest,
-    CommonCodeDetailUpdateRequest
-} from '@/types/common';
-import {
-    getAdminCommonCodeList,
-    getAdminCommonCodeOne,
-    createCommonCode,
-    updateCommonCode,
-    deleteCommonCode,
-    createCommonCodeDetail,
-    updateCommonCodeDetail,
-    deleteCommonCodeDetail
-} from '@/api/commonCodeApi';
+import type { CommonCodeListItem, AdminCommonCodeDetailItem, CommonCodeCreateRequest, CommonCodeUpdateRequest, CommonCodeDetailCreateRequest, CommonCodeDetailUpdateRequest } from '@/types/common';
+import { getAdminCommonCodeList, getAdminCommonCodeOne, createCommonCode, updateCommonCode, deleteCommonCode, createCommonCodeDetail, updateCommonCodeDetail, deleteCommonCodeDetail } from '@/api/commonCodeApi';
 
 const router = useRouter();
 const toast = useToast();
@@ -707,6 +341,195 @@ function confirmDelete(row: CommonCodeListItem) {
     });
 }
 </script>
+
+<template>
+    <div class="common-code-management">
+        <div class="page-header mb-6">
+            <div class="flex items-center gap-2 mb-2">
+                <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
+                <h1 class="text-3xl font-bold text-gray-900">공통코드 관리</h1>
+            </div>
+            <p class="text-gray-600 mt-2">공통코드(코드 그룹)를 조회·등록·수정·삭제할 수 있습니다.</p>
+        </div>
+
+        <Card>
+            <template #content>
+                <div class="flex justify-end mb-4">
+                    <Button label="공통코드 추가" icon="pi pi-plus" @click="openCreateDialog" />
+                </div>
+                <DataTable :value="list" :loading="loading" data-key="codeId" striped-rows class="p-datatable-sm" responsive-layout="scroll">
+                    <Column field="codeId" header="코드 ID" sortable />
+                    <Column field="codeGroup" header="코드 그룹" sortable />
+                    <Column field="codeName" header="코드명" sortable />
+                    <Column field="useYn" header="사용 여부">
+                        <template #body="{ data }">
+                            <Tag :value="data.useYn === 'Y' ? '사용' : '미사용'" :severity="data.useYn === 'Y' ? 'success' : 'secondary'" />
+                        </template>
+                    </Column>
+                    <Column header="작업" style="width: 160px">
+                        <template #body="{ data }">
+                            <div class="flex gap-2">
+                                <Button icon="pi pi-pencil" text rounded severity="secondary" aria-label="수정" @click="openEditDialog(data)" />
+                                <Button icon="pi pi-trash" text rounded severity="danger" aria-label="삭제" @click="confirmDelete(data)" />
+                            </div>
+                        </template>
+                    </Column>
+                    <template #empty>
+                        <div class="text-center text-gray-500 py-8">등록된 공통코드가 없습니다.</div>
+                    </template>
+                    <template #loading> 목록을 불러오는 중입니다. </template>
+                </DataTable>
+            </template>
+        </Card>
+
+        <!-- 등록 다이얼로그 -->
+        <Dialog v-model:visible="createDialogVisible" header="공통코드 등록" modal :style="{ width: '420px' }" :closable="true" @hide="resetCreateForm">
+            <div class="space-y-4 py-2">
+                <div class="field">
+                    <label for="create-codeId" class="block text-sm font-medium text-gray-700 mb-2"> 코드 ID <span class="text-red-500">*</span> </label>
+                    <InputText id="create-codeId" v-model="createForm.codeId" placeholder="예: MY_CODE_GROUP" class="w-full" :class="{ 'p-invalid': createErrors.codeId }" maxlength="30" />
+                    <small v-if="createErrors.codeId" class="p-error">{{ createErrors.codeId }}</small>
+                </div>
+                <div class="field">
+                    <label for="create-codeGroup" class="block text-sm font-medium text-gray-700 mb-2"> 코드 그룹 <span class="text-red-500">*</span> </label>
+                    <InputText id="create-codeGroup" v-model="createForm.codeGroup" placeholder="예: CATEGORY, INGREDIENTS" class="w-full" :class="{ 'p-invalid': createErrors.codeGroup }" maxlength="30" />
+                    <small v-if="createErrors.codeGroup" class="p-error">{{ createErrors.codeGroup }}</small>
+                </div>
+                <div class="field">
+                    <label for="create-codeName" class="block text-sm font-medium text-gray-700 mb-2"> 코드명 <span class="text-red-500">*</span> </label>
+                    <InputText id="create-codeName" v-model="createForm.codeName" placeholder="예: 재료그룹" class="w-full" :class="{ 'p-invalid': createErrors.codeName }" maxlength="50" />
+                    <small v-if="createErrors.codeName" class="p-error">{{ createErrors.codeName }}</small>
+                </div>
+                <div class="field">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">사용 여부</label>
+                    <SelectButton v-model="createForm.useYn" :options="useYnOptions" option-value="value" option-label="label" />
+                </div>
+            </div>
+            <template #footer>
+                <Button label="취소" severity="secondary" @click="createDialogVisible = false" />
+                <Button label="등록" icon="pi pi-check" :loading="createSubmitting" @click="submitCreate" />
+            </template>
+        </Dialog>
+
+        <!-- 수정 다이얼로그 (공통코드 + 상세코드 목록) -->
+        <Dialog v-model:visible="editDialogVisible" header="공통코드 수정" modal :style="{ width: '720px' }" :closable="true" @hide="resetEditForm">
+            <div v-if="editingCodeId" class="space-y-4 py-2">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="field">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">코드 ID</label>
+                        <InputText :model-value="editingCodeId" class="w-full" disabled />
+                    </div>
+                    <div class="field">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">사용 여부</label>
+                        <SelectButton v-model="editForm.useYn" :options="useYnOptions" option-value="value" option-label="label" />
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="edit-codeGroup" class="block text-sm font-medium text-gray-700 mb-2"> 코드 그룹 <span class="text-red-500">*</span> </label>
+                    <InputText id="edit-codeGroup" v-model="editForm.codeGroup" class="w-full" :class="{ 'p-invalid': editErrors.codeGroup }" maxlength="30" />
+                    <small v-if="editErrors.codeGroup" class="p-error">{{ editErrors.codeGroup }}</small>
+                </div>
+                <div class="field">
+                    <label for="edit-codeName" class="block text-sm font-medium text-gray-700 mb-2"> 코드명 <span class="text-red-500">*</span> </label>
+                    <InputText id="edit-codeName" v-model="editForm.codeName" class="w-full" :class="{ 'p-invalid': editErrors.codeName }" maxlength="50" />
+                    <small v-if="editErrors.codeName" class="p-error">{{ editErrors.codeName }}</small>
+                </div>
+
+                <!-- 상세코드 섹션 -->
+                <div class="border-t pt-4 mt-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-medium text-gray-700">상세코드</label>
+                        <Button label="상세코드 추가" icon="pi pi-plus" size="small" severity="secondary" @click="openDetailAddDialog" />
+                    </div>
+                    <DataTable :value="editDetails" data-key="detailCodeId" striped-rows class="p-datatable-sm" responsive-layout="scroll">
+                        <Column field="detailCodeId" header="상세코드 ID" style="min-width: 120px" />
+                        <Column field="codeName" header="코드명" style="min-width: 140px" />
+                        <Column field="sort" header="정렬">
+                            <template #body="{ data }">
+                                {{ data.sort ?? '-' }}
+                            </template>
+                        </Column>
+                        <Column field="useYn" header="사용">
+                            <template #body="{ data }">
+                                <Tag :value="data.useYn === 'Y' ? '사용' : '미사용'" :severity="data.useYn === 'Y' ? 'success' : 'secondary'" />
+                            </template>
+                        </Column>
+                        <Column header="작업" style="width: 100px">
+                            <template #body="{ data }">
+                                <div class="flex gap-1">
+                                    <Button icon="pi pi-pencil" text rounded size="small" severity="secondary" aria-label="상세코드 수정" @click="openDetailEditDialog(data)" />
+                                    <Button icon="pi pi-trash" text rounded size="small" severity="danger" aria-label="상세코드 삭제" @click="confirmDetailDelete(data)" />
+                                </div>
+                            </template>
+                        </Column>
+                        <template #empty>
+                            <div class="text-center text-gray-500 py-4">상세코드가 없습니다. 추가 버튼으로 등록하세요.</div>
+                        </template>
+                    </DataTable>
+                </div>
+            </div>
+            <template #footer>
+                <Button label="취소" severity="secondary" @click="editDialogVisible = false" />
+                <Button label="저장" icon="pi pi-check" :loading="editSubmitting" @click="submitEdit" />
+            </template>
+        </Dialog>
+
+        <!-- 상세코드 추가 다이얼로그 -->
+        <Dialog v-model:visible="detailAddDialogVisible" header="상세코드 추가" modal :style="{ width: '400px' }" @hide="resetDetailAddForm">
+            <div class="space-y-4 py-2">
+                <div class="field">
+                    <label for="detail-add-id" class="block text-sm font-medium text-gray-700 mb-2"> 상세코드 ID <span class="text-red-500">*</span> </label>
+                    <InputText id="detail-add-id" v-model="detailAddForm.detailCodeId" placeholder="예: 1001" class="w-full" :class="{ 'p-invalid': detailAddErrors.detailCodeId }" maxlength="30" />
+                    <small v-if="detailAddErrors.detailCodeId" class="p-error">{{ detailAddErrors.detailCodeId }}</small>
+                </div>
+                <div class="field">
+                    <label for="detail-add-name" class="block text-sm font-medium text-gray-700 mb-2"> 코드명 <span class="text-red-500">*</span> </label>
+                    <InputText id="detail-add-name" v-model="detailAddForm.codeName" placeholder="예: 재료" class="w-full" :class="{ 'p-invalid': detailAddErrors.codeName }" maxlength="50" />
+                    <small v-if="detailAddErrors.codeName" class="p-error">{{ detailAddErrors.codeName }}</small>
+                </div>
+                <div class="field">
+                    <label for="detail-add-sort" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
+                    <InputNumber id="detail-add-sort" v-model="detailAddForm.sort" class="w-full" :min="0" placeholder="숫자" />
+                </div>
+                <div class="field">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">사용 여부</label>
+                    <SelectButton v-model="detailAddForm.useYn" :options="useYnOptions" option-value="value" option-label="label" />
+                </div>
+            </div>
+            <template #footer>
+                <Button label="취소" severity="secondary" @click="detailAddDialogVisible = false" />
+                <Button label="등록" icon="pi pi-check" :loading="detailSubmitting" @click="submitDetailAdd" />
+            </template>
+        </Dialog>
+
+        <!-- 상세코드 수정 다이얼로그 -->
+        <Dialog v-model:visible="detailEditDialogVisible" header="상세코드 수정" modal :style="{ width: '400px' }" @hide="resetDetailEditForm">
+            <div v-if="editingDetailCodeId" class="space-y-4 py-2">
+                <div class="field">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">상세코드 ID</label>
+                    <InputText :model-value="editingDetailCodeId" class="w-full" disabled />
+                </div>
+                <div class="field">
+                    <label for="detail-edit-name" class="block text-sm font-medium text-gray-700 mb-2"> 코드명 <span class="text-red-500">*</span> </label>
+                    <InputText id="detail-edit-name" v-model="detailEditForm.codeName" class="w-full" :class="{ 'p-invalid': detailEditErrors.codeName }" maxlength="50" />
+                    <small v-if="detailEditErrors.codeName" class="p-error">{{ detailEditErrors.codeName }}</small>
+                </div>
+                <div class="field">
+                    <label for="detail-edit-sort" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
+                    <InputNumber id="detail-edit-sort" v-model="detailEditForm.sort" class="w-full" :min="0" placeholder="숫자" />
+                </div>
+                <div class="field">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">사용 여부</label>
+                    <SelectButton v-model="detailEditForm.useYn" :options="useYnOptions" option-value="value" option-label="label" />
+                </div>
+            </div>
+            <template #footer>
+                <Button label="취소" severity="secondary" @click="detailEditDialogVisible = false" />
+                <Button label="저장" icon="pi pi-check" :loading="detailSubmitting" @click="submitDetailEdit" />
+            </template>
+        </Dialog>
+    </div>
+</template>
 
 <style scoped>
 .common-code-management {

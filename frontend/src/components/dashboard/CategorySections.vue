@@ -34,16 +34,12 @@ onMounted(() => {
         <div v-if="loading" class="flex justify-center items-center py-20">
             <i class="pi pi-spinner pi-spin text-4xl text-primary-500"></i>
         </div>
-        
+
         <!-- 카테고리 섹션들 -->
         <template v-else>
-            <CategorySection
-                v-for="category in trendingCategories"
-                :key="`${category.codeId}-${category.detailCodeId}`"
-                :category="category"
-            />
+            <CategorySection v-for="category in trendingCategories" :key="`${category.codeId}-${category.detailCodeId}`" :category="category" />
         </template>
-        
+
         <!-- 데이터 없음 -->
         <div v-if="!loading && trendingCategories.length === 0" class="text-center py-20">
             <i class="pi pi-inbox text-6xl text-gray-300 mb-4"></i>

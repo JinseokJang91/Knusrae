@@ -1,89 +1,3 @@
-<template>
-    <div class="card">
-        <!-- header : 페이지 제목 -->
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-3xl font-bold text-gray-900">
-                검색 결과
-                <span v-if="searchKeyword" class="text-xl text-primary">"{{ searchKeyword }}"</span>
-            </h1>
-        </div>
-
-        <!-- body : 레시피 목록 섹션 -->
-        <div class="recipe-section">
-            <div class="flex justify-between items-center mb-3">
-                <div class="flex items-center gap-3">
-                    <h2 class="text-2xl font-bold text-gray-900 m-0">검색 결과</h2>
-                    <div class="recipe-count-bubble">
-                        <span class="text-primary font-bold">{{ totalDisplayRecipes.toLocaleString() }}</span>개의 레시피가 준비되어 있어요!
-                    </div>
-                </div>
-                <SelectButton
-                    v-model="sortBy"
-                    :options="sortOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    class="recipe-sort-buttons"
-                    @change="onSortChange"
-                />
-            </div>
-
-            <!-- 로딩 / 에러 / 빈 상태 -->
-            <PageStateBlock
-                v-if="loading"
-                state="loading"
-                loading-message="검색 중..."
-            />
-            <PageStateBlock
-                v-else-if="error"
-                state="error"
-                error-title="검색 중 오류가 발생했습니다"
-                :error-message="error"
-                retry-label="다시 시도"
-                @retry="performSearch"
-            />
-            <PageStateBlock
-                v-else-if="displayRecipes.length === 0"
-                state="empty"
-                empty-icon="pi pi-search"
-                empty-title="검색 결과가 없습니다"
-                :empty-message="emptyMessage"
-                empty-button-label="다시 검색"
-                @empty-action="goToHome"
-            />
-
-            <!-- 검색 결과가 있는 경우 -->
-            <template v-else>
-                <div class="recipe-grid">
-                    <RecipeGridCard
-                        v-for="recipe in displayRecipes"
-                        :key="recipe.id"
-                        :recipe="recipe"
-                        :category-label="getCategoryName(recipe.category)"
-                        :highlight-keyword="searchKeyword || null"
-                        :is-bookmarked="bookmarkedRecipeIds.has(recipe.id)"
-                        show-bookmark
-                        show-comment-count
-                        @click="viewRecipe"
-                        @favorite="toggleFavorite"
-                        @bookmark="bookmarkRecipe"
-                        @scroll-to-comments="scrollToComments"
-                    />
-                </div>
-                <div class="flex justify-center mt-4">
-                    <Paginator v-model:first="first" :rows="rows" :totalRecords="totalDisplayRecipes" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
-                </div>
-            </template>
-        </div>
-
-        <!-- 북마크 Dialog -->
-        <BookmarkDialog
-            v-model:visible="bookmarkDialogVisible"
-            :recipe-id="bookmarkRecipeId"
-            @bookmarked="onBookmarked"
-        />
-    </div>
-</template>
-
 <script setup lang="ts">
 import { getCommonCodesByGroup } from '@/api/commonCodeApi';
 import { getFavorites, toggleFavorite as toggleFavoriteApi } from '@/api/recipeApi';
@@ -206,7 +120,7 @@ const loadCategories = async () => {
                 });
             }
         });
-    } catch (err) {
+    } catch {
         // 카테고리 목록 조회 실패 시 무시
     }
 };
@@ -216,9 +130,7 @@ const extractCategoryKeys = (recipe: Recipe) => {
     if (!recipe || !recipe.categories || recipe.categories.length === 0) {
         return [];
     }
-    return recipe.categories
-        .filter((category) => category.codeId && category.detailCodeId)
-        .map((category) => `${category.codeId}-${category.detailCodeId}`);
+    return recipe.categories.filter((category) => category.codeId && category.detailCodeId).map((category) => `${category.codeId}-${category.detailCodeId}`);
 };
 
 // 레시피의 카테고리 ID 추출
@@ -250,7 +162,7 @@ const extractServings = (cookingTips: Array<{ codeId: string; detailName?: strin
 // 검색 수행
 const performSearch = async () => {
     const keyword = route.query.keyword as string;
-    
+
     if (!keyword || !keyword.trim()) {
         searchKeyword.value = '';
         recipes.value = [];
@@ -264,7 +176,7 @@ const performSearch = async () => {
         error.value = null;
 
         const searchResults = await searchRecipes(searchKeyword.value);
-        
+
         let favoriteRecipeIds: number[] = [];
         if (currentMemberId.value) {
             try {
@@ -274,13 +186,13 @@ const performSearch = async () => {
                 console.error('찜 목록을 가져올 수 없습니다:', err);
             }
         }
-        
+
         recipes.value = searchResults.map((recipe: Recipe) => {
             const cookingTime = extractCookingTime(recipe.cookingTips);
             const servings = extractServings(recipe.cookingTips);
 
             const isFavorite = favoriteRecipeIds.includes(recipe.id);
-            
+
             const categoryKeys = extractCategoryKeys(recipe);
             const categoryIds = extractCategoryIds(recipe);
             const keywordCategory = recipe.categories?.find((cat: RecipeCategory) => cat.codeId === 'COOKING_KEYWORD');
@@ -390,9 +302,13 @@ const goToHome = () => {
 };
 
 // 쿼리 파라미터 변경 감시
-watch(() => route.query.keyword, () => {
-    performSearch();
-}, { immediate: false });
+watch(
+    () => route.query.keyword,
+    () => {
+        performSearch();
+    },
+    { immediate: false }
+);
 
 // 생명주기
 onMounted(async () => {
@@ -401,7 +317,63 @@ onMounted(async () => {
 });
 </script>
 
+<template>
+    <div class="card">
+        <!-- header : 페이지 제목 -->
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-gray-900">
+                검색 결과
+                <span v-if="searchKeyword" class="text-xl text-primary">"{{ searchKeyword }}"</span>
+            </h1>
+        </div>
+
+        <!-- body : 레시피 목록 섹션 -->
+        <div class="recipe-section">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-gray-900 m-0">검색 결과</h2>
+                    <div class="recipe-count-bubble">
+                        <span class="text-primary font-bold">{{ totalDisplayRecipes.toLocaleString() }}</span
+                        >개의 레시피가 준비되어 있어요!
+                    </div>
+                </div>
+                <SelectButton v-model="sortBy" :options="sortOptions" optionLabel="label" optionValue="value" class="recipe-sort-buttons" @change="onSortChange" />
+            </div>
+
+            <!-- 로딩 / 에러 / 빈 상태 -->
+            <PageStateBlock v-if="loading" state="loading" loading-message="검색 중..." />
+            <PageStateBlock v-else-if="error" state="error" error-title="검색 중 오류가 발생했습니다" :error-message="error" retry-label="다시 시도" @retry="performSearch" />
+            <PageStateBlock v-else-if="displayRecipes.length === 0" state="empty" empty-icon="pi pi-search" empty-title="검색 결과가 없습니다" :empty-message="emptyMessage" empty-button-label="다시 검색" @empty-action="goToHome" />
+
+            <!-- 검색 결과가 있는 경우 -->
+            <template v-else>
+                <div class="recipe-grid">
+                    <RecipeGridCard
+                        v-for="recipe in displayRecipes"
+                        :key="recipe.id"
+                        :recipe="recipe"
+                        :category-label="getCategoryName(recipe.category)"
+                        :highlight-keyword="searchKeyword || null"
+                        :is-bookmarked="bookmarkedRecipeIds.has(recipe.id)"
+                        show-bookmark
+                        show-comment-count
+                        @click="viewRecipe"
+                        @favorite="toggleFavorite"
+                        @bookmark="bookmarkRecipe"
+                        @scroll-to-comments="scrollToComments"
+                    />
+                </div>
+                <div class="flex justify-center mt-4">
+                    <Paginator v-model:first="first" :rows="rows" :totalRecords="totalDisplayRecipes" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
+                </div>
+            </template>
+        </div>
+
+        <!-- 북마크 Dialog -->
+        <BookmarkDialog v-model:visible="bookmarkDialogVisible" :recipe-id="bookmarkRecipeId" @bookmarked="onBookmarked" />
+    </div>
+</template>
+
 <style scoped>
 /* 레시피 목록·카드·개수 말풍선 스타일은 layout _recipe-card-list.scss 공통 사용 */
 </style>
-

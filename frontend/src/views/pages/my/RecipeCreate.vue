@@ -1,128 +1,3 @@
-<template>
-    <div class="card">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-2xl font-bold">레시피 등록</h2>
-            <div class="flex gap-2">
-                <Button label="목록으로" icon="pi pi-arrow-left" severity="secondary" @click="goBack" :disabled="submitting" />
-            </div>
-        </div>
-
-        <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
-            <p class="text-gray-700 italic">
-                셰프님이 누군가를 위해 정성들인 이 요리처럼, 레시피에서도 셰프님의 따뜻한 정성을 보여주세요.
-            </p>
-        </div>
-
-        <div class="flex flex-col gap-6">
-            <RecipeFormBasicInfo
-                ref="basicInfoFormRef"
-                :title="form.title"
-                :description="form.description"
-                :thumbnail-preview="form.thumbnailPreview"
-                :disabled="submitting"
-                :validation-errors="validationErrors"
-                :guide-image="guideImages.basic"
-                @update:title="form.title = $event"
-                @update:description="form.description = $event"
-                @update:thumbnail="onThumbnailUpdate"
-                @clear-thumbnail="clearThumbnail"
-                @clear-validation="clearValidationError"
-            />
-
-            <RecipeFormIngredients
-                v-model="form.ingredientGroups"
-                :ingredient-type-options="ingredientTypeOptions"
-                :unit-options="unitOptions"
-                :ingredient-types-loading="ingredientTypesLoading"
-                :ingredient-types-error="ingredientTypesError"
-                :units-loading="unitsLoading"
-                :units-error="unitsError"
-                :validation-errors="validationErrors"
-                :disabled="submitting"
-                :guide-image="guideImages.ingredients"
-                @clear-validation="clearValidationError"
-            />
-
-            <RecipeFormClassification
-                :category-options="categoryOptions"
-                :categories="form.categories"
-                :categories-loading="categoriesLoading"
-                :categories-error="categoriesError"
-                :cooking-tips-options="cookingTipsOptions"
-                :cooking-tips="form.cookingTips"
-                :cooking-tips-loading="cookingTipsLoading"
-                :cooking-tips-error="cookingTipsError"
-                :validation-errors="validationErrors"
-                :disabled="submitting"
-                :guide-image="guideImages.classification"
-                @update:categories="form.categories = $event"
-                @update:cooking-tips="form.cookingTips = $event"
-                @clear-validation="clearValidationError"
-            />
-
-            <RecipeFormSteps
-                v-model="form.steps"
-                :validation-errors="validationErrors"
-                :disabled="submitting"
-                :guide-image="guideImages.steps"
-                @step-image-change="onStepImageChange"
-                @step-image-clear="onStepImageClear"
-                @clear-validation="clearValidationError"
-            />
-
-            <!-- 설정 및 저장 -->
-            <div class="border border-gray-200 rounded-lg p-5 bg-white">
-                <div class="flex items-center gap-1 mb-1">
-                    <h3 class="text-xl font-semibold text-gray-600">
-                        <span class="mr-1">설정 및 저장</span>
-                        <i 
-                            ref="el => { if (el) guideIconRefs.settings = el as HTMLElement; }"
-                            class="pi pi-question-circle help-button" 
-                            @click="showGuide('settings', $event)" 
-                            style="cursor: pointer;"
-                        />
-                        <Popover 
-                            :ref="el => { if (el) guidePopoverRefs.settings = el; }"
-                            :target="guideIconRefs.settings"
-                            :showCloseIcon="true"
-                            :dismissable="true"
-                        >
-                            <div class="p-2">
-                                <img :src="guideImages.settings" alt="설정 및 저장 가이드" class="max-w-full h-auto" />
-                            </div>
-                        </Popover>
-                    </h3>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                        <label class="block mb-2 font-medium"><b>공개 여부</b></label>
-                        <Select 
-                            v-model="form.visibility" 
-                            :options="visibilityOptions" 
-                            optionLabel="label" 
-                            optionValue="value"
-                            class="w-full"
-                        />
-                    </div>
-                    <div>
-                        <label class="block mb-2 font-medium"><b>상태</b></label>
-                        <Select 
-                            v-model="form.status" 
-                            :options="statusOptions" 
-                            optionLabel="label" 
-                            optionValue="value"
-                            class="w-full"
-                        />
-                    </div>
-                </div>
-                <div class="flex justify-end gap-2">
-                    <Button label="등록" icon="pi pi-check" severity="primary" @click="submit" :disabled="submitting" />
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
-
 <script setup lang="ts">
 import RecipeFormBasicInfo from '@/components/recipe/form/RecipeFormBasicInfo.vue';
 import RecipeFormClassification from '@/components/recipe/form/RecipeFormClassification.vue';
@@ -138,15 +13,14 @@ import type { CommonCodeOption, RecipeDraft } from '@/types/recipeForm';
 import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRouter } from 'vue-router';
 import Button from 'primevue/button';
-import Message from 'primevue/message';
 import Popover from 'primevue/popover';
 import Select from 'primevue/select';
 import { useConfirm } from 'primevue/useconfirm';
 
 const router = useRouter();
 const confirm = useConfirm();
-const { handleApiCallVoid } = useErrorHandler();
 const { showError } = useAppToast();
+const { handleApiCallVoid } = useErrorHandler({ showToast: true, showError });
 
 // 반응형 상태
 const submitting = ref(false);
@@ -167,7 +41,7 @@ const basicInfoFormRef = ref<InstanceType<typeof RecipeFormBasicInfo> | null>(nu
 const hasUnsavedChanges = ref(false);
 const isSubmitSuccessful = ref(false);
 const guideIconRefs = ref<Record<string, HTMLElement | null>>({});
-const guidePopoverRefs = ref<Record<string, any>>({});
+const guidePopoverRefs = ref<Record<string, unknown>>({});
 
 // 옵션 데이터
 const visibilityOptions = [
@@ -251,17 +125,16 @@ function validateForm(): { valid: boolean; firstErrorField?: string; firstErrorF
     for (let i = 0; i < form.steps.length; i++) {
         if (!form.steps[i].text.trim()) {
             validationErrors.value[`step-text-${i}`] = true;
-            return { 
-                valid: false, 
-                firstErrorField: `step-text-${i}`, 
-                firstErrorFieldName: `조리 순서 ${i + 1}단계 설명` 
+            return {
+                valid: false,
+                firstErrorField: `step-text-${i}`,
+                firstErrorFieldName: `조리 순서 ${i + 1}단계 설명`
             };
         }
     }
 
     // 카테고리: 7개 중 최소 1개만 선택하면 됨
-    const hasAtLeastOneCategory = categoryOptions.value.length === 0
-        || categoryOptions.value.some((option) => !!form.categories[option.codeId]);
+    const hasAtLeastOneCategory = categoryOptions.value.length === 0 || categoryOptions.value.some((option) => !!form.categories[option.codeId]);
     if (!hasAtLeastOneCategory) {
         const firstOption = categoryOptions.value[0];
         if (firstOption) {
@@ -277,10 +150,10 @@ function validateForm(): { valid: boolean; firstErrorField?: string; firstErrorF
     for (const option of cookingTipsOptions.value) {
         if (!form.cookingTips[option.codeId]) {
             validationErrors.value[`cookingTip-${option.codeId}`] = true;
-            return { 
-                valid: false, 
-                firstErrorField: `cookingTip-${option.codeId}`, 
-                firstErrorFieldName: `요리팁 - ${option.codeName}` 
+            return {
+                valid: false,
+                firstErrorField: `cookingTip-${option.codeId}`,
+                firstErrorFieldName: `요리팁 - ${option.codeName}`
             };
         }
     }
@@ -372,7 +245,7 @@ async function loadCategoryOptions(): Promise<void> {
                 form.categories[option.codeId] = '';
             }
         });
-    } catch (e) {
+    } catch {
         categoriesError.value = '카테고리 정보를 불러오지 못했습니다.';
     } finally {
         categoriesLoading.value = false;
@@ -389,7 +262,7 @@ async function loadCookingTipsOptions(): Promise<void> {
                 form.cookingTips[option.codeId] = '';
             }
         });
-    } catch (e) {
+    } catch {
         cookingTipsError.value = '요리팁 정보를 불러오지 못했습니다.';
     } finally {
         cookingTipsLoading.value = false;
@@ -401,7 +274,7 @@ async function loadIngredientsGroupOptions(): Promise<void> {
     ingredientTypesError.value = null;
     try {
         ingredientTypeOptions.value = await getCommonCodesByCodeId('INGREDIENTS_GROUP');
-    } catch (e) {
+    } catch {
         ingredientTypesError.value = '재료 타입 정보를 불러오지 못했습니다.';
     } finally {
         ingredientTypesLoading.value = false;
@@ -413,7 +286,7 @@ async function loadIngredientsUnitOptions(): Promise<void> {
     unitsError.value = null;
     try {
         unitOptions.value = await getCommonCodesByCodeId('INGREDIENTS_UNIT');
-    } catch (e) {
+    } catch {
         unitsError.value = '단위 정보를 불러오지 못했습니다.';
     } finally {
         unitsLoading.value = false;
@@ -425,17 +298,6 @@ async function loadMemberInfo(): Promise<void> {
     if (memberInfo) {
         form.memberId = memberInfo.id;
     }
-}
-
-// 공통 코드 옵션 변환
-function getCommonCodeDetailOptions(option: CommonCodeOption) {
-    return [
-        { label: '선택하세요', value: '' },
-        ...option.details.map(detail => ({
-            label: detail.codeName,
-            value: detail.detailCodeId
-        }))
-    ];
 }
 
 // 폼 제출 관련
@@ -485,9 +347,9 @@ function buildRecipePayload(statusOverride?: 'DRAFT' | 'PUBLISHED') {
         categories,
         cookingTips,
         ingredientGroups,
-        steps: form.steps.map((s, idx) => ({ 
-            order: idx + 1, 
-            text: s.text.trim() 
+        steps: form.steps.map((s, idx) => ({
+            order: idx + 1,
+            text: s.text.trim()
         }))
     };
 }
@@ -506,7 +368,7 @@ async function submit(): Promise<void> {
     }
 
     submitting.value = true;
-    
+
     const formData = new FormData();
     const recipePayload = buildRecipePayload();
 
@@ -527,11 +389,7 @@ async function submit(): Promise<void> {
 
     formData.append('mainImageIndex', '0');
 
-    const success = await handleApiCallVoid(
-        () => createRecipe(formData),
-        '레시피 등록 중 오류가 발생했습니다.',
-        '등록 실패'
-    );
+    const success = await handleApiCallVoid(() => createRecipe(formData), '레시피 등록 중 오류가 발생했습니다.', '등록 실패');
 
     if (success) {
         // 등록 성공 시 페이지 이탈 방지 해제
@@ -563,21 +421,10 @@ function showGuide(section: 'basic' | 'ingredients' | 'classification' | 'steps'
 
 // 페이지 이탈 방지
 watch(
-    () => [
-        form.title,
-        form.description,
-        form.thumbnailFile,
-        form.steps.length,
-        form.ingredientGroups.length,
-        JSON.stringify(form.categories),
-        JSON.stringify(form.cookingTips)
-    ],
+    () => [form.title, form.description, form.thumbnailFile, form.steps.length, form.ingredientGroups.length, JSON.stringify(form.categories), JSON.stringify(form.cookingTips)],
     () => {
         // 어떤 필드라도 변경되면 unsaved changes로 표시
-        if (form.title || form.description || form.thumbnailFile || 
-            form.steps.length > 0 || form.ingredientGroups.length > 0 ||
-            Object.values(form.categories).some(v => v) ||
-            Object.values(form.cookingTips).some(v => v)) {
+        if (form.title || form.description || form.thumbnailFile || form.steps.length > 0 || form.ingredientGroups.length > 0 || Object.values(form.categories).some((v) => v) || Object.values(form.cookingTips).some((v) => v)) {
             hasUnsavedChanges.value = true;
         }
     },
@@ -622,7 +469,7 @@ onMounted(() => {
     loadIngredientsGroupOptions();
     loadIngredientsUnitOptions();
     loadMemberInfo();
-    
+
     // beforeunload 이벤트 리스너 등록
     window.addEventListener('beforeunload', handleBeforeUnload);
 });
@@ -632,6 +479,116 @@ onBeforeUnmount(() => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>
+
+<template>
+    <div class="card">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-bold">레시피 등록</h2>
+            <div class="flex gap-2">
+                <Button label="목록으로" icon="pi pi-arrow-left" severity="secondary" @click="goBack" :disabled="submitting" />
+            </div>
+        </div>
+
+        <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
+            <p class="text-gray-700 italic">셰프님이 누군가를 위해 정성들인 이 요리처럼, 레시피에서도 셰프님의 따뜻한 정성을 보여주세요.</p>
+        </div>
+
+        <div class="flex flex-col gap-6">
+            <RecipeFormBasicInfo
+                ref="basicInfoFormRef"
+                :title="form.title"
+                :description="form.description"
+                :thumbnail-preview="form.thumbnailPreview"
+                :disabled="submitting"
+                :validation-errors="validationErrors"
+                :guide-image="guideImages.basic"
+                @update:title="form.title = $event"
+                @update:description="form.description = $event"
+                @update:thumbnail="onThumbnailUpdate"
+                @clear-thumbnail="clearThumbnail"
+                @clear-validation="clearValidationError"
+            />
+
+            <RecipeFormIngredients
+                v-model="form.ingredientGroups"
+                :ingredient-type-options="ingredientTypeOptions"
+                :unit-options="unitOptions"
+                :ingredient-types-loading="ingredientTypesLoading"
+                :ingredient-types-error="ingredientTypesError"
+                :units-loading="unitsLoading"
+                :units-error="unitsError"
+                :validation-errors="validationErrors"
+                :disabled="submitting"
+                :guide-image="guideImages.ingredients"
+                @clear-validation="clearValidationError"
+            />
+
+            <RecipeFormClassification
+                :category-options="categoryOptions"
+                :categories="form.categories"
+                :categories-loading="categoriesLoading"
+                :categories-error="categoriesError"
+                :cooking-tips-options="cookingTipsOptions"
+                :cooking-tips="form.cookingTips"
+                :cooking-tips-loading="cookingTipsLoading"
+                :cooking-tips-error="cookingTipsError"
+                :validation-errors="validationErrors"
+                :disabled="submitting"
+                :guide-image="guideImages.classification"
+                @update:categories="form.categories = $event"
+                @update:cooking-tips="form.cookingTips = $event"
+                @clear-validation="clearValidationError"
+            />
+
+            <RecipeFormSteps
+                v-model="form.steps"
+                :validation-errors="validationErrors"
+                :disabled="submitting"
+                :guide-image="guideImages.steps"
+                @step-image-change="onStepImageChange"
+                @step-image-clear="onStepImageClear"
+                @clear-validation="clearValidationError"
+            />
+
+            <!-- 설정 및 저장 -->
+            <div class="border border-gray-200 rounded-lg p-5 bg-white">
+                <div class="flex items-center gap-1 mb-1">
+                    <h3 class="text-xl font-semibold text-gray-600">
+                        <span class="mr-1">설정 및 저장</span>
+                        <i ref="el => { if (el) guideIconRefs.settings = el as HTMLElement; }" class="pi pi-question-circle help-button" @click="showGuide('settings', $event)" style="cursor: pointer" />
+                        <Popover
+                            :ref="
+                                (el) => {
+                                    if (el) guidePopoverRefs.settings = el;
+                                }
+                            "
+                            :target="guideIconRefs.settings"
+                            :showCloseIcon="true"
+                            :dismissable="true"
+                        >
+                            <div class="p-2">
+                                <img :src="guideImages.settings" alt="설정 및 저장 가이드" class="max-w-full h-auto" />
+                            </div>
+                        </Popover>
+                    </h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block mb-2 font-medium"><b>공개 여부</b></label>
+                        <Select v-model="form.visibility" :options="visibilityOptions" optionLabel="label" optionValue="value" class="w-full" />
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium"><b>상태</b></label>
+                        <Select v-model="form.status" :options="statusOptions" optionLabel="label" optionValue="value" class="w-full" />
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <Button label="등록" icon="pi pi-check" severity="primary" @click="submit" :disabled="submitting" />
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 :deep(.p-textarea) {

@@ -1,29 +1,3 @@
-<template>
-    <div class="page-state-block text-center py-8">
-        <!-- 로딩 상태 -->
-        <template v-if="state === 'loading'">
-            <ProgressSpinner />
-            <p class="text-gray-600 mt-3">{{ loadingMessage }}</p>
-        </template>
-
-        <!-- 에러 상태 -->
-        <template v-else-if="state === 'error'">
-            <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-            <h3 class="text-2xl font-semibold text-gray-600 mb-2">{{ errorTitle }}</h3>
-            <p class="text-gray-600 mb-4">{{ errorMessage }}</p>
-            <Button v-if="retryLabel" :label="retryLabel" @click="$emit('retry')" />
-        </template>
-
-        <!-- 빈 상태 -->
-        <template v-else-if="state === 'empty'">
-            <i :class="emptyIcon" class="text-6xl text-300 mb-4"></i>
-            <h3 class="text-2xl font-semibold text-gray-600 mb-2">{{ emptyTitle }}</h3>
-            <p class="text-gray-600 mb-4">{{ emptyMessage }}</p>
-            <Button v-if="emptyButtonLabel" :label="emptyButtonLabel" @click="$emit('empty-action')" />
-        </template>
-    </div>
-</template>
-
 <script setup lang="ts">
 import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
@@ -54,6 +28,32 @@ defineEmits<{
     'empty-action': [];
 }>();
 </script>
+
+<template>
+    <div class="page-state-block text-center py-8">
+        <!-- 로딩 상태 -->
+        <template v-if="state === 'loading'">
+            <ProgressSpinner />
+            <p class="text-gray-600 mt-3">{{ loadingMessage }}</p>
+        </template>
+
+        <!-- 에러 상태 -->
+        <template v-else-if="state === 'error'">
+            <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+            <h3 class="text-2xl font-semibold text-gray-600 mb-2">{{ errorTitle }}</h3>
+            <p class="text-gray-600 mb-4">{{ errorMessage }}</p>
+            <Button v-if="retryLabel" :label="retryLabel" @click="$emit('retry')" />
+        </template>
+
+        <!-- 빈 상태 -->
+        <template v-else-if="state === 'empty'">
+            <i :class="emptyIcon" class="text-6xl text-300 mb-4"></i>
+            <h3 class="text-2xl font-semibold text-gray-600 mb-2">{{ emptyTitle }}</h3>
+            <p class="text-gray-600 mb-4">{{ emptyMessage }}</p>
+            <Button v-if="emptyButtonLabel" :label="emptyButtonLabel" @click="$emit('empty-action')" />
+        </template>
+    </div>
+</template>
 
 <style scoped>
 .page-state-block {

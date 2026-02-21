@@ -15,11 +15,7 @@ export async function searchRecipes(keyword: string): Promise<Recipe[]> {
     }
 
     const encodedKeyword = encodeURIComponent(keyword.trim());
-    const response = await httpJson<Recipe[] | { data?: Recipe[] }>(
-        BASE_URL,
-        `/api/search/recipes?keyword=${encodedKeyword}`,
-        { method: 'GET' }
-    );
+    const response = await httpJson<Recipe[] | { data?: Recipe[] }>(BASE_URL, `/api/search/recipes?keyword=${encodedKeyword}`, { method: 'GET' });
 
     return Array.isArray(response) ? response : (response.data ?? []);
 }

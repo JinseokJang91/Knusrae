@@ -1,131 +1,3 @@
-<template>
-    <div class="card">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-2xl font-bold">레시피 수정</h2>
-            <div class="flex gap-2">
-                <Button label="목록으로" icon="pi pi-arrow-left" severity="secondary" @click="goBack" :disabled="submitting" />
-            </div>
-        </div>
-
-        <!-- 에러 메시지 표시 -->
-        <Message v-if="error" severity="error" :closable="false" class="mb-4">
-            {{ error }}
-        </Message>
-
-        <!-- 로딩 상태 -->
-        <div v-if="initialLoading" class="flex justify-center items-center py-8">
-            <div class="pi pi-spinner pi-spin mr-2"></div>
-            <span>레시피 정보를 불러오는 중...</span>
-        </div>
-
-        <div v-else class="flex flex-col gap-6">
-            <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
-                <p class="text-gray-700 italic">
-                    셰프님이 누군가를 위해 정성들인 이 요리처럼, 레시피에서도 셰프님의 따뜻한 정성을 보여주세요.
-                </p>
-            </div>
-
-            <RecipeFormBasicInfo
-                :title="form.title"
-                :description="form.description"
-                :thumbnail-preview="form.thumbnailPreview || ''"
-                :disabled="submitting"
-                :guide-image="guideImages.basic"
-                @update:title="form.title = $event"
-                @update:description="form.description = $event"
-                @update:thumbnail="onThumbnailUpdate"
-                @clear-thumbnail="clearThumbnail"
-            />
-
-            <RecipeFormIngredients
-                v-model="form.ingredientGroups"
-                :ingredient-type-options="ingredientTypeOptions"
-                :unit-options="unitOptions"
-                :ingredient-types-loading="ingredientTypesLoading"
-                :ingredient-types-error="ingredientTypesError"
-                :units-loading="unitsLoading"
-                :units-error="unitsError"
-                :disabled="submitting"
-                :guide-image="guideImages.ingredients"
-            />
-
-            <RecipeFormClassification
-                :category-options="categoryOptions"
-                :categories="form.categories"
-                :categories-loading="categoriesLoading"
-                :categories-error="categoriesError"
-                :cooking-tips-options="cookingTipsOptions"
-                :cooking-tips="form.cookingTips"
-                :cooking-tips-loading="cookingTipsLoading"
-                :cooking-tips-error="cookingTipsError"
-                :disabled="submitting"
-                :guide-image="guideImages.classification"
-                @update:categories="form.categories = $event"
-                @update:cooking-tips="form.cookingTips = $event"
-            />
-
-            <RecipeFormSteps
-                v-model="form.steps"
-                :disabled="submitting"
-                :guide-image="guideImages.steps"
-                @step-image-change="onStepImageChange"
-                @step-image-clear="onStepImageClear"
-            />
-
-            <!-- 설정 및 저장 -->
-            <div class="border border-gray-200 rounded-lg p-5 bg-white">
-                <div class="flex items-center gap-1 mb-1">
-                    <h3 class="text-xl font-semibold text-gray-600">
-                        <span class="mr-1">설정 및 저장</span>
-                        <i 
-                            ref="el => { if (el) guideIconRefs.settings = el as HTMLElement; }"
-                            class="pi pi-question-circle help-button" 
-                            @click="showGuide('settings', $event)" 
-                            style="cursor: pointer;"
-                        />
-                        <Popover 
-                            :ref="el => { if (el) guidePopoverRefs.settings = el; }"
-                            :target="guideIconRefs.settings"
-                            :showCloseIcon="true"
-                            :dismissable="true"
-                        >
-                            <div class="p-2">
-                                <img :src="guideImages.settings" alt="설정 및 저장 가이드" class="max-w-full h-auto" />
-                            </div>
-                        </Popover>
-                    </h3>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                        <label class="block mb-2 font-medium"><b>공개 여부</b></label>
-                        <Select 
-                            v-model="form.visibility" 
-                            :options="visibilityOptions" 
-                            optionLabel="label" 
-                            optionValue="value"
-                            class="w-full"
-                        />
-                    </div>
-                    <div>
-                        <label class="block mb-2 font-medium"><b>상태</b></label>
-                        <Select 
-                            v-model="form.status" 
-                            :options="statusOptions" 
-                            optionLabel="label" 
-                            optionValue="value"
-                            class="w-full"
-                        />
-                    </div>
-                </div>
-                <div class="flex justify-end gap-2">
-                    <Button label="취소" icon="pi pi-times" severity="secondary" @click="goBack" :disabled="submitting" />
-                    <Button label="수정" icon="pi pi-check" severity="primary" @click="submit" :disabled="submitting || !isValid" />
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
-
 <script setup lang="ts">
 import RecipeFormBasicInfo from '@/components/recipe/form/RecipeFormBasicInfo.vue';
 import RecipeFormClassification from '@/components/recipe/form/RecipeFormClassification.vue';
@@ -135,6 +7,7 @@ import { getCommonCodesByGroup, getCommonCodesByCodeId } from '@/api/commonCodeA
 import { getRecipeDetail, updateRecipe } from '@/api/recipeApi';
 import { GUIDE_IMAGES } from '@/utils/constants';
 import { useErrorHandler } from '@/utils/errorHandler';
+import { useAppToast } from '@/utils/toast';
 import type { CommonCodeOption, RecipeDraft } from '@/types/recipeForm';
 import type { RecipeCategory, RecipeCookingTip, RecipeImage, RecipeIngredientGroup, RecipeIngredientItem, RecipeStep } from '@/types/recipe';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
@@ -149,7 +22,8 @@ const router = useRouter();
 const route = useRoute();
 const recipeId = computed(() => Number(route.params.id));
 const confirm = useConfirm();
-const { handleApiCallVoid } = useErrorHandler();
+const { showError } = useAppToast();
+const { handleApiCallVoid } = useErrorHandler({ showToast: true, showError });
 
 const initialLoading = ref(true);
 const submitting = ref(false);
@@ -170,7 +44,7 @@ const hasUnsavedChanges = ref(false);
 const isSubmitSuccessful = ref(false);
 const originalFormData = ref<string>('');
 const guideIconRefs = ref<Record<string, HTMLElement | null>>({});
-const guidePopoverRefs = ref<Record<string, any>>({});
+const guidePopoverRefs = ref<Record<string, unknown>>({});
 
 const form = reactive<RecipeDraft>({
     title: '',
@@ -196,17 +70,11 @@ const isValid = computed(() => {
 
 onMounted(() => {
     const initializeRecipeEdit = async () => {
-        await Promise.all([
-            loadCategoryOptions(),
-            loadCookingTipsOptions(),
-            loadIngredientsGroupOptions(),
-            loadIngredientsUnitOptions(),
-            loadRecipeData()
-        ]);
+        await Promise.all([loadCategoryOptions(), loadCookingTipsOptions(), loadIngredientsGroupOptions(), loadIngredientsUnitOptions(), loadRecipeData()]);
         initialLoading.value = false;
     };
     initializeRecipeEdit();
-    
+
     // beforeunload 이벤트 리스너 등록
     window.addEventListener('beforeunload', handleBeforeUnload);
 });
@@ -250,13 +118,15 @@ async function loadRecipeData() {
                 id: crypto.randomUUID(),
                 type: group.detailCodeId || (group.customTypeName ? 'CUSTOM' : ''),
                 customTypeName: group.customTypeName || '',
-                items: Array.isArray(group.items) ? (group.items as RecipeIngredientItem[]).map((item: RecipeIngredientItem) => ({
-                    id: crypto.randomUUID(),
-                    name: item.name || '',
-                    quantity: item.quantity || null, // String으로 직접 저장 (분수 입력 지원)
-                    unit: item.detailCodeId || (item.customUnitName ? 'CUSTOM' : ''),
-                    customUnitName: item.customUnitName || ''
-                })) : []
+                items: Array.isArray(group.items)
+                    ? (group.items as RecipeIngredientItem[]).map((item: RecipeIngredientItem) => ({
+                          id: crypto.randomUUID(),
+                          name: item.name || '',
+                          quantity: item.quantity || null, // String으로 직접 저장 (분수 입력 지원)
+                          unit: item.detailCodeId || (item.customUnitName ? 'CUSTOM' : ''),
+                          customUnitName: item.customUnitName || ''
+                      }))
+                    : []
             }));
         }
 
@@ -281,7 +151,7 @@ async function loadRecipeData() {
             status: form.status,
             visibility: form.visibility,
             thumbnailPreview: form.thumbnailPreview,
-            steps: form.steps.map(s => ({ text: s.text, existingImageUrl: s.existingImageUrl })),
+            steps: form.steps.map((s) => ({ text: s.text, existingImageUrl: s.existingImageUrl })),
             ingredientGroups: form.ingredientGroups,
             categories: form.categories,
             cookingTips: form.cookingTips
@@ -333,7 +203,7 @@ async function loadIngredientsGroupOptions() {
     ingredientTypesError.value = null;
     try {
         ingredientTypeOptions.value = await getCommonCodesByCodeId('INGREDIENTS_GROUP');
-    } catch (e) {
+    } catch {
         ingredientTypesError.value = '재료 타입 정보를 불러오지 못했습니다.';
     } finally {
         ingredientTypesLoading.value = false;
@@ -345,7 +215,7 @@ async function loadIngredientsUnitOptions() {
     unitsError.value = null;
     try {
         unitOptions.value = await getCommonCodesByCodeId('INGREDIENTS_UNIT');
-    } catch (e) {
+    } catch {
         unitsError.value = '단위 정보를 불러오지 못했습니다.';
     } finally {
         unitsLoading.value = false;
@@ -495,12 +365,11 @@ async function submit() {
 
         // 이미지 변경 여부 확인
         const hasThumbnailChange = form.thumbnailFile !== null;
-        const hasStepImageChanges = form.steps.some(s => s.file !== null);
+        const hasStepImageChanges = form.steps.some((s) => s.file !== null);
         const hasAnyImageChange = hasThumbnailChange || hasStepImageChanges;
 
         // 이미지가 하나라도 변경되었을 때만 이미지 전송
         if (hasAnyImageChange) {
-            
             // 썸네일 처리: 새 파일이 있으면 사용, 없으면 기존 URL에서 다운로드
             if (form.thumbnailFile) {
                 formData.append('images', form.thumbnailFile, 'thumbnail.png');
@@ -529,7 +398,7 @@ async function submit() {
                             formData.append('images', blob, `step-${i + 1}.png`);
                         }
                     } catch (err) {
-                        console.error(`Step ${i+1}: fetch 에러:`, err);
+                        console.error(`Step ${i + 1}: fetch 에러:`, err);
                     }
                 }
             }
@@ -540,11 +409,7 @@ async function submit() {
         // 이미지 변경이 없으면 images를 전송하지 않음 -> 백엔드에서 기존 이미지 유지
 
         // 실제 API 엔드포인트로 전송 (토큰 자동 첨부) - PUT 메서드로 수정
-        const success = await handleApiCallVoid(
-            () => updateRecipe(recipeId.value, formData),
-            '레시피 수정 중 오류가 발생했습니다.',
-            '수정 실패'
-        );
+        const success = await handleApiCallVoid(() => updateRecipe(recipeId.value, formData), '레시피 수정 중 오류가 발생했습니다.', '수정 실패');
 
         if (success) {
             // 수정 성공 시 페이지 이탈 방지 해제
@@ -562,27 +427,17 @@ async function submit() {
 
 // 페이지 이탈 방지
 watch(
-    () => [
-        form.title,
-        form.description,
-        form.status,
-        form.visibility,
-        form.thumbnailFile,
-        form.steps.length,
-        form.ingredientGroups.length,
-        JSON.stringify(form.categories),
-        JSON.stringify(form.cookingTips)
-    ],
+    () => [form.title, form.description, form.status, form.visibility, form.thumbnailFile, form.steps.length, form.ingredientGroups.length, JSON.stringify(form.categories), JSON.stringify(form.cookingTips)],
     () => {
         // 초기 로딩이 완료되고 원본 데이터가 있을 때만 비교
         if (originalFormData.value && !initialLoading.value) {
             const original = JSON.parse(originalFormData.value);
-            
+
             // 파일 변경 감지
-            const hasFileChange = Boolean(form.thumbnailFile) || form.steps.some(s => s.file);
-            
+            const hasFileChange = Boolean(form.thumbnailFile) || form.steps.some((s) => s.file);
+
             // 데이터 변경 감지
-            const hasDataChange = 
+            const hasDataChange =
                 form.title !== original.title ||
                 form.description !== original.description ||
                 form.status !== original.status ||
@@ -592,7 +447,7 @@ watch(
                 JSON.stringify(form.ingredientGroups) !== JSON.stringify(original.ingredientGroups) ||
                 form.steps.length !== original.steps.length ||
                 form.steps.some((s, i) => s.text !== original.steps[i]?.text);
-            
+
             hasUnsavedChanges.value = hasFileChange || hasDataChange;
         }
     },
@@ -634,8 +489,114 @@ onBeforeUnmount(() => {
     // 컴포넌트 언마운트 시 이벤트 리스너 제거
     window.removeEventListener('beforeunload', handleBeforeUnload);
 });
-
 </script>
+
+<template>
+    <div class="card">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-bold">레시피 수정</h2>
+            <div class="flex gap-2">
+                <Button label="목록으로" icon="pi pi-arrow-left" severity="secondary" @click="goBack" :disabled="submitting" />
+            </div>
+        </div>
+
+        <!-- 에러 메시지 표시 -->
+        <Message v-if="error" severity="error" :closable="false" class="mb-4">
+            {{ error }}
+        </Message>
+
+        <!-- 로딩 상태 -->
+        <div v-if="initialLoading" class="flex justify-center items-center py-8">
+            <div class="pi pi-spinner pi-spin mr-2"></div>
+            <span>레시피 정보를 불러오는 중...</span>
+        </div>
+
+        <div v-else class="flex flex-col gap-6">
+            <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
+                <p class="text-gray-700 italic">셰프님이 누군가를 위해 정성들인 이 요리처럼, 레시피에서도 셰프님의 따뜻한 정성을 보여주세요.</p>
+            </div>
+
+            <RecipeFormBasicInfo
+                :title="form.title"
+                :description="form.description"
+                :thumbnail-preview="form.thumbnailPreview || ''"
+                :disabled="submitting"
+                :guide-image="guideImages.basic"
+                @update:title="form.title = $event"
+                @update:description="form.description = $event"
+                @update:thumbnail="onThumbnailUpdate"
+                @clear-thumbnail="clearThumbnail"
+            />
+
+            <RecipeFormIngredients
+                v-model="form.ingredientGroups"
+                :ingredient-type-options="ingredientTypeOptions"
+                :unit-options="unitOptions"
+                :ingredient-types-loading="ingredientTypesLoading"
+                :ingredient-types-error="ingredientTypesError"
+                :units-loading="unitsLoading"
+                :units-error="unitsError"
+                :disabled="submitting"
+                :guide-image="guideImages.ingredients"
+            />
+
+            <RecipeFormClassification
+                :category-options="categoryOptions"
+                :categories="form.categories"
+                :categories-loading="categoriesLoading"
+                :categories-error="categoriesError"
+                :cooking-tips-options="cookingTipsOptions"
+                :cooking-tips="form.cookingTips"
+                :cooking-tips-loading="cookingTipsLoading"
+                :cooking-tips-error="cookingTipsError"
+                :disabled="submitting"
+                :guide-image="guideImages.classification"
+                @update:categories="form.categories = $event"
+                @update:cooking-tips="form.cookingTips = $event"
+            />
+
+            <RecipeFormSteps v-model="form.steps" :disabled="submitting" :guide-image="guideImages.steps" @step-image-change="onStepImageChange" @step-image-clear="onStepImageClear" />
+
+            <!-- 설정 및 저장 -->
+            <div class="border border-gray-200 rounded-lg p-5 bg-white">
+                <div class="flex items-center gap-1 mb-1">
+                    <h3 class="text-xl font-semibold text-gray-600">
+                        <span class="mr-1">설정 및 저장</span>
+                        <i ref="el => { if (el) guideIconRefs.settings = el as HTMLElement; }" class="pi pi-question-circle help-button" @click="showGuide('settings', $event)" style="cursor: pointer" />
+                        <Popover
+                            :ref="
+                                (el) => {
+                                    if (el) guidePopoverRefs.settings = el;
+                                }
+                            "
+                            :target="guideIconRefs.settings"
+                            :showCloseIcon="true"
+                            :dismissable="true"
+                        >
+                            <div class="p-2">
+                                <img :src="guideImages.settings" alt="설정 및 저장 가이드" class="max-w-full h-auto" />
+                            </div>
+                        </Popover>
+                    </h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block mb-2 font-medium"><b>공개 여부</b></label>
+                        <Select v-model="form.visibility" :options="visibilityOptions" optionLabel="label" optionValue="value" class="w-full" />
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium"><b>상태</b></label>
+                        <Select v-model="form.status" :options="statusOptions" optionLabel="label" optionValue="value" class="w-full" />
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <Button label="취소" icon="pi pi-times" severity="secondary" @click="goBack" :disabled="submitting" />
+                    <Button label="수정" icon="pi pi-check" severity="primary" @click="submit" :disabled="submitting || !isValid" />
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 :deep(.p-textarea) {
@@ -661,4 +622,3 @@ onBeforeUnmount(() => {
     opacity: 1;
 }
 </style>
-

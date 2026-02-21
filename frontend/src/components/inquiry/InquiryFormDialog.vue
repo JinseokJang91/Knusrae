@@ -1,115 +1,3 @@
-<template>
-    <Dialog
-        v-model:visible="visible"
-        :header="isEditMode ? '문의 수정' : '1:1 문의 작성'"
-        modal
-        :style="{ width: '520px' }"
-        :draggable="false"
-        class="inquiry-form-dialog"
-        @hide="closeDialog"
-    >
-        <div class="inquiry-form">
-            <div class="field mb-4">
-                <label class="block mb-2 font-medium">제목 <span class="text-red-500">*</span></label>
-                <InputText
-                    v-model="form.title"
-                    placeholder="제목을 입력하세요"
-                    class="w-full"
-                    :maxlength="100"
-                />
-                <small class="text-color-secondary">{{ form.title.length }}/100</small>
-            </div>
-
-            <div class="field mb-4">
-                <label class="block mb-2 font-medium">문의 유형 <span class="text-red-500">*</span></label>
-                <Select
-                    v-model="form.inquiryType"
-                    :options="INQUIRY_TYPES"
-                    option-label="label"
-                    option-value="value"
-                    placeholder="선택하세요"
-                    class="w-full"
-                />
-            </div>
-
-            <div class="field mb-4">
-                <label class="block mb-2 font-medium">내용 <span class="text-red-500">*</span></label>
-                <Textarea
-                    v-model="form.content"
-                    placeholder="문의 내용을 입력하세요"
-                    class="w-full"
-                    rows="5"
-                    :maxlength="1000"
-                />
-                <small class="text-color-secondary">{{ form.content.length }}/1000</small>
-            </div>
-
-            <div class="field mb-4">
-                <label class="block mb-2 font-medium">사진 첨부 (최대 3장)</label>
-                <input
-                    ref="fileInputRef"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    class="hidden"
-                    @change="onFileSelect"
-                />
-                <div class="flex flex-wrap gap-2 align-items-center">
-                    <Button
-                        label="파일 선택"
-                        icon="pi pi-upload"
-                        severity="secondary"
-                        outlined
-                        :disabled="form.images.length >= 3"
-                        @click="fileInputRef?.click()"
-                    />
-                    <span v-if="form.images.length > 0" class="text-sm text-color-secondary">
-                        {{ form.images.length }} / 3 장
-                    </span>
-                </div>
-                <div v-if="form.images.length > 0" class="flex flex-wrap gap-2 mt-2">
-                    <div
-                        v-for="(file, idx) in form.images"
-                        :key="idx"
-                        class="image-preview-wrap"
-                    >
-                        <img
-                            v-if="isPreviewUrl(file)"
-                            :src="filePreview(file)"
-                            alt="미리보기"
-                            class="image-preview"
-                        />
-                        <img
-                            v-else
-                            :src="filePreview(file)"
-                            alt="미리보기"
-                            class="image-preview"
-                        />
-                        <Button
-                            icon="pi pi-times"
-                            text
-                            rounded
-                            severity="danger"
-                            class="image-remove-btn"
-                            @click="removeImage(idx)"
-                        />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <template #footer>
-            <Button label="취소" text @click="closeDialog" />
-            <Button
-                :label="isEditMode ? '수정' : '등록'"
-                :disabled="!canSubmit || loading"
-                :loading="loading"
-                @click="submit"
-            />
-        </template>
-    </Dialog>
-</template>
-
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import Dialog from 'primevue/dialog';
@@ -258,6 +146,50 @@ function closeDialog() {
     emit('closed');
 }
 </script>
+
+<template>
+    <Dialog v-model:visible="visible" :header="isEditMode ? '문의 수정' : '1:1 문의 작성'" modal :style="{ width: '520px' }" :draggable="false" class="inquiry-form-dialog" @hide="closeDialog">
+        <div class="inquiry-form">
+            <div class="field mb-4">
+                <label class="block mb-2 font-medium">제목 <span class="text-red-500">*</span></label>
+                <InputText v-model="form.title" placeholder="제목을 입력하세요" class="w-full" :maxlength="100" />
+                <small class="text-color-secondary">{{ form.title.length }}/100</small>
+            </div>
+
+            <div class="field mb-4">
+                <label class="block mb-2 font-medium">문의 유형 <span class="text-red-500">*</span></label>
+                <Select v-model="form.inquiryType" :options="INQUIRY_TYPES" option-label="label" option-value="value" placeholder="선택하세요" class="w-full" />
+            </div>
+
+            <div class="field mb-4">
+                <label class="block mb-2 font-medium">내용 <span class="text-red-500">*</span></label>
+                <Textarea v-model="form.content" placeholder="문의 내용을 입력하세요" class="w-full" rows="5" :maxlength="1000" />
+                <small class="text-color-secondary">{{ form.content.length }}/1000</small>
+            </div>
+
+            <div class="field mb-4">
+                <label class="block mb-2 font-medium">사진 첨부 (최대 3장)</label>
+                <input ref="fileInputRef" type="file" accept="image/*" multiple class="hidden" @change="onFileSelect" />
+                <div class="flex flex-wrap gap-2 align-items-center">
+                    <Button label="파일 선택" icon="pi pi-upload" severity="secondary" outlined :disabled="form.images.length >= 3" @click="fileInputRef?.click()" />
+                    <span v-if="form.images.length > 0" class="text-sm text-color-secondary"> {{ form.images.length }} / 3 장 </span>
+                </div>
+                <div v-if="form.images.length > 0" class="flex flex-wrap gap-2 mt-2">
+                    <div v-for="(file, idx) in form.images" :key="idx" class="image-preview-wrap">
+                        <img v-if="isPreviewUrl(file)" :src="filePreview(file)" alt="미리보기" class="image-preview" />
+                        <img v-else :src="filePreview(file)" alt="미리보기" class="image-preview" />
+                        <Button icon="pi pi-times" text rounded severity="danger" class="image-remove-btn" @click="removeImage(idx)" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <template #footer>
+            <Button label="취소" text @click="closeDialog" />
+            <Button :label="isEditMode ? '수정' : '등록'" :disabled="!canSubmit || loading" :loading="loading" @click="submit" />
+        </template>
+    </Dialog>
+</template>
 
 <style scoped>
 .inquiry-form-dialog :deep(.p-dialog-content) {

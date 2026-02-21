@@ -12,13 +12,16 @@ import logoIcon from '@/assets/images/logo/logo-icon.png';
                 <div class="flex items-center gap-2">
                     <Avatar :image="logoIcon" shape="circle" size="large" />
                     <span class="font-bold">
-                        <i 
+                        <i
                             :class="[
                                 'pi text-xl',
-                                message.severity === 'success' ? 'pi-check-circle text-orange-500' :
-                                message.severity === 'info' ? 'pi-info-circle text-blue-500' :
-                                message.severity === 'warn' ? 'pi-exclamation-triangle text-yellow-500' :
-                                'pi-times-circle text-red-500'
+                                message.severity === 'success'
+                                    ? 'pi-check-circle text-orange-500'
+                                    : message.severity === 'info'
+                                      ? 'pi-info-circle text-blue-500'
+                                      : message.severity === 'warn'
+                                        ? 'pi-exclamation-triangle text-yellow-500'
+                                        : 'pi-times-circle text-red-500'
                             ]"
                         ></i>
                         {{ message.summary }} 메시지
@@ -36,4 +39,3 @@ import logoIcon from '@/assets/images/logo/logo-icon.png';
         </template>
     </Toast>
 </template>
-

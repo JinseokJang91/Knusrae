@@ -69,18 +69,18 @@ function sendMessageToParent(message: OAuthPostMessage) {
             if (!window.opener) {
                 return false;
             }
-            
+
             try {
                 if (window.opener.closed) {
                     return false;
                 }
-            } catch (e) {
+            } catch {
                 // 크로스 오리진일 수 있음, 계속 진행
             }
-            
+
             window.opener.postMessage(message, window.location.origin);
             return true;
-        } catch (error) {
+        } catch {
             return false;
         }
     };
@@ -90,8 +90,8 @@ function sendMessageToParent(message: OAuthPostMessage) {
         const eventKey = `oauth_${props.provider}_callback_${Date.now()}`;
         localStorage.setItem(eventKey, JSON.stringify(message));
         localStorage.setItem('oauth_callback_event', eventKey);
-    } catch (e) {
-        console.error('[OAuthCallback] localStorage 저장 실패:', e);
+    } catch (err) {
+        console.error('[OAuthCallback] localStorage 저장 실패:', err);
     }
 
     // postMessage 시도 및 재시도
@@ -106,7 +106,7 @@ function sendMessageToParent(message: OAuthPostMessage) {
     setTimeout(() => {
         try {
             window.close();
-        } catch (error) {
+        } catch {
             // 창 닫기 실패는 무시
         }
     }, 1500);
@@ -116,12 +116,8 @@ function sendMessageToParent(message: OAuthPostMessage) {
 <template>
     <div class="flex items-center justify-center min-h-screen bg-gray-50">
         <div class="text-center">
-            <div 
-                class="animate-spin rounded-full h-12 w-12 mx-auto mb-4"
-                :class="`border-b-2 border-${providerConfig[provider].color}`"
-            ></div>
+            <div class="animate-spin rounded-full h-12 w-12 mx-auto mb-4" :class="`border-b-2 border-${providerConfig[provider].color}`"></div>
             <p class="text-gray-600">{{ providerConfig[provider].label }} 로그인 처리 중...</p>
         </div>
     </div>
 </template>
-

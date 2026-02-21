@@ -73,4 +73,3 @@ export const useAppToast = () => {
         toast // 원본 toast 인스턴스도 필요시 사용 가능
     };
 };
-

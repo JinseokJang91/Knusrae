@@ -47,10 +47,7 @@ export interface Category {
 }
 
 /** 카테고리 페이지 목록용 레시피 (API Recipe + UI 필드) */
-export type CategoryRecipeItem = Omit<
-    Recipe,
-    'category' | 'cookingTime' | 'servings' | 'commentCount'
-> & {
+export type CategoryRecipeItem = Omit<Recipe, 'category' | 'cookingTime' | 'servings' | 'commentCount'> & {
     category: string | null;
     categoryIds: string[];
     categoryKeys: string[];

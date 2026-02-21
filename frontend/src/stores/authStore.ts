@@ -121,4 +121,3 @@ export const useAuthStore = defineStore('auth', () => {
         reset
     };
 });
-

@@ -19,10 +19,7 @@ export async function fetchMemberInfo(): Promise<MemberInfo | null> {
  * 관리자 이메일 목록
  * 환경 변수로 설정 가능하지만, 기본값은 admin@test.com
  */
-const ADMIN_EMAILS = [
-    'admin@test.com',
-    ...(import.meta.env.VITE_ADMIN_EMAILS ? import.meta.env.VITE_ADMIN_EMAILS.split(',') : [])
-].map(email => email.toLowerCase().trim());
+const ADMIN_EMAILS = ['admin@test.com', ...(import.meta.env.VITE_ADMIN_EMAILS ? import.meta.env.VITE_ADMIN_EMAILS.split(',') : [])].map((email) => email.toLowerCase().trim());
 
 /**
  * 이메일이 관리자 이메일인지 확인

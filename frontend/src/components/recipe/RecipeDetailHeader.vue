@@ -1,43 +1,48 @@
+<script setup lang="ts">
+import Button from 'primevue/button';
+import type { RecipeDetail, RecipeImage } from '@/types/recipe';
+
+defineProps<{
+    recipe: RecipeDetail;
+    mainImage: RecipeImage | null;
+    cookingTipsData: { servings: string | null; cookingTime: string | null; difficulty: string | null };
+    isLiked: boolean;
+    /** 북마크 선택 여부 (하나라도 레시피북에 저장된 경우 true) */
+    isBookmarked?: boolean;
+    formatNumber: (num: number | null | undefined) => string;
+    /** 현재 사용자가 레시피 작성자인지 여부 */
+    isRecipeAuthor?: boolean;
+    /** 팔로우 여부 */
+    isFollowing?: boolean;
+    /** 팔로우 버튼 비활성화 여부 (로그인하지 않은 경우) */
+    followDisabled?: boolean;
+}>();
+
+defineEmits<{
+    'go-back': [];
+    'toggle-like': [];
+    'toggle-bookmark': [];
+    'toggle-follow': [];
+    'go-to-author-profile': [];
+}>();
+</script>
+
 <template>
     <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
         <!-- 메인 이미지 -->
         <div class="relative w-full h-96 bg-white">
-            <img
-                v-if="mainImage"
-                :src="mainImage.url"
-                :alt="recipe.title"
-                class="w-full mx-auto h-full object-cover"
-            />
-            <div v-else class="flex items-center justify-center h-full text-white text-6xl">
-                🍳
-            </div>
+            <img v-if="mainImage" :src="mainImage.url" :alt="recipe.title" class="w-full mx-auto h-full object-cover" />
+            <div v-else class="flex items-center justify-center h-full text-white text-6xl">🍳</div>
 
             <!-- 뒤로가기 버튼 -->
             <div class="absolute top-4 left-4 z-10">
-                <Button
-                    @click="$emit('go-back')"
-                    icon="pi pi-arrow-left"
-                    size="large"
-                    rounded
-                />
+                <Button @click="$emit('go-back')" icon="pi pi-arrow-left" size="large" rounded />
             </div>
 
             <!-- 액션 버튼 (좋아요, 북마크) -->
             <div class="absolute top-4 right-4 z-10 flex gap-2">
-                <Button
-                    @click="$emit('toggle-like')"
-                    :icon="isLiked ? 'pi pi-heart-fill' : 'pi pi-heart'"
-                    :class="isLiked ? 'p-button-danger' : 'p-button-secondary'"
-                    size="large"
-                    rounded
-                />
-                <Button
-                    @click="$emit('toggle-bookmark')"
-                    :icon="isBookmarked ? 'pi pi-bookmark-fill' : 'pi pi-bookmark'"
-                    :class="isBookmarked ? 'p-button-primary' : 'p-button-secondary'"
-                    size="large"
-                    rounded
-                />
+                <Button @click="$emit('toggle-like')" :icon="isLiked ? 'pi pi-heart-fill' : 'pi pi-heart'" :class="isLiked ? 'p-button-danger' : 'p-button-secondary'" size="large" rounded />
+                <Button @click="$emit('toggle-bookmark')" :icon="isBookmarked ? 'pi pi-bookmark-fill' : 'pi pi-bookmark'" :class="isBookmarked ? 'p-button-primary' : 'p-button-secondary'" size="large" rounded />
             </div>
         </div>
 
@@ -52,20 +57,13 @@
 
                     <!-- 태그 -->
                     <div class="flex flex-wrap gap-2 mb-4">
-                        <span
-                            v-for="category in recipe.categories"
-                            :key="`${category.codeId}-${category.detailCodeId}`"
-                            class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium"
-                        >
+                        <span v-for="category in recipe.categories" :key="`${category.codeId}-${category.detailCodeId}`" class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">
                             {{ category.detailName || category.codeName }}
                         </span>
                     </div>
 
                     <!-- 레시피 상세 정보 (요리팁 + 통계) -->
-                    <div
-                        v-if="cookingTipsData.servings || cookingTipsData.cookingTime || cookingTipsData.difficulty"
-                        class="flex items-center justify-between gap-6 mb-4 p-4 bg-gray-50 rounded-lg"
-                    >
+                    <div v-if="cookingTipsData.servings || cookingTipsData.cookingTime || cookingTipsData.difficulty" class="flex items-center justify-between gap-6 mb-4 p-4 bg-gray-50 rounded-lg">
                         <div class="flex flex-wrap gap-6">
                             <div v-if="cookingTipsData.servings" class="flex items-center space-x-2">
                                 <i class="pi pi-users text-gray-600 text-xl"></i>
@@ -101,23 +99,12 @@
             <!-- 작성자 정보 -->
             <div class="flex items-center justify-between py-4 border-t border-gray-200">
                 <div class="flex items-center space-x-3">
-                    <div 
-                        class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                        @click="$emit('go-to-author-profile')"
-                    >
-                        <img
-                            v-if="recipe.memberProfileImage"
-                            :src="recipe.memberProfileImage"
-                            alt="작성자 프로필"
-                            class="w-full h-full object-cover"
-                        />
+                    <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" @click="$emit('go-to-author-profile')">
+                        <img v-if="recipe.memberProfileImage" :src="recipe.memberProfileImage" alt="작성자 프로필" class="w-full h-full object-cover" />
                         <i v-else class="pi pi-user text-gray-600"></i>
                     </div>
                     <div>
-                        <div 
-                            class="text-lg font-medium text-gray-800 cursor-pointer hover:text-primary-600 transition-colors"
-                            @click="$emit('go-to-author-profile')"
-                        >
+                        <div class="text-lg font-medium text-gray-800 cursor-pointer hover:text-primary-600 transition-colors" @click="$emit('go-to-author-profile')">
                             {{ recipe.memberNickname || recipe.memberName }}
                         </div>
                     </div>
@@ -139,35 +126,6 @@
         </div>
     </div>
 </template>
-
-<script setup lang="ts">
-import Button from 'primevue/button';
-import type { RecipeDetail, RecipeImage } from '@/types/recipe';
-
-defineProps<{
-    recipe: RecipeDetail;
-    mainImage: RecipeImage | null;
-    cookingTipsData: { servings: string | null; cookingTime: string | null; difficulty: string | null };
-    isLiked: boolean;
-    /** 북마크 선택 여부 (하나라도 레시피북에 저장된 경우 true) */
-    isBookmarked?: boolean;
-    formatNumber: (num: number | null | undefined) => string;
-    /** 현재 사용자가 레시피 작성자인지 여부 */
-    isRecipeAuthor?: boolean;
-    /** 팔로우 여부 */
-    isFollowing?: boolean;
-    /** 팔로우 버튼 비활성화 여부 (로그인하지 않은 경우) */
-    followDisabled?: boolean;
-}>();
-
-defineEmits<{
-    'go-back': [];
-    'toggle-like': [];
-    'toggle-bookmark': [];
-    'toggle-follow': [];
-    'go-to-author-profile': [];
-}>();
-</script>
 
 <style scoped>
 .recipe-intro-bubble {

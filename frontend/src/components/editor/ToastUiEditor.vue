@@ -1,7 +1,3 @@
-<template>
-    <div ref="containerRef" class="toast-ui-editor-wrap"></div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 // @ts-expect-error ESM default export; types exist but exports resolution may fail
@@ -62,12 +58,16 @@ onBeforeUnmount(() => {
 
 defineExpose({
     getMarkdown: () => editorInstance?.getMarkdown() ?? '',
-    invoke: <T>(name: string, ...args: unknown[]): T => {
+    invoke: <T,>(name: string, ...args: unknown[]): T => {
         const fn = (editorInstance as unknown as Record<string, (...a: unknown[]) => T>)?.[name];
         return typeof fn === 'function' ? fn(...args) : (undefined as T);
     }
 });
 </script>
+
+<template>
+    <div ref="containerRef" class="toast-ui-editor-wrap"></div>
+</template>
 
 <style scoped>
 .toast-ui-editor-wrap {

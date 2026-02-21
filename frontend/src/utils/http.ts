@@ -32,7 +32,8 @@ export async function httpJson<T = unknown>(baseUrl: string, url: string, option
  */
 export async function httpForm<T = unknown>(baseUrl: string, url: string, formData: FormData, options: RequestInit = {}): Promise<T> {
     // 1) body 제외한 options (FormData로 body 대체)
-    const { body: _body, ...opts } = options;
+    const opts = { ...options };
+    delete (opts as Record<string, unknown>).body;
 
     // 2) headers 구성 (Content-Type 삭제 - multipart는 브라우저가 자동 설정)
     const headers: Record<string, string> = {
@@ -110,7 +111,7 @@ export async function httpMultipart<T = unknown>(baseUrl: string, url: string, o
         const mainImageIndexStr = formData.get('mainImageIndex') as string;
         const mainImageIndex = mainImageIndexStr ? parseInt(mainImageIndexStr) : undefined;
 
-        return {recipe, images, mainImageIndex};
+        return { recipe, images, mainImageIndex };
     }
 
     // fallback: JSON 응답인 경우

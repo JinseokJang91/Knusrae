@@ -1,68 +1,3 @@
-<template>
-    <div class="faq-container">
-        <div class="card">
-            <!-- Header -->
-            <div class="faq-header mb-6">
-                <h1 class="text-3xl font-bold m-0 mb-2">FAQ - 자주 묻는 질문</h1>
-                <p class="text-gray-600 m-0">앱 사용 중 궁금한 점을 확인해보세요.</p>
-            </div>
-
-            <!-- Category Filter -->
-            <div class="faq-filter mb-5">
-                <SelectButton
-                    v-model="selectedCategory"
-                    :options="categoryOptions"
-                    option-label="label"
-                    option-value="value"
-                    class="faq-category-buttons"
-                    :allow-empty="false"
-                />
-            </div>
-
-            <!-- Body: Accordion or Empty State -->
-            <div class="faq-body">
-                <PageStateBlock
-                    v-if="filteredFaqList.length === 0"
-                    state="empty"
-                    empty-icon="pi pi-search"
-                    empty-title="해당 카테고리에 FAQ가 없습니다"
-                    empty-message="다른 카테고리를 선택해보세요."
-                />
-                <Accordion
-                    v-else
-                    :value="[]"
-                    multiple
-                    class="faq-accordion"
-                >
-                    <AccordionPanel
-                        v-for="(item, idx) in filteredFaqList"
-                        :key="item.id"
-                        :value="String(idx)"
-                    >
-                        <AccordionHeader>{{ item.question }}</AccordionHeader>
-                        <AccordionContent>
-                            <p class="m-0 whitespace-pre-line text-gray-700">{{ item.answer }}</p>
-                        </AccordionContent>
-                    </AccordionPanel>
-                </Accordion>
-            </div>
-
-            <!-- Footer CTA -->
-            <div class="faq-cta mt-8 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
-                <p class="text-gray-700 mb-3 m-0">
-                    궁금한 점이 해결되지 않았나요?
-                </p>
-                <Button
-                    label="1:1 문의하기"
-                    icon="pi pi-inbox"
-                    severity="secondary"
-                    @click="goToInquiries"
-                />
-            </div>
-        </div>
-    </div>
-</template>
-
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -101,6 +36,42 @@ const goToInquiries = () => {
     router.push('/my?tab=inquiries');
 };
 </script>
+
+<template>
+    <div class="faq-container">
+        <div class="card">
+            <!-- Header -->
+            <div class="faq-header mb-6">
+                <h1 class="text-3xl font-bold m-0 mb-2">FAQ - 자주 묻는 질문</h1>
+                <p class="text-gray-600 m-0">앱 사용 중 궁금한 점을 확인해보세요.</p>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="faq-filter mb-5">
+                <SelectButton v-model="selectedCategory" :options="categoryOptions" option-label="label" option-value="value" class="faq-category-buttons" :allow-empty="false" />
+            </div>
+
+            <!-- Body: Accordion or Empty State -->
+            <div class="faq-body">
+                <PageStateBlock v-if="filteredFaqList.length === 0" state="empty" empty-icon="pi pi-search" empty-title="해당 카테고리에 FAQ가 없습니다" empty-message="다른 카테고리를 선택해보세요." />
+                <Accordion v-else :value="[]" multiple class="faq-accordion">
+                    <AccordionPanel v-for="(item, idx) in filteredFaqList" :key="item.id" :value="String(idx)">
+                        <AccordionHeader>{{ item.question }}</AccordionHeader>
+                        <AccordionContent>
+                            <p class="m-0 whitespace-pre-line text-gray-700">{{ item.answer }}</p>
+                        </AccordionContent>
+                    </AccordionPanel>
+                </Accordion>
+            </div>
+
+            <!-- Footer CTA -->
+            <div class="faq-cta mt-8 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
+                <p class="text-gray-700 mb-3 m-0">궁금한 점이 해결되지 않았나요?</p>
+                <Button label="1:1 문의하기" icon="pi pi-inbox" severity="secondary" @click="goToInquiries" />
+            </div>
+        </div>
+    </div>
+</template>
 
 <style lang="scss" scoped>
 .faq-container {

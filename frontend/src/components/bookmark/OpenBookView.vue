@@ -1,118 +1,3 @@
-<template>
-    <div class="open-book-view">
-        <div class="bookmarks-header">
-            <div>
-                <h2 class="text-2xl font-semibold m-0 flex items-center gap-3">
-                    <i
-                        class="pi pi-bookmark"
-                        :style="{ color: getRecipeBookColorHex(recipeBook.color) }"
-                    ></i>
-                    {{ recipeBook.name }}
-                </h2>
-                <p class="text-gray-600 mt-1">{{ recipeBook.bookmarkCount }}개의 레시피</p>
-            </div>
-        </div>
-
-        <div class="open-book-view__book">
-            <BookFrame>
-                <template #left>
-                    <div class="open-book-view__page-content">
-                        <template v-if="leftBookmark">
-                            <RecipeGridCard
-                                :recipe="getRecipeGridItem(leftBookmark)"
-                                :category-label="getCategoryName(leftBookmark.recipe)"
-                                :date-text="formatDate(leftBookmark.createdAt)"
-                                :show-favorite="false"
-                                :show-bookmark="false"
-                                :show-comment-count="false"
-                                :show-author="false"
-                                @click="onRecipeClick"
-                            />
-                            <div class="open-book-view__memo" @click.stop>
-                                <button
-                                    type="button"
-                                    class="open-book-view__memo-trigger"
-                                    @click="openMemoDialog(leftBookmark)"
-                                >
-                                    <i class="pi pi-pencil text-sm"></i>
-                                    <span v-if="leftBookmark.memo" class="open-book-view__memo-text">{{ leftBookmark.memo }}</span>
-                                    <span v-else class="open-book-view__memo-placeholder">메모 추가</span>
-                                </button>
-                            </div>
-                        </template>
-                        <div v-else class="open-book-view__empty-page">
-                            <i class="pi pi-book text-4xl text-gray-300 mb-2"></i>
-                            <p class="text-gray-500 text-sm">이 페이지는 비어 있어요</p>
-                        </div>
-                    </div>
-                </template>
-                <template #right>
-                    <div class="open-book-view__page-content">
-                        <template v-if="rightBookmark">
-                            <RecipeGridCard
-                                :recipe="getRecipeGridItem(rightBookmark)"
-                                :category-label="getCategoryName(rightBookmark.recipe)"
-                                :date-text="formatDate(rightBookmark.createdAt)"
-                                :show-favorite="false"
-                                :show-bookmark="false"
-                                :show-comment-count="false"
-                                :show-author="false"
-                                @click="onRecipeClick"
-                            />
-                            <div class="open-book-view__memo" @click.stop>
-                                <button
-                                    type="button"
-                                    class="open-book-view__memo-trigger"
-                                    @click="openMemoDialog(rightBookmark)"
-                                >
-                                    <i class="pi pi-pencil text-sm"></i>
-                                    <span v-if="rightBookmark.memo" class="open-book-view__memo-text">{{ rightBookmark.memo }}</span>
-                                    <span v-else class="open-book-view__memo-placeholder">메모 추가</span>
-                                </button>
-                            </div>
-                        </template>
-                        <div v-else class="open-book-view__empty-page">
-                            <i class="pi pi-book text-4xl text-gray-300 mb-2"></i>
-                            <p class="text-gray-500 text-sm">이 페이지는 비어 있어요</p>
-                        </div>
-                    </div>
-                </template>
-            </BookFrame>
-        </div>
-
-        <BookmarkMemoDialog
-            v-model:visible="memoDialogVisible"
-            :bookmark-id="memoDialogBookmarkId"
-            :recipe-title="memoDialogRecipeTitle"
-            :memo="memoDialogMemo"
-            :save-async="onMemoSave"
-        />
-
-        <div v-if="spreads.length > 1" class="open-book-view__nav">
-            <Button
-                icon="pi pi-chevron-left"
-                label="이전"
-                outlined
-                size="small"
-                :disabled="currentSpreadIndex <= 0"
-                @click="prevSpread"
-            />
-            <span class="open-book-view__nav-info">
-                {{ currentSpreadIndex + 1 }} / {{ spreads.length }}
-            </span>
-            <Button
-                icon="pi pi-chevron-right"
-                icon-pos="right"
-                label="다음"
-                outlined
-                size="small"
-                :disabled="currentSpreadIndex >= spreads.length - 1"
-                @click="nextSpread"
-            />
-        </div>
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import Button from 'primevue/button';
@@ -176,12 +61,8 @@ const spreads = computed(() => {
     return result;
 });
 
-const leftBookmark = computed(
-    () => spreads.value[currentSpreadIndex.value]?.[0] ?? null
-);
-const rightBookmark = computed(
-    () => spreads.value[currentSpreadIndex.value]?.[1] ?? null
-);
+const leftBookmark = computed(() => spreads.value[currentSpreadIndex.value]?.[0] ?? null);
+const rightBookmark = computed(() => spreads.value[currentSpreadIndex.value]?.[1] ?? null);
 
 watch(
     () => props.bookmarks,
@@ -216,6 +97,87 @@ function onRecipeClick(recipeId: number) {
     emit('recipe-click', recipeId);
 }
 </script>
+
+<template>
+    <div class="open-book-view">
+        <div class="bookmarks-header">
+            <div>
+                <h2 class="text-2xl font-semibold m-0 flex items-center gap-3">
+                    <i class="pi pi-bookmark" :style="{ color: getRecipeBookColorHex(recipeBook.color) }"></i>
+                    {{ recipeBook.name }}
+                </h2>
+                <p class="text-gray-600 mt-1">{{ recipeBook.bookmarkCount }}개의 레시피</p>
+            </div>
+        </div>
+
+        <div class="open-book-view__book">
+            <BookFrame>
+                <template #left>
+                    <div class="open-book-view__page-content">
+                        <template v-if="leftBookmark">
+                            <RecipeGridCard
+                                :recipe="getRecipeGridItem(leftBookmark)"
+                                :category-label="getCategoryName(leftBookmark.recipe)"
+                                :date-text="formatDate(leftBookmark.createdAt)"
+                                :show-favorite="false"
+                                :show-bookmark="false"
+                                :show-comment-count="false"
+                                :show-author="false"
+                                @click="onRecipeClick"
+                            />
+                            <div class="open-book-view__memo" @click.stop>
+                                <button type="button" class="open-book-view__memo-trigger" @click="openMemoDialog(leftBookmark)">
+                                    <i class="pi pi-pencil text-sm"></i>
+                                    <span v-if="leftBookmark.memo" class="open-book-view__memo-text">{{ leftBookmark.memo }}</span>
+                                    <span v-else class="open-book-view__memo-placeholder">메모 추가</span>
+                                </button>
+                            </div>
+                        </template>
+                        <div v-else class="open-book-view__empty-page">
+                            <i class="pi pi-book text-4xl text-gray-300 mb-2"></i>
+                            <p class="text-gray-500 text-sm">이 페이지는 비어 있어요</p>
+                        </div>
+                    </div>
+                </template>
+                <template #right>
+                    <div class="open-book-view__page-content">
+                        <template v-if="rightBookmark">
+                            <RecipeGridCard
+                                :recipe="getRecipeGridItem(rightBookmark)"
+                                :category-label="getCategoryName(rightBookmark.recipe)"
+                                :date-text="formatDate(rightBookmark.createdAt)"
+                                :show-favorite="false"
+                                :show-bookmark="false"
+                                :show-comment-count="false"
+                                :show-author="false"
+                                @click="onRecipeClick"
+                            />
+                            <div class="open-book-view__memo" @click.stop>
+                                <button type="button" class="open-book-view__memo-trigger" @click="openMemoDialog(rightBookmark)">
+                                    <i class="pi pi-pencil text-sm"></i>
+                                    <span v-if="rightBookmark.memo" class="open-book-view__memo-text">{{ rightBookmark.memo }}</span>
+                                    <span v-else class="open-book-view__memo-placeholder">메모 추가</span>
+                                </button>
+                            </div>
+                        </template>
+                        <div v-else class="open-book-view__empty-page">
+                            <i class="pi pi-book text-4xl text-gray-300 mb-2"></i>
+                            <p class="text-gray-500 text-sm">이 페이지는 비어 있어요</p>
+                        </div>
+                    </div>
+                </template>
+            </BookFrame>
+        </div>
+
+        <BookmarkMemoDialog v-model:visible="memoDialogVisible" :bookmark-id="memoDialogBookmarkId" :recipe-title="memoDialogRecipeTitle" :memo="memoDialogMemo" :save-async="onMemoSave" />
+
+        <div v-if="spreads.length > 1" class="open-book-view__nav">
+            <Button icon="pi pi-chevron-left" label="이전" outlined size="small" :disabled="currentSpreadIndex <= 0" @click="prevSpread" />
+            <span class="open-book-view__nav-info"> {{ currentSpreadIndex + 1 }} / {{ spreads.length }} </span>
+            <Button icon="pi pi-chevron-right" icon-pos="right" label="다음" outlined size="small" :disabled="currentSpreadIndex >= spreads.length - 1" @click="nextSpread" />
+        </div>
+    </div>
+</template>
 
 <style scoped lang="scss">
 .open-book-view {
@@ -291,7 +253,9 @@ function onRecipeClick(recipeId: number) {
     font-size: 0.875rem;
     text-align: left;
     cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+    transition:
+        background-color 0.2s,
+        color 0.2s;
 }
 
 .open-book-view__memo-trigger:hover {

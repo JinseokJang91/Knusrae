@@ -2,7 +2,7 @@
 
 declare module '*.vue' {
     import type { DefineComponent } from 'vue';
-    const component: DefineComponent<{}, {}, any>;
+    const component: DefineComponent<Record<string, unknown>, Record<string, unknown>, unknown>;
     export default component;
 }
 
@@ -14,6 +14,14 @@ interface ImportMetaEnv {
     readonly VITE_GOOGLE_REDIRECT_URI: string;
     readonly VITE_KAKAO_CLIENT_ID: string;
     readonly VITE_KAKAO_REDIRECT_URI: string;
+    /** API Base URL (인증 서비스) */
+    readonly VITE_API_BASE_URL_AUTH?: string;
+    /** API Base URL (회원 서비스) */
+    readonly VITE_API_BASE_URL_MEMBER?: string;
+    /** API Base URL (요리 서비스) */
+    readonly VITE_API_BASE_URL_COOK?: string;
+    /** 관리자 이메일 목록 (쉼표 구분, OAuth 등에서 관리자 판별용) */
+    readonly VITE_ADMIN_EMAILS?: string;
 }
 
 interface ImportMeta {

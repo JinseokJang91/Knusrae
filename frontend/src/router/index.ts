@@ -1,5 +1,6 @@
 import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
 
 const routes: RouteRecordRaw[] = [
     {
@@ -25,89 +26,106 @@ const routes: RouteRecordRaw[] = [
                 name: 'searchResult',
                 component: () => import('@/views/pages/recipe/SearchResult.vue')
             },
-            // 2. 내 레시피
+            // 2. 내 레시피 (로그인 필요)
             {
                 path: '/my/recipes',
                 name: 'myRecipes',
-                component: () => import('@/views/pages/my/Recipes.vue')
+                component: () => import('@/views/pages/my/Recipes.vue'),
+                meta: { requiresAuth: true }
             },
             {
                 path: '/my/recipes/new',
                 name: 'myRecipeCreate',
-                component: () => import('@/views/pages/my/RecipeCreate.vue')
+                component: () => import('@/views/pages/my/RecipeCreate.vue'),
+                meta: { requiresAuth: true }
             },
             {
                 path: '/my/recipes/:id/edit',
                 name: 'myRecipeEdit',
-                component: () => import('@/views/pages/my/RecipeEdit.vue')
+                component: () => import('@/views/pages/my/RecipeEdit.vue'),
+                meta: { requiresAuth: true }
             },
-            // 3. 프로필 / 마이페이지 (정책: 나의 것은 모두 /my 아래)
+            // 3. 프로필 / 마이페이지 (정책: 나의 것은 모두 /my 아래, 로그인 필요)
             {
                 path: '/my',
                 name: 'mypage',
-                component: () => import('@/views/pages/my/MyPage.vue')
+                component: () => import('@/views/pages/my/MyPage.vue'),
+                meta: { requiresAuth: true }
             },
             {
                 path: '/my/profile',
-                redirect: '/my?tab=profile'
+                redirect: '/my?tab=profile',
+                meta: { requiresAuth: true }
             },
             {
                 path: '/my/comments',
-                redirect: '/my?tab=comments'
+                redirect: '/my?tab=comments',
+                meta: { requiresAuth: true }
             },
             {
                 path: '/my/inquiries/:id',
                 name: 'inquiryDetail',
-                component: () => import('@/views/pages/my/InquiryDetail.vue')
+                component: () => import('@/views/pages/my/InquiryDetail.vue'),
+                meta: { requiresAuth: true }
             },
             {
                 path: '/my/inquiries',
-                redirect: '/my?tab=inquiries'
+                redirect: '/my?tab=inquiries',
+                meta: { requiresAuth: true }
             },
             {
                 path: '/my/favorites',
-                redirect: '/my?tab=favorites'
+                redirect: '/my?tab=favorites',
+                meta: { requiresAuth: true }
             },
-            // 3-1. 관리자 페이지
+            // 3-1. 관리자 페이지 (관리자 전용)
             {
                 path: '/admin',
                 name: 'admin',
-                component: () => import('@/views/pages/admin/Admin.vue')
+                component: () => import('@/views/pages/admin/Admin.vue'),
+                meta: { requiresAdmin: true }
             },
             {
                 path: '/admin/ingredient-groups',
                 name: 'adminIngredientGroupManagement',
-                component: () => import('@/views/pages/admin/IngredientGroupManagement.vue')
+                component: () => import('@/views/pages/admin/IngredientGroupManagement.vue'),
+                meta: { requiresAdmin: true }
             },
             {
                 path: '/admin/ingredient-group/register',
                 name: 'adminIngredientGroupRegister',
-                component: () => import('@/views/pages/admin/IngredientGroupRegister.vue')
+                component: () => import('@/views/pages/admin/IngredientGroupRegister.vue'),
+                meta: { requiresAdmin: true }
             },
             {
                 path: '/admin/ingredient/register',
                 name: 'adminIngredientRegister',
-                component: () => import('@/views/pages/admin/IngredientRegister.vue')
+                component: () => import('@/views/pages/admin/IngredientRegister.vue'),
+                meta: { requiresAdmin: true }
             },
             {
                 path: '/admin/ingredient-management/register',
                 name: 'adminIngredientManagementRegister',
-                component: () => import('@/views/pages/admin/IngredientManagementRegister.vue')
+                component: () => import('@/views/pages/admin/IngredientManagementRegister.vue'),
+                meta: { requiresAdmin: true }
             },
             {
                 path: '/admin/ingredient-requests',
                 name: 'adminIngredientRequestList',
-                component: () => import('@/views/pages/admin/IngredientRequestList.vue')
+                component: () => import('@/views/pages/admin/IngredientRequestList.vue'),
+                meta: { requiresAdmin: true }
             },
             {
                 path: '/admin/inquiries',
                 name: 'adminInquiryList',
-                component: () => import('@/views/pages/admin/AdminInquiryList.vue')
+                component: () => import('@/views/pages/admin/AdminInquiryList.vue'),
+                meta: { requiresAdmin: true }
             },
             {
                 path: '/admin/common-codes',
                 name: 'adminCommonCodeManagement',
-                component: () => import('@/views/pages/admin/CommonCodeManagement.vue')
+                component: () => import('@/views/pages/admin/CommonCodeManagement.vue'),
+                meta: { requiresAdmin: true }
             },
             // 4. 메인 메뉴
             // 4-1. 전체 레시피
@@ -130,7 +148,8 @@ const routes: RouteRecordRaw[] = [
             {
                 path: '/ingredient/management/register',
                 name: 'ingredientRegister',
-                component: () => import('@/views/pages/admin/IngredientManagementRegister.vue')
+                component: () => import('@/views/pages/admin/IngredientManagementRegister.vue'),
+                meta: { requiresAdmin: true }
             },
             {
                 path: '/ingredient/management/:id',
@@ -166,12 +185,13 @@ const routes: RouteRecordRaw[] = [
                 name: 'memberProfile',
                 component: () => import('@/views/pages/member/MemberProfile.vue')
             },
-            // 5-2. 팔로잉 피드
+            // 5-2. 팔로잉 피드 (로그인 필요)
             {
                 path: '/feed/following',
                 name: 'followingFeed',
-                component: () => import('@/views/pages/feed/FollowingFeed.vue')
-            },
+                component: () => import('@/views/pages/feed/FollowingFeed.vue'),
+                meta: { requiresAuth: true }
+            }
         ]
     },
     {
@@ -208,12 +228,32 @@ const routes: RouteRecordRaw[] = [
         path: '/error/error',
         name: 'error',
         component: () => import('@/views/pages/error/Error.vue')
-    },
+    }
 ];
 
 const router = createRouter({
     history: createWebHistory(),
     routes
+});
+
+router.beforeEach(async (to) => {
+    const authStore = useAuthStore();
+    if (!authStore.isInitialized) {
+        await authStore.checkAuth();
+    }
+    const requiresAuth = to.meta.requiresAuth === true;
+    const requiresAdmin = to.meta.requiresAdmin === true;
+    if (requiresAuth || requiresAdmin) {
+        if (!authStore.isLoggedIn) {
+            return {
+                path: '/auth/login',
+                query: to.path !== '/auth/login' ? { redirect: to.fullPath } : undefined
+            };
+        }
+    }
+    if (requiresAdmin && !authStore.isAdmin) {
+        return { path: '/' };
+    }
 });
 
 export default router;

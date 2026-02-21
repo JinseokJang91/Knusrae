@@ -1,7 +1,3 @@
-<template>
-    <div ref="containerRef" class="toast-ui-viewer-wrap"></div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 // @ts-expect-error ESM default export; types exist but exports resolution may fail
@@ -24,11 +20,7 @@ let viewerInstance: { setMarkdown: (md: string) => void; destroy: () => void } |
 
 onMounted(() => {
     if (!containerRef.value) return;
-    viewerInstance = new (Viewer as unknown as new (opts: {
-        el: HTMLDivElement;
-        initialValue: string;
-        height?: string;
-    }) => { setMarkdown: (md: string) => void; destroy: () => void })({
+    viewerInstance = new (Viewer as unknown as new (opts: { el: HTMLDivElement; initialValue: string; height?: string }) => { setMarkdown: (md: string) => void; destroy: () => void })({
         el: containerRef.value,
         initialValue: props.initialValue,
         height: props.height
@@ -48,6 +40,10 @@ watch(
     { flush: 'post' }
 );
 </script>
+
+<template>
+    <div ref="containerRef" class="toast-ui-viewer-wrap"></div>
+</template>
 
 <style scoped>
 .toast-ui-viewer-wrap {

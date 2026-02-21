@@ -1,548 +1,3 @@
-<template>
-    <div class="ingredient-group-management">
-        <div class="page-header mb-6">
-            <div class="flex items-center gap-2 mb-2">
-                <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
-                <h1 class="text-3xl font-bold text-gray-900">재료·재료 그룹 관리</h1>
-            </div>
-            <p class="text-gray-600 mt-2">재료 그룹을 조회·등록·수정·삭제하고, 그룹별 재료를 등록·수정·삭제할 수 있습니다.</p>
-        </div>
-
-        <Card>
-            <template #content>
-                <div class="flex justify-end mb-4">
-                    <Button
-                        label="재료 그룹 추가"
-                        icon="pi pi-plus"
-                        @click="openCreateGroupDialog"
-                    />
-                </div>
-                <DataTable
-                    :value="groups"
-                    :loading="loading"
-                    data-key="id"
-                    striped-rows
-                    class="p-datatable-sm"
-                    responsive-layout="scroll"
-                >
-                    <Column field="id" header="ID" style="width: 80px" />
-                    <Column field="name" header="그룹명" sortable />
-                    <Column header="이미지" style="width: 80px">
-                        <template #body="{ data }">
-                            <img
-                                v-if="data.imageUrl"
-                                :src="data.imageUrl"
-                                alt=""
-                                class="w-10 h-10 object-cover rounded border border-gray-200"
-                                @error="onThumbError($event, data)"
-                            />
-                            <span v-else class="text-gray-400 text-sm">-</span>
-                        </template>
-                    </Column>
-                    <Column field="sortOrder" header="정렬" style="width: 80px" />
-                    <Column header="작업" style="width: 220px">
-                        <template #body="{ data }">
-                            <div class="flex gap-2 flex-wrap">
-                                <Button
-                                    label="재료 관리"
-                                    icon="pi pi-list"
-                                    text
-                                    size="small"
-                                    severity="secondary"
-                                    @click="openGroupDetailDialog(data)"
-                                />
-                                <Button
-                                    icon="pi pi-pencil"
-                                    text
-                                    rounded
-                                    size="small"
-                                    severity="secondary"
-                                    aria-label="수정"
-                                    @click="openEditGroupDialog(data)"
-                                />
-                                <Button
-                                    icon="pi pi-trash"
-                                    text
-                                    rounded
-                                    size="small"
-                                    severity="danger"
-                                    aria-label="삭제"
-                                    @click="confirmDeleteGroup(data)"
-                                />
-                            </div>
-                        </template>
-                    </Column>
-                    <template #empty>
-                        <div class="text-center text-gray-500 py-8">등록된 재료 그룹이 없습니다.</div>
-                    </template>
-                    <template #loading>목록을 불러오는 중입니다.</template>
-                </DataTable>
-            </template>
-        </Card>
-
-        <!-- 재료 그룹 등록 다이얼로그 -->
-        <Dialog
-            v-model:visible="createGroupDialogVisible"
-            header="재료 그룹 등록"
-            modal
-            :style="{ width: '480px' }"
-            :closable="true"
-            @hide="resetCreateGroupForm"
-        >
-            <div class="space-y-4 py-2">
-                <div class="field">
-                    <label for="create-name" class="block text-sm font-medium text-gray-700 mb-2">
-                        그룹명 <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="create-name"
-                        v-model="createGroupForm.name"
-                        placeholder="예: 채소"
-                        class="w-full"
-                        :class="{ 'p-invalid': createGroupErrors.name }"
-                        maxlength="50"
-                    />
-                    <small v-if="createGroupErrors.name" class="p-error">{{ createGroupErrors.name }}</small>
-                </div>
-                <div class="field">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">이미지 (선택)</label>
-                    <div class="image-input-section space-y-3">
-                        <div class="flex gap-2 flex-wrap">
-                            <InputText
-                                v-model="createGroupForm.imageUrl"
-                                placeholder="이미지 URL (https://...)"
-                                class="flex-1 min-w-0"
-                                maxlength="500"
-                                :disabled="!!createGroupImageFile"
-                            />
-                            <input
-                                ref="createGroupFileRef"
-                                type="file"
-                                accept="image/*"
-                                class="hidden"
-                                @change="onCreateGroupImageChange"
-                            />
-                            <Button
-                                type="button"
-                                label="파일 선택"
-                                icon="pi pi-upload"
-                                severity="secondary"
-                                :loading="createGroupImageUploading"
-                                @click="triggerCreateGroupFileSelect"
-                            />
-                        </div>
-                        <div v-if="createGroupImagePreview || createGroupForm.imageUrl" class="flex items-center gap-3">
-                            <img
-                                v-if="createGroupImagePreview"
-                                :src="createGroupImagePreview"
-                                alt="미리보기"
-                                class="w-20 h-20 object-cover rounded border border-gray-200"
-                            />
-                            <img
-                                v-else-if="createGroupForm.imageUrl"
-                                :src="createGroupForm.imageUrl"
-                                alt="미리보기"
-                                class="w-20 h-20 object-cover rounded border border-gray-200"
-                                @error="createGroupForm.imageUrl = ''"
-                            />
-                            <Button
-                                v-if="createGroupImagePreview || createGroupForm.imageUrl"
-                                type="button"
-                                icon="pi pi-times"
-                                severity="secondary"
-                                text
-                                rounded
-                                @click="clearCreateGroupImage"
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div class="field">
-                    <label for="create-sortOrder" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
-                    <InputNumber
-                        id="create-sortOrder"
-                        v-model="createGroupForm.sortOrder"
-                        class="w-full"
-                        :min="0"
-                        placeholder="0"
-                    />
-                </div>
-            </div>
-            <template #footer>
-                <Button label="취소" severity="secondary" @click="createGroupDialogVisible = false" />
-                <Button label="등록" icon="pi pi-check" :loading="createGroupSubmitting" @click="submitCreateGroup" />
-            </template>
-        </Dialog>
-
-        <!-- 재료 그룹 수정 다이얼로그 -->
-        <Dialog
-            v-model:visible="editGroupDialogVisible"
-            header="재료 그룹 수정"
-            modal
-            :style="{ width: '480px' }"
-            :closable="true"
-            @hide="resetEditGroupForm"
-        >
-            <div v-if="editingGroup" class="space-y-4 py-2">
-                <div class="field">
-                    <label for="edit-group-name" class="block text-sm font-medium text-gray-700 mb-2">
-                        그룹명 <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="edit-group-name"
-                        v-model="editGroupForm.name"
-                        placeholder="예: 채소"
-                        class="w-full"
-                        :class="{ 'p-invalid': editGroupErrors.name }"
-                        maxlength="50"
-                    />
-                    <small v-if="editGroupErrors.name" class="p-error">{{ editGroupErrors.name }}</small>
-                </div>
-                <div class="field">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">이미지 (선택)</label>
-                    <div class="image-input-section space-y-3">
-                        <div class="flex gap-2 flex-wrap">
-                            <InputText
-                                v-model="editGroupForm.imageUrl"
-                                placeholder="이미지 URL (https://...)"
-                                class="flex-1 min-w-0"
-                                maxlength="500"
-                                :disabled="!!editGroupImageFile"
-                            />
-                            <input
-                                ref="editGroupFileRef"
-                                type="file"
-                                accept="image/*"
-                                class="hidden"
-                                @change="onEditGroupImageChange"
-                            />
-                            <Button
-                                type="button"
-                                label="파일 선택"
-                                icon="pi pi-upload"
-                                severity="secondary"
-                                :loading="editGroupImageUploading"
-                                @click="triggerEditGroupFileSelect"
-                            />
-                        </div>
-                        <div v-if="editGroupImagePreview || editGroupForm.imageUrl" class="flex items-center gap-3">
-                            <img
-                                v-if="editGroupImagePreview"
-                                :src="editGroupImagePreview"
-                                alt="미리보기"
-                                class="w-20 h-20 object-cover rounded border border-gray-200"
-                            />
-                            <img
-                                v-else-if="editGroupForm.imageUrl"
-                                :src="editGroupForm.imageUrl"
-                                alt="미리보기"
-                                class="w-20 h-20 object-cover rounded border border-gray-200"
-                                @error="editGroupForm.imageUrl = ''"
-                            />
-                            <Button
-                                v-if="editGroupImagePreview || editGroupForm.imageUrl"
-                                type="button"
-                                icon="pi pi-times"
-                                severity="secondary"
-                                text
-                                rounded
-                                @click="clearEditGroupImage"
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div class="field">
-                    <label for="edit-group-sortOrder" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
-                    <InputNumber
-                        id="edit-group-sortOrder"
-                        v-model="editGroupForm.sortOrder"
-                        class="w-full"
-                        :min="0"
-                        placeholder="0"
-                    />
-                </div>
-            </div>
-            <template #footer>
-                <Button label="취소" severity="secondary" @click="editGroupDialogVisible = false" />
-                <Button label="저장" icon="pi pi-check" :loading="editGroupSubmitting" @click="submitEditGroup" />
-            </template>
-        </Dialog>
-
-        <!-- 그룹 상세(재료 목록 + 재료 추가) 다이얼로그 -->
-        <Dialog
-            v-model:visible="detailDialogVisible"
-            :header="detailGroup ? `재료 관리: ${detailGroup.name}` : '재료 관리'"
-            modal
-            :style="{ width: '720px' }"
-            :closable="true"
-            @hide="resetDetailDialog"
-        >
-            <div v-if="detailGroup" class="space-y-4 py-2">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm text-gray-600">그룹 ID: {{ detailGroup.id }} · 그룹명: {{ detailGroup.name }}</span>
-                    <Button
-                        label="재료 추가"
-                        icon="pi pi-plus"
-                        size="small"
-                        severity="secondary"
-                        @click="openAddIngredientDialog"
-                    />
-                </div>
-                <DataTable
-                    :value="detailIngredients"
-                    :loading="detailLoading"
-                    data-key="id"
-                    striped-rows
-                    class="p-datatable-sm"
-                    responsive-layout="scroll"
-                >
-                    <Column field="id" header="ID" style="width: 80px" />
-                    <Column field="name" header="재료명" />
-                    <Column header="이미지" style="width: 80px">
-                        <template #body="{ data }">
-                            <img
-                                v-if="data.imageUrl"
-                                :src="data.imageUrl"
-                                alt=""
-                                class="w-10 h-10 object-cover rounded border border-gray-200"
-                            />
-                            <span v-else class="text-gray-400 text-sm">-</span>
-                        </template>
-                    </Column>
-                    <Column field="sortOrder" header="정렬" style="width: 80px" />
-                    <Column header="작업" style="width: 120px">
-                        <template #body="{ data }">
-                            <div class="flex gap-2">
-                                <Button
-                                    icon="pi pi-pencil"
-                                    text
-                                    rounded
-                                    size="small"
-                                    severity="secondary"
-                                    aria-label="수정"
-                                    @click="openEditIngredientDialog(data)"
-                                />
-                                <Button
-                                    icon="pi pi-trash"
-                                    text
-                                    rounded
-                                    size="small"
-                                    severity="danger"
-                                    aria-label="삭제"
-                                    @click="confirmDeleteIngredient(data)"
-                                />
-                            </div>
-                        </template>
-                    </Column>
-                    <template #empty>
-                        <div class="text-center text-gray-500 py-6">등록된 재료가 없습니다. 재료 추가 버튼으로 등록하세요.</div>
-                    </template>
-                    <template #loading>재료 목록을 불러오는 중입니다.</template>
-                </DataTable>
-            </div>
-            <template #footer>
-                <Button label="닫기" @click="detailDialogVisible = false" />
-            </template>
-        </Dialog>
-
-        <!-- 재료 추가 다이얼로그 -->
-        <Dialog
-            v-model:visible="addIngredientDialogVisible"
-            header="재료 추가"
-            modal
-            :style="{ width: '480px' }"
-            :closable="true"
-            @hide="resetAddIngredientForm"
-        >
-            <div v-if="detailGroup" class="space-y-4 py-2">
-                <div class="field">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">재료 그룹</label>
-                    <InputText :model-value="detailGroup.name" class="w-full" disabled />
-                </div>
-                <div class="field">
-                    <label for="ingredient-name" class="block text-sm font-medium text-gray-700 mb-2">
-                        재료명 <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="ingredient-name"
-                        v-model="addIngredientForm.name"
-                        placeholder="예: 당근"
-                        class="w-full"
-                        :class="{ 'p-invalid': addIngredientErrors.name }"
-                        maxlength="100"
-                    />
-                    <small v-if="addIngredientErrors.name" class="p-error">{{ addIngredientErrors.name }}</small>
-                </div>
-                <div class="field">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">이미지 (선택)</label>
-                    <div class="image-input-section space-y-3">
-                        <div class="flex gap-2 flex-wrap">
-                            <InputText
-                                v-model="addIngredientForm.imageUrl"
-                                placeholder="이미지 URL (https://...)"
-                                class="flex-1 min-w-0"
-                                maxlength="500"
-                                :disabled="!!addIngredientImageFile"
-                            />
-                            <input
-                                ref="addIngredientFileRef"
-                                type="file"
-                                accept="image/*"
-                                class="hidden"
-                                @change="onAddIngredientImageChange"
-                            />
-                            <Button
-                                type="button"
-                                label="파일 선택"
-                                icon="pi pi-upload"
-                                severity="secondary"
-                                :loading="addIngredientImageUploading"
-                                @click="triggerAddIngredientFileSelect"
-                            />
-                        </div>
-                        <div v-if="addIngredientImagePreview || addIngredientForm.imageUrl" class="flex items-center gap-3">
-                            <img
-                                v-if="addIngredientImagePreview"
-                                :src="addIngredientImagePreview"
-                                alt="미리보기"
-                                class="w-20 h-20 object-cover rounded border border-gray-200"
-                            />
-                            <img
-                                v-else-if="addIngredientForm.imageUrl"
-                                :src="addIngredientForm.imageUrl"
-                                alt="미리보기"
-                                class="w-20 h-20 object-cover rounded border border-gray-200"
-                                @error="addIngredientForm.imageUrl = ''"
-                            />
-                            <Button
-                                v-if="addIngredientImagePreview || addIngredientForm.imageUrl"
-                                type="button"
-                                icon="pi pi-times"
-                                severity="secondary"
-                                text
-                                rounded
-                                @click="clearAddIngredientImage"
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div class="field">
-                    <label for="ingredient-sortOrder" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
-                    <InputNumber
-                        id="ingredient-sortOrder"
-                        v-model="addIngredientForm.sortOrder"
-                        class="w-full"
-                        :min="0"
-                        placeholder="0"
-                    />
-                </div>
-            </div>
-            <template #footer>
-                <Button label="취소" severity="secondary" @click="addIngredientDialogVisible = false" />
-                <Button label="등록" icon="pi pi-check" :loading="addIngredientSubmitting" @click="submitAddIngredient" />
-            </template>
-        </Dialog>
-
-        <!-- 재료 수정 다이얼로그 -->
-        <Dialog
-            v-model:visible="editIngredientDialogVisible"
-            header="재료 수정"
-            modal
-            :style="{ width: '480px' }"
-            :closable="true"
-            @hide="resetEditIngredientForm"
-        >
-            <div v-if="editingIngredient && detailGroup" class="space-y-4 py-2">
-                <div class="field">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">재료 그룹</label>
-                    <InputText :model-value="detailGroup.name" class="w-full" disabled />
-                </div>
-                <div class="field">
-                    <label for="edit-ingredient-name" class="block text-sm font-medium text-gray-700 mb-2">
-                        재료명 <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                        id="edit-ingredient-name"
-                        v-model="editIngredientForm.name"
-                        placeholder="예: 당근"
-                        class="w-full"
-                        :class="{ 'p-invalid': editIngredientErrors.name }"
-                        maxlength="100"
-                    />
-                    <small v-if="editIngredientErrors.name" class="p-error">{{ editIngredientErrors.name }}</small>
-                </div>
-                <div class="field">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">이미지 (선택)</label>
-                    <div class="image-input-section space-y-3">
-                        <div class="flex gap-2 flex-wrap">
-                            <InputText
-                                v-model="editIngredientForm.imageUrl"
-                                placeholder="이미지 URL (https://...)"
-                                class="flex-1 min-w-0"
-                                maxlength="500"
-                                :disabled="!!editIngredientImageFile"
-                            />
-                            <input
-                                ref="editIngredientFileRef"
-                                type="file"
-                                accept="image/*"
-                                class="hidden"
-                                @change="onEditIngredientImageChange"
-                            />
-                            <Button
-                                type="button"
-                                label="파일 선택"
-                                icon="pi pi-upload"
-                                severity="secondary"
-                                :loading="editIngredientImageUploading"
-                                @click="triggerEditIngredientFileSelect"
-                            />
-                        </div>
-                        <div v-if="editIngredientImagePreview || editIngredientForm.imageUrl" class="flex items-center gap-3">
-                            <img
-                                v-if="editIngredientImagePreview"
-                                :src="editIngredientImagePreview"
-                                alt="미리보기"
-                                class="w-20 h-20 object-cover rounded border border-gray-200"
-                            />
-                            <img
-                                v-else-if="editIngredientForm.imageUrl"
-                                :src="editIngredientForm.imageUrl"
-                                alt="미리보기"
-                                class="w-20 h-20 object-cover rounded border border-gray-200"
-                                @error="editIngredientForm.imageUrl = ''"
-                            />
-                            <Button
-                                v-if="editIngredientImagePreview || editIngredientForm.imageUrl"
-                                type="button"
-                                icon="pi pi-times"
-                                severity="secondary"
-                                text
-                                rounded
-                                @click="clearEditIngredientImage"
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div class="field">
-                    <label for="edit-ingredient-sortOrder" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
-                    <InputNumber
-                        id="edit-ingredient-sortOrder"
-                        v-model="editIngredientForm.sortOrder"
-                        class="w-full"
-                        :min="0"
-                        placeholder="0"
-                    />
-                </div>
-            </div>
-            <template #footer>
-                <Button label="취소" severity="secondary" @click="editIngredientDialogVisible = false" />
-                <Button label="저장" icon="pi pi-check" :loading="editIngredientSubmitting" @click="submitEditIngredient" />
-            </template>
-        </Dialog>
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -557,17 +12,7 @@ import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
 import type { IngredientGroup, Ingredient } from '@/types/ingredient';
-import {
-    getIngredientGroups,
-    getIngredients,
-    createIngredientGroup,
-    updateIngredientGroup,
-    deleteIngredientGroup,
-    createIngredient,
-    updateIngredient,
-    deleteIngredient,
-    uploadContentImage
-} from '@/api/ingredientApi';
+import { getIngredientGroups, getIngredients, createIngredientGroup, updateIngredientGroup, deleteIngredientGroup, createIngredient, updateIngredient, deleteIngredient, uploadContentImage } from '@/api/ingredientApi';
 
 const router = useRouter();
 const toast = useToast();
@@ -685,7 +130,7 @@ function clearCreateGroupImage() {
         URL.revokeObjectURL(createGroupImagePreview.value);
         createGroupImagePreview.value = null;
     }
-    createGroupFileRef.value && (createGroupFileRef.value.value = '');
+    if (createGroupFileRef.value) createGroupFileRef.value.value = '';
 }
 
 async function onCreateGroupImageChange(e: Event) {
@@ -768,7 +213,7 @@ function clearEditGroupImage() {
         URL.revokeObjectURL(editGroupImagePreview.value);
         editGroupImagePreview.value = null;
     }
-    editGroupFileRef.value && (editGroupFileRef.value.value = '');
+    if (editGroupFileRef.value) editGroupFileRef.value.value = '';
 }
 
 async function onEditGroupImageChange(e: Event) {
@@ -909,7 +354,7 @@ function clearAddIngredientImage() {
         URL.revokeObjectURL(addIngredientImagePreview.value);
         addIngredientImagePreview.value = null;
     }
-    addIngredientFileRef.value && (addIngredientFileRef.value.value = '');
+    if (addIngredientFileRef.value) addIngredientFileRef.value.value = '';
 }
 
 async function onAddIngredientImageChange(e: Event) {
@@ -993,7 +438,7 @@ function clearEditIngredientImage() {
         URL.revokeObjectURL(editIngredientImagePreview.value);
         editIngredientImagePreview.value = null;
     }
-    editIngredientFileRef.value && (editIngredientFileRef.value.value = '');
+    if (editIngredientFileRef.value) editIngredientFileRef.value.value = '';
 }
 
 async function onEditIngredientImageChange(e: Event) {
@@ -1081,6 +526,230 @@ function confirmDeleteIngredient(ingredient: Ingredient) {
     });
 }
 </script>
+
+<template>
+    <div class="ingredient-group-management">
+        <div class="page-header mb-6">
+            <div class="flex items-center gap-2 mb-2">
+                <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
+                <h1 class="text-3xl font-bold text-gray-900">재료·재료 그룹 관리</h1>
+            </div>
+            <p class="text-gray-600 mt-2">재료 그룹을 조회·등록·수정·삭제하고, 그룹별 재료를 등록·수정·삭제할 수 있습니다.</p>
+        </div>
+
+        <Card>
+            <template #content>
+                <div class="flex justify-end mb-4">
+                    <Button label="재료 그룹 추가" icon="pi pi-plus" @click="openCreateGroupDialog" />
+                </div>
+                <DataTable :value="groups" :loading="loading" data-key="id" striped-rows class="p-datatable-sm" responsive-layout="scroll">
+                    <Column field="id" header="ID" style="width: 80px" />
+                    <Column field="name" header="그룹명" sortable />
+                    <Column header="이미지" style="width: 80px">
+                        <template #body="{ data }">
+                            <img v-if="data.imageUrl" :src="data.imageUrl" alt="" class="w-10 h-10 object-cover rounded border border-gray-200" @error="onThumbError($event, data)" />
+                            <span v-else class="text-gray-400 text-sm">-</span>
+                        </template>
+                    </Column>
+                    <Column field="sortOrder" header="정렬" style="width: 80px" />
+                    <Column header="작업" style="width: 220px">
+                        <template #body="{ data }">
+                            <div class="flex gap-2 flex-wrap">
+                                <Button label="재료 관리" icon="pi pi-list" text size="small" severity="secondary" @click="openGroupDetailDialog(data)" />
+                                <Button icon="pi pi-pencil" text rounded size="small" severity="secondary" aria-label="수정" @click="openEditGroupDialog(data)" />
+                                <Button icon="pi pi-trash" text rounded size="small" severity="danger" aria-label="삭제" @click="confirmDeleteGroup(data)" />
+                            </div>
+                        </template>
+                    </Column>
+                    <template #empty>
+                        <div class="text-center text-gray-500 py-8">등록된 재료 그룹이 없습니다.</div>
+                    </template>
+                    <template #loading>목록을 불러오는 중입니다.</template>
+                </DataTable>
+            </template>
+        </Card>
+
+        <!-- 재료 그룹 등록 다이얼로그 -->
+        <Dialog v-model:visible="createGroupDialogVisible" header="재료 그룹 등록" modal :style="{ width: '480px' }" :closable="true" @hide="resetCreateGroupForm">
+            <div class="space-y-4 py-2">
+                <div class="field">
+                    <label for="create-name" class="block text-sm font-medium text-gray-700 mb-2"> 그룹명 <span class="text-red-500">*</span> </label>
+                    <InputText id="create-name" v-model="createGroupForm.name" placeholder="예: 채소" class="w-full" :class="{ 'p-invalid': createGroupErrors.name }" maxlength="50" />
+                    <small v-if="createGroupErrors.name" class="p-error">{{ createGroupErrors.name }}</small>
+                </div>
+                <div class="field">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">이미지 (선택)</label>
+                    <div class="image-input-section space-y-3">
+                        <div class="flex gap-2 flex-wrap">
+                            <InputText v-model="createGroupForm.imageUrl" placeholder="이미지 URL (https://...)" class="flex-1 min-w-0" maxlength="500" :disabled="!!createGroupImageFile" />
+                            <input ref="createGroupFileRef" type="file" accept="image/*" class="hidden" @change="onCreateGroupImageChange" />
+                            <Button type="button" label="파일 선택" icon="pi pi-upload" severity="secondary" :loading="createGroupImageUploading" @click="triggerCreateGroupFileSelect" />
+                        </div>
+                        <div v-if="createGroupImagePreview || createGroupForm.imageUrl" class="flex items-center gap-3">
+                            <img v-if="createGroupImagePreview" :src="createGroupImagePreview" alt="미리보기" class="w-20 h-20 object-cover rounded border border-gray-200" />
+                            <img v-else-if="createGroupForm.imageUrl" :src="createGroupForm.imageUrl" alt="미리보기" class="w-20 h-20 object-cover rounded border border-gray-200" @error="createGroupForm.imageUrl = ''" />
+                            <Button v-if="createGroupImagePreview || createGroupForm.imageUrl" type="button" icon="pi pi-times" severity="secondary" text rounded @click="clearCreateGroupImage" />
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="create-sortOrder" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
+                    <InputNumber id="create-sortOrder" v-model="createGroupForm.sortOrder" class="w-full" :min="0" placeholder="0" />
+                </div>
+            </div>
+            <template #footer>
+                <Button label="취소" severity="secondary" @click="createGroupDialogVisible = false" />
+                <Button label="등록" icon="pi pi-check" :loading="createGroupSubmitting" @click="submitCreateGroup" />
+            </template>
+        </Dialog>
+
+        <!-- 재료 그룹 수정 다이얼로그 -->
+        <Dialog v-model:visible="editGroupDialogVisible" header="재료 그룹 수정" modal :style="{ width: '480px' }" :closable="true" @hide="resetEditGroupForm">
+            <div v-if="editingGroup" class="space-y-4 py-2">
+                <div class="field">
+                    <label for="edit-group-name" class="block text-sm font-medium text-gray-700 mb-2"> 그룹명 <span class="text-red-500">*</span> </label>
+                    <InputText id="edit-group-name" v-model="editGroupForm.name" placeholder="예: 채소" class="w-full" :class="{ 'p-invalid': editGroupErrors.name }" maxlength="50" />
+                    <small v-if="editGroupErrors.name" class="p-error">{{ editGroupErrors.name }}</small>
+                </div>
+                <div class="field">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">이미지 (선택)</label>
+                    <div class="image-input-section space-y-3">
+                        <div class="flex gap-2 flex-wrap">
+                            <InputText v-model="editGroupForm.imageUrl" placeholder="이미지 URL (https://...)" class="flex-1 min-w-0" maxlength="500" :disabled="!!editGroupImageFile" />
+                            <input ref="editGroupFileRef" type="file" accept="image/*" class="hidden" @change="onEditGroupImageChange" />
+                            <Button type="button" label="파일 선택" icon="pi pi-upload" severity="secondary" :loading="editGroupImageUploading" @click="triggerEditGroupFileSelect" />
+                        </div>
+                        <div v-if="editGroupImagePreview || editGroupForm.imageUrl" class="flex items-center gap-3">
+                            <img v-if="editGroupImagePreview" :src="editGroupImagePreview" alt="미리보기" class="w-20 h-20 object-cover rounded border border-gray-200" />
+                            <img v-else-if="editGroupForm.imageUrl" :src="editGroupForm.imageUrl" alt="미리보기" class="w-20 h-20 object-cover rounded border border-gray-200" @error="editGroupForm.imageUrl = ''" />
+                            <Button v-if="editGroupImagePreview || editGroupForm.imageUrl" type="button" icon="pi pi-times" severity="secondary" text rounded @click="clearEditGroupImage" />
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="edit-group-sortOrder" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
+                    <InputNumber id="edit-group-sortOrder" v-model="editGroupForm.sortOrder" class="w-full" :min="0" placeholder="0" />
+                </div>
+            </div>
+            <template #footer>
+                <Button label="취소" severity="secondary" @click="editGroupDialogVisible = false" />
+                <Button label="저장" icon="pi pi-check" :loading="editGroupSubmitting" @click="submitEditGroup" />
+            </template>
+        </Dialog>
+
+        <!-- 그룹 상세(재료 목록 + 재료 추가) 다이얼로그 -->
+        <Dialog v-model:visible="detailDialogVisible" :header="detailGroup ? `재료 관리: ${detailGroup.name}` : '재료 관리'" modal :style="{ width: '720px' }" :closable="true" @hide="resetDetailDialog">
+            <div v-if="detailGroup" class="space-y-4 py-2">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-gray-600">그룹 ID: {{ detailGroup.id }} · 그룹명: {{ detailGroup.name }}</span>
+                    <Button label="재료 추가" icon="pi pi-plus" size="small" severity="secondary" @click="openAddIngredientDialog" />
+                </div>
+                <DataTable :value="detailIngredients" :loading="detailLoading" data-key="id" striped-rows class="p-datatable-sm" responsive-layout="scroll">
+                    <Column field="id" header="ID" style="width: 80px" />
+                    <Column field="name" header="재료명" />
+                    <Column header="이미지" style="width: 80px">
+                        <template #body="{ data }">
+                            <img v-if="data.imageUrl" :src="data.imageUrl" alt="" class="w-10 h-10 object-cover rounded border border-gray-200" />
+                            <span v-else class="text-gray-400 text-sm">-</span>
+                        </template>
+                    </Column>
+                    <Column field="sortOrder" header="정렬" style="width: 80px" />
+                    <Column header="작업" style="width: 120px">
+                        <template #body="{ data }">
+                            <div class="flex gap-2">
+                                <Button icon="pi pi-pencil" text rounded size="small" severity="secondary" aria-label="수정" @click="openEditIngredientDialog(data)" />
+                                <Button icon="pi pi-trash" text rounded size="small" severity="danger" aria-label="삭제" @click="confirmDeleteIngredient(data)" />
+                            </div>
+                        </template>
+                    </Column>
+                    <template #empty>
+                        <div class="text-center text-gray-500 py-6">등록된 재료가 없습니다. 재료 추가 버튼으로 등록하세요.</div>
+                    </template>
+                    <template #loading>재료 목록을 불러오는 중입니다.</template>
+                </DataTable>
+            </div>
+            <template #footer>
+                <Button label="닫기" @click="detailDialogVisible = false" />
+            </template>
+        </Dialog>
+
+        <!-- 재료 추가 다이얼로그 -->
+        <Dialog v-model:visible="addIngredientDialogVisible" header="재료 추가" modal :style="{ width: '480px' }" :closable="true" @hide="resetAddIngredientForm">
+            <div v-if="detailGroup" class="space-y-4 py-2">
+                <div class="field">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">재료 그룹</label>
+                    <InputText :model-value="detailGroup.name" class="w-full" disabled />
+                </div>
+                <div class="field">
+                    <label for="ingredient-name" class="block text-sm font-medium text-gray-700 mb-2"> 재료명 <span class="text-red-500">*</span> </label>
+                    <InputText id="ingredient-name" v-model="addIngredientForm.name" placeholder="예: 당근" class="w-full" :class="{ 'p-invalid': addIngredientErrors.name }" maxlength="100" />
+                    <small v-if="addIngredientErrors.name" class="p-error">{{ addIngredientErrors.name }}</small>
+                </div>
+                <div class="field">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">이미지 (선택)</label>
+                    <div class="image-input-section space-y-3">
+                        <div class="flex gap-2 flex-wrap">
+                            <InputText v-model="addIngredientForm.imageUrl" placeholder="이미지 URL (https://...)" class="flex-1 min-w-0" maxlength="500" :disabled="!!addIngredientImageFile" />
+                            <input ref="addIngredientFileRef" type="file" accept="image/*" class="hidden" @change="onAddIngredientImageChange" />
+                            <Button type="button" label="파일 선택" icon="pi pi-upload" severity="secondary" :loading="addIngredientImageUploading" @click="triggerAddIngredientFileSelect" />
+                        </div>
+                        <div v-if="addIngredientImagePreview || addIngredientForm.imageUrl" class="flex items-center gap-3">
+                            <img v-if="addIngredientImagePreview" :src="addIngredientImagePreview" alt="미리보기" class="w-20 h-20 object-cover rounded border border-gray-200" />
+                            <img v-else-if="addIngredientForm.imageUrl" :src="addIngredientForm.imageUrl" alt="미리보기" class="w-20 h-20 object-cover rounded border border-gray-200" @error="addIngredientForm.imageUrl = ''" />
+                            <Button v-if="addIngredientImagePreview || addIngredientForm.imageUrl" type="button" icon="pi pi-times" severity="secondary" text rounded @click="clearAddIngredientImage" />
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="ingredient-sortOrder" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
+                    <InputNumber id="ingredient-sortOrder" v-model="addIngredientForm.sortOrder" class="w-full" :min="0" placeholder="0" />
+                </div>
+            </div>
+            <template #footer>
+                <Button label="취소" severity="secondary" @click="addIngredientDialogVisible = false" />
+                <Button label="등록" icon="pi pi-check" :loading="addIngredientSubmitting" @click="submitAddIngredient" />
+            </template>
+        </Dialog>
+
+        <!-- 재료 수정 다이얼로그 -->
+        <Dialog v-model:visible="editIngredientDialogVisible" header="재료 수정" modal :style="{ width: '480px' }" :closable="true" @hide="resetEditIngredientForm">
+            <div v-if="editingIngredient && detailGroup" class="space-y-4 py-2">
+                <div class="field">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">재료 그룹</label>
+                    <InputText :model-value="detailGroup.name" class="w-full" disabled />
+                </div>
+                <div class="field">
+                    <label for="edit-ingredient-name" class="block text-sm font-medium text-gray-700 mb-2"> 재료명 <span class="text-red-500">*</span> </label>
+                    <InputText id="edit-ingredient-name" v-model="editIngredientForm.name" placeholder="예: 당근" class="w-full" :class="{ 'p-invalid': editIngredientErrors.name }" maxlength="100" />
+                    <small v-if="editIngredientErrors.name" class="p-error">{{ editIngredientErrors.name }}</small>
+                </div>
+                <div class="field">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">이미지 (선택)</label>
+                    <div class="image-input-section space-y-3">
+                        <div class="flex gap-2 flex-wrap">
+                            <InputText v-model="editIngredientForm.imageUrl" placeholder="이미지 URL (https://...)" class="flex-1 min-w-0" maxlength="500" :disabled="!!editIngredientImageFile" />
+                            <input ref="editIngredientFileRef" type="file" accept="image/*" class="hidden" @change="onEditIngredientImageChange" />
+                            <Button type="button" label="파일 선택" icon="pi pi-upload" severity="secondary" :loading="editIngredientImageUploading" @click="triggerEditIngredientFileSelect" />
+                        </div>
+                        <div v-if="editIngredientImagePreview || editIngredientForm.imageUrl" class="flex items-center gap-3">
+                            <img v-if="editIngredientImagePreview" :src="editIngredientImagePreview" alt="미리보기" class="w-20 h-20 object-cover rounded border border-gray-200" />
+                            <img v-else-if="editIngredientForm.imageUrl" :src="editIngredientForm.imageUrl" alt="미리보기" class="w-20 h-20 object-cover rounded border border-gray-200" @error="editIngredientForm.imageUrl = ''" />
+                            <Button v-if="editIngredientImagePreview || editIngredientForm.imageUrl" type="button" icon="pi pi-times" severity="secondary" text rounded @click="clearEditIngredientImage" />
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="edit-ingredient-sortOrder" class="block text-sm font-medium text-gray-700 mb-2">정렬 순서</label>
+                    <InputNumber id="edit-ingredient-sortOrder" v-model="editIngredientForm.sortOrder" class="w-full" :min="0" placeholder="0" />
+                </div>
+            </div>
+            <template #footer>
+                <Button label="취소" severity="secondary" @click="editIngredientDialogVisible = false" />
+                <Button label="저장" icon="pi pi-check" :loading="editIngredientSubmitting" @click="submitEditIngredient" />
+            </template>
+        </Dialog>
+    </div>
+</template>
 
 <style scoped>
 .ingredient-group-management {

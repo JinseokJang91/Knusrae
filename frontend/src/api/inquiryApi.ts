@@ -47,11 +47,7 @@ export async function deleteInquiry(id: number): Promise<void> {
  * 관리자: 전체 문의 목록 조회 (페이징)
  */
 export async function getAdminInquiries(page: number, size: number): Promise<InquiryListResponse> {
-    return await httpJson<InquiryListResponse>(
-        BASE_URL,
-        `/api/inquiries/admin?page=${page}&size=${size}`,
-        { method: 'GET' }
-    );
+    return await httpJson<InquiryListResponse>(BASE_URL, `/api/inquiries/admin?page=${page}&size=${size}`, { method: 'GET' });
 }
 
 /**

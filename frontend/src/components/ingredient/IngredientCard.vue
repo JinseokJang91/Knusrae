@@ -1,22 +1,3 @@
-<template>
-    <div class="ingredient-card" @click="handleClick">
-        <div class="ingredient-image-container">
-            <img 
-                v-if="ingredient.imageUrl" 
-                :src="ingredient.imageUrl" 
-                :alt="ingredient.name"
-                class="ingredient-image"
-            />
-            <div v-else class="ingredient-placeholder">
-                <i class="pi pi-image text-4xl text-gray-400"></i>
-            </div>
-        </div>
-        <div class="ingredient-label">
-            {{ ingredient.name }}
-        </div>
-    </div>
-</template>
-
 <script setup lang="ts">
 import type { Ingredient, IngredientType } from '@/types/ingredient';
 
@@ -33,6 +14,20 @@ const handleClick = () => {
     emit('click', props.ingredient);
 };
 </script>
+
+<template>
+    <div class="ingredient-card" @click="handleClick">
+        <div class="ingredient-image-container">
+            <img v-if="ingredient.imageUrl" :src="ingredient.imageUrl" :alt="ingredient.name" class="ingredient-image" />
+            <div v-else class="ingredient-placeholder">
+                <i class="pi pi-image text-4xl text-gray-400"></i>
+            </div>
+        </div>
+        <div class="ingredient-label">
+            {{ ingredient.name }}
+        </div>
+    </div>
+</template>
 
 <style scoped>
 .ingredient-card {
@@ -91,7 +86,7 @@ const handleClick = () => {
     .ingredient-card {
         padding: 12px;
     }
-    
+
     .ingredient-label {
         font-size: 12px;
     }

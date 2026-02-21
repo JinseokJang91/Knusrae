@@ -41,11 +41,11 @@ export const RECIPE_BOOK_COLORS: RecipeBookColor[] = [
 ];
 
 export function getRecipeBookColorHex(colorName: string): string {
-    const color = RECIPE_BOOK_COLORS.find(c => c.name === colorName);
+    const color = RECIPE_BOOK_COLORS.find((c) => c.name === colorName);
     return color?.hex || '#3b82f6';
 }
 
 export function getRecipeBookColorLabel(colorName: string): string {
-    const color = RECIPE_BOOK_COLORS.find(c => c.name === colorName);
+    const color = RECIPE_BOOK_COLORS.find((c) => c.name === colorName);
     return color?.label || '파란색';
 }

@@ -50,13 +50,14 @@ const handleFollow = async (creator: Creator) => {
         // 팔로우 성공 시 카드를 목록에서 제거 (페이드아웃 후 삭제)
         removingSet.value = new Set([...removingSet.value, creator.memberId]);
         setTimeout(() => {
-            creators.value = creators.value.filter(c => c.memberId !== creator.memberId);
+            creators.value = creators.value.filter((c) => c.memberId !== creator.memberId);
             const next = new Set(removingSet.value);
             next.delete(creator.memberId);
             removingSet.value = next;
         }, 400);
-    } catch (error: any) {
-        if (error?.status === 409) {
+    } catch (e: unknown) {
+        const err = e && typeof e === 'object' && 'status' in e ? (e as { status?: number }) : null;
+        if (err?.status === 409) {
             showError('이미 팔로우 중입니다.');
         } else {
             showError('팔로우에 실패했습니다.');
@@ -96,7 +97,7 @@ onMounted(() => {
         <div class="section-header">
             <div class="header-left">
                 <h2 class="section-title">
-                    <i class="pi pi-users" style="color: var(--primary-color);"></i>
+                    <i class="pi pi-users" style="color: var(--primary-color)"></i>
                     추천 크리에이터
                 </h2>
                 <p class="section-subtitle">맛있는 레시피를 공유하는 크리에이터를 팔로우해보세요</p>
@@ -105,24 +106,18 @@ onMounted(() => {
 
         <!-- 로딩 상태 -->
         <div v-if="loading" class="loading-container">
-            <i class="pi pi-spinner pi-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+            <i class="pi pi-spinner pi-spin" style="font-size: 2rem; color: var(--primary-color)"></i>
         </div>
 
         <!-- 크리에이터 없음 -->
         <div v-else-if="creators.length === 0" class="empty-state">
-            <i class="pi pi-users" style="font-size: 3rem; color: var(--text-color-secondary);"></i>
+            <i class="pi pi-users" style="font-size: 3rem; color: var(--text-color-secondary)"></i>
             <p>추천 크리에이터가 없습니다.</p>
         </div>
 
         <!-- 크리에이터 그리드 -->
         <div v-else class="creators-grid">
-            <div
-                v-for="creator in creators"
-                :key="creator.memberId"
-                class="creator-card"
-                :class="{ 'removing': isRemoving(creator.memberId) }"
-                @click="goToProfile(creator.memberId)"
-            >
+            <div v-for="creator in creators" :key="creator.memberId" class="creator-card" :class="{ removing: isRemoving(creator.memberId) }" @click="goToProfile(creator.memberId)">
                 <!-- 추천 이유 배지 -->
                 <div class="recommend-badge">
                     <span class="badge-text">{{ creator.recommendReason }}</span>
@@ -130,12 +125,7 @@ onMounted(() => {
 
                 <!-- 프로필 이미지 -->
                 <div class="creator-avatar">
-                    <img
-                        v-if="creator.profileImage"
-                        :src="creator.profileImage"
-                        :alt="creator.nickname"
-                        class="avatar-img"
-                    />
+                    <img v-if="creator.profileImage" :src="creator.profileImage" :alt="creator.nickname" class="avatar-img" />
                     <div v-else class="avatar-placeholder">
                         {{ creator.nickname?.charAt(0) ?? '?' }}
                     </div>
@@ -169,12 +159,7 @@ onMounted(() => {
                 </div>
 
                 <!-- 팔로우 버튼 -->
-                <button
-                    class="follow-btn"
-                    :class="{ 'loading': isFollowLoading(creator.memberId) }"
-                    @click.stop="handleFollow(creator)"
-                    :disabled="isFollowLoading(creator.memberId)"
-                >
+                <button class="follow-btn" :class="{ loading: isFollowLoading(creator.memberId) }" @click.stop="handleFollow(creator)" :disabled="isFollowLoading(creator.memberId)">
                     <i v-if="isFollowLoading(creator.memberId)" class="pi pi-spinner pi-spin"></i>
                     <i v-else class="pi pi-plus"></i>
                     <span>팔로우</span>
@@ -251,7 +236,10 @@ onMounted(() => {
     border: 1px solid var(--surface-border);
     background: var(--surface-card);
     cursor: pointer;
-    transition: all 0.25s ease, opacity 0.4s ease, transform 0.4s ease;
+    transition:
+        all 0.25s ease,
+        opacity 0.4s ease,
+        transform 0.4s ease;
 
     &:hover {
         transform: translateY(-6px);

@@ -1,85 +1,3 @@
-<template>
-    <div class="recipe-card-wrapper" @click="$emit('click', recipe.id)">
-        <Card class="recipe-card h-full">
-            <template #header>
-                <div class="recipe-image-container">
-                    <img :src="recipe.thumbnail || '/placeholder-recipe.jpg'" :alt="recipe.title" class="recipe-image" />
-                    <div class="recipe-overlay">
-                        <div class="recipe-actions">
-                            <Button
-                                v-if="showFavorite"
-                                :icon="favoritesMode ? 'pi pi-heart-fill' : (recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart')"
-                                :class="recipe.isFavorite || favoritesMode ? 'p-button-danger' : 'p-button-secondary'"
-                                size="large"
-                                rounded
-                                @click.stop="$emit('favorite', recipe.id)"
-                            />
-                            <Button
-                                v-if="showBookmark"
-                                :icon="isBookmarked ? 'pi pi-bookmark-fill' : 'pi pi-bookmark'"
-                                :class="isBookmarked ? 'p-button-primary' : 'p-button-secondary'"
-                                size="large"
-                                rounded
-                                @click.stop="$emit('bookmark', recipe.id)"
-                            />
-                        </div>
-                        <Tag v-if="categoryLabel" :value="categoryLabel" severity="info" class="recipe-category-tag" />
-                    </div>
-                    <div v-if="hitsText" class="recipe-hits-overlay">
-                        조회수 {{ hitsText }}
-                    </div>
-                </div>
-            </template>
-            <template #content>
-                <div class="recipe-content">
-                    <h3 class="recipe-title">
-                        <template v-if="highlightKeyword && highlightParts.length">
-                            <template v-for="(part, index) in highlightParts" :key="index">
-                                <mark v-if="part.isHighlight" class="bg-yellow-200">{{ part.text }}</mark>
-                                <span v-else>{{ part.text }}</span>
-                            </template>
-                        </template>
-                        <span v-else>{{ recipe.title }}</span>
-                    </h3>
-                    <div class="recipe-meta">
-                        <div class="recipe-info">
-                            <div v-if="recipe.cookingTime" class="info-item">
-                                <i class="pi pi-clock"></i>
-                                <span>{{ recipe.cookingTime }}</span>
-                            </div>
-                            <div v-if="recipe.servings" class="info-item">
-                                <i class="pi pi-users"></i>
-                                <span>{{ recipe.servings }}</span>
-                            </div>
-                        </div>
-                        <div v-if="showAuthor && (recipe.memberNickname || recipe.memberName)" class="recipe-author mt-2 flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
-                                <img
-                                    v-if="recipe.memberProfileImage"
-                                    :src="recipe.memberProfileImage"
-                                    alt="작성자 프로필"
-                                    class="w-full h-full object-cover"
-                                />
-                                <i v-else class="pi pi-user text-gray-600 text-xs"></i>
-                            </div>
-                            <span class="text-sm text-gray-600">{{ recipe.memberNickname || recipe.memberName }}</span>
-                        </div>
-                        <div v-if="dateText" class="text-sm text-gray-500 mt-1">
-                            <i class="pi pi-calendar"></i>
-                            <span>{{ dateText }}</span>
-                        </div>
-                        <div v-if="showCommentCount && commentCountText" class="recipe-comment-count mt-1">
-                            <span class="text-sm text-gray-600 cursor-pointer hover:text-primary" @click.stop="$emit('scroll-to-comments', recipe.id)">
-                                댓글 {{ commentCountText }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </template>
-        </Card>
-    </div>
-</template>
-
 <script setup lang="ts">
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -174,6 +92,79 @@ function formatCount(count: number | undefined | null): string | null {
     return count.toLocaleString();
 }
 </script>
+
+<template>
+    <div class="recipe-card-wrapper" @click="$emit('click', recipe.id)">
+        <Card class="recipe-card h-full">
+            <template #header>
+                <div class="recipe-image-container">
+                    <img :src="recipe.thumbnail || '/placeholder-recipe.jpg'" :alt="recipe.title" class="recipe-image" />
+                    <div class="recipe-overlay">
+                        <div class="recipe-actions">
+                            <Button
+                                v-if="showFavorite"
+                                :icon="favoritesMode ? 'pi pi-heart-fill' : recipe.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'"
+                                :class="recipe.isFavorite || favoritesMode ? 'p-button-danger' : 'p-button-secondary'"
+                                size="large"
+                                rounded
+                                @click.stop="$emit('favorite', recipe.id)"
+                            />
+                            <Button
+                                v-if="showBookmark"
+                                :icon="isBookmarked ? 'pi pi-bookmark-fill' : 'pi pi-bookmark'"
+                                :class="isBookmarked ? 'p-button-primary' : 'p-button-secondary'"
+                                size="large"
+                                rounded
+                                @click.stop="$emit('bookmark', recipe.id)"
+                            />
+                        </div>
+                        <Tag v-if="categoryLabel" :value="categoryLabel" severity="info" class="recipe-category-tag" />
+                    </div>
+                    <div v-if="hitsText" class="recipe-hits-overlay">조회수 {{ hitsText }}</div>
+                </div>
+            </template>
+            <template #content>
+                <div class="recipe-content">
+                    <h3 class="recipe-title">
+                        <template v-if="highlightKeyword && highlightParts.length">
+                            <template v-for="(part, index) in highlightParts" :key="index">
+                                <mark v-if="part.isHighlight" class="bg-yellow-200">{{ part.text }}</mark>
+                                <span v-else>{{ part.text }}</span>
+                            </template>
+                        </template>
+                        <span v-else>{{ recipe.title }}</span>
+                    </h3>
+                    <div class="recipe-meta">
+                        <div class="recipe-info">
+                            <div v-if="recipe.cookingTime" class="info-item">
+                                <i class="pi pi-clock"></i>
+                                <span>{{ recipe.cookingTime }}</span>
+                            </div>
+                            <div v-if="recipe.servings" class="info-item">
+                                <i class="pi pi-users"></i>
+                                <span>{{ recipe.servings }}</span>
+                            </div>
+                        </div>
+                        <div v-if="showAuthor && (recipe.memberNickname || recipe.memberName)" class="recipe-author mt-2 flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                <img v-if="recipe.memberProfileImage" :src="recipe.memberProfileImage" alt="작성자 프로필" class="w-full h-full object-cover" />
+                                <i v-else class="pi pi-user text-gray-600 text-xs"></i>
+                            </div>
+                            <span class="text-sm text-gray-600">{{ recipe.memberNickname || recipe.memberName }}</span>
+                        </div>
+                        <div v-if="dateText" class="text-sm text-gray-500 mt-1">
+                            <i class="pi pi-calendar"></i>
+                            <span>{{ dateText }}</span>
+                        </div>
+                        <div v-if="showCommentCount && commentCountText" class="recipe-comment-count mt-1">
+                            <span class="text-sm text-gray-600 cursor-pointer hover:text-primary" @click.stop="$emit('scroll-to-comments', recipe.id)"> 댓글 {{ commentCountText }} </span>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </Card>
+    </div>
+</template>
 
 <style scoped>
 /* 레시피 그리드 카드 스타일은 layout _recipe-card-list.scss 공통 사용 */

@@ -1,20 +1,8 @@
-<template>
-    <div class="ingredient-grid">
-        <IngredientCard
-            v-for="ingredient in ingredients"
-            :key="ingredient.id"
-            :ingredient="ingredient"
-            :type="type"
-            @click="handleClick(ingredient)"
-        />
-    </div>
-</template>
-
 <script setup lang="ts">
 import type { Ingredient, IngredientType } from '@/types/ingredient';
 import IngredientCard from './IngredientCard.vue';
 
-const props = defineProps<{
+defineProps<{
     ingredients: Ingredient[];
     type: IngredientType;
 }>();
@@ -27,6 +15,12 @@ const handleClick = (ingredient: Ingredient) => {
     emit('ingredient-click', ingredient);
 };
 </script>
+
+<template>
+    <div class="ingredient-grid">
+        <IngredientCard v-for="ingredient in ingredients" :key="ingredient.id" :ingredient="ingredient" :type="type" @click="handleClick(ingredient)" />
+    </div>
+</template>
 
 <style scoped>
 .ingredient-grid {

@@ -1,59 +1,3 @@
-<template>
-    <div class="ingredient-group-selector">
-        <h3 class="text-lg font-semibold text-gray-700 mb-4">재료 그룹 선택</h3>
-        <div class="selector-row">
-            <Button
-                :style="{ opacity: leftButtonOpacity }"
-                :class="['scroll-btn', 'scroll-btn-left', { 'scroll-btn-hidden': leftButtonOpacity === 0 }]"
-                icon="pi pi-chevron-left"
-                text
-                rounded
-                severity="secondary"
-                aria-label="이전 그룹 보기"
-                @click="scroll(-1)"
-            />
-            <div ref="scrollRef" class="groups-container" @scroll="updateScrollState">
-                <button
-                    :class="['group-item', selectedGroupId === null ? 'selected' : '']"
-                    @click="handleSelect(null)"
-                >
-                    <div class="group-icon">
-                        <i class="pi pi-th-large text-2xl"></i>
-                    </div>
-                    <span class="group-label">전체</span>
-                </button>
-                <button
-                    v-for="group in groups"
-                    :key="group.id"
-                    :class="['group-item', selectedGroupId === group.id ? 'selected' : '']"
-                    @click="handleSelect(group.id)"
-                >
-                    <div class="group-icon">
-                        <img
-                            v-if="group.imageUrl"
-                            :src="group.imageUrl"
-                            :alt="group.name"
-                            class="group-image"
-                        />
-                        <i v-else class="pi pi-box text-2xl"></i>
-                    </div>
-                    <span class="group-label">{{ group.name }}</span>
-                </button>
-            </div>
-            <Button
-                :style="{ opacity: rightButtonOpacity }"
-                :class="['scroll-btn', 'scroll-btn-right', { 'scroll-btn-hidden': rightButtonOpacity === 0 }]"
-                icon="pi pi-chevron-right"
-                text
-                rounded
-                severity="secondary"
-                aria-label="다음 그룹 보기"
-                @click="scroll(1)"
-            />
-        </div>
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import Button from 'primevue/button';
@@ -116,14 +60,60 @@ onUnmounted(() => {
     resizeObserver?.disconnect();
 });
 
-watch(() => props.groups.length, () => {
-    nextTick(updateScrollState);
-});
+watch(
+    () => props.groups.length,
+    () => {
+        nextTick(updateScrollState);
+    }
+);
 
 const handleSelect = (groupId: number | null) => {
     emit('select', groupId);
 };
 </script>
+
+<template>
+    <div class="ingredient-group-selector">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">재료 그룹 선택</h3>
+        <div class="selector-row">
+            <Button
+                :style="{ opacity: leftButtonOpacity }"
+                :class="['scroll-btn', 'scroll-btn-left', { 'scroll-btn-hidden': leftButtonOpacity === 0 }]"
+                icon="pi pi-chevron-left"
+                text
+                rounded
+                severity="secondary"
+                aria-label="이전 그룹 보기"
+                @click="scroll(-1)"
+            />
+            <div ref="scrollRef" class="groups-container" @scroll="updateScrollState">
+                <button :class="['group-item', selectedGroupId === null ? 'selected' : '']" @click="handleSelect(null)">
+                    <div class="group-icon">
+                        <i class="pi pi-th-large text-2xl"></i>
+                    </div>
+                    <span class="group-label">전체</span>
+                </button>
+                <button v-for="group in groups" :key="group.id" :class="['group-item', selectedGroupId === group.id ? 'selected' : '']" @click="handleSelect(group.id)">
+                    <div class="group-icon">
+                        <img v-if="group.imageUrl" :src="group.imageUrl" :alt="group.name" class="group-image" />
+                        <i v-else class="pi pi-box text-2xl"></i>
+                    </div>
+                    <span class="group-label">{{ group.name }}</span>
+                </button>
+            </div>
+            <Button
+                :style="{ opacity: rightButtonOpacity }"
+                :class="['scroll-btn', 'scroll-btn-right', { 'scroll-btn-hidden': rightButtonOpacity === 0 }]"
+                icon="pi pi-chevron-right"
+                text
+                rounded
+                severity="secondary"
+                aria-label="다음 그룹 보기"
+                @click="scroll(1)"
+            />
+        </div>
+    </div>
+</template>
 
 <style scoped>
 .ingredient-group-selector {

@@ -1,174 +1,3 @@
-<template>
-    <div class="ingredient-request-list">
-        <div class="page-header mb-6">
-            <div class="flex items-center gap-2 mb-2">
-                <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
-                <h1 class="text-3xl font-bold text-gray-900">재료 정보 요청 목록</h1>
-            </div>
-            <p class="text-gray-600 mt-2">사용자가 재료 관리 페이지에서 요청한 목록을 확인하고 상태를 관리할 수 있습니다.</p>
-        </div>
-
-        <Card>
-            <template #content>
-                <!-- 필터 -->
-                <div class="filter-row mb-4">
-                    <label class="filter-label">상태</label>
-                    <Select
-                        v-model="filterStatus"
-                        :options="statusOptions"
-                        option-label="label"
-                        option-value="value"
-                        placeholder="전체"
-                        class="filter-select"
-                        @change="loadRequests"
-                    />
-                    <Button
-                        icon="pi pi-refresh"
-                        label="새로고침"
-                        severity="secondary"
-                        outlined
-                        @click="loadRequests"
-                    />
-                </div>
-
-                <!-- 로딩 -->
-                <div v-if="loading" class="text-center py-8">
-                    <ProgressSpinner />
-                    <p class="text-gray-600 mt-3">요청 목록을 불러오는 중...</p>
-                </div>
-
-                <!-- 에러 -->
-                <div v-else-if="error" class="text-center py-8">
-                    <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-                    <p class="text-gray-600 mb-4">{{ error }}</p>
-                    <Button label="다시 시도" @click="loadRequests" />
-                </div>
-
-                <!-- 테이블 -->
-                <div v-else>
-                    <DataTable
-                        :value="requests"
-                        :paginator="true"
-                        :first="currentPage * pageSize"
-                        :rows="pageSize"
-                        :total-records="totalCount"
-                        :lazy="true"
-                        :loading="loading"
-                        data-key="id"
-                        responsive-layout="scroll"
-                        class="p-datatable-sm"
-                        @page="onPage"
-                    >
-                        <template #empty>
-                            <div class="text-center py-8 text-gray-500">
-                                <i class="pi pi-inbox text-4xl mb-2"></i>
-                                <p>요청이 없습니다.</p>
-                            </div>
-                        </template>
-                        <Column field="createdAt" header="요청일시" sortable>
-                            <template #body="{ data }">
-                                {{ formatDate(data.createdAt) }}
-                            </template>
-                        </Column>
-                        <Column field="ingredientName" header="재료명" />
-                        <Column field="requestType" header="요청 유형">
-                            <template #body="{ data }">
-                                <Tag :value="requestTypeLabel(data.requestType)" :severity="requestTypeSeverity(data.requestType)" />
-                            </template>
-                        </Column>
-                        <Column field="status" header="상태">
-                            <template #body="{ data }">
-                                <Tag :value="statusLabel(data.status)" :severity="statusSeverity(data.status)" />
-                            </template>
-                        </Column>
-                        <Column header="요청자">
-                            <template #body="{ data }">
-                                {{ data.memberId != null ? `회원 #${data.memberId}` : '비회원' }}
-                            </template>
-                        </Column>
-                        <Column header="메시지">
-                            <template #body="{ data }">
-                                <span class="message-preview">{{ messagePreview(data.message) }}</span>
-                            </template>
-                        </Column>
-                        <Column header="관리" style="width: 100px;">
-                            <template #body="{ data }">
-                                <Button
-                                    icon="pi pi-eye"
-                                    text
-                                    rounded
-                                    severity="secondary"
-                                    title="상세 보기"
-                                    @click="openDetail(data)"
-                                />
-                            </template>
-                        </Column>
-                    </DataTable>
-                </div>
-            </template>
-        </Card>
-
-        <!-- 상세 다이얼로그 -->
-        <Dialog
-            v-model:visible="detailVisible"
-            header="재료 정보 요청 상세"
-            :modal="true"
-            :style="{ width: '90vw', maxWidth: '500px' }"
-            :closable="true"
-        >
-            <div v-if="selectedRequest" class="detail-content">
-                <div class="detail-row">
-                    <span class="detail-label">요청일시</span>
-                    <span>{{ formatDate(selectedRequest.createdAt) }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">재료명</span>
-                    <span>{{ selectedRequest.ingredientName }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">요청 유형</span>
-                    <Tag :value="requestTypeLabel(selectedRequest.requestType)" :severity="requestTypeSeverity(selectedRequest.requestType)" />
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">상태</span>
-                    <Tag :value="statusLabel(selectedRequest.status)" :severity="statusSeverity(selectedRequest.status)" />
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">요청자</span>
-                    <span>{{ selectedRequest.memberId != null ? `회원 #${selectedRequest.memberId}` : '비회원' }}</span>
-                </div>
-                <div class="detail-row" v-if="selectedRequest.message">
-                    <span class="detail-label">메시지</span>
-                    <p class="detail-message">{{ selectedRequest.message }}</p>
-                </div>
-            </div>
-
-            <template #footer>
-                <div class="detail-actions">
-                    <Button label="닫기" severity="secondary" outlined @click="detailVisible = false" />
-                    <span v-if="selectedRequest && selectedRequest.status === 'PENDING'" class="status-actions">
-                        <Button
-                            label="처리 완료"
-                            icon="pi pi-check"
-                            severity="success"
-                            :loading="statusUpdating"
-                            @click="updateStatus('PROCESSED')"
-                        />
-                        <Button
-                            label="반려"
-                            icon="pi pi-times"
-                            severity="danger"
-                            outlined
-                            :loading="statusUpdating"
-                            @click="updateStatus('REJECTED')"
-                        />
-                    </span>
-                </div>
-            </template>
-        </Dialog>
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -320,6 +149,137 @@ onMounted(() => {
     loadRequests();
 });
 </script>
+
+<template>
+    <div class="ingredient-request-list">
+        <div class="page-header mb-6">
+            <div class="flex items-center gap-2 mb-2">
+                <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
+                <h1 class="text-3xl font-bold text-gray-900">재료 정보 요청 목록</h1>
+            </div>
+            <p class="text-gray-600 mt-2">사용자가 재료 관리 페이지에서 요청한 목록을 확인하고 상태를 관리할 수 있습니다.</p>
+        </div>
+
+        <Card>
+            <template #content>
+                <!-- 필터 -->
+                <div class="filter-row mb-4">
+                    <label class="filter-label">상태</label>
+                    <Select v-model="filterStatus" :options="statusOptions" option-label="label" option-value="value" placeholder="전체" class="filter-select" @change="loadRequests" />
+                    <Button icon="pi pi-refresh" label="새로고침" severity="secondary" outlined @click="loadRequests" />
+                </div>
+
+                <!-- 로딩 -->
+                <div v-if="loading" class="text-center py-8">
+                    <ProgressSpinner />
+                    <p class="text-gray-600 mt-3">요청 목록을 불러오는 중...</p>
+                </div>
+
+                <!-- 에러 -->
+                <div v-else-if="error" class="text-center py-8">
+                    <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+                    <p class="text-gray-600 mb-4">{{ error }}</p>
+                    <Button label="다시 시도" @click="loadRequests" />
+                </div>
+
+                <!-- 테이블 -->
+                <div v-else>
+                    <DataTable
+                        :value="requests"
+                        :paginator="true"
+                        :first="currentPage * pageSize"
+                        :rows="pageSize"
+                        :total-records="totalCount"
+                        :lazy="true"
+                        :loading="loading"
+                        data-key="id"
+                        responsive-layout="scroll"
+                        class="p-datatable-sm"
+                        @page="onPage"
+                    >
+                        <template #empty>
+                            <div class="text-center py-8 text-gray-500">
+                                <i class="pi pi-inbox text-4xl mb-2"></i>
+                                <p>요청이 없습니다.</p>
+                            </div>
+                        </template>
+                        <Column field="createdAt" header="요청일시" sortable>
+                            <template #body="{ data }">
+                                {{ formatDate(data.createdAt) }}
+                            </template>
+                        </Column>
+                        <Column field="ingredientName" header="재료명" />
+                        <Column field="requestType" header="요청 유형">
+                            <template #body="{ data }">
+                                <Tag :value="requestTypeLabel(data.requestType)" :severity="requestTypeSeverity(data.requestType)" />
+                            </template>
+                        </Column>
+                        <Column field="status" header="상태">
+                            <template #body="{ data }">
+                                <Tag :value="statusLabel(data.status)" :severity="statusSeverity(data.status)" />
+                            </template>
+                        </Column>
+                        <Column header="요청자">
+                            <template #body="{ data }">
+                                {{ data.memberId != null ? `회원 #${data.memberId}` : '비회원' }}
+                            </template>
+                        </Column>
+                        <Column header="메시지">
+                            <template #body="{ data }">
+                                <span class="message-preview">{{ messagePreview(data.message) }}</span>
+                            </template>
+                        </Column>
+                        <Column header="관리" style="width: 100px">
+                            <template #body="{ data }">
+                                <Button icon="pi pi-eye" text rounded severity="secondary" title="상세 보기" @click="openDetail(data)" />
+                            </template>
+                        </Column>
+                    </DataTable>
+                </div>
+            </template>
+        </Card>
+
+        <!-- 상세 다이얼로그 -->
+        <Dialog v-model:visible="detailVisible" header="재료 정보 요청 상세" :modal="true" :style="{ width: '90vw', maxWidth: '500px' }" :closable="true">
+            <div v-if="selectedRequest" class="detail-content">
+                <div class="detail-row">
+                    <span class="detail-label">요청일시</span>
+                    <span>{{ formatDate(selectedRequest.createdAt) }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">재료명</span>
+                    <span>{{ selectedRequest.ingredientName }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">요청 유형</span>
+                    <Tag :value="requestTypeLabel(selectedRequest.requestType)" :severity="requestTypeSeverity(selectedRequest.requestType)" />
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">상태</span>
+                    <Tag :value="statusLabel(selectedRequest.status)" :severity="statusSeverity(selectedRequest.status)" />
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">요청자</span>
+                    <span>{{ selectedRequest.memberId != null ? `회원 #${selectedRequest.memberId}` : '비회원' }}</span>
+                </div>
+                <div class="detail-row" v-if="selectedRequest.message">
+                    <span class="detail-label">메시지</span>
+                    <p class="detail-message">{{ selectedRequest.message }}</p>
+                </div>
+            </div>
+
+            <template #footer>
+                <div class="detail-actions">
+                    <Button label="닫기" severity="secondary" outlined @click="detailVisible = false" />
+                    <span v-if="selectedRequest && selectedRequest.status === 'PENDING'" class="status-actions">
+                        <Button label="처리 완료" icon="pi pi-check" severity="success" :loading="statusUpdating" @click="updateStatus('PROCESSED')" />
+                        <Button label="반려" icon="pi pi-times" severity="danger" outlined :loading="statusUpdating" @click="updateStatus('REJECTED')" />
+                    </span>
+                </div>
+            </template>
+        </Dialog>
+    </div>
+</template>
 
 <style scoped>
 .ingredient-request-list {

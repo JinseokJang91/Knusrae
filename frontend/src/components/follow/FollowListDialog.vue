@@ -1,137 +1,3 @@
-<template>
-    <Dialog
-        :visible="visible"
-        @update:visible="$emit('update:visible', $event)"
-        modal
-        :header="type === 'followers' ? '팔로워' : '팔로잉'"
-        :style="{ width: '600px' }"
-        :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
-    >
-        <Tabs v-model:value="activeTab">
-            <TabList>
-                <Tab value="followers">팔로워</Tab>
-                <Tab value="followings">팔로잉</Tab>
-            </TabList>
-            
-            <TabPanels>
-                <TabPanel value="followers">
-                    <!-- 팔로워 목록 -->
-                    <div class="follow-list-content">
-                        <PageStateBlock
-                            v-if="followersLoading"
-                            state="loading"
-                            loading-message="팔로워 목록을 불러오는 중..."
-                        />
-                        
-                        <PageStateBlock
-                            v-else-if="followers.length === 0"
-                            state="empty"
-                            empty-icon="pi pi-users"
-                            empty-title="팔로워가 없습니다"
-                        />
-                        
-                        <div v-else class="follow-items">
-                            <div
-                                v-for="follower in followers"
-                                :key="follower.followId"
-                                class="follow-item"
-                            >
-                                <div class="follow-member-info" @click="goToMemberProfile(follower.followerId)">
-                                    <div class="follow-avatar">
-                                        <img
-                                            v-if="follower.followerProfileImage"
-                                            :src="follower.followerProfileImage"
-                                            alt="프로필"
-                                        />
-                                        <span v-else>{{ follower.followerNickname?.substring(0, 1) || '?' }}</span>
-                                    </div>
-                                    <span class="follow-nickname">{{ follower.followerNickname }}</span>
-                                </div>
-                                <Button
-                                    label="프로필 보기"
-                                    icon="pi pi-user"
-                                    text
-                                    @click="goToMemberProfile(follower.followerId)"
-                                />
-                            </div>
-                        </div>
-                        
-                        <Paginator
-                            v-if="followersTotalPages > 1"
-                            v-model:first="followersFirst"
-                            :rows="pageSize"
-                            :totalRecords="followersTotalElements"
-                            @page="onFollowersPageChange"
-                        />
-                    </div>
-                </TabPanel>
-                
-                <TabPanel value="followings">
-                    <!-- 팔로잉 목록 -->
-                    <div class="follow-list-content">
-                        <PageStateBlock
-                            v-if="followingsLoading"
-                            state="loading"
-                            loading-message="팔로잉 목록을 불러오는 중..."
-                        />
-                        
-                        <PageStateBlock
-                            v-else-if="followings.length === 0"
-                            state="empty"
-                            empty-icon="pi pi-users"
-                            empty-title="팔로잉이 없습니다"
-                        />
-                        
-                        <div v-else class="follow-items">
-                            <div
-                                v-for="following in followings"
-                                :key="following.followId"
-                                class="follow-item"
-                            >
-                                <div class="follow-member-info" @click="goToMemberProfile(following.followingId)">
-                                    <div class="follow-avatar">
-                                        <img
-                                            v-if="following.followingProfileImage"
-                                            :src="following.followingProfileImage"
-                                            alt="프로필"
-                                        />
-                                        <span v-else>{{ following.followingNickname?.substring(0, 1) || '?' }}</span>
-                                    </div>
-                                    <span class="follow-nickname">{{ following.followingNickname }}</span>
-                                </div>
-                                <div class="follow-actions">
-                                    <Button
-                                        label="프로필 보기"
-                                        icon="pi pi-user"
-                                        text
-                                        @click="goToMemberProfile(following.followingId)"
-                                    />
-                                    <Button
-                                        v-if="isOwnList"
-                                        label="언팔로우"
-                                        icon="pi pi-times"
-                                        severity="danger"
-                                        text
-                                        @click="handleUnfollow(following.followingId)"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <Paginator
-                            v-if="followingsTotalPages > 1"
-                            v-model:first="followingsFirst"
-                            :rows="pageSize"
-                            :totalRecords="followingsTotalElements"
-                            @page="onFollowingsPageChange"
-                        />
-                    </div>
-                </TabPanel>
-            </TabPanels>
-        </Tabs>
-    </Dialog>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -244,16 +110,19 @@ const onFollowingsPageChange = (event: PageState) => {
 };
 
 // Dialog가 열릴 때 데이터 로드
-watch(() => props.visible, (newValue) => {
-    if (newValue) {
-        activeTab.value = props.type;
-        if (activeTab.value === 'followers') {
-            loadFollowers();
-        } else {
-            loadFollowings();
+watch(
+    () => props.visible,
+    (newValue) => {
+        if (newValue) {
+            activeTab.value = props.type;
+            if (activeTab.value === 'followers') {
+                loadFollowers();
+            } else {
+                loadFollowings();
+            }
         }
     }
-});
+);
 
 // 탭 변경 시 데이터 로드
 watch(activeTab, (newTab) => {
@@ -265,15 +134,79 @@ watch(activeTab, (newTab) => {
 });
 </script>
 
+<template>
+    <Dialog :visible="visible" @update:visible="$emit('update:visible', $event)" modal :header="type === 'followers' ? '팔로워' : '팔로잉'" :style="{ width: '600px' }" :breakpoints="{ '960px': '75vw', '640px': '90vw' }">
+        <Tabs v-model:value="activeTab">
+            <TabList>
+                <Tab value="followers">팔로워</Tab>
+                <Tab value="followings">팔로잉</Tab>
+            </TabList>
+
+            <TabPanels>
+                <TabPanel value="followers">
+                    <!-- 팔로워 목록 -->
+                    <div class="follow-list-content">
+                        <PageStateBlock v-if="followersLoading" state="loading" loading-message="팔로워 목록을 불러오는 중..." />
+
+                        <PageStateBlock v-else-if="followers.length === 0" state="empty" empty-icon="pi pi-users" empty-title="팔로워가 없습니다" />
+
+                        <div v-else class="follow-items">
+                            <div v-for="follower in followers" :key="follower.followId" class="follow-item">
+                                <div class="follow-member-info" @click="goToMemberProfile(follower.followerId)">
+                                    <div class="follow-avatar">
+                                        <img v-if="follower.followerProfileImage" :src="follower.followerProfileImage" alt="프로필" />
+                                        <span v-else>{{ follower.followerNickname?.substring(0, 1) || '?' }}</span>
+                                    </div>
+                                    <span class="follow-nickname">{{ follower.followerNickname }}</span>
+                                </div>
+                                <Button label="프로필 보기" icon="pi pi-user" text @click="goToMemberProfile(follower.followerId)" />
+                            </div>
+                        </div>
+
+                        <Paginator v-if="followersTotalPages > 1" v-model:first="followersFirst" :rows="pageSize" :totalRecords="followersTotalElements" @page="onFollowersPageChange" />
+                    </div>
+                </TabPanel>
+
+                <TabPanel value="followings">
+                    <!-- 팔로잉 목록 -->
+                    <div class="follow-list-content">
+                        <PageStateBlock v-if="followingsLoading" state="loading" loading-message="팔로잉 목록을 불러오는 중..." />
+
+                        <PageStateBlock v-else-if="followings.length === 0" state="empty" empty-icon="pi pi-users" empty-title="팔로잉이 없습니다" />
+
+                        <div v-else class="follow-items">
+                            <div v-for="following in followings" :key="following.followId" class="follow-item">
+                                <div class="follow-member-info" @click="goToMemberProfile(following.followingId)">
+                                    <div class="follow-avatar">
+                                        <img v-if="following.followingProfileImage" :src="following.followingProfileImage" alt="프로필" />
+                                        <span v-else>{{ following.followingNickname?.substring(0, 1) || '?' }}</span>
+                                    </div>
+                                    <span class="follow-nickname">{{ following.followingNickname }}</span>
+                                </div>
+                                <div class="follow-actions">
+                                    <Button label="프로필 보기" icon="pi pi-user" text @click="goToMemberProfile(following.followingId)" />
+                                    <Button v-if="isOwnList" label="언팔로우" icon="pi pi-times" severity="danger" text @click="handleUnfollow(following.followingId)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <Paginator v-if="followingsTotalPages > 1" v-model:first="followingsFirst" :rows="pageSize" :totalRecords="followingsTotalElements" @page="onFollowingsPageChange" />
+                    </div>
+                </TabPanel>
+            </TabPanels>
+        </Tabs>
+    </Dialog>
+</template>
+
 <style scoped lang="scss">
 .follow-list-content {
     min-height: 300px;
-    
+
     .follow-items {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        
+
         .follow-item {
             display: flex;
             align-items: center;
@@ -281,18 +214,18 @@ watch(activeTab, (newTab) => {
             padding: 0.75rem;
             border-radius: 8px;
             transition: background 0.2s;
-            
+
             &:hover {
                 background: var(--surface-100);
             }
-            
+
             .follow-member-info {
                 display: flex;
                 align-items: center;
                 gap: 1rem;
                 cursor: pointer;
                 flex: 1;
-                
+
                 .follow-avatar {
                     width: 40px;
                     height: 40px;
@@ -304,20 +237,20 @@ watch(activeTab, (newTab) => {
                     justify-content: center;
                     font-weight: 600;
                     color: var(--text-color-secondary);
-                    
+
                     img {
                         width: 100%;
                         height: 100%;
                         object-fit: cover;
                     }
                 }
-                
+
                 .follow-nickname {
                     font-weight: 500;
                     color: var(--text-color);
                 }
             }
-            
+
             .follow-actions {
                 display: flex;
                 gap: 0.5rem;

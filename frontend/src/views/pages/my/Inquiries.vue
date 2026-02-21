@@ -1,135 +1,3 @@
-<template>
-    <div class="inquiries-content">
-        <div class="inquiries-section">
-            <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
-                <h2 class="text-2xl font-semibold text-gray-900 m-0">
-                    1:1 문의 내역 ({{ totalElements }})
-                </h2>
-                <Button
-                    label="문의하기"
-                    icon="pi pi-plus"
-                    @click="openCreateDialog"
-                />
-            </div>
-
-            <PageStateBlock
-                v-if="loading"
-                state="loading"
-                loading-message="문의 내역을 불러오는 중..."
-            />
-            <PageStateBlock
-                v-else-if="error"
-                state="error"
-                error-title="문의 내역을 불러올 수 없습니다"
-                :error-message="error"
-                retry-label="다시 시도"
-                @retry="loadInquiries"
-            />
-            <PageStateBlock
-                v-else-if="!currentMemberId"
-                state="empty"
-                empty-icon="pi pi-lock"
-                empty-title="로그인이 필요합니다"
-                empty-message="1:1 문의 내역을 보려면 로그인해 주세요."
-                empty-button-label="로그인하기"
-                @empty-action="goToLogin"
-            />
-            <PageStateBlock
-                v-else-if="items.length === 0"
-                state="empty"
-                empty-icon="pi pi-inbox"
-                empty-title="문의 내역이 없습니다"
-                empty-message="궁금한 점이 있으시면 문의해 주세요."
-                empty-button-label="문의하기"
-                @empty-action="openCreateDialog"
-            />
-
-            <template v-else>
-                <DataTable
-                    :value="items"
-                    :paginator="true"
-                    :first="first"
-                    :rows="rows"
-                    :total-records="totalElements"
-                    :lazy="true"
-                    :loading="false"
-                    data-key="id"
-                    responsive-layout="scroll"
-                    class="p-datatable-sm"
-                    @page="onPageChange"
-                >
-                    <template #empty>
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="pi pi-inbox text-4xl mb-2"></i>
-                            <p>문의 내역이 없습니다.</p>
-                        </div>
-                    </template>
-                    <Column header="No" style="width: 70px;">
-                        <template #body="{ index }">
-                            {{ first + index + 1 }}
-                        </template>
-                    </Column>
-                    <Column field="inquiryType" header="문의유형" style="min-width: 120px;">
-                        <template #body="{ data }">
-                            {{ getInquiryTypeLabel(data.inquiryType) }}
-                        </template>
-                    </Column>
-                    <Column header="제목" style="min-width: 200px;">
-                        <template #body="{ data }">
-                            <a
-                                href="#"
-                                class="inquiry-title-link"
-                                @click.prevent="goToDetail(data.id)"
-                            >
-                                {{ data.title }}
-                            </a>
-                        </template>
-                    </Column>
-                    <Column header="답변" style="width: 140px;">
-                        <template #body="{ data }">
-                            <span v-if="!data.hasReply" class="text-secondary"></span>
-                            <button
-                                v-else
-                                type="button"
-                                class="inquiry-complete-badge"
-                                @click="goToDetail(data.id)"
-                            >
-                                <Badge value="완료" severity="success" />
-                            </button>
-                        </template>
-                    </Column>
-                    <Column header="작성일시" style="min-width: 140px;">
-                        <template #body="{ data }">
-                            {{ formatDate(data.createdAt) }}
-                        </template>
-                    </Column>
-                    <Column header="삭제" style="width: 80px;">
-                        <template #body="{ data }">
-                            <Button
-                                icon="pi pi-trash"
-                                text
-                                rounded
-                                severity="danger"
-                                title="삭제"
-                                @click="confirmDelete(data)"
-                            />
-                        </template>
-                    </Column>
-                </DataTable>
-            </template>
-        </div>
-
-        <InquiryFormDialog
-            v-model:visible="formDialogVisible"
-            :inquiry-id="editingInquiryId"
-            @saved="onInquirySaved"
-            @closed="onFormClosed"
-        />
-
-        <ConfirmDialog group="inquiry-delete" />
-    </div>
-</template>
-
 <script setup lang="ts">
 import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import InquiryFormDialog from '@/components/inquiry/InquiryFormDialog.vue';
@@ -263,6 +131,72 @@ watch(currentMemberId, (id) => {
     }
 });
 </script>
+
+<template>
+    <div class="inquiries-content">
+        <div class="inquiries-section">
+            <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+                <h2 class="text-2xl font-semibold text-gray-900 m-0">1:1 문의 내역 ({{ totalElements }})</h2>
+                <Button label="문의하기" icon="pi pi-plus" @click="openCreateDialog" />
+            </div>
+
+            <PageStateBlock v-if="loading" state="loading" loading-message="문의 내역을 불러오는 중..." />
+            <PageStateBlock v-else-if="error" state="error" error-title="문의 내역을 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadInquiries" />
+            <PageStateBlock v-else-if="!currentMemberId" state="empty" empty-icon="pi pi-lock" empty-title="로그인이 필요합니다" empty-message="1:1 문의 내역을 보려면 로그인해 주세요." empty-button-label="로그인하기" @empty-action="goToLogin" />
+            <PageStateBlock v-else-if="items.length === 0" state="empty" empty-icon="pi pi-inbox" empty-title="문의 내역이 없습니다" empty-message="궁금한 점이 있으시면 문의해 주세요." empty-button-label="문의하기" @empty-action="openCreateDialog" />
+
+            <template v-else>
+                <DataTable :value="items" :paginator="true" :first="first" :rows="rows" :total-records="totalElements" :lazy="true" :loading="false" data-key="id" responsive-layout="scroll" class="p-datatable-sm" @page="onPageChange">
+                    <template #empty>
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="pi pi-inbox text-4xl mb-2"></i>
+                            <p>문의 내역이 없습니다.</p>
+                        </div>
+                    </template>
+                    <Column header="No" style="width: 70px">
+                        <template #body="{ index }">
+                            {{ first + index + 1 }}
+                        </template>
+                    </Column>
+                    <Column field="inquiryType" header="문의유형" style="min-width: 120px">
+                        <template #body="{ data }">
+                            {{ getInquiryTypeLabel(data.inquiryType) }}
+                        </template>
+                    </Column>
+                    <Column header="제목" style="min-width: 200px">
+                        <template #body="{ data }">
+                            <a href="#" class="inquiry-title-link" @click.prevent="goToDetail(data.id)">
+                                {{ data.title }}
+                            </a>
+                        </template>
+                    </Column>
+                    <Column header="답변" style="width: 140px">
+                        <template #body="{ data }">
+                            <span v-if="!data.hasReply" class="text-secondary"></span>
+                            <button v-else type="button" class="inquiry-complete-badge" @click="goToDetail(data.id)">
+                                <Badge value="완료" severity="success" />
+                            </button>
+                        </template>
+                    </Column>
+                    <Column header="작성일시" style="min-width: 140px">
+                        <template #body="{ data }">
+                            {{ formatDate(data.createdAt) }}
+                        </template>
+                    </Column>
+                    <Column header="삭제" style="width: 80px">
+                        <template #body="{ data }">
+                            <Button icon="pi pi-trash" text rounded severity="danger" title="삭제" @click="confirmDelete(data)" />
+                        </template>
+                    </Column>
+                </DataTable>
+            </template>
+        </div>
+
+        <InquiryFormDialog v-model:visible="formDialogVisible" :inquiry-id="editingInquiryId" @saved="onInquirySaved" @closed="onFormClosed" />
+
+        <ConfirmDialog group="inquiry-delete" />
+    </div>
+</template>
 
 <style scoped>
 .inquiries-content {

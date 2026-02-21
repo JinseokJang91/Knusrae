@@ -1,3 +1,11 @@
+<script setup lang="ts">
+import type { RecipeStep } from '@/types/recipe';
+
+defineProps<{
+    steps: RecipeStep[];
+}>();
+</script>
+
 <template>
     <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
         <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">
@@ -6,23 +14,12 @@
         </h2>
 
         <div class="space-y-8">
-            <div
-                v-for="(step, index) in steps"
-                :key="`step-${index}-${step.order}`"
-                class="bg-orange-50 rounded-xl p-6"
-            >
+            <div v-for="(step, index) in steps" :key="`step-${index}-${step.order}`" class="bg-orange-50 rounded-xl p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     <div>
                         <div class="relative w-full overflow-hidden rounded-lg shadow-md bg-white border border-orange-100">
-                            <img
-                                v-if="step.imageUrl"
-                                :src="step.imageUrl"
-                                :alt="`단계 ${index + 1} 이미지`"
-                                class="w-full h-72 object-cover"
-                            />
-                            <div v-else class="w-full h-72 flex items-center justify-center text-5xl text-orange-200 bg-orange-50">
-                                🖼️
-                            </div>
+                            <img v-if="step.imageUrl" :src="step.imageUrl" :alt="`단계 ${index + 1} 이미지`" class="w-full h-72 object-cover" />
+                            <div v-else class="w-full h-72 flex items-center justify-center text-5xl text-orange-200 bg-orange-50">🖼️</div>
                         </div>
                     </div>
                     <div class="flex items-start gap-4">
@@ -40,14 +37,6 @@
         </div>
     </div>
 </template>
-
-<script setup lang="ts">
-import type { RecipeStep } from '@/types/recipe';
-
-defineProps<{
-    steps: RecipeStep[];
-}>();
-</script>
 
 <style scoped>
 .recipe-step-bubble {

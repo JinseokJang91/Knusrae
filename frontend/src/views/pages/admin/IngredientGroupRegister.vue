@@ -1,116 +1,3 @@
-<template>
-    <div class="ingredient-group-register">
-        <div class="page-header mb-6">
-            <div class="flex items-center gap-2 mb-2">
-                <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
-                <h1 class="text-3xl font-bold text-gray-900">재료 그룹 등록</h1>
-            </div>
-            <p class="text-gray-600 mt-2">재료를 분류할 그룹을 등록하세요 (예: 채소, 과일, 육류)</p>
-        </div>
-
-        <Card>
-            <template #content>
-                <form @submit.prevent="handleSubmit" class="space-y-6">
-                    <div class="field">
-                        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-                            그룹명 <span class="text-red-500">*</span>
-                        </label>
-                        <InputText
-                            id="name"
-                            v-model="form.name"
-                            placeholder="예: 채소"
-                            class="w-full"
-                            :class="{ 'p-invalid': errors.name }"
-                            maxlength="50"
-                        />
-                        <small v-if="errors.name" class="p-error">{{ errors.name }}</small>
-                        <small v-else class="text-gray-500">{{ form.name?.length || 0 }}/50</small>
-                    </div>
-
-                    <div class="field">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            이미지 (선택)
-                        </label>
-                        <div class="image-input-section space-y-3">
-                            <div class="flex gap-2">
-                                <InputText
-                                    id="imageUrl"
-                                    v-model="form.imageUrl"
-                                    placeholder="이미지 URL 입력 (https://...)"
-                                    class="flex-1"
-                                    maxlength="500"
-                                    :disabled="!!imageFile"
-                                />
-                                <span class="self-center text-gray-400 text-sm">또는</span>
-                                <div class="relative">
-                                    <input
-                                        ref="imageFileInputRef"
-                                        type="file"
-                                        accept="image/*"
-                                        class="hidden"
-                                        @change="onImageFileChange"
-                                    />
-                                    <Button
-                                        type="button"
-                                        label="파일 선택"
-                                        icon="pi pi-upload"
-                                        severity="secondary"
-                                        :loading="imageUploading"
-                                        :disabled="imageUploading"
-                                        @click="triggerImageFileSelect"
-                                    />
-                                </div>
-                            </div>
-                            <div v-if="imagePreview || form.imageUrl" class="image-preview-area flex items-center gap-3">
-                                <img
-                                    v-if="imagePreview"
-                                    :src="imagePreview"
-                                    alt="미리보기"
-                                    class="w-20 h-20 object-cover rounded border border-gray-200"
-                                />
-                                <img
-                                    v-else-if="form.imageUrl"
-                                    :src="form.imageUrl"
-                                    alt="미리보기"
-                                    class="w-20 h-20 object-cover rounded border border-gray-200"
-                                    @error="onPreviewImageError"
-                                />
-                                <Button
-                                    v-if="imagePreview || form.imageUrl"
-                                    type="button"
-                                    icon="pi pi-times"
-                                    severity="secondary"
-                                    text
-                                    rounded
-                                    @click="clearImage"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label for="sortOrder" class="block text-sm font-medium text-gray-700 mb-2">
-                            정렬 순서 (선택, 숫자 작을수록 먼저)
-                        </label>
-                        <InputNumber
-                            id="sortOrder"
-                            v-model="form.sortOrder"
-                            placeholder="0"
-                            class="w-full"
-                            :min="0"
-                        />
-                    </div>
-
-                    <div class="flex gap-3 justify-end">
-                        <Button label="취소" severity="secondary" @click="goBack" :disabled="submitting" />
-                        <Button label="저장" icon="pi pi-check" type="submit" :loading="submitting" :disabled="submitting" />
-                    </div>
-                </form>
-            </template>
-        </Card>
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -228,6 +115,60 @@ onMounted(() => {
     }
 });
 </script>
+
+<template>
+    <div class="ingredient-group-register">
+        <div class="page-header mb-6">
+            <div class="flex items-center gap-2 mb-2">
+                <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
+                <h1 class="text-3xl font-bold text-gray-900">재료 그룹 등록</h1>
+            </div>
+            <p class="text-gray-600 mt-2">재료를 분류할 그룹을 등록하세요 (예: 채소, 과일, 육류)</p>
+        </div>
+
+        <Card>
+            <template #content>
+                <form @submit.prevent="handleSubmit" class="space-y-6">
+                    <div class="field">
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-2"> 그룹명 <span class="text-red-500">*</span> </label>
+                        <InputText id="name" v-model="form.name" placeholder="예: 채소" class="w-full" :class="{ 'p-invalid': errors.name }" maxlength="50" />
+                        <small v-if="errors.name" class="p-error">{{ errors.name }}</small>
+                        <small v-else class="text-gray-500">{{ form.name?.length || 0 }}/50</small>
+                    </div>
+
+                    <div class="field">
+                        <label class="block text-sm font-medium text-gray-700 mb-2"> 이미지 (선택) </label>
+                        <div class="image-input-section space-y-3">
+                            <div class="flex gap-2">
+                                <InputText id="imageUrl" v-model="form.imageUrl" placeholder="이미지 URL 입력 (https://...)" class="flex-1" maxlength="500" :disabled="!!imageFile" />
+                                <span class="self-center text-gray-400 text-sm">또는</span>
+                                <div class="relative">
+                                    <input ref="imageFileInputRef" type="file" accept="image/*" class="hidden" @change="onImageFileChange" />
+                                    <Button type="button" label="파일 선택" icon="pi pi-upload" severity="secondary" :loading="imageUploading" :disabled="imageUploading" @click="triggerImageFileSelect" />
+                                </div>
+                            </div>
+                            <div v-if="imagePreview || form.imageUrl" class="image-preview-area flex items-center gap-3">
+                                <img v-if="imagePreview" :src="imagePreview" alt="미리보기" class="w-20 h-20 object-cover rounded border border-gray-200" />
+                                <img v-else-if="form.imageUrl" :src="form.imageUrl" alt="미리보기" class="w-20 h-20 object-cover rounded border border-gray-200" @error="onPreviewImageError" />
+                                <Button v-if="imagePreview || form.imageUrl" type="button" icon="pi pi-times" severity="secondary" text rounded @click="clearImage" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="sortOrder" class="block text-sm font-medium text-gray-700 mb-2"> 정렬 순서 (선택, 숫자 작을수록 먼저) </label>
+                        <InputNumber id="sortOrder" v-model="form.sortOrder" placeholder="0" class="w-full" :min="0" />
+                    </div>
+
+                    <div class="flex gap-3 justify-end">
+                        <Button label="취소" severity="secondary" @click="goBack" :disabled="submitting" />
+                        <Button label="저장" icon="pi pi-check" type="submit" :loading="submitting" :disabled="submitting" />
+                    </div>
+                </form>
+            </template>
+        </Card>
+    </div>
+</template>
 
 <style scoped>
 .ingredient-group-register {

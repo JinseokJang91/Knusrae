@@ -13,8 +13,6 @@ const selectedTheme = ref<ThemeCollection | null>(null);
 const themeRecipes = ref<ThemeRecipeItem[]>([]);
 const loadingThemes = ref(false);
 const loadingRecipes = ref(false);
-const scrollContainers = ref<Map<number, HTMLElement>>(new Map());
-
 const loadThemes = async () => {
     loadingThemes.value = true;
     try {
@@ -49,10 +47,6 @@ const goToRecipe = (recipeId: number) => {
     router.push(`/recipes/${recipeId}`);
 };
 
-const getScrollContainer = (themeId: number): HTMLElement | null => {
-    return scrollContainers.value.get(themeId) || null;
-};
-
 const scrollLeft = () => {
     const container = document.querySelector('.recipes-scroll') as HTMLElement;
     container?.scrollBy({ left: -320, behavior: 'smooth' });
@@ -80,7 +74,7 @@ onMounted(() => {
         <div class="section-header">
             <div class="header-left">
                 <h2 class="section-title">
-                    <i class="pi pi-bookmark-fill" style="color: var(--primary-color);"></i>
+                    <i class="pi pi-bookmark-fill" style="color: var(--primary-color)"></i>
                     테마 컬렉션
                 </h2>
                 <p class="section-subtitle">큐레이션된 레시피 모음을 만나보세요</p>
@@ -89,12 +83,12 @@ onMounted(() => {
 
         <!-- 로딩 상태 -->
         <div v-if="loadingThemes" class="loading-container">
-            <i class="pi pi-spinner pi-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+            <i class="pi pi-spinner pi-spin" style="font-size: 2rem; color: var(--primary-color)"></i>
         </div>
 
         <!-- 테마 없음 -->
         <div v-else-if="themes.length === 0" class="empty-state">
-            <i class="pi pi-bookmark" style="font-size: 3rem; color: var(--text-color-secondary);"></i>
+            <i class="pi pi-bookmark" style="font-size: 3rem; color: var(--text-color-secondary)"></i>
             <p>현재 활성화된 테마가 없습니다.</p>
         </div>
 
@@ -102,19 +96,8 @@ onMounted(() => {
         <div v-else class="theme-content">
             <!-- 테마 탭 -->
             <div class="theme-tabs">
-                <button
-                    v-for="theme in themes"
-                    :key="theme.id"
-                    class="theme-tab"
-                    :class="{ active: selectedTheme?.id === theme.id }"
-                    @click="selectTheme(theme)"
-                >
-                    <img
-                        v-if="theme.thumbnailImage"
-                        :src="theme.thumbnailImage"
-                        :alt="theme.name"
-                        class="theme-tab-icon"
-                    />
+                <button v-for="theme in themes" :key="theme.id" class="theme-tab" :class="{ active: selectedTheme?.id === theme.id }" @click="selectTheme(theme)">
+                    <img v-if="theme.thumbnailImage" :src="theme.thumbnailImage" :alt="theme.name" class="theme-tab-icon" />
                     <i v-else class="pi pi-bookmark theme-tab-icon-default"></i>
                     <div class="theme-tab-info">
                         <span class="theme-tab-name">{{ theme.name }}</span>
@@ -140,7 +123,7 @@ onMounted(() => {
                     </button>
 
                     <div v-if="loadingRecipes" class="recipes-loading">
-                        <i class="pi pi-spinner pi-spin" style="font-size: 1.5rem;"></i>
+                        <i class="pi pi-spinner pi-spin" style="font-size: 1.5rem"></i>
                     </div>
 
                     <div v-else-if="themeRecipes.length === 0" class="recipes-empty">
@@ -148,19 +131,9 @@ onMounted(() => {
                     </div>
 
                     <div v-else class="recipes-scroll">
-                        <div
-                            v-for="recipe in themeRecipes"
-                            :key="recipe.recipeId"
-                            class="recipe-card"
-                            @click="goToRecipe(recipe.recipeId)"
-                        >
+                        <div v-for="recipe in themeRecipes" :key="recipe.recipeId" class="recipe-card" @click="goToRecipe(recipe.recipeId)">
                             <div class="recipe-thumbnail">
-                                <img
-                                    v-if="recipe.thumbnail"
-                                    :src="recipe.thumbnail"
-                                    :alt="recipe.title"
-                                    loading="lazy"
-                                />
+                                <img v-if="recipe.thumbnail" :src="recipe.thumbnail" :alt="recipe.title" loading="lazy" />
                                 <div v-else class="recipe-thumbnail-placeholder">
                                     <i class="pi pi-image"></i>
                                 </div>

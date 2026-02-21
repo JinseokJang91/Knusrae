@@ -1,43 +1,3 @@
-<template>
-    <div class="ingredient-detail-page">
-        <div class="detail-header">
-            <Button
-                icon="pi pi-arrow-left"
-                label="목록으로"
-                text
-                class="p-button-text back-btn"
-                @click="goBack"
-            />
-            <h1 v-if="!loading && !error" class="detail-title">
-                {{ pageTitle }}
-            </h1>
-        </div>
-
-        <div v-if="loading" class="text-center py-12">
-            <ProgressSpinner />
-            <p class="text-gray-600 mt-3">정보를 불러오는 중...</p>
-        </div>
-
-        <div v-else-if="error" class="text-center py-12">
-            <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-            <h2 class="text-xl font-semibold text-gray-600 mb-2">정보를 불러올 수 없습니다</h2>
-            <p class="text-gray-600 mb-4">{{ error }}</p>
-            <Button label="목록으로" @click="goBack" />
-        </div>
-
-        <div v-else-if="content" class="ingredient-detail-body">
-            <div v-if="summary" class="summary-section">
-                <h3 class="summary-title">요약</h3>
-                <p class="summary-text">{{ summary }}</p>
-            </div>
-
-            <div class="content-section">
-                <ToastUiViewer :key="content" :initial-value="content" />
-            </div>
-        </div>
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -108,13 +68,51 @@ const goBack = () => {
     });
 };
 
-watch([() => route.params.id, () => route.query.type], () => {
-    content.value = '';
-    summary.value = '';
-    ingredientName.value = '';
-    loadContent();
-}, { immediate: true });
+watch(
+    [() => route.params.id, () => route.query.type],
+    () => {
+        content.value = '';
+        summary.value = '';
+        ingredientName.value = '';
+        loadContent();
+    },
+    { immediate: true }
+);
 </script>
+
+<template>
+    <div class="ingredient-detail-page">
+        <div class="detail-header">
+            <Button icon="pi pi-arrow-left" label="목록으로" text class="p-button-text back-btn" @click="goBack" />
+            <h1 v-if="!loading && !error" class="detail-title">
+                {{ pageTitle }}
+            </h1>
+        </div>
+
+        <div v-if="loading" class="text-center py-12">
+            <ProgressSpinner />
+            <p class="text-gray-600 mt-3">정보를 불러오는 중...</p>
+        </div>
+
+        <div v-else-if="error" class="text-center py-12">
+            <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+            <h2 class="text-xl font-semibold text-gray-600 mb-2">정보를 불러올 수 없습니다</h2>
+            <p class="text-gray-600 mb-4">{{ error }}</p>
+            <Button label="목록으로" @click="goBack" />
+        </div>
+
+        <div v-else-if="content" class="ingredient-detail-body">
+            <div v-if="summary" class="summary-section">
+                <h3 class="summary-title">요약</h3>
+                <p class="summary-text">{{ summary }}</p>
+            </div>
+
+            <div class="content-section">
+                <ToastUiViewer :key="content" :initial-value="content" />
+            </div>
+        </div>
+    </div>
+</template>
 
 <style scoped>
 .ingredient-detail-page {

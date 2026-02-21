@@ -39,10 +39,18 @@ export async function logout(): Promise<void> {
     });
 }
 
+/** 프로덕션 빌드에서는 테스트 API 호출 불가 (보안·운영 정책) */
+function assertDevOnly(): void {
+    if (import.meta.env.PROD) {
+        throw new Error('테스트 계정 API는 개발 환경에서만 사용할 수 있습니다.');
+    }
+}
+
 /**
- * 테스트 계정 목록 조회 (개발용)
+ * 테스트 계정 목록 조회 (개발용, 프로덕션에서는 호출 불가)
  */
 export async function getTestAccounts(): Promise<TestAccount[]> {
+    assertDevOnly();
     const response = await fetch(`${BASE_URL}/api/auth/test/accounts`, {
         method: 'GET',
         credentials: 'include'
@@ -60,9 +68,10 @@ export interface TestLoginResult {
 }
 
 /**
- * 테스트 계정으로 로그인 (개발용)
+ * 테스트 계정으로 로그인 (개발용, 프로덕션에서는 호출 불가)
  */
 export async function testLogin(email: string): Promise<TestLoginResult> {
+    assertDevOnly();
     const response = await fetch(`${BASE_URL}/api/auth/test/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

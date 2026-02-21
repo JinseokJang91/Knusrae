@@ -19,7 +19,7 @@ const showLoggedInGreeting = computed(() => authStore.isInitialized && isLoggedI
 // 시간대별 환영 메시지
 const timeBasedGreeting = computed(() => {
     const hour = new Date().getHours();
-    
+
     if (hour >= 5 && hour < 11) {
         // 아침: 5시 ~ 11시
         return {
@@ -61,14 +61,14 @@ const greetingTitle = computed(() => {
                 <p class="hero-subtitle">{{ timeBasedGreeting.subtitle }}</p>
             </div>
         </section>
-        
+
         <!-- 2. 오늘의 레시피 추천 (주요 섹션) -->
         <section class="dashboard-section main-section">
             <div class="section-wrapper">
                 <TodayRecommendations />
             </div>
         </section>
-        
+
         <!-- 3. 인기 레시피 TOP (주요 섹션) -->
         <section class="dashboard-section main-section">
             <div class="section-wrapper">
@@ -82,14 +82,14 @@ const greetingTitle = computed(() => {
                 <ThemeCollections />
             </div>
         </section>
-        
+
         <!-- 5. 카테고리 섹션 (보조 섹션) -->
         <section class="dashboard-section secondary-section">
             <div class="section-wrapper">
                 <CategorySections />
             </div>
         </section>
-        
+
         <!-- 6. 최근 본 레시피 (개인화 섹션, 로그인 시만) -->
         <section v-if="isLoggedIn" class="dashboard-section personal-section">
             <div class="section-wrapper">
@@ -117,12 +117,12 @@ const greetingTitle = computed(() => {
 
 .dashboard-section {
     width: 100%;
-    
+
     // 공통 패딩
     &.hero-section {
         padding: 0;
     }
-    
+
     &.main-section,
     &.secondary-section,
     &.personal-section {
@@ -138,14 +138,14 @@ const greetingTitle = computed(() => {
         border-radius: 20px;
         padding: 32px 40px;
         text-align: center;
-        
+
         .hero-title {
             font-size: 2rem;
             font-weight: 700;
             color: var(--text-color);
             margin-bottom: 12px;
         }
-        
+
         .hero-subtitle {
             font-size: 1.1rem;
             color: var(--text-color-secondary);
@@ -162,7 +162,7 @@ const greetingTitle = computed(() => {
     padding: 32px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     transition: box-shadow 0.3s ease;
-    
+
     &:hover {
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     }
@@ -213,19 +213,19 @@ const greetingTitle = computed(() => {
     .dashboard-container {
         gap: 24px;
     }
-    
+
     .hero-section .hero-content {
         padding: 24px 32px;
-        
+
         .hero-title {
             font-size: 1.75rem;
         }
-        
+
         .hero-subtitle {
             font-size: 1rem;
         }
     }
-    
+
     .section-wrapper {
         padding: 24px;
     }
@@ -235,20 +235,20 @@ const greetingTitle = computed(() => {
     .dashboard-container {
         gap: 20px;
     }
-    
+
     .hero-section .hero-content {
         padding: 20px 24px;
         border-radius: 16px;
-        
+
         .hero-title {
             font-size: 1.5rem;
         }
-        
+
         .hero-subtitle {
             font-size: 0.95rem;
         }
     }
-    
+
     .section-wrapper {
         padding: 20px;
         border-radius: 12px;
@@ -259,19 +259,19 @@ const greetingTitle = computed(() => {
     .dashboard-container {
         gap: 16px;
     }
-    
+
     .hero-section .hero-content {
         padding: 16px 20px;
-        
+
         .hero-title {
             font-size: 1.25rem;
         }
-        
+
         .hero-subtitle {
             font-size: 0.9rem;
         }
     }
-    
+
     .section-wrapper {
         padding: 16px;
     }

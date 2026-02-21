@@ -1,136 +1,3 @@
-<template>
-    <div class="member-profile-container">
-        <!-- 로딩 상태 -->
-        <PageStateBlock
-            v-if="loading"
-            state="loading"
-            loading-message="프로필 정보를 불러오는 중..."
-        />
-
-        <!-- 에러 상태 -->
-        <PageStateBlock
-            v-else-if="error"
-            state="error"
-            error-title="프로필을 불러올 수 없습니다"
-            :error-message="error"
-            retry-label="다시 시도"
-            @retry="loadMemberProfile"
-        />
-
-        <!-- 프로필 콘텐츠 (프로필 헤더 + 레시피 통합 카드) -->
-        <div v-else-if="member" class="profile-content">
-            <div class="card profile-card">
-                <!-- 프로필 헤더 -->
-                <div class="profile-header">
-                    <!-- 프로필 이미지 -->
-                    <div class="profile-avatar">
-                        <img 
-                            v-if="member.profileImage" 
-                            :src="member.profileImage" 
-                            alt="프로필 이미지"
-                            class="avatar-image"
-                        />
-                        <span v-else class="avatar-placeholder">
-                            {{ member.nickname?.substring(0, 1) || member.name?.substring(0, 1) || '?' }}
-                        </span>
-                    </div>
-
-                    <!-- 프로필 정보 -->
-                    <div class="profile-info">
-                        <h1 class="profile-name">{{ member.nickname || member.name }}</h1>
-                        <p v-if="member.bio" class="profile-bio">{{ member.bio }}</p>
-                        
-                        <!-- 통계 정보 블록 -->
-                        <div class="profile-stats">
-                            <div class="stat-item" @click="showFollowersDialog = true">
-                                <span class="stat-value">{{ member.followerCount || 0 }}</span>
-                                <span class="stat-label">팔로워</span>
-                            </div>
-                            <div class="stat-item" @click="showFollowingsDialog = true">
-                                <span class="stat-value">{{ member.followingCount || 0 }}</span>
-                                <span class="stat-label">팔로잉</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-value">{{ recipes.length }}</span>
-                                <span class="stat-label">레시피</span>
-                            </div>
-                        </div>
-
-                        <!-- 팔로우 버튼 -->
-                        <div v-if="!isOwnProfile" class="profile-actions">
-                            <Button
-                                :label="isFollowing ? '팔로잉' : '팔로우'"
-                                :icon="isFollowing ? 'pi pi-check' : 'pi pi-plus'"
-                                :severity="isFollowing ? 'secondary' : 'primary'"
-                                :outlined="isFollowing"
-                                @click="toggleFollow"
-                                :loading="followLoading"
-                                :disabled="!isLoggedIn"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 레시피 목록 (Favorites/Category와 동일한 RecipeGridCard + _recipe-card-list 스타일) -->
-                <div class="recipe-section">
-                    <h2 class="text-2xl font-bold mb-4">레시피</h2>
-                    
-                    <PageStateBlock
-                        v-if="recipesLoading"
-                        state="loading"
-                        loading-message="레시피를 불러오는 중..."
-                    />
-                    
-                    <PageStateBlock
-                        v-else-if="recipes.length === 0"
-                        state="empty"
-                        empty-icon="pi pi-book"
-                        empty-title="등록된 레시피가 없습니다"
-                        empty-message="아직 레시피를 등록하지 않았습니다."
-                    />
-                    
-                    <div v-else class="recipe-grid">
-                        <RecipeGridCard
-                            v-for="recipe in displayRecipes"
-                            :key="recipe.id"
-                            :recipe="getRecipeGridItem(recipe)"
-                            :category-label="getCategoryName(recipe)"
-                            :is-bookmarked="bookmarkedRecipeIds.has(recipe.id)"
-                            show-bookmark
-                            :show-comment-count="false"
-                            :show-author="true"
-                            @click="goToRecipeDetail"
-                            @favorite="toggleFavorite"
-                            @bookmark="bookmarkRecipe"
-                            @scroll-to-comments="scrollToComments"
-                        />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 팔로워/팔로잉 목록 Dialog -->
-        <FollowListDialog
-            v-model:visible="showFollowersDialog"
-            :memberId="memberId"
-            type="followers"
-        />
-        
-        <FollowListDialog
-            v-model:visible="showFollowingsDialog"
-            :memberId="memberId"
-            type="followings"
-        />
-
-        <!-- 북마크 Dialog -->
-        <BookmarkDialog
-            v-model:visible="bookmarkDialogVisible"
-            :recipe-id="bookmarkRecipeId"
-            @bookmarked="onBookmarked"
-        />
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -186,16 +53,16 @@ const displayRecipes = computed(() => recipes.value);
 const loadMemberProfile = async () => {
     loading.value = true;
     error.value = null;
-    
+
     try {
         member.value = await getMemberProfile(memberId.value);
-        
+
         // 팔로우 여부 확인 (로그인한 경우만)
         if (isLoggedIn.value && !isOwnProfile.value) {
             const followStatus = await checkFollowing(memberId.value);
             isFollowing.value = followStatus.isFollowing;
         }
-        
+
         // 레시피 목록 로드
         await loadRecipes();
     } catch (err) {
@@ -288,7 +155,7 @@ const toggleFollow = async () => {
         router.push({ path: '/auth/login', query: { redirect: route.fullPath } });
         return;
     }
-    
+
     followLoading.value = true;
     try {
         if (isFollowing.value) {
@@ -351,6 +218,101 @@ onMounted(() => {
 });
 </script>
 
+<template>
+    <div class="member-profile-container">
+        <!-- 로딩 상태 -->
+        <PageStateBlock v-if="loading" state="loading" loading-message="프로필 정보를 불러오는 중..." />
+
+        <!-- 에러 상태 -->
+        <PageStateBlock v-else-if="error" state="error" error-title="프로필을 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadMemberProfile" />
+
+        <!-- 프로필 콘텐츠 (프로필 헤더 + 레시피 통합 카드) -->
+        <div v-else-if="member" class="profile-content">
+            <div class="card profile-card">
+                <!-- 프로필 헤더 -->
+                <div class="profile-header">
+                    <!-- 프로필 이미지 -->
+                    <div class="profile-avatar">
+                        <img v-if="member.profileImage" :src="member.profileImage" alt="프로필 이미지" class="avatar-image" />
+                        <span v-else class="avatar-placeholder">
+                            {{ member.nickname?.substring(0, 1) || member.name?.substring(0, 1) || '?' }}
+                        </span>
+                    </div>
+
+                    <!-- 프로필 정보 -->
+                    <div class="profile-info">
+                        <h1 class="profile-name">{{ member.nickname || member.name }}</h1>
+                        <p v-if="member.bio" class="profile-bio">{{ member.bio }}</p>
+
+                        <!-- 통계 정보 블록 -->
+                        <div class="profile-stats">
+                            <div class="stat-item" @click="showFollowersDialog = true">
+                                <span class="stat-value">{{ member.followerCount || 0 }}</span>
+                                <span class="stat-label">팔로워</span>
+                            </div>
+                            <div class="stat-item" @click="showFollowingsDialog = true">
+                                <span class="stat-value">{{ member.followingCount || 0 }}</span>
+                                <span class="stat-label">팔로잉</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">{{ recipes.length }}</span>
+                                <span class="stat-label">레시피</span>
+                            </div>
+                        </div>
+
+                        <!-- 팔로우 버튼 -->
+                        <div v-if="!isOwnProfile" class="profile-actions">
+                            <Button
+                                :label="isFollowing ? '팔로잉' : '팔로우'"
+                                :icon="isFollowing ? 'pi pi-check' : 'pi pi-plus'"
+                                :severity="isFollowing ? 'secondary' : 'primary'"
+                                :outlined="isFollowing"
+                                @click="toggleFollow"
+                                :loading="followLoading"
+                                :disabled="!isLoggedIn"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 레시피 목록 (Favorites/Category와 동일한 RecipeGridCard + _recipe-card-list 스타일) -->
+                <div class="recipe-section">
+                    <h2 class="text-2xl font-bold mb-4">레시피</h2>
+
+                    <PageStateBlock v-if="recipesLoading" state="loading" loading-message="레시피를 불러오는 중..." />
+
+                    <PageStateBlock v-else-if="recipes.length === 0" state="empty" empty-icon="pi pi-book" empty-title="등록된 레시피가 없습니다" empty-message="아직 레시피를 등록하지 않았습니다." />
+
+                    <div v-else class="recipe-grid">
+                        <RecipeGridCard
+                            v-for="recipe in displayRecipes"
+                            :key="recipe.id"
+                            :recipe="getRecipeGridItem(recipe)"
+                            :category-label="getCategoryName(recipe)"
+                            :is-bookmarked="bookmarkedRecipeIds.has(recipe.id)"
+                            show-bookmark
+                            :show-comment-count="false"
+                            :show-author="true"
+                            @click="goToRecipeDetail"
+                            @favorite="toggleFavorite"
+                            @bookmark="bookmarkRecipe"
+                            @scroll-to-comments="scrollToComments"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 팔로워/팔로잉 목록 Dialog -->
+        <FollowListDialog v-model:visible="showFollowersDialog" :memberId="memberId" type="followers" />
+
+        <FollowListDialog v-model:visible="showFollowingsDialog" :memberId="memberId" type="followings" />
+
+        <!-- 북마크 Dialog -->
+        <BookmarkDialog v-model:visible="bookmarkDialogVisible" :recipe-id="bookmarkRecipeId" @bookmarked="onBookmarked" />
+    </div>
+</template>
+
 <style scoped lang="scss">
 .member-profile-container {
     max-width: 1200px;
@@ -373,7 +335,7 @@ onMounted(() => {
         display: flex;
         gap: 2rem;
         align-items: flex-start;
-        
+
         .profile-avatar {
             flex-shrink: 0;
             width: 150px;
@@ -386,23 +348,23 @@ onMounted(() => {
             display: flex;
             align-items: center;
             justify-content: center;
-            
+
             .avatar-image {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
             }
-            
+
             .avatar-placeholder {
                 font-size: 3rem;
                 font-weight: 600;
                 color: var(--text-color-secondary);
             }
         }
-        
+
         .profile-info {
             flex: 1;
-            
+
             /* 5. 수직 리듬 정리: margin 일관화 (1rem 기준) */
             .profile-name {
                 margin: 0 0 1rem 0;
@@ -410,13 +372,13 @@ onMounted(() => {
                 font-weight: 700;
                 color: var(--text-color);
             }
-            
+
             .profile-bio {
                 margin: 0 0 1.25rem 0;
                 color: var(--text-color-secondary);
                 line-height: 1.6;
             }
-            
+
             /* 3. 통계 영역 블록화: 시선이 모이는 박스 */
             .profile-stats {
                 display: flex;
@@ -427,32 +389,32 @@ onMounted(() => {
                 border: 1px solid #fdba74;
                 border-radius: 10px;
                 box-shadow: 0 1px 4px rgba(251, 146, 60, 0.1);
-                
+
                 .stat-item {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     cursor: pointer;
                     transition: all 0.2s;
-                    
+
                     &:hover {
                         opacity: 0.8;
                     }
-                    
+
                     /* 2. 통계 숫자 대비 강화: 진한 오렌지 톤 */
                     .stat-value {
                         font-size: 1.5rem;
                         font-weight: 700;
                         color: #c2410c;
                     }
-                    
+
                     .stat-label {
                         font-size: 0.9rem;
                         color: var(--text-color-secondary);
                     }
                 }
             }
-            
+
             .profile-actions {
                 display: flex;
                 gap: 1rem;
@@ -460,7 +422,7 @@ onMounted(() => {
             }
         }
     }
-    
+
     /* 레시피 그리드/카드 스타일은 layout _recipe-card-list.scss 공통 사용 */
 }
 
@@ -468,22 +430,22 @@ onMounted(() => {
     .member-profile-container {
         padding: 1rem;
     }
-    
+
     .profile-header {
         flex-direction: column;
         align-items: center;
         text-align: center;
-        
+
         .profile-avatar {
             width: 120px;
             height: 120px;
         }
-        
+
         .profile-info {
             .profile-stats {
                 justify-content: center;
             }
-            
+
             .profile-actions {
                 justify-content: center;
             }

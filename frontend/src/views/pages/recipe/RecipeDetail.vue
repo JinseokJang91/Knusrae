@@ -1,127 +1,3 @@
-<template>
-    <div class="min-h-screen">
-        <!-- 로딩 상태 -->
-        <div v-if="loading" class="flex items-center justify-center min-h-screen">
-            <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-500"></div>
-        </div>
-
-        <!-- 에러 상태 -->
-        <div v-else-if="error" class="flex items-center justify-center min-h-screen">
-            <div class="text-center">
-                <div class="text-6xl mb-4">😞</div>
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">레시피를 찾을 수 없습니다</h2>
-                <p class="text-gray-600 mb-4">{{ error }}</p>
-                <button @click="goBack" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
-                    돌아가기
-                </button>
-            </div>
-        </div>
-
-        <!-- 레시피 상세 내용 -->
-        <div v-else-if="recipe" class="max-w-6xl mx-auto px-4 py-8">
-            <RecipeDetailHeader
-                :recipe="recipe"
-                :main-image="mainImage"
-                :cooking-tips-data="cookingTipsData"
-                :is-liked="isLiked"
-                :is-bookmarked="isBookmarked"
-                :is-recipe-author="isRecipeAuthor"
-                :is-following="isFollowing"
-                :follow-disabled="!isLoggedIn"
-                :format-number="formatNumber"
-                @go-back="goBack"
-                @toggle-like="toggleLike"
-                @toggle-bookmark="openBookmarkDialog"
-                @toggle-follow="toggleFollow"
-                @go-to-author-profile="goToAuthorProfile"
-            />
-
-            <RecipeDetailIngredients :ingredient-groups="recipe.ingredientGroups || []" />
-
-            <RecipeDetailSteps :steps="recipe.steps || []" />
-
-            <RecipeDetailGallery :images="recipe.images || []" />
-
-            <!-- 댓글 섹션 -->
-            <RecipeComments
-                :comments="comments"
-                :is-logged-in="isLoggedIn"
-                :is-recipe-author="isRecipeAuthor"
-                :member-profile-image="authStore.memberProfileImage"
-                v-model:new-comment="newComment"
-                :new-comment-image-preview="newCommentImagePreview"
-                v-model:reply-content="replyContent"
-                :reply-image-preview="replyImagePreview"
-                :replying-to-comment-id="replyingToCommentId"
-                :replying-to-comment="replyingToComment"
-                :editing-comment-id="editingCommentId"
-                v-model:editing-content="editingContent"
-                :editing-image-preview="editingImagePreview"
-                :expanded-comments="expandedComments"
-                :total-pages="totalPages"
-                :current-page="currentPage"
-                :current-member-id="currentMemberId"
-                :format-date="formatDate"
-                @submit-comment="submitComment"
-                @focus-comment-textarea="focusCommentTextarea"
-                @comment-image-select="handleCommentImageSelect"
-                @remove-comment-image="removeCommentImage"
-                @go-login="router.push({ path: '/auth/login', query: { redirect: route.fullPath } })"
-                @submit-reply="submitReply"
-                @cancel-reply="cancelReply"
-                @reply-image-select="handleReplyImageSelect"
-                @remove-reply-image="removeReplyImage"
-                @toggle-reply-form="toggleReplyForm"
-                @start-edit-comment="startEditComment"
-                @cancel-edit-comment="cancelEditComment"
-                @edit-image-select="handleEditImageSelect"
-                @remove-edit-image="removeEditImage"
-                @update-comment="updateComment"
-                @delete-comment="deleteComment"
-                @toggle-replies-visibility="toggleRepliesVisibility"
-                @load-page="loadPage"
-                @open-image="(payload) => openImageModalFromPayload(payload, 0)"
-                @go-to-member-profile="goToMemberProfile"
-            />
-
-        </div>
-
-        <!-- 이미지 모달 -->
-        <Teleport to="body">
-            <div 
-                v-if="showImageModal" 
-                @click="closeImageModal"
-                class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1000]"
-                data-modal="image-modal"
-            >
-            <div 
-                class="relative max-w-4xl max-h-full p-4"
-                @click.stop
-            >
-                <button 
-                    @click="closeImageModal"
-                    class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10"
-                >
-                    <i class="pi pi-times"></i>
-                </button>
-                <img 
-                    :src="selectedImage?.url" 
-                    :alt="`이미지 ${selectedImageIndex + 1}`"
-                    class="max-w-full max-h-full rounded-lg"
-                />
-            </div>
-        </div>
-        </Teleport>
-
-        <!-- 북마크 Dialog -->
-        <BookmarkDialog
-            v-model:visible="bookmarkDialogVisible"
-            :recipe-id="recipe?.id || null"
-            @bookmarked="onBookmarked"
-        />
-    </div>
-</template>
-
 <script setup lang="ts">
 import RecipeComments from '@/components/recipe/RecipeComments.vue';
 import RecipeDetailGallery from '@/components/recipe/RecipeDetailGallery.vue';
@@ -135,17 +11,7 @@ import { useConfirm } from 'primevue/useconfirm';
 import { useAuthStore } from '@/stores/authStore';
 import { useErrorHandler } from '@/utils/errorHandler';
 import { useAppToast } from '@/utils/toast';
-import {
-    getRecipeDetail,
-    checkFavorite,
-    getComments,
-    toggleFavorite as toggleFavoriteApi,
-    createComment,
-    createCommentWithImage,
-    updateComment as updateCommentApi,
-    updateCommentWithImage,
-    deleteComment as deleteCommentApi
-} from '@/api/recipeApi';
+import { getRecipeDetail, checkFavorite, getComments, toggleFavorite as toggleFavoriteApi, createComment, createCommentWithImage, updateComment as updateCommentApi, updateCommentWithImage, deleteComment as deleteCommentApi } from '@/api/recipeApi';
 import { getCommonCodesByGroup } from '@/api/commonCodeApi';
 import { createRecipeView } from '@/api/recipeViewApi';
 import { checkBookmark } from '@/api/bookmarkApi';
@@ -156,8 +22,8 @@ const route = useRoute();
 const router = useRouter();
 const confirm = useConfirm();
 const authStore = useAuthStore();
-const { handleApiCall, handleApiCallVoid } = useErrorHandler();
 const { showWarn, showError } = useAppToast();
+const { handleApiCall, handleApiCallVoid } = useErrorHandler({ showToast: true, showError });
 
 // 반응형 데이터
 const loading = ref(true);
@@ -216,11 +82,11 @@ const cookingTipsData = computed(() => {
     if (!recipe.value?.cookingTips || !Array.isArray(recipe.value.cookingTips)) {
         return { servings: null, cookingTime: null, difficulty: null };
     }
-    
+
     const servingsTip = recipe.value.cookingTips.find((tip) => tip.codeId === 'SERVINGS');
     const cookingTimeTip = recipe.value.cookingTips.find((tip) => tip.codeId === 'COOKING_TIME');
     const difficultyTip = recipe.value.cookingTips.find((tip) => tip.codeId === 'DIFFICULTY');
-    
+
     // 난이도는 detailCodeId를 사용하여 공통코드에서 codeName을 찾음
     let difficultyText = null;
     if (difficultyTip) {
@@ -229,7 +95,7 @@ const cookingTipsData = computed(() => {
             difficultyText = difficultyCodes.value.get(detailCodeId) || detailCodeId;
         }
     }
-    
+
     return {
         servings: servingsTip?.detailName || null,
         cookingTime: cookingTimeTip?.detailName || null,
@@ -258,10 +124,10 @@ const fetchRecipeDetail = async () => {
     try {
         loading.value = true;
         error.value = null;
-        
+
         const recipeId = route.params.id;
         const response = await getRecipeDetail(Number(recipeId));
-        
+
         // 백엔드 응답의 steps 필드명을 프론트엔드 타입에 맞게 변환
         if (response.steps && Array.isArray(response.steps)) {
             type StepFromApi = RecipeStep & { step?: number; description?: string; image?: string };
@@ -271,9 +137,9 @@ const fetchRecipeDetail = async () => {
                 imageUrl: step.image ?? step.imageUrl ?? undefined
             }));
         }
-        
+
         recipe.value = response;
-        
+
         // 찜 여부 확인
         if (currentMemberId.value) {
             await checkFavoriteStatus();
@@ -282,17 +148,17 @@ const fetchRecipeDetail = async () => {
         if (authStore.isLoggedIn) {
             await checkBookmarkStatus();
         }
-        
+
         // 팔로우 여부 확인 (로그인 사용자이고 본인 레시피가 아닌 경우)
         if (authStore.isLoggedIn && response.memberId !== currentMemberId.value) {
             await checkFollowStatus();
         }
-        
+
         // 조회 기록 생성 (로그인 사용자만)
         if (authStore.isLoggedIn) {
             await recordRecipeView(Number(recipeId));
         }
-        
+
         // 댓글 목록 불러오기
         await fetchComments();
     } catch (err) {
@@ -376,11 +242,7 @@ const goBack = () => {
 const toggleLike = async () => {
     if (!isLoggedIn.value || !currentMemberId.value) return;
     const recipeId = route.params.id;
-    const response = await handleApiCall(
-        () => toggleFavoriteApi(currentMemberId.value!, Number(recipeId)),
-        '찜 기능을 사용할 수 없습니다.',
-        '찜 토글 실패'
-    );
+    const response = await handleApiCall(() => toggleFavoriteApi(currentMemberId.value!, Number(recipeId)), '찜 기능을 사용할 수 없습니다.', '찜 토글 실패');
     if (response) {
         isLiked.value = response.isFavorite;
     }
@@ -402,9 +264,9 @@ const toggleFollow = async () => {
         router.push({ path: '/auth/login', query: { redirect: route.fullPath } });
         return;
     }
-    
+
     if (!recipe.value?.memberId) return;
-    
+
     try {
         if (isFollowing.value) {
             await unfollowUser(recipe.value.memberId);
@@ -444,7 +306,7 @@ const handleCommentImageSelect = (event: Event) => {
             showWarn('이미지 크기는 5MB 이하여야 합니다.');
             return;
         }
-        
+
         newCommentImage.value = file;
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -461,33 +323,29 @@ const removeCommentImage = () => {
 
 const submitComment = async () => {
     if (!newComment.value.trim()) return;
-    
+
     // 로그인 확인
     if (!isLoggedIn.value || !currentMemberId.value) {
         return;
     }
-    
+
     // 레시피 작성자는 댓글 작성 불가
     if (isRecipeAuthor.value) {
         showWarn('작성자는 답글만 작성이 가능합니다');
         return;
     }
-    
+
     const recipeId = route.params.id;
-    
+
     // 이미지가 있으면 multipart/form-data로 전송
     if (newCommentImage.value) {
         const formData = new FormData();
         formData.append('memberId', currentMemberId.value.toString());
         formData.append('content', newComment.value);
         formData.append('image', newCommentImage.value);
-        
-        const success = await handleApiCallVoid(
-            () => createCommentWithImage(Number(recipeId), formData),
-            '댓글 작성 중 오류가 발생했습니다.',
-            '댓글 작성 실패'
-        );
-        
+
+        const success = await handleApiCallVoid(() => createCommentWithImage(Number(recipeId), formData), '댓글 작성 중 오류가 발생했습니다.', '댓글 작성 실패');
+
         if (success) {
             newComment.value = '';
             newCommentImage.value = null;
@@ -505,7 +363,7 @@ const submitComment = async () => {
             '댓글 작성 중 오류가 발생했습니다.',
             '댓글 작성 실패'
         );
-        
+
         if (success) {
             newComment.value = '';
             newCommentImage.value = null;
@@ -534,7 +392,7 @@ const handleReplyImageSelect = (event: Event) => {
             showWarn('이미지 크기는 5MB 이하여야 합니다.');
             return;
         }
-        
+
         replyImage.value = file;
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -573,13 +431,9 @@ const submitReply = async () => {
         formData.append('content', contentWithPrefix);
         formData.append('parentId', parentId.toString());
         formData.append('image', replyImage.value);
-        
-        const success = await handleApiCallVoid(
-            () => createCommentWithImage(Number(recipeId), formData),
-            '답글 작성 중 오류가 발생했습니다.',
-            '답글 작성 실패'
-        );
-        
+
+        const success = await handleApiCallVoid(() => createCommentWithImage(Number(recipeId), formData), '답글 작성 중 오류가 발생했습니다.', '답글 작성 실패');
+
         if (success) {
             replyContent.value = '';
             replyImage.value = null;
@@ -599,7 +453,7 @@ const submitReply = async () => {
             '답글 작성 중 오류가 발생했습니다.',
             '답글 작성 실패'
         );
-        
+
         if (success) {
             replyContent.value = '';
             replyImage.value = null;
@@ -616,7 +470,7 @@ const toggleReplyForm = (comment: RecipeComment) => {
     if (!isLoggedIn.value) {
         return;
     }
-    
+
     if (replyingToCommentId.value === comment.id) {
         replyingToCommentId.value = null;
         replyingToComment.value = null;
@@ -625,7 +479,7 @@ const toggleReplyForm = (comment: RecipeComment) => {
         replyingToCommentId.value = comment.id;
         replyingToComment.value = comment;
         replyContent.value = '';
-        
+
         // 답글 목록을 펼침
         const rootCommentId = comment.parentId || comment.id;
         if (!expandedComments.value.has(rootCommentId)) {
@@ -669,7 +523,7 @@ const handleEditImageSelect = (event: Event) => {
             showWarn('이미지 크기는 5MB 이하여야 합니다.');
             return;
         }
-        
+
         editingImage.value = file;
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -688,7 +542,7 @@ const removeEditImage = () => {
 
 const updateComment = async (commentId: number) => {
     if (!editingContent.value.trim()) return;
-    
+
     try {
         // 이미지가 변경되었거나 제거된 경우
         if (editingImage.value || editingRemoveImage.value) {
@@ -706,13 +560,13 @@ const updateComment = async (commentId: number) => {
                 content: editingContent.value
             });
         }
-        
+
         editingCommentId.value = null;
         editingContent.value = '';
         editingImage.value = null;
         editingImagePreview.value = null;
         editingRemoveImage.value = false;
-        
+
         // 댓글 목록 다시 불러오기
         await fetchComments(currentPage.value);
     } catch (err) {
@@ -737,18 +591,14 @@ const deleteComment = async (commentId: number) => {
         accept: async () => {
             loading.value = true;
             error.value = null;
-            
-            const success = await handleApiCallVoid(
-                () => deleteCommentApi(commentId, currentMemberId.value!),
-                '댓글 삭제 중 오류가 발생했습니다.',
-                '댓글 삭제 실패'
-            );
-            
+
+            const success = await handleApiCallVoid(() => deleteCommentApi(commentId, currentMemberId.value!), '댓글 삭제 중 오류가 발생했습니다.', '댓글 삭제 실패');
+
             if (success) {
                 // 댓글 목록 다시 불러오기
                 await fetchComments(currentPage.value);
             }
-            
+
             loading.value = false;
         },
         reject: () => {
@@ -770,7 +620,7 @@ const openImageModal = (image: RecipeImage, index: number, event?: Event) => {
     selectedImage.value = image;
     selectedImageIndex.value = index;
     showImageModal.value = true;
-    
+
     // 모달이 열릴 때 body 스크롤 방지
     document.body.style.overflow = 'hidden';
 };
@@ -779,7 +629,7 @@ const closeImageModal = () => {
     showImageModal.value = false;
     selectedImage.value = null;
     selectedImageIndex.value = 0;
-    
+
     // 모달이 닫힐 때 body 스크롤 복원
     document.body.style.overflow = '';
 };
@@ -805,35 +655,35 @@ onMounted(() => {
     const initializePage = async () => {
         // 페이지 진입 즉시 맨 위로 스크롤 (데이터 로딩 전)
         window.scrollTo({ top: 0, behavior: 'instant' });
-        
+
         // 난이도 공통코드 로드
         await loadDifficultyCodes();
-        
+
         // 로그인 여부와 관계없이 레시피 상세 조회
         await fetchRecipeDetail();
-        
+
         // 레시피 로딩 완료 후 해시가 있으면 해당 위치로 스크롤
         if (route.hash) {
             // DOM 렌더링 완료 대기 (이미지 포함)
             await nextTick();
-            
+
             // 이미지와 레이아웃이 완전히 로드될 때까지 추가 대기
             // requestAnimationFrame을 두 번 호출해서 브라우저의 레이아웃 계산 완료 보장
-            await new Promise(resolve => {
+            await new Promise((resolve) => {
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
                         setTimeout(resolve, 100); // 추가 100ms 여유
                     });
                 });
             });
-            
+
             const element = document.querySelector(route.hash);
             if (element) {
                 // 요소의 절대 위치를 구해서 고정된 offset만큼 빼고 스크롤
                 // 이렇게 하면 댓글 개수와 상관없이 항상 같은 위치에서 보임
                 const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
                 const offsetPosition = elementPosition - 80; // 상단 여백 80px
-                
+
                 window.scrollTo({
                     top: offsetPosition,
                     behavior: 'smooth'
@@ -869,13 +719,119 @@ const onBookmarked = async () => {
 };
 </script>
 
+<template>
+    <div class="min-h-screen">
+        <!-- 로딩 상태 -->
+        <div v-if="loading" class="flex items-center justify-center min-h-screen">
+            <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-500"></div>
+        </div>
+
+        <!-- 에러 상태 -->
+        <div v-else-if="error" class="flex items-center justify-center min-h-screen">
+            <div class="text-center">
+                <div class="text-6xl mb-4">😞</div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">레시피를 찾을 수 없습니다</h2>
+                <p class="text-gray-600 mb-4">{{ error }}</p>
+                <button @click="goBack" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">돌아가기</button>
+            </div>
+        </div>
+
+        <!-- 레시피 상세 내용 -->
+        <div v-else-if="recipe" class="max-w-6xl mx-auto px-4 py-8">
+            <RecipeDetailHeader
+                :recipe="recipe"
+                :main-image="mainImage"
+                :cooking-tips-data="cookingTipsData"
+                :is-liked="isLiked"
+                :is-bookmarked="isBookmarked"
+                :is-recipe-author="isRecipeAuthor"
+                :is-following="isFollowing"
+                :follow-disabled="!isLoggedIn"
+                :format-number="formatNumber"
+                @go-back="goBack"
+                @toggle-like="toggleLike"
+                @toggle-bookmark="openBookmarkDialog"
+                @toggle-follow="toggleFollow"
+                @go-to-author-profile="goToAuthorProfile"
+            />
+
+            <RecipeDetailIngredients :ingredient-groups="recipe.ingredientGroups || []" />
+
+            <RecipeDetailSteps :steps="recipe.steps || []" />
+
+            <RecipeDetailGallery :images="recipe.images || []" />
+
+            <!-- 댓글 섹션 -->
+            <RecipeComments
+                :comments="comments"
+                :is-logged-in="isLoggedIn"
+                :is-recipe-author="isRecipeAuthor"
+                :member-profile-image="authStore.memberProfileImage"
+                v-model:new-comment="newComment"
+                :new-comment-image-preview="newCommentImagePreview"
+                v-model:reply-content="replyContent"
+                :reply-image-preview="replyImagePreview"
+                :replying-to-comment-id="replyingToCommentId"
+                :replying-to-comment="replyingToComment"
+                :editing-comment-id="editingCommentId"
+                v-model:editing-content="editingContent"
+                :editing-image-preview="editingImagePreview"
+                :expanded-comments="expandedComments"
+                :total-pages="totalPages"
+                :current-page="currentPage"
+                :current-member-id="currentMemberId"
+                :format-date="formatDate"
+                @submit-comment="submitComment"
+                @focus-comment-textarea="focusCommentTextarea"
+                @comment-image-select="handleCommentImageSelect"
+                @remove-comment-image="removeCommentImage"
+                @go-login="router.push({ path: '/auth/login', query: { redirect: route.fullPath } })"
+                @submit-reply="submitReply"
+                @cancel-reply="cancelReply"
+                @reply-image-select="handleReplyImageSelect"
+                @remove-reply-image="removeReplyImage"
+                @toggle-reply-form="toggleReplyForm"
+                @start-edit-comment="startEditComment"
+                @cancel-edit-comment="cancelEditComment"
+                @edit-image-select="handleEditImageSelect"
+                @remove-edit-image="removeEditImage"
+                @update-comment="updateComment"
+                @delete-comment="deleteComment"
+                @toggle-replies-visibility="toggleRepliesVisibility"
+                @load-page="loadPage"
+                @open-image="(payload) => openImageModalFromPayload(payload, 0)"
+                @go-to-member-profile="goToMemberProfile"
+            />
+        </div>
+
+        <!-- 이미지 모달 -->
+        <Teleport to="body">
+            <div v-if="showImageModal" @click="closeImageModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1000]" data-modal="image-modal">
+                <div class="relative max-w-4xl max-h-full p-4" @click.stop>
+                    <button @click="closeImageModal" class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 z-10">
+                        <i class="pi pi-times"></i>
+                    </button>
+                    <img :src="selectedImage?.url" :alt="`이미지 ${selectedImageIndex + 1}`" class="max-w-full max-h-full rounded-lg" />
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- 북마크 Dialog -->
+        <BookmarkDialog v-model:visible="bookmarkDialogVisible" :recipe-id="recipe?.id || null" @bookmarked="onBookmarked" />
+    </div>
+</template>
+
 <style scoped>
 .animate-spin {
     animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 </style>

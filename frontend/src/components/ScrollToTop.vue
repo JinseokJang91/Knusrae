@@ -28,13 +28,7 @@ onUnmounted(() => {
 
 <template>
     <Transition name="fade">
-        <button
-            v-if="isVisible"
-            class="scroll-to-top-btn"
-            @click="scrollToTop"
-            type="button"
-            aria-label="맨 위로 이동"
-        >
+        <button v-if="isVisible" class="scroll-to-top-btn" @click="scrollToTop" type="button" aria-label="맨 위로 이동">
             <i class="pi pi-arrow-up"></i>
         </button>
     </Transition>
@@ -75,7 +69,9 @@ onUnmounted(() => {
 // 페이드 인/아웃 애니메이션
 .fade-enter-active,
 .fade-leave-active {
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
 }
 
 .fade-enter-from,
@@ -91,11 +87,10 @@ onUnmounted(() => {
         right: 1.5rem;
         width: 2.5rem;
         height: 2.5rem;
-        
+
         i {
             font-size: 1rem;
         }
     }
 }
 </style>
-

@@ -243,4 +243,3 @@ export interface TodayRecommendationsResponse {
     recommendationType: 'PERSONALIZED' | 'GENERAL';
     refreshable: boolean;
 }
-

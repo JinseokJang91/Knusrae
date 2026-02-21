@@ -1,113 +1,3 @@
-<template>
-    <div class="ingredient-list">
-        <!-- 검색 바 + 재료 정보 요청 버튼 -->
-        <div class="search-row mb-6">
-            <span class="p-input-icon-left search-bar">
-                <InputText 
-                    v-model="localSearchQuery" 
-                    placeholder="재료명을 검색하세요...(예: 감자, 계란)" 
-                    class="w-full"
-                    @input="handleSearchInput"
-                />
-            </span>
-            <Button 
-                label="재료 정보 요청하기" 
-                icon="pi pi-send"
-                severity="secondary"
-                outlined
-                class="request-btn"
-                @click="openRequestDialog"
-            />
-        </div>
-
-        <!-- 재료 그룹 선택 -->
-        <IngredientGroupSelector
-            :groups="groups"
-            :selected-group-id="selectedGroupId"
-            @select="handleGroupSelect"
-            class="mb-6"
-        />
-
-        <!-- 그룹 선택 ↔ 재료 목록 구분 -->
-        <div class="list-section-divider" aria-hidden="true"></div>
-
-        <!-- 로딩 상태 -->
-        <div v-if="loading" class="text-center py-8">
-            <ProgressSpinner />
-            <p class="text-gray-600 mt-3">재료를 불러오는 중...</p>
-        </div>
-
-        <!-- 에러 상태 -->
-        <div v-else-if="error" class="text-center py-8">
-            <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-            <h3 class="text-2xl font-semibold text-gray-600 mb-2">재료를 불러올 수 없습니다</h3>
-            <p class="text-gray-600 mb-4">{{ error }}</p>
-            <Button label="다시 시도" @click="loadIngredients" />
-        </div>
-
-        <!-- 재료 목록 -->
-        <div v-else-if="ingredients.length > 0">
-            <IngredientGrid
-                :ingredients="ingredients"
-                :type="type"
-                @ingredient-click="handleIngredientClick"
-            />
-        </div>
-
-        <!-- 빈 상태 -->
-        <div v-else class="text-center py-12">
-            <i class="pi pi-inbox text-6xl text-gray-400 mb-4"></i>
-            <h3 class="text-xl font-semibold text-gray-600 mb-2">재료가 없습니다</h3>
-            <p class="text-gray-500">검색 조건을 변경해보세요.</p>
-        </div>
-
-        <!-- 재료 정보 요청 다이얼로그 -->
-        <Dialog
-            v-model:visible="showRequestDialog"
-            header="재료 정보 요청"
-            :modal="true"
-            :style="{ width: '90vw', maxWidth: '500px' }"
-        >
-            <div class="request-form">
-                <div class="mb-4">
-                    <label class="block mb-2 font-semibold">재료명</label>
-                    <InputText 
-                        v-model="requestForm.ingredientName" 
-                        class="w-full" 
-                        placeholder="요청할 재료명을 입력하세요"
-                    />
-                </div>
-                
-                <div class="mb-4">
-                    <label class="block mb-2 font-semibold">요청 유형</label>
-                    <Select 
-                        v-model="requestForm.requestType" 
-                        :options="requestTypes"
-                        optionLabel="label"
-                        optionValue="value"
-                        class="w-full"
-                    />
-                </div>
-                
-                <div class="mb-4">
-                    <label class="block mb-2 font-semibold">메시지 (선택사항)</label>
-                    <Textarea 
-                        v-model="requestForm.message" 
-                        rows="4"
-                        class="w-full"
-                        placeholder="요청 사항을 입력하세요..."
-                    />
-                </div>
-            </div>
-
-            <template #footer>
-                <Button label="취소" severity="secondary" outlined @click="showRequestDialog = false" />
-                <Button label="요청하기" @click="handleRequestSubmit" :loading="requestLoading" />
-            </template>
-        </Dialog>
-    </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -165,7 +55,7 @@ const handleSearchInput = () => {
     if (searchTimeout) {
         clearTimeout(searchTimeout);
     }
-    
+
     searchTimeout = setTimeout(() => {
         emit('search-changed', localSearchQuery.value);
         loadIngredients();
@@ -201,23 +91,23 @@ const handleRequestSubmit = async () => {
         });
         return;
     }
-    
+
     requestLoading.value = true;
-    
+
     try {
         await createIngredientRequest({
             ingredientName: requestForm.value.ingredientName.trim(),
             requestType: requestForm.value.requestType,
             message: requestForm.value.message?.trim() || undefined
         });
-        
+
         toast.add({
             severity: 'success',
             summary: '요청 완료',
             detail: '재료 정보 요청이 접수되었습니다.',
             life: 3000
         });
-        
+
         showRequestDialog.value = false;
         requestForm.value = {
             ingredientName: '',
@@ -274,25 +164,103 @@ const loadIngredients = async () => {
 };
 
 // props 변경 감지 (탭/그룹/검색 변경 시 재조회)
-watch(() => props.selectedGroupId, (newValue) => {
-    selectedGroupId.value = newValue ?? null;
-    loadIngredients();
-});
+watch(
+    () => props.selectedGroupId,
+    (newValue) => {
+        selectedGroupId.value = newValue ?? null;
+        loadIngredients();
+    }
+);
 
-watch(() => props.searchQuery, (newValue) => {
-    localSearchQuery.value = newValue || '';
-    loadIngredients();
-});
+watch(
+    () => props.searchQuery,
+    (newValue) => {
+        localSearchQuery.value = newValue || '';
+        loadIngredients();
+    }
+);
 
-watch(() => props.type, () => {
-    loadIngredients();
-});
+watch(
+    () => props.type,
+    () => {
+        loadIngredients();
+    }
+);
 
 onMounted(() => {
     loadGroups();
     loadIngredients();
 });
 </script>
+
+<template>
+    <div class="ingredient-list">
+        <!-- 검색 바 + 재료 정보 요청 버튼 -->
+        <div class="search-row mb-6">
+            <span class="p-input-icon-left search-bar">
+                <InputText v-model="localSearchQuery" placeholder="재료명을 검색하세요...(예: 감자, 계란)" class="w-full" @input="handleSearchInput" />
+            </span>
+            <Button label="재료 정보 요청하기" icon="pi pi-send" severity="secondary" outlined class="request-btn" @click="openRequestDialog" />
+        </div>
+
+        <!-- 재료 그룹 선택 -->
+        <IngredientGroupSelector :groups="groups" :selected-group-id="selectedGroupId" @select="handleGroupSelect" class="mb-6" />
+
+        <!-- 그룹 선택 ↔ 재료 목록 구분 -->
+        <div class="list-section-divider" aria-hidden="true"></div>
+
+        <!-- 로딩 상태 -->
+        <div v-if="loading" class="text-center py-8">
+            <ProgressSpinner />
+            <p class="text-gray-600 mt-3">재료를 불러오는 중...</p>
+        </div>
+
+        <!-- 에러 상태 -->
+        <div v-else-if="error" class="text-center py-8">
+            <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+            <h3 class="text-2xl font-semibold text-gray-600 mb-2">재료를 불러올 수 없습니다</h3>
+            <p class="text-gray-600 mb-4">{{ error }}</p>
+            <Button label="다시 시도" @click="loadIngredients" />
+        </div>
+
+        <!-- 재료 목록 -->
+        <div v-else-if="ingredients.length > 0">
+            <IngredientGrid :ingredients="ingredients" :type="type" @ingredient-click="handleIngredientClick" />
+        </div>
+
+        <!-- 빈 상태 -->
+        <div v-else class="text-center py-12">
+            <i class="pi pi-inbox text-6xl text-gray-400 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-600 mb-2">재료가 없습니다</h3>
+            <p class="text-gray-500">검색 조건을 변경해보세요.</p>
+        </div>
+
+        <!-- 재료 정보 요청 다이얼로그 -->
+        <Dialog v-model:visible="showRequestDialog" header="재료 정보 요청" :modal="true" :style="{ width: '90vw', maxWidth: '500px' }">
+            <div class="request-form">
+                <div class="mb-4">
+                    <label class="block mb-2 font-semibold">재료명</label>
+                    <InputText v-model="requestForm.ingredientName" class="w-full" placeholder="요청할 재료명을 입력하세요" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="block mb-2 font-semibold">요청 유형</label>
+                    <Select v-model="requestForm.requestType" :options="requestTypes" optionLabel="label" optionValue="value" class="w-full" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="block mb-2 font-semibold">메시지 (선택사항)</label>
+                    <Textarea v-model="requestForm.message" rows="4" class="w-full" placeholder="요청 사항을 입력하세요..." />
+                </div>
+            </div>
+
+            <template #footer>
+                <Button label="취소" severity="secondary" outlined @click="showRequestDialog = false" />
+                <Button label="요청하기" @click="handleRequestSubmit" :loading="requestLoading" />
+            </template>
+        </Dialog>
+    </div>
+</template>
 
 <style scoped>
 .ingredient-list {

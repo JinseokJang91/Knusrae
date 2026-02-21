@@ -8,15 +8,12 @@ const BASE_URL = getApiBaseUrl('cook');
 
 /**
  * 오늘의 레시피 추천 조회
- * 
+ *
  * @param limit 반환할 레시피 개수 (기본값: 3)
  * @param refresh 캐시 무시 여부 (기본값: false)
  * @returns 오늘의 추천 레시피 목록
  */
-export async function getTodayRecommendations(
-    limit: number = 3,
-    refresh: boolean = false
-): Promise<TodayRecommendationsResponse> {
+export async function getTodayRecommendations(limit: number = 3, refresh: boolean = false): Promise<TodayRecommendationsResponse> {
     const params = new URLSearchParams({
         limit: limit.toString(),
         refresh: refresh.toString()

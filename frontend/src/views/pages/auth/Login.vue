@@ -5,11 +5,13 @@ import { openOAuthPopup } from '@/utils/oauth';
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
+import { useAppToast } from '@/utils/toast';
 import { getTestAccounts, testLogin, type TestAccount } from '@/api/authApi';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const { showSuccess, showError } = useAppToast();
 
 const isDevelopment = import.meta.env.DEV;
 const showTestAccounts = ref(false);
@@ -33,29 +35,16 @@ function handleSocialLogin(provider: 'kakao' | 'google' | 'naver') {
     // redirect 경로를 localStorage에 저장 (OAuth 팝업에서 사용)
     const redirectPath = getRedirectPath();
     localStorage.setItem('oauth_redirect', redirectPath);
-    
+
     switch (provider) {
         case 'naver':
-            openOAuthPopup(
-                'naver',
-                import.meta.env.VITE_NAVER_CLIENT_ID,
-                import.meta.env.VITE_NAVER_REDIRECT_URI
-            );
+            openOAuthPopup('naver', import.meta.env.VITE_NAVER_CLIENT_ID, import.meta.env.VITE_NAVER_REDIRECT_URI);
             break;
         case 'google':
-            openOAuthPopup(
-                'google',
-                import.meta.env.VITE_GOOGLE_CLIENT_ID,
-                import.meta.env.VITE_GOOGLE_REDIRECT_URI,
-                { scope: 'openid email profile' }
-            );
+            openOAuthPopup('google', import.meta.env.VITE_GOOGLE_CLIENT_ID, import.meta.env.VITE_GOOGLE_REDIRECT_URI, { scope: 'openid email profile' });
             break;
         case 'kakao':
-            openOAuthPopup(
-                'kakao',
-                import.meta.env.VITE_KAKAO_CLIENT_ID,
-                import.meta.env.VITE_KAKAO_REDIRECT_URI
-            );
+            openOAuthPopup('kakao', import.meta.env.VITE_KAKAO_CLIENT_ID, import.meta.env.VITE_KAKAO_REDIRECT_URI);
             break;
     }
 }
@@ -77,7 +66,7 @@ async function loadTestAccounts() {
         showTestAccounts.value = true;
     } catch (error) {
         console.error('테스트 계정 로드 에러:', error);
-        alert('테스트 계정 목록을 가져오는 중 오류가 발생했습니다.');
+        showError('테스트 계정 목록을 가져오는 중 오류가 발생했습니다.');
     } finally {
         loadingTestAccounts.value = false;
     }
@@ -87,15 +76,15 @@ async function loginWithTestAccount(email: string) {
     try {
         const result = await testLogin(email);
         if (result.success) {
-            alert(`${email} 계정으로 로그인되었습니다!`);
+            showSuccess(`${email} 계정으로 로그인되었습니다!`);
             await authStore.login();
             redirectAfterLogin();
         } else {
-            alert(`로그인 실패: ${result.message || '알 수 없는 오류'}`);
+            showError(`로그인 실패: ${result.message || '알 수 없는 오류'}`);
         }
     } catch (error) {
         console.error('테스트 로그인 에러:', error);
-        alert('로그인 중 오류가 발생했습니다.');
+        showError('로그인 중 오류가 발생했습니다.');
     }
 }
 
@@ -110,22 +99,12 @@ async function loginAsAdmin() {
     <div class="bg-white dark:bg-gray-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden relative">
         <!-- 홈 아이콘 -->
         <div class="absolute top-6 left-6 z-10">
-            <Button 
-                @click="goHome"
-                icon="pi pi-home"
-                size="large"
-                rounded
-                title="홈으로 돌아가기" />
+            <Button @click="goHome" icon="pi pi-home" size="large" rounded title="홈으로 돌아가기" />
         </div>
 
         <!-- 뒤로가기 버튼 -->
         <div class="absolute top-6 left-20 z-10">
-            <Button 
-                @click="goBack"
-                icon="pi pi-arrow-left"
-                size="large"
-                rounded
-                title="이전 페이지로 돌아가기" />
+            <Button @click="goBack" icon="pi pi-arrow-left" size="large" rounded title="이전 페이지로 돌아가기" />
         </div>
 
         <div class="flex flex-col items-center justify-center">
@@ -142,12 +121,19 @@ async function loginAsAdmin() {
                         <!-- 개발 환경에서만 표시되는 테스트 계정 로그인 -->
                         <div v-if="isDevelopment" class="mt-8 pt-6 border-t border-gray-300 dark:border-gray-700">
                             <!-- 관리자 로그인 버튼 -->
-                            <button @click="loginAsAdmin" class="w-full flex items-center justify-center gap-2 bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 rounded-lg px-6 py-3 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors mb-4">
+                            <button
+                                @click="loginAsAdmin"
+                                class="w-full flex items-center justify-center gap-2 bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 rounded-lg px-6 py-3 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors mb-4"
+                            >
                                 <i class="pi pi-shield text-lg"></i>
                                 <span class="font-medium">관리자 로그인</span>
                             </button>
 
-                            <button @click="loadTestAccounts" :disabled="loadingTestAccounts" class="w-full flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">
+                            <button
+                                @click="loadTestAccounts"
+                                :disabled="loadingTestAccounts"
+                                class="w-full flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-6 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                            >
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>
@@ -156,17 +142,25 @@ async function loginAsAdmin() {
 
                             <!-- 테스트 계정 목록 -->
                             <div v-if="showTestAccounts" class="mt-4 space-y-2">
-                                <div v-for="account in testAccounts" :key="account.id" @click="loginWithTestAccount(account.email)" class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+                                <div
+                                    v-for="account in testAccounts"
+                                    :key="account.id"
+                                    @click="loginWithTestAccount(account.email)"
+                                    class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                                >
                                     <div class="flex items-center justify-between">
                                         <div class="flex-1">
                                             <div class="font-medium text-gray-900 dark:text-gray-100">{{ account.name }}</div>
                                             <div class="text-sm text-gray-600 dark:text-gray-400">{{ account.email }}</div>
                                         </div>
-                                        <div class="text-xs px-2 py-1 rounded" :class="{
-                                            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': account.socialRole === 'GOOGLE',
-                                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': account.socialRole === 'KAKAO',
-                                            'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200': account.socialRole === 'NAVER'
-                                        }">
+                                        <div
+                                            class="text-xs px-2 py-1 rounded"
+                                            :class="{
+                                                'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': account.socialRole === 'GOOGLE',
+                                                'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': account.socialRole === 'KAKAO',
+                                                'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200': account.socialRole === 'NAVER'
+                                            }"
+                                        >
                                             {{ account.socialRole }}
                                         </div>
                                     </div>

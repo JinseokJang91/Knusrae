@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import logoText from '@/assets/images/logo/logo-full.png';
 import { useAuthStore } from '@/stores/authStore';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import Menu from 'primevue/menu';
@@ -38,11 +38,14 @@ const profileMenuItems = computed(() => {
             command: () => handleMyMenuClick('/admin', new Event('click'))
         });
     }
-    items.push({ separator: true }, {
-        label: '로그아웃',
-        icon: 'pi pi-sign-out',
-        command: () => handleLogout()
-    });
+    items.push(
+        { separator: true },
+        {
+            label: '로그아웃',
+            icon: 'pi pi-sign-out',
+            command: () => handleLogout()
+        }
+    );
     return items;
 });
 const recentKeywords = ref<RecentSearchKeyword[]>([]);
@@ -81,7 +84,7 @@ const getCategoryRouteLink = (category: RecipeCategory) => {
 
 const handleSearch = () => {
     const keyword = searchQuery.value.trim();
-    
+
     if (keyword) {
         // 자동저장이 켜져 있고 로그인 상태일 때만 검색어 저장
         if (authStore.isLoggedIn && isAutoSaveEnabled.value) {
@@ -95,7 +98,7 @@ const handleSearch = () => {
                 // 저장 실패해도 검색은 진행
             }
         }
-        
+
         // 검색어가 있으면 검색 결과 페이지로 이동
         router.push({
             path: '/recipe/search',
@@ -137,7 +140,7 @@ const loadRecentKeywords = () => {
 const selectRecentKeyword = (keyword: string) => {
     searchQuery.value = keyword;
     showRecentKeywords.value = false; // 드롭다운 닫기
-    
+
     // 자동저장이 켜져 있고 로그인 상태일 때만 검색어 저장
     if (authStore.isLoggedIn && isAutoSaveEnabled.value) {
         try {
@@ -150,19 +153,19 @@ const selectRecentKeyword = (keyword: string) => {
             // 저장 실패해도 검색은 진행
         }
     }
-    
+
     handleSearch();
 };
 
 // 최근 검색어 삭제
 const handleDeleteKeyword = (keywordId: number, event: Event) => {
     event.stopPropagation(); // 이벤트 전파 방지
-    
+
     try {
         const memberId = authStore.memberInfo?.id;
         deleteRecentSearchKeyword(keywordId, memberId);
         // 목록에서 제거
-        recentKeywords.value = recentKeywords.value.filter(k => k.id !== keywordId);
+        recentKeywords.value = recentKeywords.value.filter((k) => k.id !== keywordId);
     } catch (error) {
         console.error('검색어 삭제 실패:', error);
     }
@@ -173,14 +176,14 @@ const toggleAutoSave = (newValue: boolean) => {
     const memberId = authStore.memberInfo?.id;
     const key = getAutoSaveKey(memberId);
     localStorage.setItem(key, String(newValue));
-    
+
     // 자동저장 설정 변경 (토스트 없이 처리)
 };
 
 // 전체 검색어 삭제
 const handleDeleteAllKeywords = (event: Event) => {
     event.stopPropagation(); // 이벤트 전파 방지
-    
+
     confirm.require({
         message: '모든 최근 검색어를 삭제하시겠습니까?',
         header: '전체 삭제',
@@ -227,7 +230,7 @@ const handleSearchBlur = (event: FocusEvent) => {
     if (relatedTarget && relatedTarget.closest('.recent-keywords-dropdown')) {
         return;
     }
-    
+
     setTimeout(() => {
         showRecentKeywords.value = false;
     }, 200);
@@ -238,17 +241,16 @@ const handleClickOutside = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
     const searchWrapper = target.closest('.search-wrapper');
     const dropdown = target.closest('.recent-keywords-dropdown');
-    
+
     // 검색 래퍼나 드롭다운 외부를 클릭한 경우에만 닫기
     if (!searchWrapper && !dropdown) {
         showRecentKeywords.value = false;
     }
 };
 
-
 const handleMyRecipesClick = (event: Event) => {
     event.preventDefault();
-    
+
     if (!authStore.isLoggedIn) {
         confirm.require({
             message: '로그인 후 이용 가능합니다.',
@@ -279,7 +281,7 @@ const handleMyRecipesClick = (event: Event) => {
 
 const handleMyMenuClick = (path: string, event: Event) => {
     event.preventDefault();
-    
+
     if (!authStore.isLoggedIn) {
         confirm.require({
             message: '로그인 후 이용 가능합니다.',
@@ -332,31 +334,37 @@ const handleLogout = async () => {
 };
 
 // 로그인 상태 변경 감시하여 최근 검색어 로드 및 자동저장 설정 업데이트
-watch(() => authStore.isLoggedIn, (isLoggedIn) => {
-    if (isLoggedIn && showRecentKeywords.value) {
-        // 자동저장 off 상태에서도 목록 로드
-        loadRecentKeywords();
-        // 계정 변경 시 해당 계정의 자동저장 설정으로 업데이트
-        isAutoSaveEnabled.value = getInitialAutoSaveValue();
-    } else if (!isLoggedIn) {
-        recentKeywords.value = [];
-        showRecentKeywords.value = false;
-        // 로그아웃 시 기본값으로 재설정
-        isAutoSaveEnabled.value = getInitialAutoSaveValue();
-    }
-});
-
-// 사용자 ID 변경 감시 (계정 변경 시 자동저장 설정 업데이트)
-watch(() => authStore.memberInfo?.id, (newId, oldId) => {
-    // 사용자 ID가 변경되었을 때 (계정 변경)
-    if (newId !== oldId && authStore.isLoggedIn) {
-        isAutoSaveEnabled.value = getInitialAutoSaveValue();
-        // 최근 검색어 목록도 새로 로드
-        if (showRecentKeywords.value) {
+watch(
+    () => authStore.isLoggedIn,
+    (isLoggedIn) => {
+        if (isLoggedIn && showRecentKeywords.value) {
+            // 자동저장 off 상태에서도 목록 로드
             loadRecentKeywords();
+            // 계정 변경 시 해당 계정의 자동저장 설정으로 업데이트
+            isAutoSaveEnabled.value = getInitialAutoSaveValue();
+        } else if (!isLoggedIn) {
+            recentKeywords.value = [];
+            showRecentKeywords.value = false;
+            // 로그아웃 시 기본값으로 재설정
+            isAutoSaveEnabled.value = getInitialAutoSaveValue();
         }
     }
-});
+);
+
+// 사용자 ID 변경 감시 (계정 변경 시 자동저장 설정 업데이트)
+watch(
+    () => authStore.memberInfo?.id,
+    (newId, oldId) => {
+        // 사용자 ID가 변경되었을 때 (계정 변경)
+        if (newId !== oldId && authStore.isLoggedIn) {
+            isAutoSaveEnabled.value = getInitialAutoSaveValue();
+            // 최근 검색어 목록도 새로 로드
+            if (showRecentKeywords.value) {
+                loadRecentKeywords();
+            }
+        }
+    }
+);
 
 // 검색어 입력 감시 - 값이 입력되면 최근 검색어 목록 숨김
 watch(searchQuery, (newValue) => {
@@ -365,36 +373,29 @@ watch(searchQuery, (newValue) => {
     }
 });
 
-onMounted(() => {
-    // 외부 클릭 감지
-    document.addEventListener('click', handleClickOutside);
-    
-    // OAuth 로그인 성공 시 메시지 수신하여 로그인 상태 업데이트
-    window.addEventListener('message', async (event) => {
-        if (event.data && (
-            event.data.type === 'NAVER_LOGIN_SUCCESS' ||
-            event.data.type === 'GOOGLE_LOGIN_SUCCESS' ||
-            event.data.type === 'KAKAO_LOGIN_SUCCESS'
-        )) {
-            // OAuth 로그인 성공 시 로그인 상태 업데이트
-            await authStore.login();
-            
-            // redirect 경로가 있으면 해당 경로로 이동
-            const redirectPath = localStorage.getItem('oauth_redirect');
-            if (redirectPath) {
-                localStorage.removeItem('oauth_redirect');
-                router.push(redirectPath);
-            }
-        } else if (event.data && (
-            event.data.type === 'NAVER_LOGIN_ERROR' ||
-            event.data.type === 'GOOGLE_LOGIN_ERROR' ||
-            event.data.type === 'KAKAO_LOGIN_ERROR'
-        )) {
-            // 로그인 실패 시 상태 초기화
-            authStore.reset();
-            localStorage.removeItem('oauth_redirect'); // 에러 시에도 삭제
+// OAuth postMessage 핸들러 (onUnmounted에서 제거하기 위해 동일 참조 유지)
+const handleOAuthMessage = async (event: MessageEvent) => {
+    if (event.data && (event.data.type === 'NAVER_LOGIN_SUCCESS' || event.data.type === 'GOOGLE_LOGIN_SUCCESS' || event.data.type === 'KAKAO_LOGIN_SUCCESS')) {
+        await authStore.login();
+        const redirectPath = localStorage.getItem('oauth_redirect');
+        if (redirectPath) {
+            localStorage.removeItem('oauth_redirect');
+            router.push(redirectPath);
         }
-    });
+    } else if (event.data && (event.data.type === 'NAVER_LOGIN_ERROR' || event.data.type === 'GOOGLE_LOGIN_ERROR' || event.data.type === 'KAKAO_LOGIN_ERROR')) {
+        authStore.reset();
+        localStorage.removeItem('oauth_redirect');
+    }
+};
+
+onMounted(() => {
+    document.addEventListener('click', handleClickOutside);
+    window.addEventListener('message', handleOAuthMessage);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
+    window.removeEventListener('message', handleOAuthMessage);
 });
 </script>
 
@@ -425,11 +426,11 @@ onMounted(() => {
                     <button
                         type="button"
                         class="menu-item category-menu-btn"
-                        v-styleclass="{ 
-                            selector: '@next', 
-                            enterFromClass: 'hidden', 
-                            leaveToClass: 'hidden', 
-                            hideOnOutsideClick: true 
+                        v-styleclass="{
+                            selector: '@next',
+                            enterFromClass: 'hidden',
+                            leaveToClass: 'hidden',
+                            hideOnOutsideClick: true
                         }"
                     >
                         <i class="fa-solid fa-arrow-down-wide-short"></i>
@@ -438,13 +439,7 @@ onMounted(() => {
                     </button>
                     <div ref="categoryDropdownRef" class="hidden category-dropdown">
                         <div class="category-grid">
-                            <router-link 
-                                v-for="category in RECIPE_CATEGORIES" 
-                                :key="category.id"
-                                :to="getCategoryRouteLink(category)"
-                                class="category-item"
-                                @click="closeCategoryDropdown"
-                            >
+                            <router-link v-for="category in RECIPE_CATEGORIES" :key="category.id" :to="getCategoryRouteLink(category)" class="category-item" @click="closeCategoryDropdown">
                                 <i :class="category.icon"></i>
                                 <div class="category-info">
                                     <span class="category-name">{{ category.name }}</span>
@@ -466,44 +461,21 @@ onMounted(() => {
             <div class="search-wrapper">
                 <div class="search-container">
                     <i class="pi pi-search search-icon" @click="handleSearch"></i>
-                    <input 
-                        type="text" 
-                        placeholder="레시피를 검색해보세요..." 
-                        class="search-input" 
-                        v-model="searchQuery" 
-                        @keyup.enter="handleSearch"
-                        @focus="handleSearchFocus"
-                        @blur="handleSearchBlur"
-                    />
+                    <input type="text" placeholder="레시피를 검색해보세요..." class="search-input" v-model="searchQuery" @keyup.enter="handleSearch" @focus="handleSearchFocus" @blur="handleSearchBlur" />
                     <button v-if="searchQuery" class="search-clear-btn" @click="clearSearch">
                         <i class="pi pi-times"></i>
                     </button>
                 </div>
-                
+
                 <!-- 최근 검색어 드롭다운 -->
-                <div 
-                    v-if="showRecentKeywords && authStore.isLoggedIn" 
-                    class="recent-keywords-dropdown"
-                    @mousedown.prevent
-                >
+                <div v-if="showRecentKeywords && authStore.isLoggedIn" class="recent-keywords-dropdown" @mousedown.prevent>
                     <div class="recent-keywords-header">
                         <span class="text-sm font-semibold text-gray-700">최근 검색어</span>
                         <div class="recent-keywords-header-actions">
-                            <button 
-                                v-if="recentKeywords.length > 0"
-                                class="auto-save-toggle-btn text-xs text-gray-600 hover:text-gray-800 whitespace-nowrap"
-                                @click="handleDeleteAllKeywords"
-                                @mousedown.stop
-                                type="button"
-                            >
-                                전체 삭제
-                            </button>
+                            <button v-if="recentKeywords.length > 0" class="auto-save-toggle-btn text-xs text-gray-600 hover:text-gray-800 whitespace-nowrap" @click="handleDeleteAllKeywords" @mousedown.stop type="button">전체 삭제</button>
                             <div class="flex items-center gap-2" @mousedown.stop>
                                 <span class="text-xs text-gray-600 whitespace-nowrap">자동저장</span>
-                                <ToggleSwitch 
-                                    v-model="isAutoSaveEnabled"
-                                    @update:modelValue="(value: boolean) => toggleAutoSave(value)"
-                                />
+                                <ToggleSwitch v-model="isAutoSaveEnabled" @update:modelValue="(value: boolean) => toggleAutoSave(value)" />
                             </div>
                         </div>
                     </div>
@@ -515,21 +487,10 @@ onMounted(() => {
                         <span class="text-sm text-gray-500">최근 검색어가 없습니다.</span>
                     </div>
                     <div v-else class="recent-keywords-list">
-                        <div 
-                            v-for="keyword in recentKeywords" 
-                            :key="keyword.id"
-                            class="recent-keyword-item"
-                            @mousedown.prevent
-                            @click="selectRecentKeyword(keyword.keyword)"
-                        >
+                        <div v-for="keyword in recentKeywords" :key="keyword.id" class="recent-keyword-item" @mousedown.prevent @click="selectRecentKeyword(keyword.keyword)">
                             <i class="pi pi-clock text-gray-400"></i>
                             <span class="recent-keyword-text">{{ keyword.keyword }}</span>
-                            <button 
-                                class="recent-keyword-delete"
-                                @mousedown.stop
-                                @click.stop="handleDeleteKeyword(keyword.id, $event)"
-                                type="button"
-                            >
+                            <button class="recent-keyword-delete" @mousedown.stop @click.stop="handleDeleteKeyword(keyword.id, $event)" type="button">
                                 <i class="pi pi-times"></i>
                             </button>
                         </div>
@@ -550,17 +511,8 @@ onMounted(() => {
 
             <!-- 로그인 상태일 때 -->
             <div v-if="authStore.isLoggedIn" class="profile-section">
-                <button
-                    type="button"
-                    class="profile-button"
-                    @click="(event: Event) => profileMenu.toggle(event)"
-                >
-                    <img 
-                        v-if="authStore.memberProfileImage" 
-                        :src="authStore.memberProfileImage" 
-                        alt="프로필" 
-                        class="profile-image"
-                    />
+                <button type="button" class="profile-button" @click="(event: Event) => profileMenu.toggle(event)">
+                    <img v-if="authStore.memberProfileImage" :src="authStore.memberProfileImage" alt="프로필" class="profile-image" />
                     <i v-else class="pi pi-user profile-icon"></i>
                 </button>
                 <Menu ref="profileMenu" :model="profileMenuItems" :popup="true" />
@@ -573,4 +525,3 @@ onMounted(() => {
         </div>
     </div>
 </template>
-

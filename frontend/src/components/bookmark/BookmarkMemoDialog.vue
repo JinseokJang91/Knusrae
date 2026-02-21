@@ -1,33 +1,3 @@
-<template>
-    <Dialog
-        :visible="visible"
-        @update:visible="$emit('update:visible', $event)"
-        modal
-        header="레시피 메모"
-        :style="{ width: '420px' }"
-        :draggable="false"
-        @hide="onHide"
-    >
-        <div class="bookmark-memo-dialog">
-            <p v-if="recipeTitle" class="text-sm text-gray-600 mb-3">{{ recipeTitle }}</p>
-            <label class="block mb-2 font-medium">메모</label>
-            <Textarea
-                v-model="memoLocal"
-                placeholder="이 레시피에 대한 메모를 남겨보세요 (예: 양념 2배로 했을 때 맛있음)"
-                rows="4"
-                class="w-full"
-                :maxlength="500"
-                auto-resize
-            />
-            <small class="text-gray-500">{{ memoLocal.length }} / 500</small>
-        </div>
-        <template #footer>
-            <Button label="취소" text @click="close" />
-            <Button label="저장" @click="save" :loading="saving" />
-        </template>
-    </Dialog>
-</template>
-
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import Dialog from 'primevue/dialog';
@@ -89,6 +59,21 @@ async function save() {
     }
 }
 </script>
+
+<template>
+    <Dialog :visible="visible" @update:visible="$emit('update:visible', $event)" modal header="레시피 메모" :style="{ width: '420px' }" :draggable="false" @hide="onHide">
+        <div class="bookmark-memo-dialog">
+            <p v-if="recipeTitle" class="text-sm text-gray-600 mb-3">{{ recipeTitle }}</p>
+            <label class="block mb-2 font-medium">메모</label>
+            <Textarea v-model="memoLocal" placeholder="이 레시피에 대한 메모를 남겨보세요 (예: 양념 2배로 했을 때 맛있음)" rows="4" class="w-full" :maxlength="500" auto-resize />
+            <small class="text-gray-500">{{ memoLocal.length }} / 500</small>
+        </div>
+        <template #footer>
+            <Button label="취소" text @click="close" />
+            <Button label="저장" @click="save" :loading="saving" />
+        </template>
+    </Dialog>
+</template>
 
 <style scoped lang="scss">
 .bookmark-memo-dialog {

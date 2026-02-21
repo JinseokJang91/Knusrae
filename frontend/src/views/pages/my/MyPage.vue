@@ -1,15 +1,49 @@
+<script setup lang="ts">
+import { ref, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import Tabs from 'primevue/tabs';
+import TabList from 'primevue/tablist';
+import Tab from 'primevue/tab';
+import TabPanels from 'primevue/tabpanels';
+import TabPanel from 'primevue/tabpanel';
+import Button from 'primevue/button';
+import Profile from './Profile.vue';
+import Comments from './Comments.vue';
+import Inquiries from './Inquiries.vue';
+import Favorites from './Favorites.vue';
+import Bookmarks from './Bookmarks.vue';
+
+const route = useRoute();
+const router = useRouter();
+const activeTab = ref('profile');
+
+// URL 쿼리 파라미터에서 탭 정보 읽기
+onMounted(() => {
+    const tab = route.query.tab as string;
+    if (tab && ['profile', 'comments', 'inquiries', 'favorites', 'bookmarks'].includes(tab)) {
+        activeTab.value = tab;
+    }
+});
+
+// 탭 변경 시 URL 쿼리 파라미터 업데이트
+watch(activeTab, (newTab) => {
+    router.replace({
+        path: '/my',
+        query: { tab: newTab }
+    });
+});
+
+const goToMyRecipes = () => {
+    router.push('/my/recipes');
+};
+</script>
+
 <template>
     <div class="mypage-container">
         <div class="card">
             <div class="mypage-header">
                 <h1 class="text-3xl font-bold m-0">마이페이지</h1>
-                <Button
-                    label="내 레시피 관리"
-                    icon="pi pi-book"
-                    severity="secondary"
-                    outlined
-                    @click="goToMyRecipes"
-                />
+                <Button label="내 레시피 관리" icon="pi pi-book" severity="secondary" outlined @click="goToMyRecipes" />
             </div>
 
             <Tabs v-model:value="activeTab">
@@ -68,46 +102,6 @@
     </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import Tabs from 'primevue/tabs';
-import TabList from 'primevue/tablist';
-import Tab from 'primevue/tab';
-import TabPanels from 'primevue/tabpanels';
-import TabPanel from 'primevue/tabpanel';
-import Button from 'primevue/button';
-import Profile from './Profile.vue';
-import Comments from './Comments.vue';
-import Inquiries from './Inquiries.vue';
-import Favorites from './Favorites.vue';
-import Bookmarks from './Bookmarks.vue';
-
-const route = useRoute();
-const router = useRouter();
-const activeTab = ref('profile');
-
-// URL 쿼리 파라미터에서 탭 정보 읽기
-onMounted(() => {
-    const tab = route.query.tab as string;
-    if (tab && ['profile', 'comments', 'inquiries', 'favorites', 'bookmarks'].includes(tab)) {
-        activeTab.value = tab;
-    }
-});
-
-// 탭 변경 시 URL 쿼리 파라미터 업데이트
-watch(activeTab, (newTab) => {
-    router.replace({ 
-        path: '/my', 
-        query: { tab: newTab } 
-    });
-});
-
-const goToMyRecipes = () => {
-    router.push('/my/recipes');
-};
-</script>
-
 <style lang="scss" scoped>
 .mypage-container {
     padding: 1rem;
@@ -132,7 +126,7 @@ const goToMyRecipes = () => {
             background: transparent;
             border-bottom: 2px solid var(--surface-border);
             gap: 0.5rem;
-            
+
             .p-tab {
                 padding: 1rem 1.5rem;
                 font-weight: 500;
@@ -148,7 +142,7 @@ const goToMyRecipes = () => {
                     color: var(--text-color);
                 }
 
-                &[data-p-active="true"] {
+                &[data-p-active='true'] {
                     color: var(--primary-color);
                     border-bottom-color: var(--primary-color);
                 }
@@ -170,7 +164,7 @@ const goToMyRecipes = () => {
             .p-tablist {
                 flex-wrap: wrap;
                 gap: 0.25rem;
-                
+
                 .p-tab {
                     padding: 0.75rem 1rem;
                     font-size: 0.9rem;
@@ -184,4 +178,3 @@ const goToMyRecipes = () => {
     }
 }
 </style>
-

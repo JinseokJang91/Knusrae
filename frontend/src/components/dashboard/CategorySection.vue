@@ -22,12 +22,12 @@ const loading = ref(false);
 // 카테고리별 아이콘 매핑
 const categoryIcon = computed(() => {
     const icons: Record<string, string> = {
-        'PASTA': 'pi pi-star',
-        'KOREAN': 'pi pi-heart',
-        'DESSERT': 'pi pi-gift',
-        'CHINESE': 'pi pi-sparkles',
-        'JAPANESE': 'pi pi-sun',
-        'WESTERN': 'pi pi-crown',
+        PASTA: 'pi pi-star',
+        KOREAN: 'pi pi-heart',
+        DESSERT: 'pi pi-gift',
+        CHINESE: 'pi pi-sparkles',
+        JAPANESE: 'pi pi-sun',
+        WESTERN: 'pi pi-crown'
     };
     return icons[props.category.detailCodeId] || 'pi pi-bookmark';
 });
@@ -36,12 +36,7 @@ const categoryIcon = computed(() => {
 const loadRecipes = async () => {
     loading.value = true;
     try {
-        const response = await getCategoryRecipes(
-            props.category.codeId,
-            props.category.detailCodeId,
-            12,
-            'mixed'
-        );
+        const response = await getCategoryRecipes(props.category.codeId, props.category.detailCodeId, 12, 'mixed');
         recipes.value = response.recipes;
     } catch (error) {
         console.error('카테고리 레시피 로딩 실패:', error);
@@ -74,30 +69,19 @@ onMounted(() => {
                     </p>
                 </div>
             </div>
-            <Button 
-                label="카테고리 페이지" 
-                icon="pi pi-arrow-right"
-                icon-pos="right"
-                @click="goToCategory"
-                text
-            />
+            <Button label="카테고리 페이지" icon="pi pi-arrow-right" icon-pos="right" @click="goToCategory" text />
         </div>
-        
+
         <!-- 로딩 상태 -->
         <div v-if="loading" class="flex justify-center items-center py-20">
             <i class="pi pi-spinner pi-spin text-4xl text-primary-500"></i>
         </div>
-        
+
         <!-- 레시피 그리드 -->
         <div v-else-if="recipes.length > 0" class="recipes-grid">
-            <RecipeCard
-                v-for="recipe in recipes"
-                :key="recipe.id"
-                :recipe="recipe"
-                :show-stats="true"
-            />
+            <RecipeCard v-for="recipe in recipes" :key="recipe.id" :recipe="recipe" :show-stats="true" />
         </div>
-        
+
         <!-- 데이터 없음 -->
         <div v-else class="text-center py-10">
             <i class="pi pi-inbox text-4xl text-gray-300 mb-2"></i>
@@ -162,17 +146,17 @@ onMounted(() => {
     .category-section {
         padding: 1rem 0;
     }
-    
+
     .section-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 1rem;
     }
-    
+
     .section-title {
         font-size: 20px;
     }
-    
+
     .recipes-grid {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 12px;
@@ -187,7 +171,7 @@ onMounted(() => {
         scroll-snap-type: x mandatory;
         padding-bottom: 8px;
     }
-    
+
     .recipes-grid > * {
         flex: 0 0 240px;
         scroll-snap-align: start;

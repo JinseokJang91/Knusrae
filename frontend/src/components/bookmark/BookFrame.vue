@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import BookPage from './BookPage.vue';
+</script>
+
 <template>
     <div class="book-frame">
         <BookPage side="left" class="book-frame__left">
@@ -10,23 +14,12 @@
     </div>
 </template>
 
-<script setup lang="ts">
-import BookPage from './BookPage.vue';
-</script>
-
 <style scoped lang="scss">
 .book-frame {
     display: flex;
     width: 100%;
     min-height: 320px;
-    background: linear-gradient(
-        to right,
-        var(--surface-100) 0%,
-        var(--surface-50) 48%,
-        var(--surface-100) 50%,
-        var(--surface-50) 52%,
-        var(--surface-100) 100%
-    );
+    background: linear-gradient(to right, var(--surface-100) 0%, var(--surface-50) 48%, var(--surface-100) 50%, var(--surface-50) 52%, var(--surface-100) 100%);
     border-radius: 12px;
     box-shadow:
         0 4px 20px rgba(0, 0, 0, 0.08),
@@ -44,14 +37,7 @@ import BookPage from './BookPage.vue';
 .book-frame__spine {
     width: 4px;
     flex-shrink: 0;
-    background: linear-gradient(
-        180deg,
-        var(--surface-300) 0%,
-        var(--surface-200) 20%,
-        var(--surface-400) 50%,
-        var(--surface-200) 80%,
-        var(--surface-300) 100%
-    );
+    background: linear-gradient(180deg, var(--surface-300) 0%, var(--surface-200) 20%, var(--surface-400) 50%, var(--surface-200) 80%, var(--surface-300) 100%);
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -64,14 +50,7 @@ import BookPage from './BookPage.vue';
     .book-frame__spine {
         width: 100%;
         height: 4px;
-        background: linear-gradient(
-            90deg,
-            var(--surface-300) 0%,
-            var(--surface-200) 20%,
-            var(--surface-400) 50%,
-            var(--surface-200) 80%,
-            var(--surface-300) 100%
-        );
+        background: linear-gradient(90deg, var(--surface-300) 0%, var(--surface-200) 20%, var(--surface-400) 50%, var(--surface-200) 80%, var(--surface-300) 100%);
     }
 
     :deep(.book-page--left) {
