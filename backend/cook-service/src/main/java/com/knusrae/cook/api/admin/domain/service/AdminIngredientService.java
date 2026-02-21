@@ -25,7 +25,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 @Slf4j
 public class AdminIngredientService {
     private final IngredientRepository ingredientRepository;
@@ -34,6 +34,7 @@ public class AdminIngredientService {
     private final IngredientPreparationRepository preparationRepository;
     private final ImageStorage imageStorage;
 
+    @Transactional
     public IngredientGroupDto createGroup(String name, String imageUrl, Integer sortOrder) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("재료 그룹명은 필수입니다.");
@@ -48,6 +49,7 @@ public class AdminIngredientService {
         return IngredientGroupDto.fromEntity(saved);
     }
 
+    @Transactional
     public IngredientDto createIngredient(Long groupId, String name, String imageUrl, Integer sortOrder) {
         if (groupId == null) {
             throw new IllegalArgumentException("재료 그룹은 필수입니다.");
@@ -68,6 +70,7 @@ public class AdminIngredientService {
         return IngredientDto.fromEntity(saved);
     }
 
+    @Transactional
     public IngredientStorageDto createStorage(Long ingredientId, String content, String summary, Long adminId) {
         Ingredient ingredient = ingredientRepository.findById(ingredientId)
                 .orElseThrow(() -> new EntityNotFoundException("재료를 찾을 수 없습니다: " + ingredientId));
@@ -84,6 +87,7 @@ public class AdminIngredientService {
         return IngredientStorageDto.fromEntity(saved);
     }
 
+    @Transactional
     public IngredientPreparationDto createPreparation(Long ingredientId, String content, String summary, Long adminId) {
         Ingredient ingredient = ingredientRepository.findById(ingredientId)
                 .orElseThrow(() -> new EntityNotFoundException("재료를 찾을 수 없습니다: " + ingredientId));
@@ -100,6 +104,7 @@ public class AdminIngredientService {
         return IngredientPreparationDto.fromEntity(saved);
     }
 
+    @Transactional
     public IngredientStorageDto updateStorage(Long storageId, String content, String summary) {
         IngredientStorage storage = storageRepository.findById(storageId)
                 .orElseThrow(() -> new EntityNotFoundException("보관법을 찾을 수 없습니다: " + storageId));
@@ -108,6 +113,7 @@ public class AdminIngredientService {
         return IngredientStorageDto.fromEntity(updated);
     }
 
+    @Transactional
     public IngredientPreparationDto updatePreparation(Long preparationId, String content, String summary) {
         IngredientPreparation preparation = preparationRepository.findById(preparationId)
                 .orElseThrow(() -> new EntityNotFoundException("손질법을 찾을 수 없습니다: " + preparationId));
@@ -116,6 +122,7 @@ public class AdminIngredientService {
         return IngredientPreparationDto.fromEntity(updated);
     }
 
+    @Transactional
     public void deleteStorage(Long storageId) {
         if (!storageRepository.existsById(storageId)) {
             throw new EntityNotFoundException("보관법을 찾을 수 없습니다: " + storageId);
@@ -123,6 +130,7 @@ public class AdminIngredientService {
         storageRepository.deleteById(storageId);
     }
 
+    @Transactional
     public void deletePreparation(Long preparationId) {
         if (!preparationRepository.existsById(preparationId)) {
             throw new EntityNotFoundException("손질법을 찾을 수 없습니다: " + preparationId);
@@ -133,6 +141,7 @@ public class AdminIngredientService {
     /**
      * 재료 그룹 수정
      */
+    @Transactional
     public IngredientGroupDto updateGroup(Long groupId, String name, String imageUrl, Integer sortOrder) {
         IngredientGroup group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new EntityNotFoundException("재료 그룹을 찾을 수 없습니다: " + groupId));
@@ -152,6 +161,7 @@ public class AdminIngredientService {
     /**
      * 재료 그룹 삭제 (하위 재료가 있으면 먼저 삭제)
      */
+    @Transactional
     public void deleteGroup(Long groupId) {
         IngredientGroup group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new EntityNotFoundException("재료 그룹을 찾을 수 없습니다: " + groupId));
@@ -165,6 +175,7 @@ public class AdminIngredientService {
     /**
      * 재료 수정
      */
+    @Transactional
     public IngredientDto updateIngredient(Long ingredientId, Long groupId, String name, String imageUrl, Integer sortOrder) {
         Ingredient ingredient = ingredientRepository.findById(ingredientId)
                 .orElseThrow(() -> new EntityNotFoundException("재료를 찾을 수 없습니다: " + ingredientId));
@@ -187,6 +198,7 @@ public class AdminIngredientService {
     /**
      * 재료 삭제
      */
+    @Transactional
     public void deleteIngredient(Long ingredientId) {
         if (!ingredientRepository.existsById(ingredientId)) {
             throw new EntityNotFoundException("재료를 찾을 수 없습니다: " + ingredientId);
@@ -194,6 +206,7 @@ public class AdminIngredientService {
         ingredientRepository.deleteById(ingredientId);
     }
 
+    @Transactional
     public String uploadContentImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("이미지 파일이 없습니다.");

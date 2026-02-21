@@ -1,6 +1,7 @@
 package com.knusrae.common.handler;
 
 import com.knusrae.common.dto.ErrorResponse;
+import com.knusrae.common.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -83,7 +84,21 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 리소스를 찾을 수 없음
+     * 리소스를 찾을 수 없음 (커스텀)
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException e) {
+        log.warn("ResourceNotFoundException: {}", e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(
+                "NOT_FOUND",
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    /**
+     * 리소스를 찾을 수 없음 (JPA Entity)
      */
     @ExceptionHandler(jakarta.persistence.EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEntityNotFoundException(

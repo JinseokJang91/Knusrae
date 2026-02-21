@@ -1,5 +1,6 @@
 package com.knusrae.cook.api.category.domain.service;
 
+import com.knusrae.common.exception.ResourceNotFoundException;
 import com.knusrae.cook.api.category.dto.TrendingCategoryDto;
 import com.knusrae.cook.api.recipe.domain.entity.Recipe;
 import com.knusrae.cook.api.recipe.dto.RecipeDto;
@@ -72,26 +73,57 @@ public class CategoryService {
     }
 
     public List<RecipeDto> getCategoryRecipes(String codeId, String detailCodeId, int limit, String sortBy) {
+        // null/빈 값 방어: 기본 정렬(mixed) 사용
+        String sort = (sortBy != null && !sortBy.isBlank()) ? sortBy : "mixed";
         log.debug("Fetching recipes for category: codeId={}, detailCodeId={}, limit={}, sortBy={}",
-                codeId, detailCodeId, limit, sortBy);
-        String sql = """
-            SELECT DISTINCT r.*
-            FROM recipe r
-            INNER JOIN recipe_category rc ON r.id = rc.recipe_id
-            WHERE rc.code_id = :codeId
-                AND rc.detail_code_id = :detailCodeId
-                AND r.status = 'PUBLISHED'
-                AND r.visibility = 'PUBLIC'
-            ORDER BY %s
-            LIMIT :limit
-            """;
-        String orderBy = switch (sortBy) {
-            case "latest" -> "r.created_at DESC";
-            case "popular" -> "r.hits DESC";
-            case "mixed" -> "r.hits DESC, r.created_at DESC";
-            default -> "r.hits DESC, r.created_at DESC";
+                codeId, detailCodeId, limit, sort);
+        // 허용된 sortBy만 switch로 선택해 쿼리 문자열을 서버에서만 결정 (SQL 인젝션 방지, 가독성)
+        String sql = switch (sort) {
+            case "latest" -> """
+                SELECT DISTINCT r.*
+                FROM recipe r
+                INNER JOIN recipe_category rc ON r.id = rc.recipe_id
+                WHERE rc.code_id = :codeId
+                    AND rc.detail_code_id = :detailCodeId
+                    AND r.status = 'PUBLISHED'
+                    AND r.visibility = 'PUBLIC'
+                ORDER BY r.created_at DESC
+                LIMIT :limit
+                """;
+            case "popular" -> """
+                SELECT DISTINCT r.*
+                FROM recipe r
+                INNER JOIN recipe_category rc ON r.id = rc.recipe_id
+                WHERE rc.code_id = :codeId
+                    AND rc.detail_code_id = :detailCodeId
+                    AND r.status = 'PUBLISHED'
+                    AND r.visibility = 'PUBLIC'
+                ORDER BY r.hits DESC
+                LIMIT :limit
+                """;
+            case "mixed" -> """
+                SELECT DISTINCT r.*
+                FROM recipe r
+                INNER JOIN recipe_category rc ON r.id = rc.recipe_id
+                WHERE rc.code_id = :codeId
+                    AND rc.detail_code_id = :detailCodeId
+                    AND r.status = 'PUBLISHED'
+                    AND r.visibility = 'PUBLIC'
+                ORDER BY r.hits DESC, r.created_at DESC
+                LIMIT :limit
+                """;
+            default -> """
+                SELECT DISTINCT r.*
+                FROM recipe r
+                INNER JOIN recipe_category rc ON r.id = rc.recipe_id
+                WHERE rc.code_id = :codeId
+                    AND rc.detail_code_id = :detailCodeId
+                    AND r.status = 'PUBLISHED'
+                    AND r.visibility = 'PUBLIC'
+                ORDER BY r.hits DESC, r.created_at DESC
+                LIMIT :limit
+                """;
         };
-        sql = String.format(sql, orderBy);
         Query query = entityManager.createNativeQuery(sql, Recipe.class);
         query.setParameter("codeId", codeId);
         query.setParameter("detailCodeId", detailCodeId);
@@ -118,17 +150,17 @@ public class CategoryService {
             INNER JOIN common_code_detail ccd ON cc.code_id = ccd.code_id
             LEFT JOIN recipe_category rc ON ccd.code_id = rc.code_id 
                 AND ccd.detail_code_id = rc.detail_code_id
-            WHERE cc.code_id = :codeId
-                AND ccd.detail_code_id = :detailCodeId
+            WHERE cc.code_id = ?1
+                AND ccd.detail_code_id = ?2
             GROUP BY cc.code_id, ccd.detail_code_id, cc.code_name, ccd.code_name
             """;
         Query query = entityManager.createNativeQuery(sql);
-        query.setParameter("codeId", codeId);
-        query.setParameter("detailCodeId", detailCodeId);
+        query.setParameter(1, codeId);
+        query.setParameter(2, detailCodeId);
         @SuppressWarnings("unchecked")
         List<Object[]> results = query.getResultList();
         if (results.isEmpty()) {
-            throw new IllegalArgumentException("카테고리를 찾을 수 없습니다: " + codeId + ":" + detailCodeId);
+            throw new ResourceNotFoundException("카테고리를 찾을 수 없습니다: " + codeId + ":" + detailCodeId);
         }
         Object[] row = results.get(0);
         return TrendingCategoryDto.builder()

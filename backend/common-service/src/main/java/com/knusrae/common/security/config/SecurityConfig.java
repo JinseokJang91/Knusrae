@@ -61,7 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/follows/*/check").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/follows/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/follows/**").authenticated()
-                        .requestMatchers("/api/admin/**").authenticated()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e

@@ -2,6 +2,7 @@ package com.knusrae.cook.api.recipe.domain.service;
 
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
+import com.knusrae.common.exception.ResourceNotFoundException;
 import com.knusrae.cook.api.recipe.domain.entity.Recipe;
 import com.knusrae.cook.api.recipe.domain.entity.RecipeBook;
 import com.knusrae.cook.api.recipe.domain.entity.RecipeBookmark;
@@ -80,14 +81,13 @@ public class RecipeBookmarkService {
         List<RecipeBookmark> bookmarks = recipeBookmarkRepository.findByRecipeBookIdOrderByCreatedAtDesc(recipeBookId);
         return bookmarks.stream()
                 .map(bookmark -> {
-                    Recipe recipe = recipeRepository.findById(bookmark.getRecipeId()).orElse(null);
-                    if (recipe == null) return null;
-                    Member member = memberRepository.findById(recipe.getMemberId()).orElse(null);
-                    String memberName = member != null ? member.getName() : "Unknown";
-                    RecipeSimpleDto recipeDto = RecipeSimpleDto.from(recipe, memberName);
+                    Recipe recipe = recipeRepository.findById(bookmark.getRecipeId())
+                            .orElseThrow(() -> new ResourceNotFoundException("레시피를 찾을 수 없습니다: " + bookmark.getRecipeId()));
+                    Member member = memberRepository.findById(recipe.getMemberId())
+                            .orElseThrow(() -> new ResourceNotFoundException("회원을 찾을 수 없습니다: " + recipe.getMemberId()));
+                    RecipeSimpleDto recipeDto = RecipeSimpleDto.from(recipe, member.getName());
                     return RecipeBookmarkDto.from(bookmark, recipeDto);
                 })
-                .filter(dto -> dto != null)
                 .collect(Collectors.toList());
     }
 
@@ -149,13 +149,11 @@ public class RecipeBookmarkService {
 
         bookmark.updateMemo(memo);
         recipeBookmarkRepository.flush();
-        Recipe recipe = recipeRepository.findById(bookmark.getRecipeId()).orElse(null);
-        if (recipe == null) {
-            return RecipeBookmarkDto.from(bookmark);
-        }
-        Member member = memberRepository.findById(recipe.getMemberId()).orElse(null);
-        String memberName = member != null ? member.getName() : "Unknown";
-        RecipeSimpleDto recipeDto = RecipeSimpleDto.from(recipe, memberName);
+        Recipe recipe = recipeRepository.findById(bookmark.getRecipeId())
+                .orElseThrow(() -> new ResourceNotFoundException("레시피를 찾을 수 없습니다: " + bookmark.getRecipeId()));
+        Member member = memberRepository.findById(recipe.getMemberId())
+                .orElseThrow(() -> new ResourceNotFoundException("회원을 찾을 수 없습니다: " + recipe.getMemberId()));
+        RecipeSimpleDto recipeDto = RecipeSimpleDto.from(recipe, member.getName());
         return RecipeBookmarkDto.from(bookmark, recipeDto);
     }
 }

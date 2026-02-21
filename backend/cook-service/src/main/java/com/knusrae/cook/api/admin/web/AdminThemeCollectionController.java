@@ -1,4 +1,4 @@
-package com.knusrae.cook.api.theme.web;
+package com.knusrae.cook.api.admin.web;
 
 import com.knusrae.cook.api.theme.domain.entity.ThemeCollectionRecipe;
 import com.knusrae.cook.api.theme.domain.service.ThemeCollectionService;
@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -25,7 +26,7 @@ public class AdminThemeCollectionController {
      * 테마 생성
      */
     @PostMapping
-    public ResponseEntity<ThemeCollectionDto> createTheme(@RequestBody CreateThemeRequest request) {
+    public ResponseEntity<ThemeCollectionDto> createTheme(@Valid @RequestBody CreateThemeRequest request) {
         try {
             log.info("POST /api/admin/themes - name={}", request.getName());
             ThemeCollectionDto created = themeCollectionService.createTheme(request);
