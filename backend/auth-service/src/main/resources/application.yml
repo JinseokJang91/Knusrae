@@ -1,44 +1,11 @@
+# 공통 설정. 프로파일로 local / dev / prod 구분 (미지정 시 local)
 spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
   config:
     import: optional:classpath:application-common.yml
   application:
     name: auth-service
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/knusrae_db}
-    username: ${DB_USERNAME:knusrae_user}
-    password: ${DB_PASSWORD:CookRecipes999!@#}
-  jpa:
-    hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update} # TODO dev : update, prd : validate or none
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+
 server:
   port: 8081
-
-app:
-  frontend:
-    url: ${FRONTEND_URL:http://localhost:5173}
-  test-login:
-    enabled: ${TEST_LOGIN_ENABLED:true} # TODO dev : true, prd : false
-
-naver:
-  client:
-    id: ${NAVER_CLIENT_ID:xo6t_k8iBnzCW3jp0oR_}
-    secret: ${NAVER_CLIENT_SECRET:ZUT6PZtCVe}
-  redirect:
-    uri: ${NAVER_REDIRECT_URI:http://localhost:8081/api/auth/naver/callback}
-
-google:
-  client:
-    id: ${GOOGLE_CLIENT_ID:42444115561-ilr40o74pd0f60ac27os9j7onmt7pb2s.apps.googleusercontent.com}
-    secret: ${GOOGLE_CLIENT_SECRET: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}
-  redirect:
-    uri: ${GOOGLE_REDIRECT_URI:http://localhost:8081/api/auth/google/callback}
-
-kakao:
-  client:
-    id: ${KAKAO_CLIENT_ID:0cb16dca75f806b9858d30b6ccab08df}
-    secret: ${KAKAO_CLIENT_SECRET:aTu843GReAb2ut4kyJLJIr50cdC9pVtg}
-  redirect:
-    uri: ${KAKAO_REDIRECT_URI:http://localhost:8081/api/auth/kakao/callback}

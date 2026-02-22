@@ -1,9 +1,13 @@
-# 프로덕션 환경 설정
+# 프로덕션 환경 (prod) - 환경변수 필수
 spring:
   datasource:
-    # 프로덕션에서는 기본값 없이 환경변수만 사용 (DB_PASSWORD 필수)
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
