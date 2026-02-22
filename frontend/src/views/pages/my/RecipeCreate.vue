@@ -295,7 +295,7 @@ async function loadIngredientsUnitOptions(): Promise<void> {
 
 async function loadMemberInfo(): Promise<void> {
     const memberInfo = await fetchMemberInfo();
-    if (memberInfo) {
+    if (memberInfo?.id != null) {
         form.memberId = memberInfo.id;
     }
 }
@@ -413,8 +413,8 @@ const guideImages = GUIDE_IMAGES;
 // 가이드 표시
 function showGuide(section: 'basic' | 'ingredients' | 'classification' | 'steps' | 'settings', event: Event): void {
     event.stopPropagation();
-    const popover = guidePopoverRefs.value[section];
-    if (popover && typeof popover.toggle === 'function') {
+    const popover = guidePopoverRefs.value[section] as { toggle?: (e: Event) => void } | undefined;
+    if (popover?.toggle) {
         popover.toggle(event);
     }
 }
@@ -498,7 +498,7 @@ onBeforeUnmount(() => {
                 ref="basicInfoFormRef"
                 :title="form.title"
                 :description="form.description"
-                :thumbnail-preview="form.thumbnailPreview"
+                :thumbnail-preview="form.thumbnailPreview ?? ''"
                 :disabled="submitting"
                 :validation-errors="validationErrors"
                 :guide-image="guideImages.basic"

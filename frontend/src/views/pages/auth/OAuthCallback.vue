@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import type { OAuthPostMessage } from '@/types/auth';
+import type { OAuthErrorMessage, OAuthPostMessage, OAuthSuccessMessage } from '@/types/auth';
 
 interface Props {
     provider: 'naver' | 'kakao' | 'google';
@@ -10,20 +10,20 @@ const props = defineProps<Props>();
 
 const providerConfig = {
     naver: {
-        successType: 'NAVER_LOGIN_SUCCESS',
-        errorType: 'NAVER_LOGIN_ERROR',
+        successType: 'NAVER_LOGIN_SUCCESS' as OAuthSuccessMessage['type'],
+        errorType: 'NAVER_LOGIN_ERROR' as OAuthErrorMessage['type'],
         color: 'orange-500',
         label: '네이버'
     },
     kakao: {
-        successType: 'KAKAO_LOGIN_SUCCESS',
-        errorType: 'KAKAO_LOGIN_ERROR',
+        successType: 'KAKAO_LOGIN_SUCCESS' as OAuthSuccessMessage['type'],
+        errorType: 'KAKAO_LOGIN_ERROR' as OAuthErrorMessage['type'],
         color: 'yellow-400',
         label: '카카오'
     },
     google: {
-        successType: 'GOOGLE_LOGIN_SUCCESS',
-        errorType: 'GOOGLE_LOGIN_ERROR',
+        successType: 'GOOGLE_LOGIN_SUCCESS' as OAuthSuccessMessage['type'],
+        errorType: 'GOOGLE_LOGIN_ERROR' as OAuthErrorMessage['type'],
         color: 'gray-600',
         label: '구글'
     }

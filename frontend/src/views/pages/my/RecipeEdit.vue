@@ -286,8 +286,8 @@ const guideImages = GUIDE_IMAGES;
 // 가이드 표시
 function showGuide(section: 'basic' | 'ingredients' | 'classification' | 'steps' | 'settings', event: Event): void {
     event.stopPropagation();
-    const popover = guidePopoverRefs.value[section];
-    if (popover && typeof popover.toggle === 'function') {
+    const popover = guidePopoverRefs.value[section] as { toggle?: (e: Event) => void } | undefined;
+    if (popover?.toggle) {
         popover.toggle(event);
     }
 }

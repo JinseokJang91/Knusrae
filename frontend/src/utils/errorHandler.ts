@@ -28,9 +28,9 @@ export function extractErrorMessage(err: unknown, defaultMessage: string): strin
             const errorBody = JSON.parse(rawBody) as ApiErrorBody;
             if (errorBody.message) return errorBody.message;
             // 프로덕션에서는 서버 응답 본문(rawBody)을 사용자에게 노출하지 않음
-            return import.meta.env.PROD ? defaultMessage : (rawBody || defaultMessage);
+            return import.meta.env.PROD ? defaultMessage : rawBody || defaultMessage;
         } catch {
-            return import.meta.env.PROD ? defaultMessage : (rawBody || defaultMessage);
+            return import.meta.env.PROD ? defaultMessage : rawBody || defaultMessage;
         }
     }
 

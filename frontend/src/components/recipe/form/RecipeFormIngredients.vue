@@ -199,7 +199,7 @@ function updateItemField(groupIndex: number, itemIndex: number, field: keyof Ing
                         />
                     </div>
                     <div v-if="group.type === 'CUSTOM'" class="flex-1 max-w-xs">
-                        <InputText :model-value="group.customTypeName" placeholder="그룹 타입을 직접 입력하세요" class="w-full" @update:model-value="(v) => updateGroupCustomTypeName(groupIndex, v)" />
+                        <InputText :model-value="group.customTypeName" placeholder="그룹 타입을 직접 입력하세요" class="w-full" @update:model-value="(v) => updateGroupCustomTypeName(groupIndex, v ?? '')" />
                     </div>
                 </div>
                 <div class="flex gap-2">
@@ -227,11 +227,11 @@ function updateItemField(groupIndex: number, itemIndex: number, field: keyof Ing
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label class="block mb-2 text-sm">이름</label>
-                        <InputText :model-value="item.name" placeholder="재료명을 입력하세요" class="w-full" @update:model-value="(v) => updateItemField(groupIndex, itemIndex, 'name', v)" />
+                        <InputText :model-value="item.name" placeholder="재료명을 입력하세요" class="w-full" @update:model-value="(v) => updateItemField(groupIndex, itemIndex, 'name', v ?? '')" />
                     </div>
                     <div>
                         <label class="block mb-2 text-sm">수량 <span class="text-gray-400 text-xs">(선택사항, 분수 입력 가능: 1/2, 3/4 등)</span></label>
-                        <InputText :model-value="item.quantity" placeholder="수량을 입력하세요 (예: 1, 1.5, 1/2)" class="w-full" @update:model-value="(v) => updateItemField(groupIndex, itemIndex, 'quantity', v)" />
+                        <InputText :model-value="item.quantity" placeholder="수량을 입력하세요 (예: 1, 1.5, 1/2)" class="w-full" @update:model-value="(v) => updateItemField(groupIndex, itemIndex, 'quantity', v ?? null)" />
                     </div>
                     <div>
                         <label class="block mb-2 text-sm">단위 <span class="text-gray-400 text-xs">(선택사항)</span></label>
@@ -253,7 +253,13 @@ function updateItemField(groupIndex: number, itemIndex: number, field: keyof Ing
                                 @update:model-value="(v) => updateItemField(groupIndex, itemIndex, 'unit', v)"
                                 @change="$emit('clear-validation', `item-unit-${item.id}`)"
                             />
-                            <InputText v-if="item.unit === 'CUSTOM'" :model-value="item.customUnitName" placeholder="단위를 직접 입력하세요" class="w-full" @update:model-value="(v) => updateItemField(groupIndex, itemIndex, 'customUnitName', v)" />
+                            <InputText
+                                v-if="item.unit === 'CUSTOM'"
+                                :model-value="item.customUnitName"
+                                placeholder="단위를 직접 입력하세요"
+                                class="w-full"
+                                @update:model-value="(v) => updateItemField(groupIndex, itemIndex, 'customUnitName', v ?? null)"
+                            />
                         </div>
                     </div>
                 </div>
