@@ -89,10 +89,9 @@ public class KakaoAuthService {
         ResponseEntity<String> tokenResponse =
                 restTemplate.postForEntity(TOKEN_URL, tokenRequest, String.class);
 
-        // 1) HTTP Status 체크
+        // 1) HTTP Status 체크 (body는 토큰 포함 가능하므로 로그/예외에 넣지 않음)
         if (!tokenResponse.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Kakao token API error: " +
-                    tokenResponse.getStatusCode() + " / body=" + tokenResponse.getBody());
+            throw new RuntimeException("Kakao token API error: " + tokenResponse.getStatusCode());
         }
 
         JsonNode tokenJson = objectMapper.readTree(tokenResponse.getBody());
@@ -100,7 +99,7 @@ public class KakaoAuthService {
         // 2) access_token 존재 여부 체크
         JsonNode accessTokenNode = tokenJson.get("access_token");
         if (accessTokenNode == null || accessTokenNode.isNull()) {
-            throw new RuntimeException("Failed to get access_token from Kakao: " + tokenResponse.getBody());
+            throw new RuntimeException("Failed to get access_token from Kakao");
         }
 
         return accessTokenNode.asText();
@@ -117,8 +116,7 @@ public class KakaoAuthService {
         );
 
         if (!userInfoResponse.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Kakao user info API error: " +
-                    userInfoResponse.getStatusCode() + " / body=" + userInfoResponse.getBody());
+            throw new RuntimeException("Kakao user info API error: " + userInfoResponse.getStatusCode());
         }
 
         return objectMapper.readValue(userInfoResponse.getBody(), KakaoUserDTO.class);

@@ -8,6 +8,7 @@ import com.knusrae.auth.api.web.response.TokenResponse;
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.common.security.provider.JwtTokenProvider;
+import com.knusrae.common.utils.PiiMaskUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import lombok.RequiredArgsConstructor;
@@ -161,15 +162,13 @@ public class TokenService {
         }
     }
 
-    // TODO 테스트 계정 로그인
     @Transactional
-    public TokenResponse loginWithTestAccount(String email) {
-        Member member = memberRepository.findByEmail(email);
-        
-        if (member == null) {
-            throw new IllegalArgumentException("존재하지 않는 테스트 계정입니다: " + email);
+    public TokenResponse loginWithTestAccount(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 테스트 계정입니다."));
+        if (member.getEmail() == null || !member.getEmail().startsWith("test")) {
+            throw new IllegalArgumentException("테스트 계정이 아닙니다.");
         }
-        
         return loginWithSocialUser(member.getId(), member.getName(), member.getSocialRole().name());
     }
 
@@ -185,7 +184,7 @@ public class TokenService {
                     accountInfo.put("id", member.getId());
                     accountInfo.put("name", member.getName());
                     accountInfo.put("nickname", member.getNickname());
-                    accountInfo.put("email", member.getEmail());
+                    accountInfo.put("email", PiiMaskUtils.maskEmail(member.getEmail()));
                     accountInfo.put("socialRole", member.getSocialRole().name());
                     accountInfo.put("isActive", member.getIsActive().name());
                     return accountInfo;

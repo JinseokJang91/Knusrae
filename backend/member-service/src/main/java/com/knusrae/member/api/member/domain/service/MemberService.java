@@ -4,6 +4,7 @@ import com.knusrae.common.custom.storage.ImageStorage;
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.common.exception.ResourceNotFoundException;
+import com.knusrae.common.utils.PiiMaskUtils;
 import com.knusrae.member.api.member.dto.MemberDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +45,8 @@ public class MemberService {
                 .id(m.getId())
                 .name(m.getName())
                 .nickname(m.getNickname())
-                .email(m.getEmail())
-                .phone(m.getPhone())
+                .email(PiiMaskUtils.maskEmail(m.getEmail()))
+                .phone(PiiMaskUtils.maskPhone(m.getPhone()))
                 .profileImage(m.getProfileImage())
                 .bio(m.getBio())
                 .followerCount(m.getFollowerCount())

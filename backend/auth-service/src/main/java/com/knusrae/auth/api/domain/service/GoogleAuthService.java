@@ -83,16 +83,14 @@ public class GoogleAuthService {
 
         ResponseEntity<String> tokenResponse = restTemplate.postForEntity(TOKEN_URL, tokenRequest, String.class);
 
-        // 아래는 아까와 동일한 방어 코드
         if (!tokenResponse.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Google token API error: " + tokenResponse.getStatusCode() +
-                    " / body=" + tokenResponse.getBody());
+            throw new RuntimeException("Google token API error: " + tokenResponse.getStatusCode());
         }
 
         JsonNode tokenJson = objectMapper.readTree(tokenResponse.getBody());
         JsonNode accessTokenNode = tokenJson.get("access_token");
         if (accessTokenNode == null) {
-            throw new RuntimeException("Failed to get access_token from Google: " + tokenResponse.getBody());
+            throw new RuntimeException("Failed to get access_token from Google");
         }
 
         return accessTokenNode.asText();
@@ -108,8 +106,7 @@ public class GoogleAuthService {
         );
 
         if (!userInfoResponse.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Google user info API error: " +
-                    userInfoResponse.getStatusCode() + " / body=" + userInfoResponse.getBody());
+            throw new RuntimeException("Google user info API error: " + userInfoResponse.getStatusCode());
         }
 
         return objectMapper.readValue(userInfoResponse.getBody(), GoogleUserDTO.class);

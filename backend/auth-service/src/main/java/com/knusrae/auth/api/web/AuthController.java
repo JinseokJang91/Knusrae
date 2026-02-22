@@ -210,7 +210,7 @@ public class AuthController {
         }
         
         try {
-            TokenResponse tokenResponse = tokenService.loginWithTestAccount(request.getEmail());
+            TokenResponse tokenResponse = tokenService.loginWithTestAccount(request.getId());
 
             var accessTokenCookie = cookieUtils.createAccessTokenCookie(
                     tokenResponse.accessToken(), 
@@ -221,14 +221,13 @@ public class AuthController {
                     tokenResponse.refreshTokenExpiresIn()
             );
 
-            log.info("테스트 로그인 성공: {}", request.getEmail());
+            log.info("테스트 로그인 성공: memberId={}", request.getId());
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
                     .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                     .body(Map.of(
                             "message", "테스트 로그인 성공",
-                            "email", request.getEmail(),
                             "accessTokenExpiresIn", tokenResponse.accessTokenExpiresIn(),
                             "refreshTokenExpiresIn", tokenResponse.refreshTokenExpiresIn()
                     ));

@@ -87,10 +87,9 @@ public class NaverAuthService {
         ResponseEntity<String> tokenResponse =
                 restTemplate.postForEntity(TOKEN_URL, tokenRequest, String.class);
 
-        // 1) HTTP Status 체크
+        // 1) HTTP Status 체크 (body는 토큰 포함 가능하므로 로그/예외에 넣지 않음)
         if (!tokenResponse.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Naver token API error: " +
-                    tokenResponse.getStatusCode() + " / body=" + tokenResponse.getBody());
+            throw new RuntimeException("Naver token API error: " + tokenResponse.getStatusCode());
         }
 
         JsonNode tokenJson = objectMapper.readTree(tokenResponse.getBody());
@@ -98,7 +97,7 @@ public class NaverAuthService {
         // 2) access_token 존재 여부 체크
         JsonNode accessTokenNode = tokenJson.get("access_token");
         if (accessTokenNode == null || accessTokenNode.isNull()) {
-            throw new RuntimeException("Failed to get access_token from Naver: " + tokenResponse.getBody());
+            throw new RuntimeException("Failed to get access_token from Naver");
         }
 
         return accessTokenNode.asText();
@@ -115,8 +114,7 @@ public class NaverAuthService {
         );
 
         if (!userInfoResponse.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Naver user info API error: " +
-                    userInfoResponse.getStatusCode() + " / body=" + userInfoResponse.getBody());
+            throw new RuntimeException("Naver user info API error: " + userInfoResponse.getStatusCode());
         }
 
         // NAVER : response 객체에 사용자 정보 존재
@@ -124,7 +122,7 @@ public class NaverAuthService {
         JsonNode user = userInfoJson.get("response");
 
         if (user == null || user.isNull()) {
-            throw new RuntimeException("Failed to get user info from Naver: " + userInfoResponse.getBody());
+            throw new RuntimeException("Failed to get user info from Naver");
         }
 
         return objectMapper.treeToValue(user, NaverUserDTO.class);

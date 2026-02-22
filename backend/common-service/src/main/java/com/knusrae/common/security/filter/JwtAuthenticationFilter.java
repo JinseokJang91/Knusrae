@@ -90,8 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (cookies != null) {
             for (jakarta.servlet.http.Cookie cookie : cookies) {
                 if ("accessToken".equals(cookie.getName())) {
-                    log.info("accessToken Name : {}", cookie.getName());
-                    log.info("accessToken Value : {}", cookie.getValue());
+                    log.trace("accessToken present");
                     return cookie.getValue();
                 }
             }
