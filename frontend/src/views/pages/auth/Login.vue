@@ -72,11 +72,11 @@ async function loadTestAccounts() {
     }
 }
 
-async function loginWithTestAccount(email: string) {
+async function loginWithTestAccount(memberId: number) {
     try {
-        const result = await testLogin(email);
+        const result = await testLogin(memberId);
         if (result.success) {
-            showSuccess(`${email} 계정으로 로그인되었습니다!`);
+            showSuccess('테스트 계정으로 로그인되었습니다!');
             await authStore.login();
             redirectAfterLogin();
         } else {
@@ -88,10 +88,15 @@ async function loginWithTestAccount(email: string) {
     }
 }
 
-// 관리자 로그인
+// 관리자 로그인 (테스트 계정 목록에서 이름이 admin인 계정으로 로그인)
 async function loginAsAdmin() {
-    const adminEmail = 'admin@test.com';
-    await loginWithTestAccount(adminEmail);
+    const accounts = await getTestAccounts();
+    const admin = accounts.find((a) => (a.name || '').toLowerCase().includes('admin'));
+    if (admin?.id != null) {
+        await loginWithTestAccount(admin.id);
+    } else {
+        showError('관리자 테스트 계정을 찾을 수 없습니다.');
+    }
 }
 </script>
 
@@ -145,7 +150,7 @@ async function loginAsAdmin() {
                                 <div
                                     v-for="account in testAccounts"
                                     :key="account.id"
-                                    @click="loginWithTestAccount(account.email)"
+                                    @click="account.id != null && loginWithTestAccount(account.id)"
                                     class="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                                 >
                                     <div class="flex items-center justify-between">

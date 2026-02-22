@@ -68,15 +68,16 @@ export interface TestLoginResult {
 }
 
 /**
- * 테스트 계정으로 로그인 (개발용, 프로덕션에서는 호출 불가)
+ * 테스트 계정으로 로그인 (회원 ID 사용, 이메일 노출 없음)
+ * 개발용, 프로덕션에서는 호출 불가
  */
-export async function testLogin(email: string): Promise<TestLoginResult> {
+export async function testLogin(memberId: number): Promise<TestLoginResult> {
     assertDevOnly();
     const response = await fetch(`${BASE_URL}/api/auth/test/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ id: memberId })
     });
     if (response.ok) {
         return { success: true };
