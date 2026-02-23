@@ -10,14 +10,10 @@
     left: 0;
     top: 0;
     width: 100%;
-    padding: 0 14rem;
-    // background-color: var(--surface-card);
     display: flex;
     align-items: center;
-    gap: 2rem;
-    // border-bottom: 1px solid var(--surface-border);
-
-    // 완전 흰색 대신 아주 연한 오렌지(크림) 톤을 섞어 눈부심 완화
+    justify-content: center;
+    // 전체 너비 배경/그림자 (내부 .topbar-inner는 main과 동일한 콘텐츠 영역)
     background: linear-gradient(
         90deg,
         rgba(255, 251, 245, 0.97) 0%,
@@ -25,7 +21,15 @@
         rgba(255, 251, 245, 0.97) 100%
     );
     box-shadow: 0 2px 8px rgba(249, 115, 22, 0.8);
-    border-bottom: 1px solid rgba(249, 115, 22, 0.12); // orange-500 계열 아주 약하게
+    border-bottom: 1px solid rgba(249, 115, 22, 0.12);
+}
+
+/* main 콘텐츠 영역과 정렬되는 내부 래퍼 - 반응형 너비/패딩은 _responsive.scss */
+.topbar-inner {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
 
     .topbar-left {
         display: flex;
@@ -446,12 +450,8 @@
 // 반응형 스타일 - 새로운 가로 레이아웃
 /* 중소형 노트북 이하 (1365px 이하) */
 @media (max-width: 1365px) {
-    .layout-topbar-horizontal {
-        padding: 0 8rem;
-        
-        .main-menu .menu-item span {
-            display: none;
-        }
+    .layout-topbar-horizontal .main-menu .menu-item span {
+        display: none;
     }
 }
 
@@ -459,37 +459,182 @@
 @media (max-width: 1023px) {
     .layout-topbar-horizontal {
         flex-wrap: wrap;
-        gap: 1rem;
         height: auto;
-        padding: 1rem 3rem;
-        
-        .topbar-center {
-            order: 3;
-            width: 100%;
-            max-width: 100%;
-        }
+    }
 
-        .main-menu {
-            gap: 0.25rem;
-        }
+    .layout-topbar-horizontal .topbar-inner {
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
 
-        .menu-item {
-            padding: 0.5rem;
-        }
+    .layout-topbar-horizontal .topbar-center {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .layout-topbar-horizontal .main-menu {
+        gap: 0.25rem;
+    }
+
+    .layout-topbar-horizontal .menu-item {
+        padding: 0.5rem;
     }
 }
 
 @media (max-width: 768px) {
-    .layout-topbar-horizontal {
-        padding: 1rem 1.5rem;
-        
-        .main-menu {
-            display: none;
-        }
-        
-        .topbar-left {
-            gap: 1rem;
+    .layout-topbar-horizontal .main-menu {
+        display: none;
+    }
+
+    .layout-topbar-horizontal .topbar-inner {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .layout-topbar-horizontal .topbar-mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
+        border: 1px solid var(--surface-border);
+        border-radius: var(--content-border-radius);
+        background: var(--surface-card);
+        color: var(--text-color);
+        cursor: pointer;
+        transition: all var(--element-transition-duration);
+        font-size: 1.25rem;
+
+        &:hover {
+            background: var(--surface-hover);
+            color: var(--primary-color);
         }
     }
+
+    .layout-topbar-horizontal .topbar-left {
+        gap: 0.75rem;
+    }
+}
+
+/* 모바일 메뉴 버튼 - 데스크톱에서는 숨김 */
+.topbar-mobile-menu-btn {
+    display: none;
+}
+
+/* 모바일 메뉴 오버레이 & 드로어 */
+.mobile-menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 996;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: flex-end;
+    backdrop-filter: blur(2px);
+}
+
+.mobile-menu-drawer {
+    width: min(320px, 85vw);
+    max-width: 100%;
+    background: var(--surface-card);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.mobile-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.mobile-menu-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.mobile-menu-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--content-border-radius);
+    background: transparent;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: background var(--element-transition-duration);
+    
+    &:hover {
+        background: var(--surface-hover);
+    }
+}
+
+.mobile-menu-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 0;
+}
+
+.mobile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+    transition: background var(--element-transition-duration);
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1rem;
+    
+    i {
+        font-size: 1.125rem;
+        width: 1.5rem;
+        text-align: center;
+    }
+    
+    &:hover {
+        background: var(--surface-hover);
+        color: var(--primary-color);
+    }
+    
+    &.router-link-active,
+    &.router-link-exact-active {
+        color: var(--primary-color);
+        background: rgba(249, 115, 22, 0.08);
+    }
+}
+
+/* 모바일 메뉴 트랜지션 (Vue Transition) - 레이아웃에 포함되므로 전역 또는 App에서 로드 */
+.mobile-menu-enter-active,
+.mobile-menu-leave-active {
+    transition: opacity 0.2s ease;
+}
+.mobile-menu-enter-active .mobile-menu-drawer,
+.mobile-menu-leave-active .mobile-menu-drawer {
+    transition: transform 0.25s ease;
+}
+.mobile-menu-enter-from,
+.mobile-menu-leave-to {
+    opacity: 0;
+}
+.mobile-menu-enter-from .mobile-menu-drawer,
+.mobile-menu-leave-to .mobile-menu-drawer {
+    transform: translateX(100%);
 }
 

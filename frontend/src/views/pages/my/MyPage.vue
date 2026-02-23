@@ -39,8 +39,8 @@ const goToMyRecipes = () => {
 </script>
 
 <template>
-    <div class="mypage-container">
-        <div class="card">
+    <div class="page-container page-container--card">
+        <div class="mypage-container">
             <div class="mypage-header">
                 <h1 class="text-3xl font-bold m-0">마이페이지</h1>
                 <Button label="내 레시피 관리" icon="pi pi-book" severity="secondary" outlined @click="goToMyRecipes" />
@@ -104,9 +104,7 @@ const goToMyRecipes = () => {
 
 <style lang="scss" scoped>
 .mypage-container {
-    padding: 1rem;
-    max-width: 1400px;
-    margin: 0 auto;
+    padding: 0;
 
     .mypage-header {
         display: flex;
@@ -160,6 +158,10 @@ const goToMyRecipes = () => {
     .mypage-container {
         padding: 0.5rem;
 
+        .mypage-header h1 {
+            font-size: 1.5rem;
+        }
+
         :deep(.p-tabs) {
             .p-tablist {
                 flex-wrap: wrap;
@@ -173,6 +175,31 @@ const goToMyRecipes = () => {
 
             .p-tabpanels {
                 padding: 1rem 0;
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .mypage-container {
+        .mypage-header {
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .mypage-header h1 {
+            font-size: 1.35rem;
+        }
+
+        :deep(.p-tabs) {
+            .p-tab {
+                padding: 0.6rem 0.75rem;
+                font-size: 0.85rem;
+            }
+
+            .p-tabpanels {
+                padding: 0.75rem 0;
             }
         }
     }

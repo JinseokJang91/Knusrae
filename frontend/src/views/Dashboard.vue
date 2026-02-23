@@ -51,58 +51,60 @@ const greetingTitle = computed(() => {
 </script>
 
 <template>
-    <div class="dashboard-container">
-        <!-- 1. 환영 문구 (히어로 섹션) -->
-        <section class="dashboard-section hero-section">
-            <div class="hero-content">
-                <h4 class="hero-title">
-                    {{ greetingTitle }}
-                </h4>
-                <p class="hero-subtitle">{{ timeBasedGreeting.subtitle }}</p>
-            </div>
-        </section>
+    <div class="page-container">
+        <div class="dashboard-container">
+            <!-- 1. 환영 문구 (히어로 섹션) -->
+            <section class="dashboard-section hero-section">
+                <div class="hero-content">
+                    <h4 class="hero-title">
+                        {{ greetingTitle }}
+                    </h4>
+                    <p class="hero-subtitle">{{ timeBasedGreeting.subtitle }}</p>
+                </div>
+            </section>
 
-        <!-- 2. 오늘의 레시피 추천 (주요 섹션) -->
-        <section class="dashboard-section main-section">
-            <div class="section-wrapper">
-                <TodayRecommendations />
-            </div>
-        </section>
+            <!-- 2. 오늘의 레시피 추천 (주요 섹션) -->
+            <section class="dashboard-section main-section">
+                <div class="section-wrapper">
+                    <TodayRecommendations />
+                </div>
+            </section>
 
-        <!-- 3. 인기 레시피 TOP (주요 섹션) -->
-        <section class="dashboard-section main-section">
-            <div class="section-wrapper">
-                <PopularRecipes />
-            </div>
-        </section>
+            <!-- 3. 인기 레시피 TOP (주요 섹션) -->
+            <section class="dashboard-section main-section">
+                <div class="section-wrapper">
+                    <PopularRecipes />
+                </div>
+            </section>
 
-        <!-- 4. 테마 컬렉션 (큐레이션 섹션) -->
-        <section class="dashboard-section theme-section">
-            <div class="section-wrapper">
-                <ThemeCollections />
-            </div>
-        </section>
+            <!-- 4. 테마 컬렉션 (큐레이션 섹션) -->
+            <section class="dashboard-section theme-section">
+                <div class="section-wrapper">
+                    <ThemeCollections />
+                </div>
+            </section>
 
-        <!-- 5. 카테고리 섹션 (보조 섹션) -->
-        <section class="dashboard-section secondary-section">
-            <div class="section-wrapper">
-                <CategorySections />
-            </div>
-        </section>
+            <!-- 5. 카테고리 섹션 (보조 섹션) -->
+            <section class="dashboard-section secondary-section">
+                <div class="section-wrapper">
+                    <CategorySections />
+                </div>
+            </section>
 
-        <!-- 6. 최근 본 레시피 (개인화 섹션, 로그인 시만) -->
-        <section v-if="isLoggedIn" class="dashboard-section personal-section">
-            <div class="section-wrapper">
-                <RecentViews />
-            </div>
-        </section>
+            <!-- 6. 최근 본 레시피 (개인화 섹션, 로그인 시만) -->
+            <section v-if="isLoggedIn" class="dashboard-section personal-section">
+                <div class="section-wrapper">
+                    <RecentViews />
+                </div>
+            </section>
 
-        <!-- 7. 추천 크리에이터 -->
-        <section class="dashboard-section creator-section">
-            <div class="section-wrapper">
-                <RecommendedCreators />
-            </div>
-        </section>
+            <!-- 7. 추천 크리에이터 -->
+            <section class="dashboard-section creator-section">
+                <div class="section-wrapper">
+                    <RecommendedCreators />
+                </div>
+            </section>
+        </div>
     </div>
 </template>
 
@@ -111,8 +113,6 @@ const greetingTitle = computed(() => {
     display: flex;
     flex-direction: column;
     gap: 32px;
-    max-width: 1400px;
-    margin: 0 auto;
 }
 
 .dashboard-section {

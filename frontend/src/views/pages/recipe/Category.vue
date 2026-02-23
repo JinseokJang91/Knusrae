@@ -718,7 +718,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="card">
+    <div class="page-container page-container--card">
         <!-- header : 페이지 제목, 새로고침 버튼, 상세검색 다이얼로그 버튼 -->
         <!-- <div class="flex justify-between items-center mb-4">
             <h1 class="text-3xl font-bold text-gray-900">카테고리</h1>
@@ -1043,6 +1043,23 @@ onMounted(() => {
     .category-chip {
         padding: 0.4rem 0.75rem;
         font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-selector {
+        padding: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .main-category-tabs .tab-button {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .category-chip {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.75rem;
     }
 }
 </style>

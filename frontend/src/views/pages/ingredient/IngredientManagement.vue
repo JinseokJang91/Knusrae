@@ -86,24 +86,26 @@ watch(
 </script>
 
 <template>
-    <div class="ingredient-panel">
-        <div class="tab-headers">
-            <button type="button" class="tab-header" :class="{ 'tab-header--active': activeTab === 'storage' }" :aria-pressed="activeTab === 'storage'" :aria-selected="activeTab === 'storage'" @click="activeTab = 'storage'">
-                <span>재료 보관법</span>
-            </button>
-            <button type="button" class="tab-header" :class="{ 'tab-header--active': activeTab === 'preparation' }" :aria-pressed="activeTab === 'preparation'" :aria-selected="activeTab === 'preparation'" @click="activeTab = 'preparation'">
-                <i class="pi pi-cut" aria-hidden="true"></i>
-                <span>재료 손질법</span>
-            </button>
-        </div>
+    <div class="page-container page-container--card">
+        <div class="ingredient-panel">
+            <div class="tab-headers">
+                <button type="button" class="tab-header" :class="{ 'tab-header--active': activeTab === 'storage' }" :aria-pressed="activeTab === 'storage'" :aria-selected="activeTab === 'storage'" @click="activeTab = 'storage'">
+                    <span>재료 보관법</span>
+                </button>
+                <button type="button" class="tab-header" :class="{ 'tab-header--active': activeTab === 'preparation' }" :aria-pressed="activeTab === 'preparation'" :aria-selected="activeTab === 'preparation'" @click="activeTab = 'preparation'">
+                    <i class="pi pi-cut" aria-hidden="true"></i>
+                    <span>재료 손질법</span>
+                </button>
+            </div>
 
-        <div class="tab-content">
-            <section v-show="activeTab === 'storage'" class="tab-panel" aria-label="재료 보관법" :aria-hidden="activeTab !== 'storage'">
-                <IngredientList type="storage" :selected-group-id="selectedGroupId" :search-query="searchQuery" @group-selected="handleGroupSelected" @search-changed="handleSearchChanged" />
-            </section>
-            <section v-show="activeTab === 'preparation'" class="tab-panel" aria-label="재료 손질법" :aria-hidden="activeTab !== 'preparation'">
-                <IngredientList type="preparation" :selected-group-id="selectedGroupId" :search-query="searchQuery" @group-selected="handleGroupSelected" @search-changed="handleSearchChanged" />
-            </section>
+            <div class="tab-content">
+                <section v-show="activeTab === 'storage'" class="tab-panel" aria-label="재료 보관법" :aria-hidden="activeTab !== 'storage'">
+                    <IngredientList type="storage" :selected-group-id="selectedGroupId" :search-query="searchQuery" @group-selected="handleGroupSelected" @search-changed="handleSearchChanged" />
+                </section>
+                <section v-show="activeTab === 'preparation'" class="tab-panel" aria-label="재료 손질법" :aria-hidden="activeTab !== 'preparation'">
+                    <IngredientList type="preparation" :selected-group-id="selectedGroupId" :search-query="searchQuery" @group-selected="handleGroupSelected" @search-changed="handleSearchChanged" />
+                </section>
+            </div>
         </div>
     </div>
 </template>

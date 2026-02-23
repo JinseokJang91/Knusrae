@@ -105,49 +105,51 @@ watch(
 </script>
 
 <template>
-    <div class="ranking-page">
-        <section class="ranking-header">
-            <h1 class="ranking-title">랭킹</h1>
-            <p class="ranking-subtitle">지금 많은 사람들이 보고 있는 레시피를 기간별로 확인하세요.</p>
+    <div class="page-container page-container--card">
+        <div class="ranking-page">
+            <section class="ranking-header">
+                <h1 class="ranking-title">랭킹</h1>
+                <p class="ranking-subtitle">지금 많은 사람들이 보고 있는 레시피를 기간별로 확인하세요.</p>
 
-            <div class="ranking-tabs">
-                <button v-for="option in periodOptions" :key="option.value" type="button" :class="['tab-button', selectedPeriod === option.value ? 'tab-button-active' : 'tab-button-inactive']" @click="changePeriod(option.value)">
-                    {{ option.label }}
-                </button>
-            </div>
+                <div class="ranking-tabs">
+                    <button v-for="option in periodOptions" :key="option.value" type="button" :class="['tab-button', selectedPeriod === option.value ? 'tab-button-active' : 'tab-button-inactive']" @click="changePeriod(option.value)">
+                        {{ option.label }}
+                    </button>
+                </div>
 
-            <p v-if="displayCalculatedAt" class="calculated-at">기준: {{ displayCalculatedAt }} 갱신</p>
-        </section>
+                <p v-if="displayCalculatedAt" class="calculated-at">기준: {{ displayCalculatedAt }} 갱신</p>
+            </section>
 
-        <section class="ranking-content">
-            <div v-if="loading" class="loading-state">
-                <i class="pi pi-spinner pi-spin text-4xl text-primary-500"></i>
-                <p class="mt-4 text-gray-600">랭킹을 불러오는 중...</p>
-            </div>
+            <section class="ranking-content">
+                <div v-if="loading" class="loading-state">
+                    <i class="pi pi-spinner pi-spin text-4xl text-primary-500"></i>
+                    <p class="mt-4 text-gray-600">랭킹을 불러오는 중...</p>
+                </div>
 
-            <div v-else-if="popularRecipes.length > 0" class="ranking-list">
-                <div v-for="item in popularRecipes" :key="item.recipe.id" class="ranking-row">
-                    <div class="rank-cell">
-                        <span :class="['rank-badge', item.rank === 1 ? 'rank-1' : item.rank === 2 ? 'rank-2' : item.rank === 3 ? 'rank-3' : 'rank-other']"> {{ item.rank }}위 </span>
-                        <span v-if="item.trendStatus !== 'SAME'" class="trend-badge" :title="getTrendLabel(item.trendStatus)">
-                            <i :class="['pi', getTrendIcon(item.trendStatus)]"></i>
-                        </span>
-                    </div>
-                    <div class="recipe-cell">
-                        <RecipeListItem :recipe="item.recipe" :show-stats="true" :show-author="true" />
+                <div v-else-if="popularRecipes.length > 0" class="ranking-list">
+                    <div v-for="item in popularRecipes" :key="item.recipe.id" class="ranking-row">
+                        <div class="rank-cell">
+                            <span :class="['rank-badge', item.rank === 1 ? 'rank-1' : item.rank === 2 ? 'rank-2' : item.rank === 3 ? 'rank-3' : 'rank-other']"> {{ item.rank }}위 </span>
+                            <span v-if="item.trendStatus !== 'SAME'" class="trend-badge" :title="getTrendLabel(item.trendStatus)">
+                                <i :class="['pi', getTrendIcon(item.trendStatus)]"></i>
+                            </span>
+                        </div>
+                        <div class="recipe-cell">
+                            <RecipeListItem :recipe="item.recipe" :show-stats="true" :show-author="true" />
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div v-else class="empty-state">
-                <i class="pi pi-inbox text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500 text-lg">아직 랭킹 데이터가 없습니다.</p>
-            </div>
-        </section>
+                <div v-else class="empty-state">
+                    <i class="pi pi-inbox text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500 text-lg">아직 랭킹 데이터가 없습니다.</p>
+                </div>
+            </section>
 
-        <section class="ranking-footer">
-            <router-link to="/" class="link-to-main"> 메인 인기 TOP 보기 </router-link>
-        </section>
+            <section class="ranking-footer">
+                <router-link to="/" class="link-to-main"> 메인 인기 TOP 보기 </router-link>
+            </section>
+        </div>
     </div>
 </template>
 

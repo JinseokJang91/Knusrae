@@ -143,51 +143,53 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="favorites-content">
-        <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
-            <p class="text-gray-700 italic">찜 버튼( <i class="pi pi-heart-fill" /> )을 클릭해 찜 목록에서 삭제할 수 있어요.</p>
-        </div>
-
-        <!-- body : 레시피 목록 섹션 -->
-        <div class="recipe-section">
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-2xl font-semibold text-gray-900 m-0">내가 찜한 레시피 ({{ totalFavorites }})</h2>
+    <div class="page-container page-container--card">
+        <div class="favorites-content">
+            <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
+                <p class="text-gray-700 italic">찜 버튼( <i class="pi pi-heart-fill" /> )을 클릭해 찜 목록에서 삭제할 수 있어요.</p>
             </div>
 
-            <!-- 로딩 / 에러 / 빈 상태 -->
-            <PageStateBlock v-if="loading" state="loading" loading-message="찜 목록을 불러오는 중..." />
-            <PageStateBlock v-else-if="error" state="error" error-title="찜 목록을 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadFavorites" />
-            <PageStateBlock
-                v-else-if="displayFavorites.length === 0"
-                state="empty"
-                empty-icon="pi pi-heart"
-                empty-title="찜한 레시피가 없습니다"
-                empty-message="마음에 드는 레시피를 찜해보세요!"
-                empty-button-label="레시피 둘러보기"
-                @empty-action="browseRecipes"
-            />
+            <!-- body : 레시피 목록 섹션 -->
+            <div class="recipe-section">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-2xl font-semibold text-gray-900 m-0">내가 찜한 레시피 ({{ totalFavorites }})</h2>
+                </div>
 
-            <!-- 레시피 목록이 있는 경우 -->
-            <template v-else>
-                <div class="recipe-grid">
-                    <RecipeGridCard
-                        v-for="favorite in displayFavorites"
-                        :key="favorite.id"
-                        :recipe="getRecipeGridItem(favorite)"
-                        :category-label="getCategoryName(favorite.recipe)"
-                        :date-text="formatDate(favorite.createdAt)"
-                        :show-bookmark="false"
-                        :show-comment-count="false"
-                        :favorites-mode="true"
-                        :show-author="false"
-                        @click="viewRecipe"
-                        @favorite="onRemoveFavorite"
-                    />
-                </div>
-                <div class="flex justify-center mt-4">
-                    <Paginator v-model:first="first" :rows="rows" :totalRecords="totalFavorites" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
-                </div>
-            </template>
+                <!-- 로딩 / 에러 / 빈 상태 -->
+                <PageStateBlock v-if="loading" state="loading" loading-message="찜 목록을 불러오는 중..." />
+                <PageStateBlock v-else-if="error" state="error" error-title="찜 목록을 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadFavorites" />
+                <PageStateBlock
+                    v-else-if="displayFavorites.length === 0"
+                    state="empty"
+                    empty-icon="pi pi-heart"
+                    empty-title="찜한 레시피가 없습니다"
+                    empty-message="마음에 드는 레시피를 찜해보세요!"
+                    empty-button-label="레시피 둘러보기"
+                    @empty-action="browseRecipes"
+                />
+
+                <!-- 레시피 목록이 있는 경우 -->
+                <template v-else>
+                    <div class="recipe-grid">
+                        <RecipeGridCard
+                            v-for="favorite in displayFavorites"
+                            :key="favorite.id"
+                            :recipe="getRecipeGridItem(favorite)"
+                            :category-label="getCategoryName(favorite.recipe)"
+                            :date-text="formatDate(favorite.createdAt)"
+                            :show-bookmark="false"
+                            :show-comment-count="false"
+                            :favorites-mode="true"
+                            :show-author="false"
+                            @click="viewRecipe"
+                            @favorite="onRemoveFavorite"
+                        />
+                    </div>
+                    <div class="flex justify-center mt-4">
+                        <Paginator v-model:first="first" :rows="rows" :totalRecords="totalFavorites" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" />
+                    </div>
+                </template>
+            </div>
         </div>
     </div>
 </template>

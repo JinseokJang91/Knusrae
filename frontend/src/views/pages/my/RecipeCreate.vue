@@ -481,7 +481,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="card">
+    <div class="page-container page-container--card">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-2xl font-bold">레시피 등록</h2>
             <div class="flex gap-2">

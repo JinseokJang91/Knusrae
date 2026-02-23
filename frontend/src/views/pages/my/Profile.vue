@@ -128,71 +128,73 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="profile-content">
-        <!-- 초기 로딩 -->
-        <PageStateBlock v-if="initialLoading" state="loading" loading-message="프로필 정보를 불러오는 중..." />
+    <div class="page-container page-container--card">
+        <div class="profile-content">
+            <!-- 초기 로딩 -->
+            <PageStateBlock v-if="initialLoading" state="loading" loading-message="프로필 정보를 불러오는 중..." />
 
-        <!-- 초기 로드 실패 -->
-        <PageStateBlock v-else-if="initialError" state="error" error-title="프로필을 불러올 수 없습니다" :error-message="initialError" retry-label="다시 시도" @retry="retryLoadMemberInfo" />
+            <!-- 초기 로드 실패 -->
+            <PageStateBlock v-else-if="initialError" state="error" error-title="프로필을 불러올 수 없습니다" :error-message="initialError" retry-label="다시 시도" @retry="retryLoadMemberInfo" />
 
-        <!-- 폼 -->
-        <div v-else class="grid grid-cols-12 gap-6">
-            <div class="col-span-12 md:col-span-4">
-                <div class="p-4 border rounded-md flex flex-col items-center justify-center h-5/6">
-                    <input ref="profileImageInputRef" type="file" accept="image/*" @change="onProfileImageChange" class="hidden" />
-                    <div class="w-48 h-48 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" @click="() => profileImageInputRef?.click()">
-                        <img v-if="form.profileImage" :src="form.profileImage" alt="프로필 이미지" class="w-full h-full object-cover" />
-                        <span v-else class="text-5xl text-gray-500">{{ initials }}</span>
+            <!-- 폼 -->
+            <div v-else class="grid grid-cols-12 gap-6">
+                <div class="col-span-12 md:col-span-4">
+                    <div class="p-4 border rounded-md flex flex-col items-center justify-center h-5/6">
+                        <input ref="profileImageInputRef" type="file" accept="image/*" @change="onProfileImageChange" class="hidden" />
+                        <div class="w-48 h-48 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer hover:opacity-80 transition-opacity" @click="() => profileImageInputRef?.click()">
+                            <img v-if="form.profileImage" :src="form.profileImage" alt="프로필 이미지" class="w-full h-full object-cover" />
+                            <span v-else class="text-5xl text-gray-500">{{ initials }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-12 md:col-span-8">
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="block text-sm font-medium mb-2">이름</label>
+                            <InputText v-model="form.name" class="w-full" placeholder="이름" :disabled="saving" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="block text-sm font-medium mb-2">닉네임</label>
+                            <InputText v-model="form.nickname" class="w-full" placeholder="닉네임" :disabled="saving" />
+                        </div>
+                        <div class="col-span-12">
+                            <label class="block text-sm font-medium mb-2">이메일</label>
+                            <InputText v-model="form.email" type="email" class="w-full" disabled />
+                        </div>
+                        <div class="col-span-12">
+                            <label class="block text-sm font-medium mb-2">자기소개</label>
+                            <Textarea v-model="form.bio" class="w-full" placeholder="자기소개를 입력해주세요" :rows="4" :disabled="saving" />
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="block text-sm font-medium mb-2">팔로워</label>
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between" @click="showFollowersDialog = true">
+                                <span>{{ form.followerCount || 0 }}</span>
+                                <i class="pi pi-angle-right text-gray-400"></i>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">클릭하여 목록 보기</p>
+                        </div>
+                        <div class="col-span-12 md:col-span-6">
+                            <label class="block text-sm font-medium mb-2">팔로잉</label>
+                            <div class="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between" @click="showFollowingsDialog = true">
+                                <span>{{ form.followingCount || 0 }}</span>
+                                <i class="pi pi-angle-right text-gray-400"></i>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">클릭하여 목록 보기</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex gap-2 justify-end">
+                        <Button type="button" label="취소" icon="pi pi-times" severity="secondary" outlined :disabled="saving" @click="onCancel" />
+                        <Button type="button" label="저장" icon="pi pi-save" :loading="saving" :disabled="saving" @click="onSave" />
                     </div>
                 </div>
             </div>
-            <div class="col-span-12 md:col-span-8">
-                <div class="grid grid-cols-12 gap-4">
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="block text-sm font-medium mb-2">이름</label>
-                        <InputText v-model="form.name" class="w-full" placeholder="이름" :disabled="saving" />
-                    </div>
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="block text-sm font-medium mb-2">닉네임</label>
-                        <InputText v-model="form.nickname" class="w-full" placeholder="닉네임" :disabled="saving" />
-                    </div>
-                    <div class="col-span-12">
-                        <label class="block text-sm font-medium mb-2">이메일</label>
-                        <InputText v-model="form.email" type="email" class="w-full" disabled />
-                    </div>
-                    <div class="col-span-12">
-                        <label class="block text-sm font-medium mb-2">자기소개</label>
-                        <Textarea v-model="form.bio" class="w-full" placeholder="자기소개를 입력해주세요" :rows="4" :disabled="saving" />
-                    </div>
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="block text-sm font-medium mb-2">팔로워</label>
-                        <div class="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between" @click="showFollowersDialog = true">
-                            <span>{{ form.followerCount || 0 }}</span>
-                            <i class="pi pi-angle-right text-gray-400"></i>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-1">클릭하여 목록 보기</p>
-                    </div>
-                    <div class="col-span-12 md:col-span-6">
-                        <label class="block text-sm font-medium mb-2">팔로잉</label>
-                        <div class="w-full px-3 py-2 border border-gray-300 rounded bg-white text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between" @click="showFollowingsDialog = true">
-                            <span>{{ form.followingCount || 0 }}</span>
-                            <i class="pi pi-angle-right text-gray-400"></i>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-1">클릭하여 목록 보기</p>
-                    </div>
-                </div>
 
-                <div class="mt-6 flex gap-2 justify-end">
-                    <Button type="button" label="취소" icon="pi pi-times" severity="secondary" outlined :disabled="saving" @click="onCancel" />
-                    <Button type="button" label="저장" icon="pi pi-save" :loading="saving" :disabled="saving" @click="onSave" />
-                </div>
-            </div>
+            <!-- 팔로워/팔로잉 목록 Dialog -->
+            <FollowListDialog v-if="authStore.memberInfo?.id" v-model:visible="showFollowersDialog" :memberId="authStore.memberInfo.id" type="followers" @update:visible="handleDialogClose" />
+
+            <FollowListDialog v-if="authStore.memberInfo?.id" v-model:visible="showFollowingsDialog" :memberId="authStore.memberInfo.id" type="followings" @update:visible="handleDialogClose" />
         </div>
-
-        <!-- 팔로워/팔로잉 목록 Dialog -->
-        <FollowListDialog v-if="authStore.memberInfo?.id" v-model:visible="showFollowersDialog" :memberId="authStore.memberInfo.id" type="followers" @update:visible="handleDialogClose" />
-
-        <FollowListDialog v-if="authStore.memberInfo?.id" v-model:visible="showFollowingsDialog" :memberId="authStore.memberInfo.id" type="followings" @update:visible="handleDialogClose" />
     </div>
 </template>
 

@@ -14,13 +14,7 @@ const routes: RouteRecordRaw[] = [
                 name: 'dashboard',
                 component: () => import('@/views/Dashboard.vue')
             },
-            // 1-2. 오늘의 레시피 추천
-            {
-                path: '/recommend/today',
-                name: 'todayRecipe',
-                component: () => import('@/views/pages/recommend/TodayRecipe.vue')
-            },
-            // 1-3. 검색 결과
+            // 1-2. 검색 결과
             {
                 path: '/recipe/search',
                 name: 'searchResult',

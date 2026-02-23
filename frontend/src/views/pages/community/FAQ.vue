@@ -38,8 +38,8 @@ const goToInquiries = () => {
 </script>
 
 <template>
-    <div class="faq-container">
-        <div class="card">
+    <div class="page-container page-container--card">
+        <div class="faq-container">
             <!-- Header -->
             <div class="faq-header mb-6">
                 <h1 class="text-3xl font-bold m-0 mb-2">FAQ - 자주 묻는 질문</h1>
@@ -75,9 +75,9 @@ const goToInquiries = () => {
 
 <style lang="scss" scoped>
 .faq-container {
-    padding: 1rem;
     max-width: 900px;
-    margin: 0 auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .faq-header {
@@ -114,7 +114,7 @@ const goToInquiries = () => {
 
 @media (max-width: 768px) {
     .faq-container {
-        padding: 0.5rem;
+        max-width: 100%;
     }
 
     .faq-header {

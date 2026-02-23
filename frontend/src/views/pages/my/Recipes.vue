@@ -107,7 +107,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="card">
+    <div class="page-container page-container--card">
         <!-- 브레드크럼 -->
         <nav class="text-sm text-gray-500 mb-2" aria-label="breadcrumb">
             <router-link to="/my" class="text-gray-500 hover:text-gray-700 hover:underline">마이페이지</router-link>

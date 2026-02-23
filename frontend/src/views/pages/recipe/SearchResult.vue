@@ -318,7 +318,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="card">
+    <div class="page-container page-container--card">
         <!-- header : 페이지 제목 -->
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-3xl font-bold text-gray-900">

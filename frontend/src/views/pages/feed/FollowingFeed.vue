@@ -94,8 +94,8 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="following-feed-container">
-        <div class="card">
+    <div class="page-container page-container--card">
+        <div class="following-feed-container">
             <div class="feed-header">
                 <h1 class="text-3xl font-bold m-0">팔로잉 피드</h1>
                 <p class="text-secondary mt-2">팔로우한 크리에이터들의 최신 레시피를 확인하세요</p>
@@ -138,14 +138,10 @@ onMounted(() => {
                 </div>
             </div>
         </div>
-    </div>
 </template>
 
 <style scoped lang="scss">
 .following-feed-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem;
 
     .feed-header {
         margin-bottom: 2rem;
@@ -168,7 +164,6 @@ onMounted(() => {
 
 @media (max-width: 768px) {
     .following-feed-container {
-        padding: 1rem;
 
         .feed-content {
             .recipe-grid {

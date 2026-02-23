@@ -28,9 +28,9 @@ defineEmits<{
 </script>
 
 <template>
-    <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+    <div class="recipe-detail-header bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
         <!-- 메인 이미지 -->
-        <div class="relative w-full h-96 bg-white">
+        <div class="recipe-detail-header__image relative w-full h-96 bg-white">
             <img v-if="mainImage" :src="mainImage.url" :alt="recipe.title" class="w-full mx-auto h-full object-cover" />
             <div v-else class="flex items-center justify-center h-full text-white text-6xl">🍳</div>
 
@@ -47,10 +47,10 @@ defineEmits<{
         </div>
 
         <!-- 레시피 기본 정보 -->
-        <div class="p-8">
-            <div class="flex items-start justify-between mb-6">
+        <div class="recipe-detail-header__body p-8">
+            <div class="recipe-detail-header__main flex items-start justify-between mb-6">
                 <div class="flex-1">
-                    <h1 class="text-4xl font-bold text-gray-800 mb-4">{{ recipe.title }}</h1>
+                    <h1 class="recipe-detail-header__title text-4xl font-bold text-gray-800 mb-4">{{ recipe.title }}</h1>
                     <div class="recipe-intro-bubble" v-if="recipe.introduction">
                         <p class="recipe-intro-bubble__text">{{ recipe.introduction }}</p>
                     </div>
@@ -63,7 +63,7 @@ defineEmits<{
                     </div>
 
                     <!-- 레시피 상세 정보 (요리팁 + 통계) -->
-                    <div v-if="cookingTipsData.servings || cookingTipsData.cookingTime || cookingTipsData.difficulty" class="flex items-center justify-between gap-6 mb-4 p-4 bg-gray-50 rounded-lg">
+                    <div v-if="cookingTipsData.servings || cookingTipsData.cookingTime || cookingTipsData.difficulty" class="recipe-detail-header__tips flex items-center justify-between gap-6 mb-4 p-4 bg-gray-50 rounded-lg">
                         <div class="flex flex-wrap gap-6">
                             <div v-if="cookingTipsData.servings" class="flex items-center space-x-2">
                                 <i class="pi pi-users text-gray-600 text-xl"></i>
@@ -78,7 +78,7 @@ defineEmits<{
                                 <span class="text-gray-700 font-medium">{{ cookingTipsData.difficulty }}</span>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-6 text-gray-600">
+                        <div class="recipe-detail-header__stats flex items-center space-x-6 text-gray-600">
                             <div class="text-center">
                                 <div class="text-2xl font-bold text-gray-600">{{ formatNumber(recipe.hits) }}</div>
                                 <div class="text-sm">조회수</div>
@@ -168,5 +168,53 @@ defineEmits<{
     font-size: 1.125rem;
     line-height: 1.65;
     color: #92400e;
+}
+
+/* 반응형: 태블릿 */
+@media (max-width: 768px) {
+    .recipe-detail-header__image {
+        height: 16rem;
+    }
+    .recipe-detail-header__body {
+        padding: 1.5rem;
+    }
+    .recipe-detail-header__title {
+        font-size: 1.75rem;
+    }
+    .recipe-detail-header__main {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .recipe-detail-header__tips {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    .recipe-detail-header__stats {
+        width: 100%;
+        justify-content: space-between;
+        padding-top: 0.75rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+    }
+}
+
+/* 반응형: 모바일 */
+@media (max-width: 480px) {
+    .recipe-detail-header__image {
+        height: 12rem;
+    }
+    .recipe-detail-header__body {
+        padding: 1rem;
+    }
+    .recipe-detail-header__title {
+        font-size: 1.35rem;
+    }
+    .recipe-intro-bubble {
+        padding: 0.75rem 1rem;
+    }
+    .recipe-intro-bubble__text {
+        font-size: 0.95rem;
+    }
 }
 </style>

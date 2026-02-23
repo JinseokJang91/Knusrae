@@ -16,6 +16,7 @@ const authStore = useAuthStore();
 const searchQuery = ref('');
 const profileMenu = ref();
 const categoryDropdownRef = ref<HTMLElement | null>(null);
+const mobileMenuOpen = ref(false);
 
 // 카테고리 선택 시 드롭다운 닫기
 const closeCategoryDropdown = () => {
@@ -279,8 +280,17 @@ const handleMyRecipesClick = (event: Event) => {
     }
 };
 
+const toggleMobileMenu = () => {
+    mobileMenuOpen.value = !mobileMenuOpen.value;
+};
+
+const closeMobileMenu = () => {
+    mobileMenuOpen.value = false;
+};
+
 const handleMyMenuClick = (path: string, event: Event) => {
     event.preventDefault();
+    closeMobileMenu();
 
     if (!authStore.isLoggedIn) {
         confirm.require({
@@ -401,127 +411,172 @@ onUnmounted(() => {
 
 <template>
     <div class="layout-topbar-horizontal">
-        <!-- 좌측 영역: 로고 + 앱명 + 메뉴 -->
-        <div class="topbar-left">
-            <!-- 로고와 앱명 -->
-            <router-link to="/" class="logo-section">
-                <img :src="logoText" alt="너에게 스며드는 레시피" class="logo-image" />
-            </router-link>
+        <!-- main과 동일한 콘텐츠 영역으로 정렬되는 내부 래퍼 -->
+        <div class="topbar-inner">
+            <!-- 좌측 영역: 로고 + 앱명 + 메뉴 -->
+            <div class="topbar-left">
+                <!-- 모바일 메뉴 버튼 (768px 이하에서만 표시) -->
+                <button type="button" class="topbar-mobile-menu-btn" aria-label="메뉴 열기" @click="toggleMobileMenu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <!-- 로고와 앱명 -->
+                <router-link to="/" class="logo-section" @click="closeMobileMenu">
+                    <img :src="logoText" alt="너에게 스며드는 레시피" class="logo-image" />
+                </router-link>
 
-            <!-- 메뉴 -->
-            <nav class="main-menu">
-                <router-link to="/recipe/category" class="menu-item">
-                    <i class="fa-solid fa-utensils"></i>
-                    <span>전체 레시피</span>
-                </router-link>
-                <router-link to="/ingredient/management" class="menu-item">
-                    <i class="fa-solid fa-boxes-packing"></i>
-                    <span>재료 관리</span>
-                </router-link>
-                <router-link to="/ranking" class="menu-item">
-                    <i class="fa-solid fa-ranking-star"></i>
-                    <span>랭킹</span>
-                </router-link>
-                <div class="menu-item-wrapper">
-                    <button
-                        type="button"
-                        class="menu-item category-menu-btn"
-                        v-styleclass="{
-                            selector: '@next',
-                            enterFromClass: 'hidden',
-                            leaveToClass: 'hidden',
-                            hideOnOutsideClick: true
-                        }"
-                    >
-                        <i class="fa-solid fa-arrow-down-wide-short"></i>
-                        <span>카테고리</span>
-                        <i class="fa-solid fa-chevron-down ml-1 text-xs"></i>
-                    </button>
-                    <div ref="categoryDropdownRef" class="hidden category-dropdown">
-                        <div class="category-grid">
-                            <router-link v-for="category in RECIPE_CATEGORIES" :key="category.id" :to="getCategoryRouteLink(category)" class="category-item" @click="closeCategoryDropdown">
-                                <i :class="category.icon"></i>
-                                <div class="category-info">
-                                    <span class="category-name">{{ category.name }}</span>
-                                    <span v-if="category.description" class="category-desc">{{ category.description }}</span>
-                                </div>
-                            </router-link>
-                        </div>
-                    </div>
-                </div>
-                <router-link to="/community/faq" class="menu-item">
-                    <i class="fa-solid fa-circle-question"></i>
-                    <span>FAQ</span>
-                </router-link>
-            </nav>
-        </div>
-
-        <!-- 중앙 영역: 검색창 -->
-        <div class="topbar-center">
-            <div class="search-wrapper">
-                <div class="search-container">
-                    <i class="pi pi-search search-icon" @click="handleSearch"></i>
-                    <input type="text" placeholder="레시피를 검색해보세요..." class="search-input" v-model="searchQuery" @keyup.enter="handleSearch" @focus="handleSearchFocus" @blur="handleSearchBlur" />
-                    <button v-if="searchQuery" class="search-clear-btn" @click="clearSearch">
-                        <i class="pi pi-times"></i>
-                    </button>
-                </div>
-
-                <!-- 최근 검색어 드롭다운 -->
-                <div v-if="showRecentKeywords && authStore.isLoggedIn" class="recent-keywords-dropdown" @mousedown.prevent>
-                    <div class="recent-keywords-header">
-                        <span class="text-sm font-semibold text-gray-700">최근 검색어</span>
-                        <div class="recent-keywords-header-actions">
-                            <button v-if="recentKeywords.length > 0" class="auto-save-toggle-btn text-xs text-gray-600 hover:text-gray-800 whitespace-nowrap" @click="handleDeleteAllKeywords" @mousedown.stop type="button">전체 삭제</button>
-                            <div class="flex items-center gap-2" @mousedown.stop>
-                                <span class="text-xs text-gray-600 whitespace-nowrap">자동저장</span>
-                                <ToggleSwitch v-model="isAutoSaveEnabled" @update:modelValue="(value: boolean) => toggleAutoSave(value)" />
+                <!-- 메뉴 (데스크톱) -->
+                <nav class="main-menu">
+                    <router-link to="/recipe/category" class="menu-item">
+                        <i class="fa-solid fa-utensils"></i>
+                        <span>전체 레시피</span>
+                    </router-link>
+                    <router-link to="/ingredient/management" class="menu-item">
+                        <i class="fa-solid fa-boxes-packing"></i>
+                        <span>재료 관리</span>
+                    </router-link>
+                    <router-link to="/ranking" class="menu-item">
+                        <i class="fa-solid fa-ranking-star"></i>
+                        <span>랭킹</span>
+                    </router-link>
+                    <div class="menu-item-wrapper">
+                        <button
+                            type="button"
+                            class="menu-item category-menu-btn"
+                            v-styleclass="{
+                                selector: '@next',
+                                enterFromClass: 'hidden',
+                                leaveToClass: 'hidden',
+                                hideOnOutsideClick: true
+                            }"
+                        >
+                            <i class="fa-solid fa-arrow-down-wide-short"></i>
+                            <span>카테고리</span>
+                            <i class="fa-solid fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        <div ref="categoryDropdownRef" class="hidden category-dropdown">
+                            <div class="category-grid">
+                                <router-link v-for="category in RECIPE_CATEGORIES" :key="category.id" :to="getCategoryRouteLink(category)" class="category-item" @click="closeCategoryDropdown">
+                                    <i :class="category.icon"></i>
+                                    <div class="category-info">
+                                        <span class="category-name">{{ category.name }}</span>
+                                        <span v-if="category.description" class="category-desc">{{ category.description }}</span>
+                                    </div>
+                                </router-link>
                             </div>
                         </div>
                     </div>
-                    <div v-if="recentKeywordsLoading" class="recent-keywords-loading">
-                        <i class="pi pi-spin pi-spinner"></i>
-                        <span class="ml-2">로딩 중...</span>
+                    <router-link to="/community/faq" class="menu-item">
+                        <i class="fa-solid fa-circle-question"></i>
+                        <span>FAQ</span>
+                    </router-link>
+                </nav>
+            </div>
+
+            <!-- 중앙 영역: 검색창 -->
+            <div class="topbar-center">
+                <div class="search-wrapper">
+                    <div class="search-container">
+                        <i class="pi pi-search search-icon" @click="handleSearch"></i>
+                        <input type="text" placeholder="레시피를 검색해보세요..." class="search-input" v-model="searchQuery" @keyup.enter="handleSearch" @focus="handleSearchFocus" @blur="handleSearchBlur" />
+                        <button v-if="searchQuery" class="search-clear-btn" @click="clearSearch">
+                            <i class="pi pi-times"></i>
+                        </button>
                     </div>
-                    <div v-else-if="recentKeywords.length === 0" class="recent-keywords-empty">
-                        <span class="text-sm text-gray-500">최근 검색어가 없습니다.</span>
-                    </div>
-                    <div v-else class="recent-keywords-list">
-                        <div v-for="keyword in recentKeywords" :key="keyword.id" class="recent-keyword-item" @mousedown.prevent @click="selectRecentKeyword(keyword.keyword)">
-                            <i class="pi pi-clock text-gray-400"></i>
-                            <span class="recent-keyword-text">{{ keyword.keyword }}</span>
-                            <button class="recent-keyword-delete" @mousedown.stop @click.stop="handleDeleteKeyword(keyword.id, $event)" type="button">
-                                <i class="pi pi-times"></i>
-                            </button>
+
+                    <!-- 최근 검색어 드롭다운 -->
+                    <div v-if="showRecentKeywords && authStore.isLoggedIn" class="recent-keywords-dropdown" @mousedown.prevent>
+                        <div class="recent-keywords-header">
+                            <span class="text-sm font-semibold text-gray-700">최근 검색어</span>
+                            <div class="recent-keywords-header-actions">
+                                <button v-if="recentKeywords.length > 0" class="auto-save-toggle-btn text-xs text-gray-600 hover:text-gray-800 whitespace-nowrap" @click="handleDeleteAllKeywords" @mousedown.stop type="button">전체 삭제</button>
+                                <div class="flex items-center gap-2" @mousedown.stop>
+                                    <span class="text-xs text-gray-600 whitespace-nowrap">자동저장</span>
+                                    <ToggleSwitch v-model="isAutoSaveEnabled" @update:modelValue="(value: boolean) => toggleAutoSave(value)" />
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="recentKeywordsLoading" class="recent-keywords-loading">
+                            <i class="pi pi-spin pi-spinner"></i>
+                            <span class="ml-2">로딩 중...</span>
+                        </div>
+                        <div v-else-if="recentKeywords.length === 0" class="recent-keywords-empty">
+                            <span class="text-sm text-gray-500">최근 검색어가 없습니다.</span>
+                        </div>
+                        <div v-else class="recent-keywords-list">
+                            <div v-for="keyword in recentKeywords" :key="keyword.id" class="recent-keyword-item" @mousedown.prevent @click="selectRecentKeyword(keyword.keyword)">
+                                <i class="pi pi-clock text-gray-400"></i>
+                                <span class="recent-keyword-text">{{ keyword.keyword }}</span>
+                                <button class="recent-keyword-delete" @mousedown.stop @click.stop="handleDeleteKeyword(keyword.id, $event)" type="button">
+                                    <i class="pi pi-times"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 우측 영역: 내 레시피 + 프로필/로그인/회원가입 -->
-        <div class="topbar-right">
-            <!-- <button v-if="authStore.isLoggedIn" class="menu-item my-recipes-btn" @click="handleMyRecipesClick">
+            <!-- 우측 영역: 내 레시피 + 프로필/로그인/회원가입 -->
+            <div class="topbar-right">
+                <!-- <button v-if="authStore.isLoggedIn" class="menu-item my-recipes-btn" @click="handleMyRecipesClick">
                 <i class="pi pi-book"></i>
                 <span>내 레시피</span>
             </button> -->
-            <div v-if="authStore.isLoggedIn">
-                <Button icon="pi pi-book" label="내 레시피" @click="handleMyRecipesClick" size="small" raised />
-            </div>
+                <div v-if="authStore.isLoggedIn">
+                    <Button icon="pi pi-book" label="내 레시피" @click="handleMyRecipesClick" size="small" raised />
+                </div>
 
-            <!-- 로그인 상태일 때 -->
-            <div v-if="authStore.isLoggedIn" class="profile-section">
-                <button type="button" class="profile-button" @click="(event: Event) => profileMenu.toggle(event)">
-                    <img v-if="authStore.memberProfileImage" :src="authStore.memberProfileImage" alt="프로필" class="profile-image" />
-                    <i v-else class="pi pi-user profile-icon"></i>
-                </button>
-                <Menu ref="profileMenu" :model="profileMenuItems" :popup="true" />
-            </div>
+                <!-- 로그인 상태일 때 -->
+                <div v-if="authStore.isLoggedIn" class="profile-section">
+                    <button type="button" class="profile-button" @click="(event: Event) => profileMenu.toggle(event)">
+                        <img v-if="authStore.memberProfileImage" :src="authStore.memberProfileImage" alt="프로필" class="profile-image" />
+                        <i v-else class="pi pi-user profile-icon"></i>
+                    </button>
+                    <Menu ref="profileMenu" :model="profileMenuItems" :popup="true" />
+                </div>
 
-            <!-- 비로그인 상태일 때 -->
-            <div v-else class="auth-buttons">
-                <Button icon="pi pi-sign-in" label="로그인" @click="router.push('/auth/login')" size="small" raised />
+                <!-- 비로그인 상태일 때 -->
+                <div v-else class="auth-buttons">
+                    <Button icon="pi pi-sign-in" label="로그인" @click="router.push('/auth/login')" size="small" raised />
+                </div>
             </div>
         </div>
+
+        <!-- 모바일 메뉴 오버레이 (768px 이하) -->
+        <Teleport to="body">
+            <Transition name="mobile-menu">
+                <div v-if="mobileMenuOpen" class="mobile-menu-overlay" @click.self="closeMobileMenu" role="dialog" aria-modal="true" aria-label="메뉴">
+                    <div class="mobile-menu-drawer">
+                        <div class="mobile-menu-header">
+                            <span class="mobile-menu-title">메뉴</span>
+                            <button type="button" class="mobile-menu-close" aria-label="메뉴 닫기" @click="closeMobileMenu">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                        <nav class="mobile-menu-nav">
+                            <router-link to="/recipe/category" class="mobile-menu-item" @click="closeMobileMenu">
+                                <i class="fa-solid fa-utensils"></i>
+                                <span>전체 레시피</span>
+                            </router-link>
+                            <router-link to="/ingredient/management" class="mobile-menu-item" @click="closeMobileMenu">
+                                <i class="fa-solid fa-boxes-packing"></i>
+                                <span>재료 관리</span>
+                            </router-link>
+                            <router-link to="/ranking" class="mobile-menu-item" @click="closeMobileMenu">
+                                <i class="fa-solid fa-ranking-star"></i>
+                                <span>랭킹</span>
+                            </router-link>
+                            <router-link v-for="category in RECIPE_CATEGORIES" :key="category.id" :to="getCategoryRouteLink(category)" class="mobile-menu-item" @click="closeMobileMenu">
+                                <i :class="category.icon"></i>
+                                <span>{{ category.name }}</span>
+                            </router-link>
+                            <router-link to="/community/faq" class="mobile-menu-item" @click="closeMobileMenu">
+                                <i class="fa-solid fa-circle-question"></i>
+                                <span>FAQ</span>
+                            </router-link>
+                        </nav>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
     </div>
 </template>
