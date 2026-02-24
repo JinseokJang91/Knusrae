@@ -16,25 +16,28 @@ const nickname = computed(() => authStore.memberName);
 // 앱 초기화 중에는 비로그인 문구를 보여주되, 인증이 끝나면 실제 로그인 상태로 전환
 const showLoggedInGreeting = computed(() => authStore.isInitialized && isLoggedIn.value);
 
-// 시간대별 환영 메시지
+// 시간대별 환영 메시지 + 테마(1번 컬러) + 아이콘(3번 이모지)
 const timeBasedGreeting = computed(() => {
     const hour = new Date().getHours();
 
     if (hour >= 5 && hour < 11) {
-        // 아침: 5시 ~ 11시
         return {
+            theme: 'morning',
+            icon: '🌅',
             message: '좋은 아침이에요!',
             subtitle: '오늘의 추천 레시피를 확인해보세요'
         };
     } else if (hour >= 11 && hour < 17) {
-        // 점심: 11시 ~ 17시
         return {
+            theme: 'lunch',
+            icon: '🍽️',
             message: '점심 메뉴 고민되시나요?',
             subtitle: '인기 레시피를 둘러보세요'
         };
     } else {
-        // 저녁/밤/새벽: 17시 ~ 5시
         return {
+            theme: 'evening',
+            icon: '🌙',
             message: '오늘 하루 수고하셨어요.',
             subtitle: '새로운 레시피를 발견해보세요'
         };
@@ -53,12 +56,11 @@ const greetingTitle = computed(() => {
 <template>
     <div class="page-container">
         <div class="dashboard-container">
-            <!-- 1. 환영 문구 (히어로 섹션) -->
+            <!-- 1. 환영 문구 (1번 시간대별 컬러 + 3번 이모지) -->
             <section class="dashboard-section hero-section">
-                <div class="hero-content">
-                    <h4 class="hero-title">
-                        {{ greetingTitle }}
-                    </h4>
+                <div class="hero-content" :class="`hero-theme-${timeBasedGreeting.theme}`">
+                    <span class="hero-icon" aria-hidden="true">{{ timeBasedGreeting.icon }}</span>
+                    <h4 class="hero-title">{{ greetingTitle }}</h4>
                     <p class="hero-subtitle">{{ timeBasedGreeting.subtitle }}</p>
                 </div>
             </section>
@@ -130,26 +132,76 @@ const greetingTitle = computed(() => {
     }
 }
 
-// 히어로 섹션 (환영 문구)
+// 6번: 미니 애니메이션 (페이드인 + 살짝 올라옴)
+@keyframes hero-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes hero-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+// 히어로 섹션 — 1번 + 3번 + 6번(미니 애니메이션)
 .hero-section {
     .hero-content {
-        background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(255, 159, 64, 0.05) 100%);
-        border: 1px solid rgba(255, 107, 53, 0.2);
         border-radius: 20px;
         padding: 32px 40px;
         text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        transition:
+            background 0.4s ease,
+            border-color 0.4s ease;
+
+        .hero-icon {
+            font-size: 2.5rem;
+            line-height: 1;
+            margin-bottom: 4px;
+            animation: hero-fade-up 0.4s ease-out both;
+        }
 
         .hero-title {
             font-size: 2rem;
             font-weight: 700;
             color: var(--text-color);
-            margin-bottom: 12px;
+            margin: 0 0 4px;
+            animation: hero-fade-up 0.4s ease-out 0.08s both;
         }
 
         .hero-subtitle {
             font-size: 1.1rem;
             color: var(--text-color-secondary);
             margin: 0;
+            animation: hero-fade-in 0.4s ease-out 0.18s both;
+        }
+
+        &.hero-theme-morning {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.06) 100%);
+            border: 1px solid rgba(251, 191, 36, 0.35);
+        }
+
+        &.hero-theme-lunch {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.12) 0%, rgba(255, 159, 64, 0.06) 100%);
+            border: 1px solid rgba(255, 107, 53, 0.25);
+        }
+
+        &.hero-theme-evening {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.06) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
         }
     }
 }
@@ -217,6 +269,10 @@ const greetingTitle = computed(() => {
     .hero-section .hero-content {
         padding: 24px 32px;
 
+        .hero-icon {
+            font-size: 2.25rem;
+        }
+
         .hero-title {
             font-size: 1.75rem;
         }
@@ -240,6 +296,10 @@ const greetingTitle = computed(() => {
         padding: 20px 24px;
         border-radius: 16px;
 
+        .hero-icon {
+            font-size: 2rem;
+        }
+
         .hero-title {
             font-size: 1.5rem;
         }
@@ -262,6 +322,10 @@ const greetingTitle = computed(() => {
 
     .hero-section .hero-content {
         padding: 16px 20px;
+
+        .hero-icon {
+            font-size: 1.75rem;
+        }
 
         .hero-title {
             font-size: 1.25rem;

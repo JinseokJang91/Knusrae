@@ -755,7 +755,7 @@ onMounted(() => {
                 <!-- 선택 영역 라벨: 사용자가 클릭 가능한 카테고리임을 명시 -->
                 <div class="category-select-label">
                     <i class="pi pi-check-circle category-select-icon" aria-hidden="true"></i>
-                    <span class="category-select-title">카테고리 선택</span>
+                    <span class="category-select-title">카테고리</span>
                     <span class="category-select-hint">원하는 카테고리를 클릭하세요</span>
                 </div>
                 <!-- 메인 카테고리 탭 (가로) -->
@@ -822,13 +822,14 @@ onMounted(() => {
             <!-- 로딩 / 에러 / 빈 상태 -->
             <PageStateBlock v-if="loading" state="loading" loading-message="레시피를 불러오는 중..." />
             <PageStateBlock v-else-if="error" state="error" error-title="레시피를 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadRecipes" />
-            <PageStateBlock
-                v-else-if="displayRecipes.length === 0"
-                state="empty"
-                :empty-icon="showFollowingFeed ? 'pi pi-users' : 'pi pi-book'"
-                :empty-title="showFollowingFeed ? '팔로잉 피드가 비어있습니다' : '레시피가 없습니다'"
-                :empty-message="showFollowingFeed ? '팔로우한 크리에이터가 없거나, 아직 레시피를 등록하지 않았습니다.' : selectedCategory ? '선택한 카테고리에 레시피가 없습니다.' : '등록된 레시피가 없습니다.'"
-            />
+            <div v-else-if="displayRecipes.length === 0" class="recipe-grid recipe-grid--empty-state">
+                <PageStateBlock
+                    state="empty"
+                    :empty-icon="showFollowingFeed ? 'pi pi-users' : 'pi pi-book'"
+                    :empty-title="showFollowingFeed ? '팔로잉 피드가 비어있습니다' : '레시피가 없습니다'"
+                    :empty-message="showFollowingFeed ? '팔로우한 크리에이터가 없거나, 아직 레시피를 등록하지 않았습니다.' : selectedCategory ? '선택한 카테고리에 레시피가 없습니다.' : '등록된 레시피가 없습니다.'"
+                />
+            </div>
 
             <!-- 레시피 목록이 있는 경우 -->
             <template v-else>
@@ -914,10 +915,10 @@ onMounted(() => {
     color: #fff;
 }
 
-/* 카테고리 선택기 스타일 */
+/* 카테고리 선택기 스타일 (오렌지 톤 배경으로 칩·탭과 구분) */
 .category-selector {
-    background: var(--surface-card);
-    border: 1px solid var(--surface-border);
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 2rem;
@@ -975,21 +976,21 @@ onMounted(() => {
     transition: all 0.2s ease;
     font-weight: 600;
     font-size: 0.9rem;
-    color: #374151;
-    background: #f3f4f6;
-    border: 1px solid #e5e7eb;
+    color: #9a3412;
+    background: #ffedd5;
+    border: 2px solid #fdba74;
 }
 
 .main-category-tabs .tab-button:hover {
-    background: #e5e7eb;
-    border-color: #d1d5db;
-    color: #111827;
+    background: #fed7aa;
+    border-color: #f97316;
+    color: #c2410c;
 }
 
 .main-category-tabs .tab-button.active {
-    background: var(--primary-color, #1f2937);
+    background: var(--primary-color, #ea580c);
     color: white;
-    border-color: var(--primary-color, #1f2937);
+    border: 2px solid #c2410c;
 }
 
 .sub-categories-panel {
@@ -997,6 +998,7 @@ onMounted(() => {
     min-height: 52px;
 }
 
+/* 상세 칩: 아웃라인 스타일로 메인 탭과 구분 (가벼운 인상) */
 .category-chip {
     padding: 0.5rem 0.9rem;
     border-radius: 9999px;
@@ -1004,21 +1006,21 @@ onMounted(() => {
     transition: all 0.2s ease;
     font-weight: 500;
     font-size: 0.875rem;
-    color: #374151;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
+    color: #c2410c;
+    background: #fff;
+    border: 1.5px solid #fdba74;
 }
 
 .category-chip:hover {
-    background: #f3f4f6;
-    border-color: #d1d5db;
-    color: #111827;
+    background: #fff7ed;
+    border-color: #f97316;
+    color: #9a3412;
 }
 
 .category-chip.selected {
-    background: var(--primary-color, #1f2937);
+    background: var(--primary-color, #ea580c);
     color: white;
-    border-color: var(--primary-color, #1f2937);
+    border: 1.5px solid #c2410c;
 }
 
 /* 반응형 디자인 (레시피 그리드/카드는 _recipe-card-list.scss 공통) */

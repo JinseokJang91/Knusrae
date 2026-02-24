@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import InputText from 'primevue/inputtext';
+import Button from 'primevue/button';
+import Tabs from 'primevue/tabs';
+import TabList from 'primevue/tablist';
+import Tab from 'primevue/tab';
+import TabPanels from 'primevue/tabpanels';
+import TabPanel from 'primevue/tabpanel';
 import IngredientList from '@/components/ingredient/IngredientList.vue';
+import type { ComponentPublicInstance } from 'vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -9,6 +17,8 @@ const router = useRouter();
 const activeTab = ref<'storage' | 'preparation'>('storage');
 const selectedGroupId = ref<number | null>(null);
 const searchQuery = ref('');
+const storageListRef = ref<ComponentPublicInstance | null>(null);
+const preparationListRef = ref<ComponentPublicInstance | null>(null);
 
 // URL 쿼리 파라미터로 탭 상태 복원
 onMounted(() => {
@@ -40,11 +50,6 @@ const handleGroupSelected = (groupId: number | null) => {
     updateQuery();
 };
 
-const handleSearchChanged = (query: string) => {
-    searchQuery.value = query;
-    updateQuery();
-};
-
 const updateQuery = () => {
     const query: Record<string, string> = { type: activeTab.value };
 
@@ -57,6 +62,11 @@ const updateQuery = () => {
     }
 
     router.replace({ query });
+};
+
+const openRequestDialog = () => {
+    const listRef = activeTab.value === 'storage' ? storageListRef.value : preparationListRef.value;
+    (listRef as { openRequestDialog?: () => void })?.openRequestDialog?.();
 };
 
 // URL 쿼리 변경 감지
@@ -88,102 +98,123 @@ watch(
 <template>
     <div class="page-container page-container--card">
         <div class="ingredient-panel">
-            <div class="tab-headers">
-                <button type="button" class="tab-header" :class="{ 'tab-header--active': activeTab === 'storage' }" :aria-pressed="activeTab === 'storage'" :aria-selected="activeTab === 'storage'" @click="activeTab = 'storage'">
-                    <span>재료 보관법</span>
-                </button>
-                <button type="button" class="tab-header" :class="{ 'tab-header--active': activeTab === 'preparation' }" :aria-pressed="activeTab === 'preparation'" :aria-selected="activeTab === 'preparation'" @click="activeTab = 'preparation'">
-                    <i class="pi pi-cut" aria-hidden="true"></i>
-                    <span>재료 손질법</span>
-                </button>
+            <!-- 1. 검색창(좌) + 재료 정보 요청(우) -->
+            <div class="top-row">
+                <span class="p-input-icon-left search-bar">
+                    <InputText v-model="searchQuery" placeholder="재료명을 검색하세요...(예: 감자, 계란)" class="w-full" @input="updateQuery()" />
+                </span>
+                <Button label="재료 정보 요청하기" icon="pi pi-send" class="request-btn" size="small" raised @click="openRequestDialog" />
             </div>
 
-            <div class="tab-content">
-                <section v-show="activeTab === 'storage'" class="tab-panel" aria-label="재료 보관법" :aria-hidden="activeTab !== 'storage'">
-                    <IngredientList type="storage" :selected-group-id="selectedGroupId" :search-query="searchQuery" @group-selected="handleGroupSelected" @search-changed="handleSearchChanged" />
-                </section>
-                <section v-show="activeTab === 'preparation'" class="tab-panel" aria-label="재료 손질법" :aria-hidden="activeTab !== 'preparation'">
-                    <IngredientList type="preparation" :selected-group-id="selectedGroupId" :search-query="searchQuery" @group-selected="handleGroupSelected" @search-changed="handleSearchChanged" />
-                </section>
+            <!-- 검색 영역 하단 구분선 (Category.vue .category-tabs-panel과 동일) -->
+            <div class="tab-panel-wrap">
+                <Tabs v-model:value="activeTab" class="ingredient-tabs">
+                    <TabList>
+                        <Tab value="storage">재료 보관법</Tab>
+                        <Tab value="preparation">재료 손질법</Tab>
+                    </TabList>
+                    <TabPanels>
+                        <TabPanel value="storage">
+                            <IngredientList ref="storageListRef" type="storage" :selected-group-id="selectedGroupId" :search-query="searchQuery" @group-selected="handleGroupSelected" />
+                        </TabPanel>
+                        <TabPanel value="preparation">
+                            <IngredientList ref="preparationListRef" type="preparation" :selected-group-id="selectedGroupId" :search-query="searchQuery" @group-selected="handleGroupSelected" />
+                        </TabPanel>
+                    </TabPanels>
+                </Tabs>
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-/* Category.vue 카테고리 영역(.category-selector)과 동일한 테두리/radius */
+/* 배경 단순화: 페이지 배경(오렌지) → 하나의 흰 카드. 테두리는 Category.vue .category-selector와 동일 */
 .ingredient-panel {
     background: var(--surface-card);
-    border: 1px solid var(--surface-border);
+    border: 1px solid #fed7aa;
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
     min-height: 0;
+    overflow: hidden;
 }
 
-.tab-headers {
+/* 검색 영역: Category.vue .category-selector와 동일한 패딩(1.5rem)으로 위치 맞춤 */
+.top-row {
     display: flex;
-    gap: 0;
-    border-bottom: 2px solid var(--surface-border);
-    margin-bottom: 1rem;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: #fff7ed;
+    border-bottom: 1px solid #fed7aa;
     flex-shrink: 0;
 }
 
-.tab-header {
+/* Category.vue 검색창과 동일한 길이 */
+.search-bar {
+    flex: 0 1 400px;
+    max-width: 400px;
+    min-width: 0;
+}
+
+.request-btn {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+/* 탭/리스트 영역: 같은 카드 안에 이어지도록 테두리만 구분 (별도 흰 박스 제거) */
+.tab-panel-wrap {
+    padding: 0.5rem 0.5rem 0.5rem;
     flex: 1;
+    min-height: 0;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-color-secondary);
-    background: transparent;
-    border: none;
-    border-bottom: 3px solid transparent;
-    cursor: pointer;
-    transition:
-        color 0.2s,
-        background 0.2s,
-        border-color 0.2s;
+    flex-direction: column;
 }
 
-.tab-header--active {
-    color: #fff;
-    border-bottom-color: #ea580c;
-    background: #f97316;
-}
-
-.tab-header__badge {
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.2rem 0.5rem;
-    border-radius: 9999px;
-    background: var(--primary-color);
-    color: var(--primary-color-text);
-}
-
-.tab-content {
+/* PrimeVue Tabs: 내부 박스 스타일 제거 → 카드와 한 블록으로 보이게 */
+.ingredient-tabs {
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: none;
+    border-radius: 0;
+    overflow: hidden;
+    background: transparent;
 }
 
-.tab-panel {
+.ingredient-tabs :deep(.p-tablist) {
+    flex-shrink: 0;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+}
+
+.ingredient-tabs :deep(.p-tabpanels) {
+    flex: 1;
     min-height: 0;
-    padding: 1rem 0 0;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.ingredient-tabs :deep(.p-tabpanel) {
+    min-height: 0;
+    padding-top: 1rem;
 }
 
 @media (max-width: 768px) {
-    .ingredient-panel {
+    .top-row {
+        padding: 1rem; /* Category.vue .category-selector 반응형과 동일 */
+    }
+
+    .tab-panel-wrap {
         padding: 1rem;
     }
 
-    .tab-header {
-        padding: 0.75rem 1rem;
-        font-size: 0.9rem;
+    .search-bar {
+        max-width: 100%;
     }
 }
 </style>

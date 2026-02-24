@@ -48,15 +48,28 @@
 
 .recipe-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
+    /* min 250px → 넓은 화면에서 한 줄 4개 가능, 카드가 좁을 때는 컨테이너 쿼리로 요소 축소 */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.25rem;
     margin-bottom: 2rem;
     align-items: stretch;
-    /* 그리드가 page-container 패딩으로 줄어든 너비 안에서 컬럼 수가 줄어들 수 있도록 (overflow 방지) */
     min-width: 0;
 }
 
+/* 빈 상태: 레시피 그리드와 동일한 영역 높이 (한 페이지 분량 ≈ 3행 카드 높이) */
+.recipe-grid--empty-state {
+    min-height: 700px;
+    align-items: center;
+    justify-items: center;
+
+    > * {
+        grid-column: 1 / -1;
+    }
+}
+
 .recipe-card-wrapper {
+    container-type: inline-size;
+    container-name: recipe-card;
     transition: transform 0.2s ease;
     cursor: pointer;
     display: flex;
@@ -64,6 +77,80 @@
 
 .recipe-card-wrapper:hover {
     transform: translateY(-4px);
+}
+
+/* 카드가 좁을 때(4열·좁은 3열 등) 비율 축소 – 컨테이너 쿼리로 별도 클래스 없이 적용 */
+@container recipe-card (max-width: 320px) {
+    :scope .recipe-image-container {
+        height: 250px;
+    }
+
+    :scope .recipe-card .p-card-header {
+        padding: 8px 8px 4px 8px;
+    }
+
+    :scope .recipe-card .p-card-body {
+        padding: 0 8px 8px 8px;
+    }
+
+    :scope .recipe-overlay {
+        padding: 0.75rem;
+    }
+
+    :scope .recipe-hits-overlay {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.75rem;
+    }
+
+    :scope .recipe-content {
+        padding: 0.5rem 0.65rem 0.65rem;
+        min-height: 100px;
+    }
+
+    :scope .recipe-content::before {
+        border-left-width: 8px;
+        border-right-width: 8px;
+        border-bottom-width: 8px;
+        left: 1rem;
+    }
+
+    :scope .recipe-title {
+        font-size: 1rem;
+        margin-bottom: 0.4rem;
+    }
+
+    :scope .info-item {
+        font-size: 0.8rem;
+    }
+
+    :scope .recipe-content .recipe-author span,
+    :scope .recipe-content .recipe-comment-count span {
+        font-size: 0.8rem;
+    }
+
+    :scope .recipe-info-tag {
+        font-size: 0.8rem;
+    }
+
+    :scope .recipe-actions .p-button {
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+        min-width: 2.25rem !important;
+        min-height: 2.25rem !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box;
+    }
+
+    :scope .recipe-actions .p-button .p-button-icon {
+        margin: 0;
+        flex-shrink: 0;
+    }
 }
 
 /* 카드 전체 오렌지톤 (상단 진함 → 하단 연함, 이미지 강조). .p-card 기본 배경 덮어쓰기 */
@@ -156,6 +243,7 @@
 
 .recipe-actions {
     display: flex;
+    align-items: center;
     gap: 0.5rem;
     justify-content: flex-end;
 }
