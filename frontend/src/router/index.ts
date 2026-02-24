@@ -222,6 +222,12 @@ const routes: RouteRecordRaw[] = [
         path: '/error/error',
         name: 'error',
         component: () => import('@/views/pages/error/Error.vue')
+    },
+    // 알 수 없는 경로 → 404 (반드시 마지막에 등록)
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'notFound',
+        component: () => import('@/views/pages/error/NotFound.vue')
     }
 ];
 
@@ -246,7 +252,7 @@ router.beforeEach(async (to) => {
         }
     }
     if (requiresAdmin && !authStore.isAdmin) {
-        return { path: '/' };
+        return { path: '/error/access' };
     }
 });
 
