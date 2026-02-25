@@ -162,6 +162,7 @@ export interface PopularityStats {
     popularityScore: number;
     hits24h: number;
     hits7d: number;
+    hits30d: number;
     favoriteCount: number;
     commentCount: number;
     favoriteIncrease24h?: number;

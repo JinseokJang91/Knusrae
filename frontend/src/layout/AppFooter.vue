@@ -46,7 +46,8 @@ import iconKakaoTalk from '@/assets/images/badges/badge_kakaotalk.png';
                     </a>
                 </div>
                 <div class="footer-links-group">
-                    <a href="#" class="footer-link">ABOUT US</a><span class="divider">|</span> <a href="#" class="footer-link">고객센터</a><span class="divider">|</span> <a href="#" class="footer-link">이용약관</a><span class="divider">|</span>
+                    <a href="#" class="footer-link">ABOUT US</a><span class="divider">|</span> <router-link to="/support" class="footer-link">고객지원</router-link><span class="divider">|</span> <a href="#" class="footer-link">이용약관</a>
+                    <span class="divider">|</span>
                     <a href="#" class="footer-link">개인정보처리방침</a>
                 </div>
                 <div class="footer-links-group"></div>

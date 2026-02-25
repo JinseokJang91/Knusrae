@@ -166,11 +166,15 @@ const routes: RouteRecordRaw[] = [
                 name: 'monthlyRanking',
                 redirect: { path: '/ranking', query: { period: '30d' } }
             },
-            // 4-4. FAQ
+            // 4-4. 고객지원 (FAQ 포함)
+            {
+                path: '/support',
+                name: 'customerSupport',
+                component: () => import('@/views/pages/community/CustomerSupport.vue')
+            },
             {
                 path: '/community/faq',
-                name: 'faq',
-                component: () => import('@/views/pages/community/FAQ.vue')
+                redirect: '/support'
             },
             // 5. 팔로우 관련
             // 5-1. 다른 회원 프로필

@@ -465,10 +465,6 @@ onUnmounted(() => {
                             </div>
                         </div>
                     </div>
-                    <router-link to="/community/faq" class="menu-item">
-                        <i class="fa-solid fa-circle-question"></i>
-                        <span>FAQ</span>
-                    </router-link>
                 </nav>
             </div>
 
@@ -568,10 +564,6 @@ onUnmounted(() => {
                             <router-link v-for="category in RECIPE_CATEGORIES" :key="category.id" :to="getCategoryRouteLink(category)" class="mobile-menu-item" @click="closeMobileMenu">
                                 <i :class="category.icon"></i>
                                 <span>{{ category.name }}</span>
-                            </router-link>
-                            <router-link to="/community/faq" class="mobile-menu-item" @click="closeMobileMenu">
-                                <i class="fa-solid fa-circle-question"></i>
-                                <span>FAQ</span>
                             </router-link>
                         </nav>
                     </div>

@@ -758,23 +758,26 @@ onMounted(() => {
                     <span class="category-select-title">카테고리</span>
                     <span class="category-select-hint">원하는 카테고리를 클릭하세요</span>
                 </div>
-                <!-- 메인 카테고리 탭 (가로) -->
-                <div class="main-category-tabs">
-                    <button
-                        v-for="mainCategory in mainCategories"
-                        :key="mainCategory.codeId"
-                        type="button"
-                        :class="['tab-button', selectedMainCategory === mainCategory.codeId ? 'active' : '']"
-                        :aria-pressed="selectedMainCategory === mainCategory.codeId"
-                        :aria-label="`${mainCategory.codeName} 카테고리 선택`"
-                        @click="selectMainCategory(mainCategory.codeId)"
-                    >
-                        {{ mainCategory.codeName }}
-                    </button>
+                <!-- 메인 카테고리 탭 (세그먼트 스타일) -->
+                <div class="main-category-tabs" role="tablist">
+                    <div class="main-category-tabs__track">
+                        <button
+                            v-for="mainCategory in mainCategories"
+                            :key="mainCategory.codeId"
+                            type="button"
+                            role="tab"
+                            :class="['tab-button', selectedMainCategory === mainCategory.codeId ? 'active' : '']"
+                            :aria-pressed="selectedMainCategory === mainCategory.codeId"
+                            :aria-label="`${mainCategory.codeName} 카테고리 선택`"
+                            @click="selectMainCategory(mainCategory.codeId)"
+                        >
+                            <span class="tab-button__label">{{ mainCategory.codeName }}</span>
+                        </button>
+                    </div>
                 </div>
                 <!-- 선택된 메인의 상세 카테고리 패널 (맨 앞 '전체' + 칩 그리드) -->
                 <div class="sub-categories-panel">
-                    <div class="flex flex-wrap gap-2">
+                    <div class="sub-categories-panel__chips">
                         <button
                             v-if="selectedMainCategory"
                             key="sub-all"
@@ -784,7 +787,7 @@ onMounted(() => {
                             aria-label="전체 카테고리 선택"
                             @click="selectCategory(null)"
                         >
-                            전체
+                            <span class="category-chip__label">전체</span>
                         </button>
                         <button
                             v-for="detail in selectedMainCategoryDetails"
@@ -795,7 +798,7 @@ onMounted(() => {
                             :aria-label="`${detail.codeName} 카테고리 선택`"
                             @click="selectCategory(detail.detailCodeId)"
                         >
-                            {{ detail.codeName }}
+                            <span class="category-chip__label">{{ detail.codeName }}</span>
                         </button>
                     </div>
                 </div>
@@ -804,7 +807,7 @@ onMounted(() => {
 
         <!-- body : 레시피 목록 섹션 -->
         <div class="recipe-section">
-            <div class="flex justify-between items-center mb-3">
+            <div class="flex justify-between items-center mb-5">
                 <div class="flex items-center gap-3 flex-wrap">
                     <h2 class="text-2xl font-bold text-gray-900 m-0">{{ getCategoryTitle() }}</h2>
                     <div class="recipe-count-bubble">
@@ -962,65 +965,117 @@ onMounted(() => {
     color: var(--text-color-secondary);
 }
 
+/* 메인 카테고리 탭: 세그먼트 컨트롤 스타일 (고급스러운 트랙 + 버튼) */
 .main-category-tabs {
-    display: flex;
+    margin-bottom: 0.5rem;
+}
+
+.main-category-tabs__track {
+    display: inline-flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 14px;
+    border: 1px solid rgba(253, 186, 116, 0.5);
+    box-shadow:
+        inset 0 1px 2px rgba(0, 0, 0, 0.04),
+        0 2px 8px rgba(234, 88, 12, 0.06);
 }
 
 .main-category-tabs .tab-button {
-    padding: 0.6rem 1rem;
-    border-radius: 8px;
+    position: relative;
+    padding: 0.65rem 1.25rem;
+    border: none;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     font-weight: 600;
     font-size: 0.9rem;
+    letter-spacing: 0.01em;
     color: #9a3412;
-    background: #ffedd5;
-    border: 2px solid #fdba74;
+    background: transparent;
+}
+
+.main-category-tabs .tab-button .tab-button__label {
+    position: relative;
+    z-index: 1;
 }
 
 .main-category-tabs .tab-button:hover {
-    background: #fed7aa;
-    border-color: #f97316;
     color: #c2410c;
+    background: rgba(254, 215, 170, 0.5);
 }
 
 .main-category-tabs .tab-button.active {
-    background: var(--primary-color, #ea580c);
-    color: white;
-    border: 2px solid #c2410c;
+    color: #fff;
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    box-shadow:
+        0 2px 8px rgba(234, 88, 12, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
+.main-category-tabs .tab-button.active:hover {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    box-shadow:
+        0 3px 12px rgba(234, 88, 12, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* 서브 카테고리 패널 */
 .sub-categories-panel {
-    padding: 0.75rem 0;
+    padding: 0.25rem 0 0.75rem;
     min-height: 52px;
 }
 
-/* 상세 칩: 아웃라인 스타일로 메인 탭과 구분 (가벼운 인상) */
+.sub-categories-panel__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* 상세 칩: 부드러운 필·그림자로 고급스러운 터치 */
 .category-chip {
-    padding: 0.5rem 0.9rem;
+    padding: 0.5rem 1rem;
     border-radius: 9999px;
+    border: 1px solid rgba(253, 186, 116, 0.6);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     font-weight: 500;
     font-size: 0.875rem;
-    color: #c2410c;
-    background: #fff;
-    border: 1.5px solid #fdba74;
+    letter-spacing: 0.02em;
+    color: #9a3412;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.category-chip .category-chip__label {
+    position: relative;
 }
 
 .category-chip:hover {
     background: #fff7ed;
     border-color: #f97316;
-    color: #9a3412;
+    color: #c2410c;
+    box-shadow: 0 2px 8px rgba(234, 88, 12, 0.12);
+    transform: translateY(-1px);
 }
 
 .category-chip.selected {
-    background: var(--primary-color, #ea580c);
-    color: white;
-    border: 1.5px solid #c2410c;
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    color: #fff;
+    border-color: transparent;
+    box-shadow:
+        0 2px 10px rgba(234, 88, 12, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.category-chip.selected:hover {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    box-shadow:
+        0 3px 12px rgba(234, 88, 12, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
 }
 
 /* 반응형 디자인 (레시피 그리드/카드는 _recipe-card-list.scss 공통) */
@@ -1033,17 +1088,19 @@ onMounted(() => {
         max-width: 100%;
     }
 
-    .main-category-tabs {
-        gap: 0.35rem;
+    .main-category-tabs__track {
+        gap: 0.25rem;
+        padding: 3px;
+        border-radius: 12px;
     }
 
     .main-category-tabs .tab-button {
-        padding: 0.5rem 0.75rem;
+        padding: 0.5rem 0.9rem;
         font-size: 0.85rem;
     }
 
     .category-chip {
-        padding: 0.4rem 0.75rem;
+        padding: 0.4rem 0.8rem;
         font-size: 0.8rem;
     }
 }
@@ -1054,13 +1111,17 @@ onMounted(() => {
         margin-bottom: 1.5rem;
     }
 
+    .main-category-tabs__track {
+        border-radius: 10px;
+    }
+
     .main-category-tabs .tab-button {
-        padding: 0.4rem 0.6rem;
+        padding: 0.45rem 0.7rem;
         font-size: 0.8rem;
     }
 
     .category-chip {
-        padding: 0.35rem 0.6rem;
+        padding: 0.35rem 0.65rem;
         font-size: 0.75rem;
     }
 }

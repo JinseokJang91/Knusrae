@@ -104,7 +104,8 @@
 
     :scope .recipe-content {
         padding: 0.5rem 0.65rem 0.65rem;
-        min-height: 100px;
+        height: 165px;
+        min-height: 165px;
     }
 
     :scope .recipe-content::before {
@@ -114,9 +115,13 @@
         left: 1rem;
     }
 
+    :scope .recipe-title-zone {
+        min-height: calc(2.7em + 0.5rem);
+    }
+
     :scope .recipe-title {
         font-size: 1rem;
-        margin-bottom: 0.4rem;
+        margin: 0 0 0.5rem 0;
     }
 
     :scope .info-item {
@@ -272,7 +277,7 @@
     font-size: 0.85rem;
 }
 
-/* 설명 영역 - 말풍선 스타일 (꼬리 왼쪽), 그리드 내 동일 높이 */
+/* 설명 영역 - 말풍선 스타일 (꼬리 왼쪽), 고정 높이로 카드 크기 통일 */
 .recipe-content {
     position: relative;
     padding: 0.65rem 0.85rem 0.85rem;
@@ -282,9 +287,11 @@
     border-top: 1px solid rgba(253, 186, 116, 0.5);
     box-shadow: 0 -1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 2px 8px rgba(0, 0, 0, 0.04);
     flex: 1 1 auto;
-    min-height: 120px;
+    height: 180px;
+    min-height: 180px;
     display: flex;
     flex-direction: column;
+    /* overflow 제거: 말풍선 꼬리(::before)가 위로 나가므로 hidden 시 꼬리가 잘림 */
 }
 
 .recipe-content::before {
@@ -301,6 +308,14 @@
     filter: drop-shadow(0 -1px 0 rgba(253, 186, 116, 0.5));
 }
 
+/* 제목 영역: 2줄 고정 + 기존 하단 간격 0.5rem 유지 */
+.recipe-title-zone {
+    flex-shrink: 0;
+    min-height: calc(2.7em + 0.5rem); /* 2줄 + margin-bottom */
+    display: flex;
+    align-items: flex-start;
+}
+
 .recipe-title {
     font-size: 1.1rem;
     font-weight: 600;
@@ -313,6 +328,7 @@
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
+    width: 100%;
 }
 
 /* 검색 결과 하이라이트용 (SearchResult 등) */
@@ -331,6 +347,25 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
+    flex: 1;
+}
+
+/* 작성자/날짜 영역: 기존 mt-2(0.5rem) + 1줄 높이 고정 */
+.recipe-author-zone {
+    flex-shrink: 0;
+    min-height: 2rem; /* 0.5rem + 1.5rem */
+    display: flex;
+    align-items: flex-start;
+    overflow: hidden;
+}
+
+/* 댓글 영역: 기존 mt-1(0.25rem) + 1줄 높이 고정 */
+.recipe-comment-zone {
+    flex-shrink: 0;
+    min-height: 1.75rem; /* 0.25rem + 1.5rem */
+    display: flex;
+    align-items: flex-start;
+    overflow: hidden;
 }
 
 .recipe-rating {
@@ -404,8 +439,13 @@
         font-size: 1rem;
     }
 
+    .recipe-title-zone {
+        min-height: calc(2.7em + 0.5rem);
+    }
+
     .recipe-content {
-        min-height: 100px;
+        height: 170px;
+        min-height: 170px;
         padding: 0.5rem 0.65rem 0.65rem;
     }
 

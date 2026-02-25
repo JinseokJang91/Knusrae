@@ -125,15 +125,18 @@ function formatCount(count: number | undefined | null): string | null {
             </template>
             <template #content>
                 <div class="recipe-content">
-                    <h3 class="recipe-title">
-                        <template v-if="highlightKeyword && highlightParts.length">
-                            <template v-for="(part, index) in highlightParts" :key="index">
-                                <mark v-if="part.isHighlight" class="bg-yellow-200">{{ part.text }}</mark>
-                                <span v-else>{{ part.text }}</span>
+                    <!-- 제목 영역: 최대 2줄 고정 높이 (기존 margin-bottom 0.5rem 유지) -->
+                    <div class="recipe-title-zone">
+                        <h3 class="recipe-title">
+                            <template v-if="highlightKeyword && highlightParts.length">
+                                <template v-for="(part, index) in highlightParts" :key="index">
+                                    <mark v-if="part.isHighlight" class="bg-yellow-200">{{ part.text }}</mark>
+                                    <span v-else>{{ part.text }}</span>
+                                </template>
                             </template>
-                        </template>
-                        <span v-else>{{ recipe.title }}</span>
-                    </h3>
+                            <span v-else>{{ recipe.title }}</span>
+                        </h3>
+                    </div>
                     <div class="recipe-meta">
                         <div class="recipe-info">
                             <div v-if="recipe.cookingTime" class="info-item">
@@ -145,19 +148,25 @@ function formatCount(count: number | undefined | null): string | null {
                                 <span>{{ recipe.servings }}</span>
                             </div>
                         </div>
-                        <div v-if="showAuthor && (recipe.memberNickname || recipe.memberName)" class="recipe-author mt-2 flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
-                                <img v-if="recipe.memberProfileImage" :src="recipe.memberProfileImage" alt="작성자 프로필" class="w-full h-full object-cover" />
-                                <i v-else class="pi pi-user text-gray-600 text-xs"></i>
+                        <!-- 작성자/날짜 영역: 표시할 내용이 있을 때만 영역 노출 -->
+                        <div v-if="(showAuthor && (recipe.memberNickname || recipe.memberName)) || dateText" class="recipe-author-zone">
+                            <div v-if="showAuthor && (recipe.memberNickname || recipe.memberName)" class="recipe-author mt-2 flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    <img v-if="recipe.memberProfileImage" :src="recipe.memberProfileImage" alt="작성자 프로필" class="w-full h-full object-cover" />
+                                    <i v-else class="pi pi-user text-gray-600 text-xs"></i>
+                                </div>
+                                <span class="text-sm text-gray-600 truncate">{{ recipe.memberNickname || recipe.memberName }}</span>
                             </div>
-                            <span class="text-sm text-gray-600">{{ recipe.memberNickname || recipe.memberName }}</span>
+                            <div v-else-if="dateText" class="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                                <i class="pi pi-calendar"></i>
+                                <span class="truncate">{{ dateText }}</span>
+                            </div>
                         </div>
-                        <div v-if="dateText" class="text-sm text-gray-500 mt-1">
-                            <i class="pi pi-calendar"></i>
-                            <span>{{ dateText }}</span>
-                        </div>
-                        <div v-if="showCommentCount && commentCountText" class="recipe-comment-count mt-1">
-                            <span class="text-sm text-gray-600 cursor-pointer hover:text-primary" @click.stop="$emit('scroll-to-comments', recipe.id)"> 댓글 {{ commentCountText }} </span>
+                        <!-- 댓글 영역: showCommentCount이고 댓글 수가 있을 때만 영역 노출 (0이면 숨김) -->
+                        <div v-if="showCommentCount && commentCountText" class="recipe-comment-zone">
+                            <div class="recipe-comment-count mt-1">
+                                <span class="text-sm text-gray-600 cursor-pointer hover:text-primary truncate" @click.stop="$emit('scroll-to-comments', recipe.id)"> 댓글 {{ commentCountText }} </span>
+                            </div>
                         </div>
                     </div>
                 </div>
