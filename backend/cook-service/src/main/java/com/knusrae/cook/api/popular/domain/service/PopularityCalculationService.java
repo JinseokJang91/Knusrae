@@ -42,12 +42,13 @@ public class PopularityCalculationService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneDayAgo = now.minusDays(1);
         LocalDateTime sevenDaysAgo = now.minusDays(7);
+        LocalDateTime thirtyDaysAgo = now.minusDays(30);
         
         int processedCount = 0;
         
         for (Recipe recipe : allRecipes) {
             try {
-                calculateAndSavePopularity(recipe, now, oneDayAgo, sevenDaysAgo);
+                calculateAndSavePopularity(recipe, now, oneDayAgo, sevenDaysAgo, thirtyDaysAgo);
                 processedCount++;
             } catch (Exception e) {
                 log.error("Error calculating popularity for recipe {}: {}", recipe.getId(), e.getMessage());
@@ -68,15 +69,17 @@ public class PopularityCalculationService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneDayAgo = now.minusDays(1);
         LocalDateTime sevenDaysAgo = now.minusDays(7);
+        LocalDateTime thirtyDaysAgo = now.minusDays(30);
         
-        calculateAndSavePopularity(recipe, now, oneDayAgo, sevenDaysAgo);
+        calculateAndSavePopularity(recipe, now, oneDayAgo, sevenDaysAgo, thirtyDaysAgo);
     }
     
     /**
      * 인기도 계산 및 저장
      */
-    private void calculateAndSavePopularity(Recipe recipe, LocalDateTime now, 
-                                           LocalDateTime oneDayAgo, LocalDateTime sevenDaysAgo) {
+    private void calculateAndSavePopularity(Recipe recipe, LocalDateTime now,
+                                            LocalDateTime oneDayAgo, LocalDateTime sevenDaysAgo,
+                                            LocalDateTime thirtyDaysAgo) {
         Long recipeId = recipe.getId();
         if (recipeId == null) {
             log.warn("Recipe ID is null, skipping popularity calculation");
@@ -88,6 +91,9 @@ public class PopularityCalculationService {
         
         // 2. 최근 7일 조회수
         long hits7d = recipeViewRepository.countByRecipeIdAndViewedAtAfter(recipeId, sevenDaysAgo);
+        
+        // 2-1. 최근 30일 조회수
+        long hits30d = recipeViewRepository.countByRecipeIdAndViewedAtAfter(recipeId, thirtyDaysAgo);
         
         // 3. 전체 찜 개수
         long favoriteCount = recipeFavoriteRepository.countByRecipeId(recipeId);
@@ -127,6 +133,7 @@ public class PopularityCalculationService {
         popularity.updatePopularity(
                 hits24h,
                 hits7d,
+                hits30d,
                 favoriteCount,
                 commentCount,
                 favoriteIncrease24h,

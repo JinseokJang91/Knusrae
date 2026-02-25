@@ -11,7 +11,10 @@ import java.time.LocalDateTime;
 @Table(name = "recipe_popularity",
        indexes = {
            @Index(name = "idx_popularity_score", columnList = "popularity_score DESC"),
-           @Index(name = "idx_calculated_at", columnList = "calculated_at DESC")
+           @Index(name = "idx_calculated_at", columnList = "calculated_at DESC"),
+           @Index(name = "idx_hits_24h", columnList = "hits_24h DESC"),
+           @Index(name = "idx_hits_7d", columnList = "hits_7d DESC"),
+           @Index(name = "idx_hits_30d", columnList = "hits_30d DESC")
        })
 @Getter
 @Builder
@@ -34,6 +37,10 @@ public class RecipePopularity {
     @Column(name = "hits_7d")
     @Builder.Default
     private Long hits7d = 0L;
+    
+    @Column(name = "hits_30d")
+    @Builder.Default
+    private Long hits30d = 0L;
     
     @Column(name = "favorite_count")
     @Builder.Default
@@ -61,11 +68,12 @@ public class RecipePopularity {
     private Recipe recipe;
     
     // 비즈니스 로직
-    public void updatePopularity(Long hits24h, Long hits7d, Long favoriteCount, 
-                                  Long commentCount, Long favoriteIncrease24h, 
+    public void updatePopularity(Long hits24h, Long hits7d, Long hits30d, Long favoriteCount,
+                                  Long commentCount, Long favoriteIncrease24h,
                                   Double popularityScore) {
         this.hits24h = hits24h;
         this.hits7d = hits7d;
+        this.hits30d = hits30d;
         this.favoriteCount = favoriteCount;
         this.commentCount = commentCount;
         this.favoriteIncrease24h = favoriteIncrease24h;
