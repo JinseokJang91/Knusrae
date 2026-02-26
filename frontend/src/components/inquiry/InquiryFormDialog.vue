@@ -163,15 +163,15 @@ function closeDialog() {
 
             <div class="field mb-4">
                 <label class="block mb-2 font-medium">내용 <span class="text-red-500">*</span></label>
-                <Textarea v-model="form.content" placeholder="문의 내용을 입력하세요" class="w-full" rows="5" :maxlength="1000" />
+                <Textarea v-model="form.content" placeholder="문의 내용을 입력하세요" class="w-full inquiry-content-textarea" :maxlength="1000" />
                 <small class="text-color-secondary">{{ form.content.length }}/1000</small>
             </div>
 
             <div class="field mb-4">
-                <label class="block mb-2 font-medium">사진 첨부 (최대 3장)</label>
+                <label class="block mb-2 font-medium">사진 첨부(선택) (최대 3장)</label>
                 <input ref="fileInputRef" type="file" accept="image/*" multiple class="hidden" @change="onFileSelect" />
                 <div class="flex flex-wrap gap-2 align-items-center">
-                    <Button label="파일 선택" icon="pi pi-upload" severity="secondary" outlined :disabled="form.images.length >= 3" @click="fileInputRef?.click()" />
+                    <Button label="파일 선택" icon="pi pi-upload" size="small" severity="primary" outlined :disabled="form.images.length >= 3" @click="fileInputRef?.click()" />
                     <span v-if="form.images.length > 0" class="text-sm text-color-secondary"> {{ form.images.length }} / 3 장 </span>
                 </div>
                 <div v-if="form.images.length > 0" class="flex flex-wrap gap-2 mt-2">
@@ -185,7 +185,7 @@ function closeDialog() {
         </div>
 
         <template #footer>
-            <Button label="취소" text @click="closeDialog" />
+            <Button label="취소" severity="secondary" outlined @click="closeDialog" />
             <Button :label="isEditMode ? '수정' : '등록'" :disabled="!canSubmit || loading" :loading="loading" @click="submit" />
         </template>
     </Dialog>
@@ -194,6 +194,15 @@ function closeDialog() {
 <style scoped>
 .inquiry-form-dialog :deep(.p-dialog-content) {
     padding-top: 0.5rem;
+}
+
+/* 내용 영역: 수동 리사이즈 비활성화, 고정 높이, 넘치면 스크롤 (Profile 자기소개와 동일 방식) */
+:deep(.inquiry-content-textarea) {
+    resize: none !important;
+    overflow-y: auto;
+    height: 180px;
+    min-height: 180px;
+    max-height: 180px;
 }
 
 .image-preview-wrap {
@@ -225,5 +234,16 @@ function closeDialog() {
 
 .image-remove-btn:hover {
     background: rgba(200, 0, 0, 0.8);
+}
+</style>
+
+<!-- Dialog는 body로 텔레포트되므로 비-scoped로 X 버튼만 타깃 -->
+<style>
+.inquiry-form-dialog .p-dialog-close-button,
+.inquiry-form-dialog .p-dialog-close-button:focus,
+.inquiry-form-dialog .p-dialog-close-button:focus-visible {
+    border: none;
+    outline: none;
+    box-shadow: none;
 }
 </style>

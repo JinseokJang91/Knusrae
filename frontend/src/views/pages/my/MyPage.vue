@@ -39,7 +39,7 @@ const goToMyRecipes = () => {
 </script>
 
 <template>
-    <div class="page-container page-container--card">
+    <div class="page-container page-container--card page-container--wide">
         <div class="mypage-container">
             <div class="mypage-header">
                 <h1 class="text-3xl font-bold m-0">마이페이지</h1>
@@ -51,7 +51,7 @@ const goToMyRecipes = () => {
                     <Tab value="profile">
                         <div class="flex items-center gap-2">
                             <i class="pi pi-id-card"></i>
-                            <span>내 정보 수정</span>
+                            <span>내 정보</span>
                         </div>
                     </Tab>
                     <Tab value="comments">
@@ -63,7 +63,7 @@ const goToMyRecipes = () => {
                     <Tab value="inquiries">
                         <div class="flex items-center gap-2">
                             <i class="pi pi-inbox"></i>
-                            <span>1:1 문의 내역</span>
+                            <span>1:1 문의내역</span>
                         </div>
                     </Tab>
                     <Tab value="favorites">
@@ -148,8 +148,9 @@ const goToMyRecipes = () => {
         }
 
         .p-tabpanels {
-            padding: 2rem 0;
+            padding: 1rem 0;
             background: transparent;
+            min-height: 0;
         }
     }
 }
@@ -174,7 +175,7 @@ const goToMyRecipes = () => {
             }
 
             .p-tabpanels {
-                padding: 1rem 0;
+                padding: 0.75rem 0;
             }
         }
     }
@@ -199,7 +200,7 @@ const goToMyRecipes = () => {
             }
 
             .p-tabpanels {
-                padding: 0.75rem 0;
+                padding: 0.5rem 0;
             }
         }
     }

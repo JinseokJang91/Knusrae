@@ -58,8 +58,7 @@ const routes: RouteRecordRaw[] = [
             },
             {
                 path: '/my/inquiries/:id',
-                name: 'inquiryDetail',
-                component: () => import('@/views/pages/my/InquiryDetail.vue'),
+                redirect: () => ({ path: '/my', query: { tab: 'inquiries' } }),
                 meta: { requiresAuth: true }
             },
             {

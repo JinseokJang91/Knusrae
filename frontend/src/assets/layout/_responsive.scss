@@ -2,6 +2,8 @@
 
 /* 좌우 여백: 이 값의 2배만큼 페이지 컨테이너 너비에서 빠짐 (예: 6rem → 카드 좌우에 6rem씩 여백) */
 $page-container-margin-x: 6rem;
+/* 넓은 레이아웃용(마이페이지 등): 좌우 여백 축소 */
+$page-container-margin-x-wide: 2rem;
 
 /* Full HD 데스크톱 (1920px 이상) - 가장 보편적인 데스크톱 해상도 */
 @media screen and (min-width: 1920px) {
@@ -16,6 +18,10 @@ $page-container-margin-x: 6rem;
         max-width: calc(100% - #{$page-container-margin-x} * 2);
         margin-left: auto !important;
         margin-right: auto !important;
+    }
+    .page-container--wide {
+        width: calc(1504px - #{$page-container-margin-x-wide} * 2);
+        max-width: calc(100% - #{$page-container-margin-x-wide} * 2);
     }
     .topbar-inner {
         max-width: 1504px;
@@ -39,6 +45,9 @@ $page-container-margin-x: 6rem;
         margin-left: auto !important;
         margin-right: auto !important;
     }
+    .page-container--wide {
+        max-width: calc(1200px - #{$page-container-margin-x-wide} * 2);
+    }
     .topbar-inner {
         max-width: 1200px;
         margin-left: auto;
@@ -60,6 +69,9 @@ $page-container-margin-x: 6rem;
         max-width: calc(1200px - #{$page-container-margin-x} * 2);
         margin-left: auto !important;
         margin-right: auto !important;
+    }
+    .page-container--wide {
+        max-width: calc(1200px - #{$page-container-margin-x-wide} * 2);
     }
     .topbar-inner {
         max-width: 1200px;
@@ -85,6 +97,9 @@ $page-container-margin-x: 6rem;
         margin-left: auto !important;
         margin-right: auto !important;
     }
+    .page-container--wide {
+        max-width: calc(100% - #{$page-container-margin-x-wide} * 2);
+    }
     .topbar-inner {
         padding-left: 3rem;
         padding-right: 3rem;
@@ -105,6 +120,9 @@ $page-container-margin-x: 6rem;
         max-width: calc(100% - 2rem * 2);
         margin-left: auto !important;
         margin-right: auto !important;
+    }
+    .page-container--wide {
+        max-width: calc(100% - 1.5rem * 2);
     }
     .topbar-inner {
         padding-left: 2rem;
@@ -127,6 +145,9 @@ $page-container-margin-x: 6rem;
         margin-left: auto !important;
         margin-right: auto !important;
     }
+    .page-container--wide {
+        max-width: calc(100% - 0.75rem * 2);
+    }
     .topbar-inner {
         padding-left: 1rem;
         padding-right: 1rem;
@@ -147,6 +168,9 @@ $page-container-margin-x: 6rem;
         max-width: calc(100% - 0.75rem * 2);
         margin-left: auto !important;
         margin-right: auto !important;
+    }
+    .page-container--wide {
+        max-width: calc(100% - 0.5rem * 2);
     }
     .topbar-inner {
         padding-left: 0.75rem;

@@ -22,6 +22,7 @@ declare module 'vue' {
     IngredientGrid: typeof import('./src/components/ingredient/IngredientGrid.vue')['default']
     IngredientGroupSelector: typeof import('./src/components/ingredient/IngredientGroupSelector.vue')['default']
     IngredientList: typeof import('./src/components/ingredient/IngredientList.vue')['default']
+    InquiryDetailDialog: typeof import('./src/components/inquiry/InquiryDetailDialog.vue')['default']
     InquiryFormDialog: typeof import('./src/components/inquiry/InquiryFormDialog.vue')['default']
     OpenBookView: typeof import('./src/components/bookmark/OpenBookView.vue')['default']
     PageStateBlock: typeof import('./src/components/common/PageStateBlock.vue')['default']

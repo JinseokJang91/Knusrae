@@ -217,7 +217,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="page-container page-container--card">
+    <div class="page-container page-container--card page-container--wide">
         <div class="bookmarks-content">
             <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
                 <p class="text-gray-700 italic">레시피북을 선택해서 북마크한 레시피를 확인하세요. 레시피북은 드래그하여 순서를 변경할 수 있어요.</p>
