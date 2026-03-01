@@ -61,6 +61,14 @@ const onRemoveFavorite = async (recipeId: number): Promise<void> => {
 
         // 로컬 상태에서 제거
         favoriteRecipes.value = favoriteRecipes.value.filter((fav) => fav.recipeId !== recipeId);
+        // 삭제 후 목록이 줄어들었을 때 현재 페이지 인덱스(first)가 범위를 벗어나면 이전 페이지로 보정
+        const total = favoriteRecipes.value.length;
+        if (total > 0 && first.value >= total) {
+            const lastPageFirst = (Math.ceil(total / rows.value) - 1) * rows.value;
+            first.value = Math.max(0, lastPageFirst);
+        } else if (total === 0) {
+            first.value = 0;
+        }
     } catch (err: unknown) {
         console.error('찜 삭제 실패:', err);
     }
@@ -143,18 +151,19 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="page-container page-container--card page-container--wide">
+    <div class="page-container page-container--card page-container--wide favorites-card">
         <div class="favorites-content">
-            <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
-                <p class="text-gray-700 italic">찜 버튼( <i class="pi pi-heart-fill" /> )을 클릭해 찜 목록에서 삭제할 수 있어요.</p>
+            <div class="favorites-notice mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
+                <i class="pi pi-info-circle favorites-notice__icon" aria-hidden="true"></i>
+                <p class="favorites-notice__text">찜 버튼( <i class="pi pi-heart-fill" /> )을 클릭하면 찜 목록에서 삭제할 수 있어요.</p>
+            </div>
+
+            <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+                <h2 class="favorites-title">내가 찜한 레시피 ({{ totalFavorites }})</h2>
             </div>
 
             <!-- body : 레시피 목록 섹션 -->
             <div class="recipe-section">
-                <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-2xl font-semibold text-gray-900 m-0">내가 찜한 레시피 ({{ totalFavorites }})</h2>
-                </div>
-
                 <!-- 로딩 / 에러 / 빈 상태 -->
                 <PageStateBlock v-if="loading" state="loading" loading-message="찜 목록을 불러오는 중..." />
                 <PageStateBlock v-else-if="error" state="error" error-title="찜 목록을 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadFavorites" />
@@ -195,5 +204,47 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* 레시피 목록 카드 스타일은 layout _recipe-card-list.scss 공통 사용 */
+/* 문의/댓글 페이지와 동일한 오렌지 톤 카드 배경 */
+.favorites-card {
+    background: #ffedd5;
+}
+
+.favorites-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.favorites-notice__icon {
+    font-size: 1.25rem;
+    color: var(--orange-500, #f97316);
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.favorites-notice__text {
+    margin: 0;
+    color: #374151;
+    font-style: italic;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+}
+
+.favorites-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--p-text-color, #374151);
+}
+
+.recipe-section {
+    margin-top: 0;
+    padding-top: 0;
+    width: 100%;
+}
+
+.favorites-content {
+    min-height: 500px;
+}
 </style>

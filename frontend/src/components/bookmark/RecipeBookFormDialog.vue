@@ -129,7 +129,7 @@ const closeDialog = () => {
         </div>
 
         <template #footer>
-            <Button label="취소" text @click="closeDialog" />
+            <Button label="취소" severity="secondary" outlined @click="closeDialog" />
             <Button :label="isEditMode ? '수정' : '만들기'" @click="saveRecipeBook" :disabled="!recipeBookName.trim() || loading" :loading="loading" />
         </template>
     </Dialog>

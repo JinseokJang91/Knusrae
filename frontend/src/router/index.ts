@@ -20,11 +20,11 @@ const routes: RouteRecordRaw[] = [
                 name: 'searchResult',
                 component: () => import('@/views/pages/recipe/SearchResult.vue')
             },
-            // 2. 내 레시피 (로그인 필요)
+            // 2. 내 레시피 (로그인 필요) — 목록은 마이페이지 탭에서 표시
             {
                 path: '/my/recipes',
                 name: 'myRecipes',
-                component: () => import('@/views/pages/my/Recipes.vue'),
+                redirect: '/my?tab=recipes',
                 meta: { requiresAuth: true }
             },
             {

@@ -9,9 +9,11 @@ import { getRecipeBooks, getBookmarksByRecipeBook, deleteRecipeBook, reorderReci
 import { getRecipeBookColorHex } from '@/types/bookmark';
 import type { RecipeBook, RecipeBookmark } from '@/types/bookmark';
 import type { Recipe, RecipeCookingTip, RecipeGridItem, RecipeCategory } from '@/types/recipe';
+import { useConfirm } from 'primevue/useconfirm';
 import { useAppToast } from '@/utils/toast';
 
 const router = useRouter();
+const confirm = useConfirm();
 const { showError } = useAppToast();
 
 const loading = ref(false);
@@ -125,18 +127,34 @@ const onRecipeBookDrop = async (_event: DragEvent, targetRecipeBook: RecipeBook)
     }
 };
 
-const handleDeleteRecipeBook = async (recipeBook: RecipeBook) => {
-    try {
-        await deleteRecipeBook(recipeBook.id);
-        if (selectedRecipeBook.value?.id === recipeBook.id) {
-            selectedRecipeBook.value = null;
-            bookmarks.value = [];
+const handleDeleteRecipeBook = (recipeBook: RecipeBook) => {
+    confirm.require({
+        message: `"${recipeBook.name}" 레시피북을 삭제하시겠습니까?`,
+        header: '레시피북 삭제',
+        icon: 'pi pi-exclamation-triangle',
+        rejectProps: {
+            label: '취소',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: '삭제',
+            severity: 'danger'
+        },
+        accept: async () => {
+            try {
+                await deleteRecipeBook(recipeBook.id);
+                if (selectedRecipeBook.value?.id === recipeBook.id) {
+                    selectedRecipeBook.value = null;
+                    bookmarks.value = [];
+                }
+                await loadRecipeBooks();
+            } catch (err) {
+                console.error('레시피북 삭제 실패:', err);
+                showError('레시피북 삭제에 실패했습니다.');
+            }
         }
-        await loadRecipeBooks();
-    } catch (err) {
-        console.error('레시피북 삭제 실패:', err);
-        showError('레시피북 삭제에 실패했습니다.');
-    }
+    });
 };
 
 /**
@@ -217,10 +235,15 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="page-container page-container--card page-container--wide">
+    <div class="page-container page-container--card page-container--wide bookmarks-card">
         <div class="bookmarks-content">
-            <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
-                <p class="text-gray-700 italic">레시피북을 선택해서 북마크한 레시피를 확인하세요. 레시피북은 드래그하여 순서를 변경할 수 있어요.</p>
+            <div class="bookmarks-notice mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
+                <i class="pi pi-info-circle bookmarks-notice__icon" aria-hidden="true"></i>
+                <p class="bookmarks-notice__text">레시피북을 선택해서 북마크한 레시피를 확인하세요. 레시피북은 드래그하여 순서를 변경할 수 있어요.</p>
+            </div>
+
+            <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+                <h2 class="bookmarks-title">북마크</h2>
             </div>
 
             <!-- 로딩 상태 -->
@@ -235,7 +258,7 @@ onMounted(() => {
                 <div class="recipe-book-sidebar">
                     <div class="recipe-book-header">
                         <h3 class="text-lg font-semibold m-0">내 레시피북</h3>
-                        <Button icon="pi pi-plus" label="새 레시피북" @click="openRecipeBookDialog()" size="small" outlined />
+                        <Button icon="pi pi-plus" label="새 레시피북" @click="openRecipeBookDialog()" size="small" />
                     </div>
 
                     <!-- 레시피북이 없을 때 -->
@@ -327,6 +350,44 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
+/* 문의/찜 페이지와 동일한 오렌지 톤 카드 배경 */
+.bookmarks-card {
+    background: #ffedd5;
+}
+
+.bookmarks-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.bookmarks-notice__icon {
+    font-size: 1.25rem;
+    color: var(--orange-500, #f97316);
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.bookmarks-notice__text {
+    margin: 0;
+    color: #374151;
+    font-style: italic;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+}
+
+.bookmarks-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--p-text-color, #374151);
+}
+
+.bookmarks-content {
+    min-height: 500px;
+}
+
 .bookmarks-layout {
     display: grid;
     grid-template-columns: 300px 1fr;
@@ -338,15 +399,18 @@ onMounted(() => {
     }
 }
 
+/* 책 종이 느낌의 내부 카드 (밝은 밀색) */
 .recipe-book-sidebar {
-    border-right: 1px solid var(--surface-border);
-    padding-right: 2rem;
+    background: #fdfbf7;
+    border: 1px solid #f0ebe2;
+    border-radius: 8px;
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    padding: 1.25rem;
 
     @media (max-width: 768px) {
-        border-right: none;
-        border-bottom: 1px solid var(--surface-border);
-        padding-right: 0;
-        padding-bottom: 2rem;
+        padding: 1.25rem;
     }
 }
 
@@ -446,6 +510,14 @@ onMounted(() => {
 
 .bookmarks-main {
     flex: 1;
+    background: #fdfbf7;
+    border: 1px solid #f0ebe2;
+    border-radius: 8px;
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    padding: 1.25rem;
+    overflow: hidden;
 }
 
 .empty-state {

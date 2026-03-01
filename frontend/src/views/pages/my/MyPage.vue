@@ -6,12 +6,12 @@ import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
-import Button from 'primevue/button';
 import Profile from './Profile.vue';
 import Comments from './Comments.vue';
 import Inquiries from './Inquiries.vue';
 import Favorites from './Favorites.vue';
 import Bookmarks from './Bookmarks.vue';
+import Recipes from './Recipes.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -20,7 +20,7 @@ const activeTab = ref('profile');
 // URL 쿼리 파라미터에서 탭 정보 읽기
 onMounted(() => {
     const tab = route.query.tab as string;
-    if (tab && ['profile', 'comments', 'inquiries', 'favorites', 'bookmarks'].includes(tab)) {
+    if (tab && ['profile', 'comments', 'inquiries', 'favorites', 'bookmarks', 'recipes'].includes(tab)) {
         activeTab.value = tab;
     }
 });
@@ -32,10 +32,6 @@ watch(activeTab, (newTab) => {
         query: { tab: newTab }
     });
 });
-
-const goToMyRecipes = () => {
-    router.push('/my/recipes');
-};
 </script>
 
 <template>
@@ -43,7 +39,6 @@ const goToMyRecipes = () => {
         <div class="mypage-container">
             <div class="mypage-header">
                 <h1 class="text-3xl font-bold m-0">마이페이지</h1>
-                <Button label="내 레시피 관리" icon="pi pi-book" severity="secondary" outlined @click="goToMyRecipes" />
             </div>
 
             <Tabs v-model:value="activeTab">
@@ -78,6 +73,12 @@ const goToMyRecipes = () => {
                             <span>북마크 관리</span>
                         </div>
                     </Tab>
+                    <Tab value="recipes">
+                        <div class="flex items-center gap-2">
+                            <i class="pi pi-book"></i>
+                            <span>레시피 관리</span>
+                        </div>
+                    </Tab>
                 </TabList>
 
                 <TabPanels>
@@ -95,6 +96,9 @@ const goToMyRecipes = () => {
                     </TabPanel>
                     <TabPanel value="bookmarks">
                         <Bookmarks />
+                    </TabPanel>
+                    <TabPanel value="recipes">
+                        <Recipes />
                     </TabPanel>
                 </TabPanels>
             </Tabs>

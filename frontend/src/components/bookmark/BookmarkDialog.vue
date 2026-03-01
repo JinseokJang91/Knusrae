@@ -148,7 +148,7 @@ const closeDialog = () => {
         </div>
 
         <template #footer>
-            <Button label="취소" text @click="closeDialog" />
+            <Button label="취소" severity="secondary" outlined @click="closeDialog" />
             <Button label="저장" @click="saveBookmarks" :disabled="loading || !hasChanges" />
         </template>
     </Dialog>

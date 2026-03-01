@@ -43,7 +43,13 @@ async function loadInquiries() {
         const page = Math.floor(first.value / rows.value);
         const response = await getMyInquiries(page, rows.value);
         items.value = response.content ?? [];
-        totalElements.value = response.totalElements ?? 0;
+        const total = response.totalElements ?? 0;
+        totalElements.value = total;
+        // 현재 first가 전체 개수를 넘으면 첫 페이지로 보정 후 재요청 (삭제 등으로 줄었을 때)
+        if (total > 0 && first.value >= total) {
+            first.value = 0;
+            await loadInquiries();
+        }
     } catch (err: unknown) {
         console.error('문의 목록 로드 실패:', err);
         error.value = (err instanceof Error ? err.message : null) || '문의 내역을 불러오는데 실패했습니다.';
@@ -325,5 +331,4 @@ watch(currentMemberId, (id) => {
 .inquiry-date-cell {
     font-size: 0.8125rem;
 }
-
 </style>

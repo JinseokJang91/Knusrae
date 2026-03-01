@@ -24,7 +24,7 @@ const props = withDefaults(
         favoritesMode?: boolean;
         /** 작성자 영역 표시 (false면 날짜 등 다른 메타만 표시) */
         showAuthor?: boolean;
-        /** 작성자 대신 표시할 날짜 텍스트 (예: 찜한 날짜) */
+        /** 추가로 표시할 날짜 텍스트 (예: 찜한 날짜). 작성자와 함께 표시 가능 */
         dateText?: string | null;
     }>(),
     {
@@ -148,18 +148,14 @@ function formatCount(count: number | undefined | null): string | null {
                                 <span>{{ recipe.servings }}</span>
                             </div>
                         </div>
-                        <!-- 작성자/날짜 영역: 표시할 내용이 있을 때만 영역 노출 -->
-                        <div v-if="(showAuthor && (recipe.memberNickname || recipe.memberName)) || dateText" class="recipe-author-zone">
-                            <div v-if="showAuthor && (recipe.memberNickname || recipe.memberName)" class="recipe-author mt-2 flex items-center gap-2">
+                        <!-- 작성자 영역: 표시할 내용이 있을 때만 영역 노출 -->
+                        <div v-if="showAuthor && (recipe.memberNickname || recipe.memberName)" class="recipe-author-zone">
+                            <div class="recipe-author mt-2 flex items-center gap-2">
                                 <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
                                     <img v-if="recipe.memberProfileImage" :src="recipe.memberProfileImage" alt="작성자 프로필" class="w-full h-full object-cover" />
                                     <i v-else class="pi pi-user text-gray-600 text-xs"></i>
                                 </div>
                                 <span class="text-sm text-gray-600 truncate">{{ recipe.memberNickname || recipe.memberName }}</span>
-                            </div>
-                            <div v-else-if="dateText" class="text-sm text-gray-500 mt-1 flex items-center gap-1">
-                                <i class="pi pi-calendar"></i>
-                                <span class="truncate">{{ dateText }}</span>
                             </div>
                         </div>
                         <!-- 댓글 영역: showCommentCount이고 댓글 수가 있을 때만 영역 노출 (0이면 숨김) -->
@@ -167,6 +163,11 @@ function formatCount(count: number | undefined | null): string | null {
                             <div class="recipe-comment-count mt-1">
                                 <span class="text-sm text-gray-600 cursor-pointer hover:text-primary truncate" @click.stop="$emit('scroll-to-comments', recipe.id)"> 댓글 {{ commentCountText }} </span>
                             </div>
+                        </div>
+                        <!-- 추가한 날짜: 카드 맨 아래 고정 -->
+                        <div v-if="dateText" class="recipe-date-footer text-sm text-gray-500 mt-2 pt-2 border-t border-gray-200 flex items-center gap-1">
+                            <i class="pi pi-calendar"></i>
+                            <span class="truncate">추가한 날짜 : {{ dateText }}</span>
                         </div>
                     </div>
                 </div>
@@ -177,4 +178,18 @@ function formatCount(count: number | undefined | null): string | null {
 
 <style scoped>
 /* 레시피 그리드 카드 스타일은 layout _recipe-card-list.scss 공통 사용 */
+.recipe-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+.recipe-content .recipe-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+.recipe-date-footer {
+    margin-top: auto;
+}
 </style>
