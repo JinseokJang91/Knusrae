@@ -236,7 +236,19 @@ const routes: RouteRecordRaw[] = [
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
+    routes,
+    scrollBehavior(to, _from, savedPosition) {
+        // 브라우저 뒤로/앞으로 가기 시 저장된 위치로 복원
+        if (savedPosition) {
+            return savedPosition;
+        }
+        // 해시가 있으면(예: 댓글 관리 → 레시피 상세 #comments) 스크롤은 대상 페이지에서 처리
+        if (to.hash) {
+            return; // 스크롤하지 않음 → RecipeDetail 등에서 해당 영역으로 이동 처리
+        }
+        // 기본: 화면 진입 시 최상단으로
+        return { left: 0, top: 0 };
+    }
 });
 
 router.beforeEach(async (to) => {

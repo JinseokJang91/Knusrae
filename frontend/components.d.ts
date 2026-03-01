@@ -27,6 +27,7 @@ declare module 'vue' {
     OpenBookView: typeof import('./src/components/bookmark/OpenBookView.vue')['default']
     PageStateBlock: typeof import('./src/components/common/PageStateBlock.vue')['default']
     PopularRecipes: typeof import('./src/components/dashboard/PopularRecipes.vue')['default']
+    ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RecentViews: typeof import('./src/components/dashboard/RecentViews.vue')['default']
     RecipeBookFormDialog: typeof import('./src/components/bookmark/RecipeBookFormDialog.vue')['default']
     RecipeCard: typeof import('./src/components/recipe/RecipeCard.vue')['default']
