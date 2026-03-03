@@ -17,6 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +33,7 @@ public class TokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final TokenBlacklistRepository tokenBlacklistRepository;
     private final MemberRepository memberRepository;
+    private final EntityManager entityManager;
 
     @Transactional
     public TokenResponse loginWithSocialUser(Long userId, String username, String role) {
@@ -83,11 +86,13 @@ public class TokenService {
         }
         Long userId = Long.parseLong(userIdStr);
         
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenString)
+        // 동시 갱신 방지: PESSIMISTIC_WRITE 락으로 해당 row 선점 후 삭제·삽입
+        RefreshToken refreshToken = refreshTokenRepository.findByTokenForUpdate(refreshTokenString)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Refresh Token입니다."));
         
         if (refreshToken.isExpired()) {
             refreshTokenRepository.delete(refreshToken);
+            entityManager.flush();
             throw new IllegalArgumentException("만료된 Refresh Token입니다.");
         }
         
@@ -95,6 +100,7 @@ public class TokenService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         
         refreshTokenRepository.delete(refreshToken);
+        entityManager.flush(); // 삭제를 먼저 flush하여 이후 insert 시 중복 키 방지
         log.debug("기존 Refresh Token 삭제 (Rotation): userId={}", userId);
         
         String newAccessToken = tokenProvider.createAccessToken(

@@ -1,9 +1,9 @@
 # Docker Compose 환경 (RDS 사용 시 DB_URL, DB_USERNAME, DB_PASSWORD로 덮어씀)
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://postgres-db:5432/knusrae_db}
-    username: ${DB_USERNAME:knusrae_user}
-    password: ${DB_PASSWORD:CookRecipes999!@#}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update

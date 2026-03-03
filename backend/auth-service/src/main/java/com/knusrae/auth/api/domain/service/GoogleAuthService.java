@@ -11,7 +11,6 @@ import com.knusrae.common.domain.enums.SocialRole;
 import com.knusrae.common.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -47,9 +46,10 @@ public class GoogleAuthService {
         GoogleUserDTO googleUserDTO = getUserInfo(accessToken);
 
         // 1. DB에서 사용자 조회/없으면 생성 (이메일 + 소셜 역할로 조회)
-        Member member = memberRepository.findByEmailAndSocialRole(googleUserDTO.getEmail(), SocialRole.GOOGLE);
+        Member member = memberRepository.findByEmailAndSocialRole(googleUserDTO.getEmail(), SocialRole.GOOGLE)
+                .orElse(null);
 
-        if(ObjectUtils.isEmpty(member)) {
+        if (member == null) {
             member = memberRepository.save(
                     Member.builder()
                             .name(googleUserDTO.getName())

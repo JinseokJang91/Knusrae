@@ -16,7 +16,7 @@ app:
   frontend:
     url: ${FRONTEND_URL}
   test-login:
-    enabled: false
+    enabled: ${TEST_LOGIN_ENABLED}
 
 naver:
   client:

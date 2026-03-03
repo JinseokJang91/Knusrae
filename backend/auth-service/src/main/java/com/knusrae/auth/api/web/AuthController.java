@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
@@ -179,6 +181,10 @@ public class AuthController {
             log.warn("토큰 갱신 실패: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "INVALID_REFRESH_TOKEN", "message", e.getMessage()));
+        } catch (ObjectOptimisticLockingFailureException | DataIntegrityViolationException e) {
+            log.warn("토큰 갱신 중 동시성 오류 (이미 갱신됨 또는 중복 요청): {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "REFRESH_TOKEN_CONFLICT", "message", "토큰이 이미 갱신되었습니다. 새로고침 후 다시 시도하거나 재로그인 해주세요."));
         } catch (Exception e) {
             log.error("토큰 갱신 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

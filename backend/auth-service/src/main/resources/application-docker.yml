@@ -1,9 +1,9 @@
 # Docker Compose 환경 (기본: postgres-db 컨테이너. RDS 사용 시 환경변수로 덮어씀)
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://postgres-db:5432/knusrae_db}
-    username: ${DB_USERNAME:knusrae_user}
-    password: ${DB_PASSWORD:CookRecipes999!@#}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -20,21 +20,21 @@ app:
 
 naver:
   client:
-    id: ${NAVER_CLIENT_ID:}
-    secret: ${NAVER_CLIENT_SECRET:}
+    id: ${NAVER_CLIENT_ID}
+    secret: ${NAVER_CLIENT_SECRET}
   redirect:
-    uri: ${NAVER_REDIRECT_URI:http://localhost:8081/api/auth/naver/callback}
+    uri: ${NAVER_REDIRECT_URI}
 
 google:
   client:
-    id: ${GOOGLE_CLIENT_ID:}
-    secret: ${GOOGLE_CLIENT_SECRET:}
+    id: ${GOOGLE_CLIENT_ID}
+    secret: ${GOOGLE_CLIENT_SECRET}
   redirect:
-    uri: ${GOOGLE_REDIRECT_URI:http://localhost:8081/api/auth/google/callback}
+    uri: ${GOOGLE_REDIRECT_URI}
 
 kakao:
   client:
-    id: ${KAKAO_CLIENT_ID:}
-    secret: ${KAKAO_CLIENT_SECRET:}
+    id: ${KAKAO_CLIENT_ID}
+    secret: ${KAKAO_CLIENT_SECRET}
   redirect:
-    uri: ${KAKAO_REDIRECT_URI:http://localhost:8081/api/auth/kakao/callback}
+    uri: ${KAKAO_REDIRECT_URI}

@@ -1,6 +1,7 @@
 package com.knusrae.common.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.knusrae.common.security.TokenBlacklistChecker;
 import com.knusrae.common.security.provider.JwtTokenProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -11,30 +12,33 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-@RequiredArgsConstructor
-@Component
 @Slf4j
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider tokenProvider;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final org.springframework.beans.factory.BeanFactory beanFactory;
+
+    /** auth-service에서만 빈 존재, member/cook에서는 비어 있음 */
+    @Autowired(required = false)
+    private TokenBlacklistChecker tokenBlacklistChecker;
+
+    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider) {
+        this.tokenProvider = tokenProvider;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -99,19 +103,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isTokenBlacklisted(String token) {
+        if (tokenBlacklistChecker == null) {
+            return false;
+        }
         try {
-            Object repository = beanFactory.getBean("tokenBlacklistRepository");
-            if (!ObjectUtils.isEmpty(repository)) {
-                Method method = repository.getClass().getMethod("findByToken", String.class);
-                Object result = method.invoke(repository, token);
-                if (result instanceof Optional) {
-                    return ((Optional<?>) result).isPresent();
-                }
-            }
+            return tokenBlacklistChecker.isBlacklisted(token);
         } catch (Exception e) {
             log.debug("토큰 블랙리스트 확인 중 오류 발생 (무시됨): {}", e.getMessage());
+            return false;
         }
-        return false;
     }
 
     private void handleJwtException(HttpServletResponse response, int status, String errorCode, String errorMessage) throws IOException {

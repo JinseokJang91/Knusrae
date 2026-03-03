@@ -1,8 +1,8 @@
 # 개발 서버 환경 (dev)
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/knusrae_db}
-    username: ${DB_USERNAME:knusrae_user}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
@@ -14,9 +14,9 @@ spring:
 
 app:
   frontend:
-    url: ${FRONTEND_URL:http://localhost:5173}
+    url: ${FRONTEND_URL}
   test-login:
-    enabled: ${TEST_LOGIN_ENABLED:true}
+    enabled: ${TEST_LOGIN_ENABLED}
 
 naver:
   client:

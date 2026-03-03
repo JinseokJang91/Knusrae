@@ -12,7 +12,6 @@ import com.knusrae.common.domain.enums.SocialRole;
 import com.knusrae.common.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -49,9 +48,10 @@ public class KakaoAuthService {
         KakaoUserDTO kakaoUserDTO = getUserInfo(accessToken);
 
         // 1. DB에서 사용자 조회/없으면 생성 (이메일 + 소셜 역할로 조회)
-        Member member = memberRepository.findByEmailAndSocialRole(kakaoUserDTO.getEmail(), SocialRole.KAKAO);
+        Member member = memberRepository.findByEmailAndSocialRole(kakaoUserDTO.getEmail(), SocialRole.KAKAO)
+                .orElse(null);
 
-        if(ObjectUtils.isEmpty(member)) {
+        if (member == null) {
             String profileImage = kakaoUserDTO.getProperties() != null ? kakaoUserDTO.getProperties().getProfileImage() : null;
             member = memberRepository.save(
                     Member.builder()

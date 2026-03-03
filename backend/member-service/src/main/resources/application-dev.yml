@@ -1,8 +1,8 @@
 # 개발 서버 환경 (dev)
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/knusrae_db}
-    username: ${DB_USERNAME:knusrae_user}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
