@@ -1,0 +1,36 @@
+# ============================================
+# Stage 1: Build (Gradle - auth, member, cook 서비스 JAR 생성)
+# ============================================
+FROM eclipse-temurin:21-jdk-alpine AS builder
+
+WORKDIR /workspace
+
+# Gradle 래퍼 및 설정 복사
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
+COPY backend backend
+
+RUN chmod +x gradlew
+
+# 3개 서비스 JAR 빌드 (common-service는 의존성으로 포함됨)
+RUN ./gradlew :backend:auth-service:bootJar :backend:member-service:bootJar :backend:cook-service:bootJar --no-daemon -x test
+
+# JAR를 고정 이름으로 복사 (버전 없이)
+RUN mkdir -p /out && \
+    cp backend/auth-service/build/libs/*.jar /out/auth-service.jar && \
+    cp backend/member-service/build/libs/*.jar /out/member-service.jar && \
+    cp backend/cook-service/build/libs/*.jar /out/cook-service.jar
+
+# ============================================
+# Stage 2: Run (경량 JRE + JAR만)
+# ============================================
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+COPY --from=builder /out/*.jar /app/
+
+# 기본 실행은 auth-service (compose에서 command로 덮어씀)
+ENTRYPOINT ["java", "-jar"]

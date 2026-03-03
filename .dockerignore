@@ -1,0 +1,10 @@
+# Backend 이미지 빌드 시 제외 (context: . 사용 시)
+.git
+.gitignore
+frontend/node_modules
+frontend/dist
+docs
+*.md
+.env
+.env.*
+.DS_Store

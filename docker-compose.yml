@@ -1,4 +1,67 @@
 services:
+  # 프론트엔드 (Vue 빌드 결과를 Nginx로 서빙)
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      # 배포 시 API URL 등은 여기서 주입 (선택)
+      # args:
+      #   VITE_API_BASE_URL_AUTH: https://api.example.com/auth
+      #   VITE_API_BASE_URL_MEMBER: https://api.example.com/member
+      #   VITE_API_BASE_URL_COOK: https://api.example.com/cook
+    container_name: knusrae_web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+
+  # 백엔드 API 서비스들 (동일 이미지, 서로 다른 JAR 실행)
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: knusrae-backend
+    container_name: knusrae_auth
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8081
+      # RDS 사용 시 .env 또는 여기서 설정 (postgres-db 대신 RDS 연결)
+      # DB_URL: jdbc:postgresql://<RDS엔드포인트>:5432/knusrae_db
+      # DB_USERNAME: knusrae_user
+      # DB_PASSWORD: <비밀번호>
+    command: ["/app/auth-service.jar", "--server.port=8081"]
+    depends_on:
+      - postgres-db
+
+  member-service:
+    image: knusrae-backend
+    container_name: knusrae_member
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8083
+    command: ["/app/member-service.jar", "--server.port=8083"]
+    depends_on:
+      - postgres-db
+
+  cook-service:
+    image: knusrae-backend
+    container_name: knusrae_cook
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8082
+    command: ["/app/cook-service.jar", "--server.port=8082"]
+    depends_on:
+      - postgres-db
+
+  # 로컬/테스트용 DB. RDS 사용 시 이 서비스는 띄우지 않고, 백엔드에 DB_URL 등 환경변수만 설정
   postgres-db:
     image: postgres:17
     container_name: postgres_db

@@ -1,0 +1,40 @@
+# Docker Compose 환경 (기본: postgres-db 컨테이너. RDS 사용 시 환경변수로 덮어씀)
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres-db:5432/knusrae_db}
+    username: ${DB_USERNAME:knusrae_user}
+    password: ${DB_PASSWORD:CookRecipes999!@#}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+app:
+  frontend:
+    url: http://web
+  test-login:
+    enabled: false
+
+naver:
+  client:
+    id: ${NAVER_CLIENT_ID:}
+    secret: ${NAVER_CLIENT_SECRET:}
+  redirect:
+    uri: ${NAVER_REDIRECT_URI:http://localhost:8081/api/auth/naver/callback}
+
+google:
+  client:
+    id: ${GOOGLE_CLIENT_ID:}
+    secret: ${GOOGLE_CLIENT_SECRET:}
+  redirect:
+    uri: ${GOOGLE_REDIRECT_URI:http://localhost:8081/api/auth/google/callback}
+
+kakao:
+  client:
+    id: ${KAKAO_CLIENT_ID:}
+    secret: ${KAKAO_CLIENT_SECRET:}
+  redirect:
+    uri: ${KAKAO_REDIRECT_URI:http://localhost:8081/api/auth/kakao/callback}
