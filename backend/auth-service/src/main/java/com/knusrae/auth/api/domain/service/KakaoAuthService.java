@@ -69,8 +69,8 @@ public class KakaoAuthService {
             );
         }
 
-        // 2. JWT 토큰 발급 (ID, role 사용)
-        return tokenService.loginWithSocialUser(member.getId(), member.getName(), member.getSocialRole().name());
+        // 2. JWT 토큰 발급 (socialRole + role(USER/ADMIN) 세팅)
+        return tokenService.loginWithMember(member);
     }
 
     private String getAccessToken(String code) throws JsonProcessingException {

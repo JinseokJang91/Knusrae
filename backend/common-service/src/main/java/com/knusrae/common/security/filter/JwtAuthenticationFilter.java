@@ -60,6 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 Claims claims = tokenProvider.parseAccessToken(token).getBody();
                 String subject = claims.getSubject();
+                // role: 권한(USER/ADMIN). socialRole(GOOGLE/NAVER/KAKAO)은 인가에는 사용하지 않음.
                 Object role = claims.get("role");
                 var auth = new UsernamePasswordAuthenticationToken(
                         subject, null,

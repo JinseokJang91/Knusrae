@@ -194,13 +194,10 @@ public class AuthController {
 
     // TODO 토큰 발급 TEST EndPoint - 개발용
     @GetMapping("/jwt/token")
-    public ResponseEntity<String> getJwtToken(@RequestParam("user_id") Long userId, @RequestParam("user_name") String userName) {
+    public ResponseEntity<String> getJwtToken(@RequestParam("user_id") Long userId) {
         try {
-            TokenResponse tokenResponse = tokenService.loginWithSocialUser(userId, userName, "GOOGLE");
-
-            String accessToken = tokenResponse.accessToken();
-
-            return ResponseEntity.ok().body(accessToken);
+            TokenResponse tokenResponse = tokenService.loginWithUserId(userId);
+            return ResponseEntity.ok().body(tokenResponse.accessToken());
         } catch (Exception e) {
             log.error("Jwt Token Error", e);
             return ResponseEntity.badRequest().body("Jwt Token Error");

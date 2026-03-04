@@ -35,23 +35,30 @@ public class TokenService {
     private final MemberRepository memberRepository;
     private final EntityManager entityManager;
 
+    /**
+     * 회원 엔티티 기준으로 로그인 처리.
+     * JWT claims: socialRole(GOOGLE/NAVER/KAKAO), role(USER/ADMIN), username
+     */
     @Transactional
-    public TokenResponse loginWithSocialUser(Long userId, String username, String role) {
+    public TokenResponse loginWithMember(Member member) {
+        Long userId = member.getId();
         refreshTokenRepository.findByUserId(userId)
                 .ifPresent(existingToken -> {
-            refreshTokenRepository.delete(existingToken);
-            log.debug("기존 Refresh Token 삭제: userId={}", userId);
-        });
+                    refreshTokenRepository.delete(existingToken);
+                    log.debug("기존 Refresh Token 삭제: userId={}", userId);
+                });
 
-        String accessToken = tokenProvider.createAccessToken(
-                String.valueOf(userId),
-                Map.of("role", role, "username", username) // TODO Claim 추가
-        );
+        String socialRole = member.getSocialRole().name();
+        String role = isAdminEmail(member.getEmail()) ? "ADMIN" : "USER";
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", member.getName());
+        claims.put("socialRole", socialRole);
+        claims.put("role", role);
 
+        String accessToken = tokenProvider.createAccessToken(String.valueOf(userId), claims);
         String refreshToken = tokenProvider.createRefreshToken(String.valueOf(userId));
 
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(tokenProvider.getRefreshTokenTtl());
-
         RefreshToken refreshTokenEntity = RefreshToken.builder()
                 .token(refreshToken)
                 .userId(userId)
@@ -59,8 +66,8 @@ public class TokenService {
                 .build();
         refreshTokenRepository.save(refreshTokenEntity);
 
-        log.debug("토큰 발행 완료: userId={}, accessTokenExpiresIn={}초, refreshTokenExpiresIn={}초",
-                userId, tokenProvider.getAccessTokenTtl(), tokenProvider.getRefreshTokenTtl());
+        log.debug("토큰 발행 완료: userId={}, role={}, socialRole={}, accessTokenExpiresIn={}초, refreshTokenExpiresIn={}초",
+                userId, role, socialRole, tokenProvider.getAccessTokenTtl(), tokenProvider.getRefreshTokenTtl());
 
         return new TokenResponse(
                 accessToken,
@@ -68,6 +75,27 @@ public class TokenService {
                 tokenProvider.getAccessTokenTtl(),
                 tokenProvider.getRefreshTokenTtl()
         );
+    }
+
+    /**
+     * 회원 ID로 로그인 (테스트/개발용 JWT 발급 등).
+     * 회원을 조회한 뒤 loginWithMember 호출.
+     */
+    @Transactional
+    public TokenResponse loginWithUserId(Long userId) {
+        Member member = memberRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다. ID: " + userId));
+        return loginWithMember(member);
+    }
+
+    /**
+     * 관리자 계정 여부 판별 (member-service와 동일 기준)
+     */
+    private static boolean isAdminEmail(String email) {
+        if (email == null) {
+            return false;
+        }
+        return "testadmin@test.com".equalsIgnoreCase(email.trim());
     }
 
     @Transactional
@@ -102,31 +130,8 @@ public class TokenService {
         refreshTokenRepository.delete(refreshToken);
         entityManager.flush(); // 삭제를 먼저 flush하여 이후 insert 시 중복 키 방지
         log.debug("기존 Refresh Token 삭제 (Rotation): userId={}", userId);
-        
-        String newAccessToken = tokenProvider.createAccessToken(
-                String.valueOf(userId),
-                Map.of("role", member.getSocialRole().name(), "username", member.getName())
-        );
-        
-        String newRefreshToken = tokenProvider.createRefreshToken(String.valueOf(userId));
-        
-        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(tokenProvider.getRefreshTokenTtl());
-        RefreshToken newRefreshTokenEntity = RefreshToken.builder()
-                .token(newRefreshToken)
-                .userId(userId)
-                .expiresAt(expiresAt)
-                .build();
-        refreshTokenRepository.save(newRefreshTokenEntity);
-        
-        log.debug("토큰 갱신 완료: userId={}, accessTokenExpiresIn={}초, refreshTokenExpiresIn={}초",
-                userId, tokenProvider.getAccessTokenTtl(), tokenProvider.getRefreshTokenTtl());
-        
-        return new TokenResponse(
-                newAccessToken,
-                newRefreshToken,
-                tokenProvider.getAccessTokenTtl(),
-                tokenProvider.getRefreshTokenTtl()
-        );
+
+        return loginWithMember(member);
     }
 
     @Transactional
@@ -175,7 +180,7 @@ public class TokenService {
         if (member.getEmail() == null || !member.getEmail().startsWith("test")) {
             throw new IllegalArgumentException("테스트 계정이 아닙니다.");
         }
-        return loginWithSocialUser(member.getId(), member.getName(), member.getSocialRole().name());
+        return loginWithMember(member);
     }
 
     // TODO 테스트 계정 로그인

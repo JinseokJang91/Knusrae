@@ -41,6 +41,7 @@ public class MemberService {
     }
 
     private static MemberDto toFullMemberDto(Member m) {
+        boolean isAdmin = isAdminEmail(m.getEmail());
         return MemberDto.builder()
                 .id(m.getId())
                 .name(m.getName())
@@ -51,6 +52,7 @@ public class MemberService {
                 .bio(m.getBio())
                 .followerCount(m.getFollowerCount())
                 .followingCount(m.getFollowingCount())
+                .isAdmin(isAdmin)
                 .build();
     }
 
@@ -63,6 +65,7 @@ public class MemberService {
                 .bio(m.getBio())
                 .followerCount(m.getFollowerCount())
                 .followingCount(m.getFollowingCount())
+                .isAdmin(false)
                 .build();
     }
 
@@ -97,6 +100,18 @@ public class MemberService {
         member.updateProfile(name, nickname, bio, profileImageUrl);
         Member updatedMember = memberRepository.save(member);
         return toFullMemberDto(updatedMember);
+    }
+
+    /**
+     * 관리자 계정 여부 판별
+     * 현재는 테스트용 계정 이메일을 기준으로 판단한다.
+     * 추후 설정값이나 권한 테이블로 확장 가능.
+     */
+    private static boolean isAdminEmail(String email) {
+        if (email == null) {
+            return false;
+        }
+        return "testadmin@test.com".equalsIgnoreCase(email.trim());
     }
 
     private String extractStorageKey(String imageUrl) {
