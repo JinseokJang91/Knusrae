@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { logout as logoutApi } from '@/api/authApi';
-import { refreshToken, fetchMemberInfo, isAdminEmail } from '@/utils/auth';
+import { refreshToken, fetchMemberInfo } from '@/utils/auth';
 import type { MemberInfo } from '@/types/auth';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -23,8 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
     });
 
     const isAdmin = computed(() => {
-        if (!memberInfo.value || !memberInfo.value.email) return false;
-        return isAdminEmail(memberInfo.value.email);
+        return memberInfo.value?.isAdmin === true;
     });
 
     // Actions
