@@ -95,7 +95,7 @@ public class TokenService {
         if (email == null) {
             return false;
         }
-        return "testadmin@test.com".equalsIgnoreCase(email.trim());
+        return "testadmin@test.com".equalsIgnoreCase(email.trim()); // TODO
     }
 
     @Transactional

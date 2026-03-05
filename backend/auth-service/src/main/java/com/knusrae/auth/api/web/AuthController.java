@@ -3,7 +3,9 @@ package com.knusrae.auth.api.web;
 import com.knusrae.auth.api.domain.service.GoogleAuthService;
 import com.knusrae.auth.api.domain.service.KakaoAuthService;
 import com.knusrae.auth.api.domain.service.NaverAuthService;
+import com.knusrae.auth.api.domain.service.OAuthStateService;
 import com.knusrae.auth.api.domain.service.TokenService;
+import com.knusrae.auth.api.domain.service.OAuthStateService.InvalidOAuthStateException;
 import com.knusrae.auth.api.utils.CookieUtils;
 import com.knusrae.auth.api.web.request.TestLoginRequest;
 import com.knusrae.auth.api.web.response.TokenResponse;
@@ -32,6 +34,7 @@ public class AuthController {
     private final KakaoAuthService kakaoAuthService;
     private final TokenService tokenService;
     private final CookieUtils cookieUtils;
+    private final OAuthStateService oauthStateService;
 
     @Value("${app.test-login.enabled:false}")
     private boolean testLoginEnabled;
@@ -43,13 +46,32 @@ public class AuthController {
     private static final String GOOGLE_REDIRECT_URI = "/auth/google/callback";
     private static final String KAKAO_REDIRECT_URI = "/auth/kakao/callback";
 
+    private static final String STATE_ERROR_MESSAGE = "잘못된 요청입니다. 다시 로그인해 주세요.";
+
+    /**
+     * OAuth 로그인 시작 전 state 파라미터 발급 (CSRF 방지).
+     * 프론트는 이 state를 프로바이더 인증 URL에 넣고, 콜백 시 서버에서 검증한다.
+     */
+    @GetMapping("/oauth/state")
+    public ResponseEntity<Map<String, String>> getOAuthState(@RequestParam("provider") String provider) {
+        if (provider == null || !java.util.Set.of("naver", "google", "kakao").contains(provider.toLowerCase())) {
+            return ResponseEntity.badRequest().build();
+        }
+        String state = oauthStateService.generateState(provider.toLowerCase());
+        return ResponseEntity.ok(Map.of("state", state));
+    }
+
     @GetMapping("/naver/callback")
     public ResponseEntity<String> naverCallback(@RequestParam("code") String code,
                                                 @RequestParam("state") String state) {
         try {
+            oauthStateService.validateState("naver", state);
             TokenResponse tokenResponse = naverAuthService.naverLoginProcess(code, state);
             String redirectUrl = frontendUrl + NAVER_REDIRECT_URI + "?success=true";
             return buildSuccessResponse(redirectUrl, tokenResponse, true, false);
+        } catch (InvalidOAuthStateException e) {
+            log.warn("네이버 로그인 state 검증 실패: {}", e.getMessage());
+            return getErrorRedirectResponse(frontendUrl + NAVER_REDIRECT_URI, STATE_ERROR_MESSAGE);
         } catch (Exception e) {
             log.error("네이버 로그인 처리 중 오류", e);
             return getErrorRedirectResponse(frontendUrl + NAVER_REDIRECT_URI);
@@ -57,13 +79,21 @@ public class AuthController {
     }
 
     @GetMapping("/google/callback")
-    public ResponseEntity<String> googleCallback(@RequestParam("code") String code) {
+    public ResponseEntity<String> googleCallback(@RequestParam("code") String code,
+                                                @RequestParam(value = "state", required = false) String state) {
         try {
+            if (state == null || state.isBlank()) {
+                return getErrorRedirectResponse(frontendUrl + GOOGLE_REDIRECT_URI, STATE_ERROR_MESSAGE);
+            }
+            oauthStateService.validateState("google", state);
             TokenResponse tokenResponse = googleAuthService.googleLoginProcess(code);
 
             String redirectUrl = frontendUrl + GOOGLE_REDIRECT_URI + "?success=true";
 
             return buildSuccessResponse(redirectUrl, tokenResponse, true, true);
+        } catch (InvalidOAuthStateException e) {
+            log.warn("구글 로그인 state 검증 실패: {}", e.getMessage());
+            return getErrorRedirectResponse(frontendUrl + GOOGLE_REDIRECT_URI, STATE_ERROR_MESSAGE);
         } catch (Exception e) {
             log.error("구글 로그인 처리 중 오류", e);
             return getErrorRedirectResponse(frontendUrl + GOOGLE_REDIRECT_URI);
@@ -71,13 +101,21 @@ public class AuthController {
     }
 
     @GetMapping("/kakao/callback")
-    public ResponseEntity<String> kakaoCallback(@RequestParam("code") String code) {
+    public ResponseEntity<String> kakaoCallback(@RequestParam("code") String code,
+                                               @RequestParam(value = "state", required = false) String state) {
         try {
+            if (state == null || state.isBlank()) {
+                return getErrorRedirectResponse(frontendUrl + KAKAO_REDIRECT_URI, STATE_ERROR_MESSAGE);
+            }
+            oauthStateService.validateState("kakao", state);
             TokenResponse tokenResponse = kakaoAuthService.kakaoLoginProcess(code);
 
             String redirectUrl = frontendUrl + KAKAO_REDIRECT_URI + "?success=true";
 
             return buildSuccessResponse(redirectUrl, tokenResponse, false, false);
+        } catch (InvalidOAuthStateException e) {
+            log.warn("카카오 로그인 state 검증 실패: {}", e.getMessage());
+            return getErrorRedirectResponse(frontendUrl + KAKAO_REDIRECT_URI, STATE_ERROR_MESSAGE);
         } catch (Exception e) {
             log.error("카카오 로그인 처리 중 오류", e);
             return getErrorRedirectResponse(frontendUrl + KAKAO_REDIRECT_URI);
@@ -120,9 +158,13 @@ public class AuthController {
     }
 
     private ResponseEntity<String> getErrorRedirectResponse(String baseRedirectUri) {
+        return getErrorRedirectResponse(baseRedirectUri, "로그인 처리 중 오류가 발생했습니다.");
+    }
+
+    private ResponseEntity<String> getErrorRedirectResponse(String baseRedirectUri, String errorMessage) {
         try {
             String redirectUrl = baseRedirectUri + "?success=false&error=" +
-                    java.net.URLEncoder.encode("로그인 처리 중 오류가 발생했습니다.", StandardCharsets.UTF_8);
+                    java.net.URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
 
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header(HttpHeaders.LOCATION, redirectUrl)

@@ -17,6 +17,8 @@ app:
     url: http://web
   test-login:
     enabled: false
+  oauth:
+    state-secret: ${OAUTH_STATE_SECRET}
 
 naver:
   client:

@@ -17,6 +17,8 @@ app:
     url: ${FRONTEND_URL}
   test-login:
     enabled: ${TEST_LOGIN_ENABLED}
+  oauth:
+    state-secret: ${OAUTH_STATE_SECRET}
 
 naver:
   client:
