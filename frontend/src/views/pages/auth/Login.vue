@@ -6,7 +6,7 @@ import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/utils/toast';
-import { getTestAccounts, testLogin, type TestAccount } from '@/api/authApi';
+import { getOAuthState, getTestAccounts, testLogin, type TestAccount } from '@/api/authApi';
 
 const router = useRouter();
 const route = useRoute();
@@ -30,22 +30,27 @@ function redirectAfterLogin() {
     router.push(redirectPath);
 }
 
-// 소셜 로그인 핸들러 (SocialLoginButtons 컴포넌트에서 emit된 provider에 따라 처리)
-function handleSocialLogin(provider: 'kakao' | 'google' | 'naver') {
-    // redirect 경로를 localStorage에 저장 (OAuth 팝업에서 사용)
+// 소셜 로그인 핸들러 (서버에서 state 발급 후 팝업 오픈, CSRF 방지)
+async function handleSocialLogin(provider: 'kakao' | 'google' | 'naver') {
     const redirectPath = getRedirectPath();
     localStorage.setItem('oauth_redirect', redirectPath);
 
-    switch (provider) {
-        case 'naver':
-            openOAuthPopup('naver', import.meta.env.VITE_NAVER_CLIENT_ID, import.meta.env.VITE_NAVER_REDIRECT_URI);
-            break;
-        case 'google':
-            openOAuthPopup('google', import.meta.env.VITE_GOOGLE_CLIENT_ID, import.meta.env.VITE_GOOGLE_REDIRECT_URI, { scope: 'openid email profile' });
-            break;
-        case 'kakao':
-            openOAuthPopup('kakao', import.meta.env.VITE_KAKAO_CLIENT_ID, import.meta.env.VITE_KAKAO_REDIRECT_URI);
-            break;
+    try {
+        const { state } = await getOAuthState(provider);
+        switch (provider) {
+            case 'naver':
+                openOAuthPopup('naver', import.meta.env.VITE_NAVER_CLIENT_ID, import.meta.env.VITE_NAVER_REDIRECT_URI, {}, state);
+                break;
+            case 'google':
+                openOAuthPopup('google', import.meta.env.VITE_GOOGLE_CLIENT_ID, import.meta.env.VITE_GOOGLE_REDIRECT_URI, { scope: 'openid email profile' }, state);
+                break;
+            case 'kakao':
+                openOAuthPopup('kakao', import.meta.env.VITE_KAKAO_CLIENT_ID, import.meta.env.VITE_KAKAO_REDIRECT_URI, {}, state);
+                break;
+        }
+    } catch (e) {
+        console.error('OAuth state 발급 실패:', e);
+        showError('로그인 요청을 준비하는 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
 }
 

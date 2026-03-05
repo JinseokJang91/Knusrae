@@ -31,21 +31,31 @@ const oauthConfigs: Record<string, Omit<OAuthConfig, 'clientId' | 'redirectUri'>
     }
 };
 
-export function openOAuthPopup(provider: 'naver' | 'google' | 'kakao', clientId: string, redirectUri: string, additionalParams: Record<string, string> = {}): void {
+/**
+ * @param serverState 서버에서 발급한 state (GET /api/auth/oauth/state?provider=...). CSRF 방지용.
+ */
+export function openOAuthPopup(
+    provider: 'naver' | 'google' | 'kakao',
+    clientId: string,
+    redirectUri: string,
+    additionalParams: Record<string, string> = {},
+    serverState: string
+): void {
     if (!clientId || !redirectUri) {
         alert(`${provider} 로그인 설정이 완료되지 않았습니다. 환경 변수를 확인해주세요.`);
         return;
     }
+    if (!serverState || typeof serverState !== 'string') {
+        alert('로그인 요청 정보를 가져오지 못했습니다. 다시 시도해 주세요.');
+        return;
+    }
 
     const config = oauthConfigs[provider];
-    const state = Math.random().toString(36).slice(2, 13);
-    localStorage.setItem(`${provider}_state`, state);
-
     const params = new URLSearchParams({
         response_type: 'code',
         client_id: clientId,
         redirect_uri: redirectUri,
-        state,
+        state: serverState,
         ...additionalParams
     });
 
