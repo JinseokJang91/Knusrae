@@ -1,6 +1,7 @@
 package com.knusrae.member.api.inquiry.domain.service;
 
 import com.knusrae.common.custom.storage.ImageStorage;
+import com.knusrae.common.custom.storage.StorageKeyUtils;
 import com.knusrae.member.api.inquiry.domain.entity.Inquiry;
 import com.knusrae.member.api.inquiry.domain.entity.InquiryImage;
 import com.knusrae.member.api.inquiry.domain.entity.InquiryReply;
@@ -239,10 +240,12 @@ public class InquiryService {
     }
 
     private void deleteImageFromStorage(String imageUrl) {
-        if (imageUrl == null || !imageUrl.contains("/uploads/")) return;
+        if (imageUrl == null || imageUrl.isBlank()) return;
         try {
-            String key = imageUrl.substring(imageUrl.indexOf("/uploads/") + 9);
-            imageStorage.deleteByKey(key);
+            String key = StorageKeyUtils.parseKeyFromImageUrl(imageUrl);
+            if (key != null) {
+                imageStorage.deleteByKey(key);
+            }
         } catch (Exception e) {
             log.warn("문의 이미지 삭제 실패: {}", imageUrl, e);
         }

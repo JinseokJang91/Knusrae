@@ -1,6 +1,7 @@
 package com.knusrae.member.api.member.domain.service;
 
 import com.knusrae.common.custom.storage.ImageStorage;
+import com.knusrae.common.custom.storage.StorageKeyUtils;
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.common.exception.ResourceNotFoundException;
@@ -78,10 +79,10 @@ public class MemberService {
 
         // 프로필 이미지 업데이트
         if (profileImage != null && !profileImage.isEmpty()) {
-            // 기존 이미지 삭제 (있는 경우)
+            // 기존 이미지 삭제 (있는 경우, 로컬/S3/CloudFront URL 공통 처리)
             if (member.getProfileImage() != null && member.getProfileImage().contains("/")) {
                 try {
-                    String oldKey = extractStorageKey(member.getProfileImage());
+                    String oldKey = StorageKeyUtils.parseKeyFromImageUrl(member.getProfileImage());
                     if (oldKey != null) {
                         imageStorage.deleteByKey(oldKey);
                     }
@@ -114,19 +115,4 @@ public class MemberService {
         return "testadmin@test.com".equalsIgnoreCase(email.trim()); // TODO
     }
 
-    private String extractStorageKey(String imageUrl) {
-        if (imageUrl == null || imageUrl.isEmpty()) {
-            return null;
-        }
-        try {
-            int lastSlash = imageUrl.lastIndexOf('/');
-            if (lastSlash > 0) {
-                String path = imageUrl.substring(imageUrl.indexOf("/uploads/") + 9);
-                return path;
-            }
-        } catch (Exception e) {
-            log.warn("이미지 URL에서 키 추출 실패: {}", imageUrl);
-        }
-        return null;
-    }
 }
