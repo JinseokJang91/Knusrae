@@ -1,4 +1,11 @@
 # 개발 서버 환경 (dev)
+app:
+  storage:
+    type: s3
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+      region: ${AWS_REGION:ap-northeast-2}
+
 spring:
   datasource:
     url: ${DB_URL}

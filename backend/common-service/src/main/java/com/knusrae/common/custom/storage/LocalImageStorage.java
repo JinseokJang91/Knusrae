@@ -3,7 +3,7 @@ package com.knusrae.common.custom.storage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Component
-@Profile({"default", "local", "dev"})
+@ConditionalOnProperty(name = "app.storage.type", havingValue = "local", matchIfMissing = true)
 @RequiredArgsConstructor
 @Slf4j
 public class LocalImageStorage implements ImageStorage {

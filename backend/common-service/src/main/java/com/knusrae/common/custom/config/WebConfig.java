@@ -14,17 +14,21 @@ import java.util.List;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-    @Value("${app.storage.local.base-dir}")
+    @Value("${app.storage.type:local}")
+    private String storageType;
+
+    @Value("${app.storage.local.base-dir:}")
     private String baseDir;
 
-    // S3 서버 구축 전 이미지 파일 로컬 저장 후 테스트
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // 환경 변수에서 경로를 읽어옴 (기본값: 로컬 개발 경로)
-        String uploadPath = baseDir.endsWith("/") ? baseDir : baseDir + "/";
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:///" + uploadPath)
-                .setCachePeriod(3600);
+        // 로컬 저장소일 때만 /uploads/** 를 로컬 디스크로 서빙 (S3 사용 시 이미지 URL은 S3 직접 접근)
+        if ("local".equals(storageType) && baseDir != null && !baseDir.isBlank()) {
+            String uploadPath = baseDir.endsWith("/") ? baseDir : baseDir + "/";
+            registry.addResourceHandler("/uploads/**")
+                    .addResourceLocations("file:///" + uploadPath)
+                    .setCachePeriod(3600);
+        }
     }
 
     @Override
