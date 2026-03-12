@@ -10,6 +10,9 @@ export const useAuthStore = defineStore('auth', () => {
     const memberInfo = ref<MemberInfo | null>(null);
     const isInitialized = ref<boolean>(false);
 
+    // checkAuth() 중복 호출 방지: 진행 중인 Promise를 공유하여 동시 토큰 갱신 경쟁 조건 방지
+    let _checkAuthPromise: Promise<boolean> | null = null;
+
     // Getters
     const isLoggedIn = computed(() => isAuthenticated.value);
     const memberName = computed(() => {
@@ -30,27 +33,35 @@ export const useAuthStore = defineStore('auth', () => {
     /**
      * Token Refresh를 통해 로그인 상태 확인 및 갱신
      * 앱 초기화 시 호출하여 RefreshToken이 유효한 경우 AccessToken 재발급
+     * 동시 호출 시 동일한 Promise를 반환하여 토큰 Rotation 경쟁 조건을 방지
      */
     async function checkAuth(): Promise<boolean> {
-        try {
-            const success = await refreshToken();
-            if (success) {
-                isAuthenticated.value = true;
-                // 사용자 정보도 함께 조회
-                await loadMemberInfo();
-            } else {
+        if (_checkAuthPromise) {
+            return _checkAuthPromise;
+        }
+        _checkAuthPromise = (async () => {
+            try {
+                const success = await refreshToken();
+                if (success) {
+                    isAuthenticated.value = true;
+                    await loadMemberInfo();
+                } else {
+                    isAuthenticated.value = false;
+                    memberInfo.value = null;
+                }
+                isInitialized.value = true;
+                return success;
+            } catch (error) {
+                console.error('인증 확인 실패:', error);
                 isAuthenticated.value = false;
                 memberInfo.value = null;
+                isInitialized.value = true;
+                return false;
+            } finally {
+                _checkAuthPromise = null;
             }
-            isInitialized.value = true;
-            return success;
-        } catch (error) {
-            console.error('인증 확인 실패:', error);
-            isAuthenticated.value = false;
-            memberInfo.value = null;
-            isInitialized.value = true;
-            return false;
-        }
+        })();
+        return _checkAuthPromise;
     }
 
     /**
@@ -73,9 +84,11 @@ export const useAuthStore = defineStore('auth', () => {
     /**
      * 로그인 성공 시 호출
      * Token은 HttpOnly Cookie로 저장되므로 별도 처리 불필요
+     * isInitialized를 true로 설정하여 이후 라우터 가드의 불필요한 checkAuth() 재호출을 방지
      */
     async function login(): Promise<void> {
         isAuthenticated.value = true;
+        isInitialized.value = true;
         await loadMemberInfo();
     }
 

@@ -8,8 +8,11 @@ const authStore = useAuthStore();
 
 onMounted(() => {
     // 앱 초기화 시 Token Refresh를 통해 로그인 상태 확인
+    // isInitialized가 이미 true이면 router guard 또는 login()에서 이미 처리된 것이므로 재호출 불필요
     const initializeAuth = async () => {
-        await authStore.checkAuth();
+        if (!authStore.isInitialized) {
+            await authStore.checkAuth();
+        }
     };
     initializeAuth();
 });

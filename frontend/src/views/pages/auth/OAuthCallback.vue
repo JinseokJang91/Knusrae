@@ -78,7 +78,9 @@ function sendMessageToParent(message: OAuthPostMessage) {
                 // 크로스 오리진일 수 있음, 계속 진행
             }
 
-            window.opener.postMessage(message, window.location.origin);
+            // opener가 localhost/127.0.0.1 등 다른 로컬 오리진일 수 있어 targetOrigin은 와일드카드 사용.
+            // 실제 수신측(oauth.ts)에서 origin 검증을 수행한다.
+            window.opener.postMessage(message, '*');
             return true;
         } catch {
             return false;
