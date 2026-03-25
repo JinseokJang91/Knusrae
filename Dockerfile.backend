@@ -12,16 +12,17 @@ COPY build.gradle .
 COPY settings.gradle .
 COPY backend backend
 
-RUN chmod +x gradlew
+# Windows 체크아웃(CRLF)에서도 실행되도록 개행 정리 + 실행권한 부여
+RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
 
 # 3개 서비스 JAR 빌드 (common-service는 의존성으로 포함됨)
 RUN ./gradlew :backend:auth-service:bootJar :backend:member-service:bootJar :backend:cook-service:bootJar --no-daemon -x test
 
 # JAR를 고정 이름으로 복사 (버전 없이)
 RUN mkdir -p /out && \
-    cp backend/auth-service/build/libs/*.jar /out/auth-service.jar && \
-    cp backend/member-service/build/libs/*.jar /out/member-service.jar && \
-    cp backend/cook-service/build/libs/*.jar /out/cook-service.jar
+    cp "$(ls -1 backend/auth-service/build/libs/*.jar | grep -v 'plain\.jar' | head -n 1)" /out/auth-service.jar && \
+    cp "$(ls -1 backend/member-service/build/libs/*.jar | grep -v 'plain\.jar' | head -n 1)" /out/member-service.jar && \
+    cp "$(ls -1 backend/cook-service/build/libs/*.jar | grep -v 'plain\.jar' | head -n 1)" /out/cook-service.jar
 
 # ============================================
 # Stage 2: Run (경량 JRE + JAR만)
