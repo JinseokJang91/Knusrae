@@ -10,10 +10,14 @@ springBoot {
 
 dependencies {
 	implementation project(':backend:common-service')
+	implementation project(':backend:database-migrations')
+	implementation 'org.flywaydb:flyway-core'
+	runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 	implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 	implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
 	runtimeOnly "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
 	runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
+	testRuntimeOnly 'com.h2database:h2'
 }
 
 bootJar {
