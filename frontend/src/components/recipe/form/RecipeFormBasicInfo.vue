@@ -23,7 +23,15 @@ const emit = defineEmits<{
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const titleInputRef = ref<InstanceType<typeof InputText> | null>(null);
+const guideIconRef = ref<HTMLElement | null>(null);
 const guidePopoverRef = ref<{ toggle: (e: Event) => void } | null>(null);
+
+function onUpdateTitle(value: string): void {
+    emit('update:title', value);
+}
+function onClearTitleValidation(): void {
+    emit('clear-validation', 'title');
+}
 
 function onFileChange(e: Event): void {
     const input = e.target as HTMLInputElement;
@@ -35,7 +43,7 @@ function onFileChange(e: Event): void {
 }
 
 defineExpose({
-    focusTitle: () => titleInputRef.value?.$el?.querySelector('input')?.focus(),
+    focusTitle: () => (titleInputRef.value as unknown as { $el?: HTMLElement })?.$el?.querySelector<HTMLInputElement>('input')?.focus(),
     clickThumbnailInput: () => fileInputRef.value?.click()
 });
 </script>
@@ -91,8 +99,8 @@ defineExpose({
                         placeholder="레시피 제목을 입력하세요"
                         class="w-full"
                         :class="{ 'border-red-500': validationErrors?.title }"
-                        @update:model-value="$emit('update:title', $event)"
-                        @input="$emit('clear-validation', 'title')"
+                        @update:model-value="onUpdateTitle($event ?? '')"
+                        @input="onClearTitleValidation"
                     />
                 </div>
                 <div class="flex-1">

@@ -2,6 +2,21 @@ import { getApiBaseUrl } from '@/utils/constants';
 
 const BASE_URL = getApiBaseUrl('auth');
 
+/**
+ * OAuth 로그인용 state 발급 (CSRF 방지). 로그인 버튼 클릭 후 팝업 오픈 전에 호출.
+ * @param provider 'naver' | 'google' | 'kakao'
+ */
+export async function getOAuthState(provider: 'naver' | 'google' | 'kakao'): Promise<{ state: string }> {
+    const response = await fetch(`${BASE_URL}/api/auth/oauth/state?provider=${encodeURIComponent(provider)}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+    if (!response.ok) {
+        throw new Error('OAuth state 발급에 실패했습니다.');
+    }
+    return response.json();
+}
+
 /** 테스트 계정 (개발용 API 응답) */
 export interface TestAccount {
     id?: number;
@@ -68,15 +83,16 @@ export interface TestLoginResult {
 }
 
 /**
- * 테스트 계정으로 로그인 (개발용, 프로덕션에서는 호출 불가)
+ * 테스트 계정으로 로그인 (회원 ID 사용, 이메일 노출 없음)
+ * 개발용, 프로덕션에서는 호출 불가
  */
-export async function testLogin(email: string): Promise<TestLoginResult> {
+export async function testLogin(memberId: number): Promise<TestLoginResult> {
     assertDevOnly();
     const response = await fetch(`${BASE_URL}/api/auth/test/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ id: memberId })
     });
     if (response.ok) {
         return { success: true };

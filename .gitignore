@@ -272,10 +272,8 @@ web_modules/
 
 # dotenv environment variable files
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+.env.*
+
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -378,7 +376,17 @@ gradle-app.setting
 /frontend/node_modules/
 /frontend/dist/
 /frontend/.vite/
-/frontend/.env*
+/frontend/.nuxt/
+/frontend/.nitro/
+/frontend/.output/
+/frontend/coverage/
+/frontend/.eslintcache
+/frontend/api-generator/typedoc.json
+/frontend/.env
+/frontend/.env.local
+/frontend/.env.*.local
+/frontend/.env.development
+/frontend/.env.production
 /frontend/.vscode/
 /frontend/.npm-cache/
 

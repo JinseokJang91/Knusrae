@@ -9,9 +9,11 @@ import { getRecipeBooks, getBookmarksByRecipeBook, deleteRecipeBook, reorderReci
 import { getRecipeBookColorHex } from '@/types/bookmark';
 import type { RecipeBook, RecipeBookmark } from '@/types/bookmark';
 import type { Recipe, RecipeCookingTip, RecipeGridItem, RecipeCategory } from '@/types/recipe';
+import { useConfirm } from 'primevue/useconfirm';
 import { useAppToast } from '@/utils/toast';
 
 const router = useRouter();
+const confirm = useConfirm();
 const { showError } = useAppToast();
 
 const loading = ref(false);
@@ -125,18 +127,34 @@ const onRecipeBookDrop = async (_event: DragEvent, targetRecipeBook: RecipeBook)
     }
 };
 
-const handleDeleteRecipeBook = async (recipeBook: RecipeBook) => {
-    try {
-        await deleteRecipeBook(recipeBook.id);
-        if (selectedRecipeBook.value?.id === recipeBook.id) {
-            selectedRecipeBook.value = null;
-            bookmarks.value = [];
+const handleDeleteRecipeBook = (recipeBook: RecipeBook) => {
+    confirm.require({
+        message: `"${recipeBook.name}" 레시피북을 삭제하시겠습니까?`,
+        header: '레시피북 삭제',
+        icon: 'pi pi-exclamation-triangle',
+        rejectProps: {
+            label: '취소',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptProps: {
+            label: '삭제',
+            severity: 'danger'
+        },
+        accept: async () => {
+            try {
+                await deleteRecipeBook(recipeBook.id);
+                if (selectedRecipeBook.value?.id === recipeBook.id) {
+                    selectedRecipeBook.value = null;
+                    bookmarks.value = [];
+                }
+                await loadRecipeBooks();
+            } catch (err) {
+                console.error('레시피북 삭제 실패:', err);
+                showError('레시피북 삭제에 실패했습니다.');
+            }
         }
-        await loadRecipeBooks();
-    } catch (err) {
-        console.error('레시피북 삭제 실패:', err);
-        showError('레시피북 삭제에 실패했습니다.');
-    }
+    });
 };
 
 /**
@@ -217,114 +235,159 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="bookmarks-content">
-        <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
-            <p class="text-gray-700 italic">레시피북을 선택해서 북마크한 레시피를 확인하세요. 레시피북은 드래그하여 순서를 변경할 수 있어요.</p>
-        </div>
+    <div class="page-container page-container--card page-container--wide bookmarks-card">
+        <div class="bookmarks-content">
+            <div class="bookmarks-notice mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
+                <i class="pi pi-info-circle bookmarks-notice__icon" aria-hidden="true"></i>
+                <p class="bookmarks-notice__text">레시피북을 선택해서 북마크한 레시피를 확인하세요. 레시피북은 드래그하여 순서를 변경할 수 있어요.</p>
+            </div>
 
-        <!-- 로딩 상태 -->
-        <PageStateBlock v-if="loading" state="loading" loading-message="북마크를 불러오는 중..." />
+            <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+                <h2 class="bookmarks-title">북마크</h2>
+            </div>
 
-        <!-- 에러 상태 -->
-        <PageStateBlock v-else-if="error" state="error" error-title="북마크를 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadRecipeBooks" />
+            <!-- 로딩 상태 -->
+            <PageStateBlock v-if="loading" state="loading" loading-message="북마크를 불러오는 중..." />
 
-        <!-- 메인 컨텐츠 -->
-        <div v-else class="bookmarks-layout">
-            <!-- 좌측: 레시피북 목록 -->
-            <div class="recipe-book-sidebar">
-                <div class="recipe-book-header">
-                    <h3 class="text-lg font-semibold m-0">내 레시피북</h3>
-                    <Button icon="pi pi-plus" label="새 레시피북" @click="openRecipeBookDialog()" size="small" outlined />
-                </div>
+            <!-- 에러 상태 -->
+            <PageStateBlock v-else-if="error" state="error" error-title="북마크를 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadRecipeBooks" />
 
-                <!-- 레시피북이 없을 때 -->
-                <div v-if="recipeBooks.length === 0" class="empty-recipe-books">
-                    <i class="pi pi-bookmark text-5xl text-gray-300 mb-3"></i>
-                    <p class="text-gray-500 mb-4">아직 레시피북이 없습니다</p>
-                    <Button label="첫 번째 레시피북 만들기" icon="pi pi-plus" @click="openRecipeBookDialog()" outlined />
-                </div>
+            <!-- 메인 컨텐츠 -->
+            <div v-else class="bookmarks-layout">
+                <!-- 좌측: 레시피북 목록 -->
+                <div class="recipe-book-sidebar">
+                    <div class="recipe-book-header">
+                        <h3 class="text-lg font-semibold m-0">내 레시피북</h3>
+                        <Button icon="pi pi-plus" label="새 레시피북" @click="openRecipeBookDialog()" size="small" />
+                    </div>
 
-                <!-- 레시피북 목록 (드래그로 순서 변경) -->
-                <div v-else class="recipe-book-list">
-                    <div
-                        v-for="recipeBook in recipeBooks"
-                        :key="recipeBook.id"
-                        class="recipe-book-item"
-                        :class="{
-                            'recipe-book-item-active': selectedRecipeBook?.id === recipeBook.id,
-                            'recipe-book-item-dragging': draggedRecipeBookId === recipeBook.id,
-                            'recipe-book-item-drag-over': dragOverRecipeBookId === recipeBook.id
-                        }"
-                        @click="selectRecipeBook(recipeBook)"
-                        @dragover.prevent="onRecipeBookDragOver($event, recipeBook)"
-                        @dragleave="onRecipeBookDragLeave(recipeBook)"
-                        @drop.prevent="onRecipeBookDrop($event, recipeBook)"
-                    >
-                        <div class="recipe-book-drag-handle" draggable="true" @dragstart="onRecipeBookDragStart($event, recipeBook)" @dragend="onRecipeBookDragEnd" title="드래그하여 순서 변경">
-                            <i class="pi pi-bars"></i>
-                        </div>
-                        <div class="flex items-center gap-3 flex-1 min-w-0">
-                            <i class="pi pi-bookmark text-2xl flex-shrink-0" :style="{ color: getRecipeBookColorHex(recipeBook.color) }"></i>
-                            <div class="flex-1 min-w-0">
-                                <div class="recipe-book-name">{{ recipeBook.name }}</div>
-                                <div class="recipe-book-count">{{ recipeBook.bookmarkCount }}개</div>
+                    <!-- 레시피북이 없을 때 -->
+                    <div v-if="recipeBooks.length === 0" class="empty-recipe-books">
+                        <i class="pi pi-bookmark text-5xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500 mb-4">아직 레시피북이 없습니다</p>
+                        <Button label="첫 번째 레시피북 만들기" icon="pi pi-plus" @click="openRecipeBookDialog()" outlined />
+                    </div>
+
+                    <!-- 레시피북 목록 (드래그로 순서 변경) -->
+                    <div v-else class="recipe-book-list">
+                        <div
+                            v-for="recipeBook in recipeBooks"
+                            :key="recipeBook.id"
+                            class="recipe-book-item"
+                            :class="{
+                                'recipe-book-item-active': selectedRecipeBook?.id === recipeBook.id,
+                                'recipe-book-item-dragging': draggedRecipeBookId === recipeBook.id,
+                                'recipe-book-item-drag-over': dragOverRecipeBookId === recipeBook.id
+                            }"
+                            @click="selectRecipeBook(recipeBook)"
+                            @dragover.prevent="onRecipeBookDragOver($event, recipeBook)"
+                            @dragleave="onRecipeBookDragLeave(recipeBook)"
+                            @drop.prevent="onRecipeBookDrop($event, recipeBook)"
+                        >
+                            <div class="recipe-book-drag-handle" draggable="true" @dragstart="onRecipeBookDragStart($event, recipeBook)" @dragend="onRecipeBookDragEnd" title="드래그하여 순서 변경">
+                                <i class="pi pi-bars"></i>
                             </div>
-                        </div>
+                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                <i class="pi pi-bookmark text-2xl flex-shrink-0" :style="{ color: getRecipeBookColorHex(recipeBook.color) }"></i>
+                                <div class="flex-1 min-w-0">
+                                    <div class="recipe-book-name">{{ recipeBook.name }}</div>
+                                    <div class="recipe-book-count">{{ recipeBook.bookmarkCount }}개</div>
+                                </div>
+                            </div>
 
-                        <div class="recipe-book-actions" @click.stop>
-                            <Button icon="pi pi-pencil" text rounded size="small" @click="openRecipeBookDialog(recipeBook)" v-tooltip.top="'수정'" />
-                            <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click="handleDeleteRecipeBook(recipeBook)" v-tooltip.top="'삭제'" />
+                            <div class="recipe-book-actions" @click.stop>
+                                <Button icon="pi pi-pencil" text rounded size="small" @click="openRecipeBookDialog(recipeBook)" v-tooltip.top="'수정'" />
+                                <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click="handleDeleteRecipeBook(recipeBook)" v-tooltip.top="'삭제'" />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 우측: 북마크된 레시피 목록 -->
-            <div class="bookmarks-main">
-                <!-- 레시피북 선택 안 됨 -->
-                <div v-if="!selectedRecipeBook" class="empty-state">
-                    <i class="pi pi-bookmark text-6xl text-gray-300 mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">레시피북을 선택하세요</h3>
-                    <p class="text-gray-500">좌측에서 레시피북을 선택하면 저장된 레시피를 볼 수 있습니다</p>
+                <!-- 우측: 북마크된 레시피 목록 -->
+                <div class="bookmarks-main">
+                    <!-- 레시피북 선택 안 됨 -->
+                    <div v-if="!selectedRecipeBook" class="empty-state">
+                        <i class="pi pi-bookmark text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-2">레시피북을 선택하세요</h3>
+                        <p class="text-gray-500">좌측에서 레시피북을 선택하면 저장된 레시피를 볼 수 있습니다</p>
+                    </div>
+
+                    <!-- 레시피북 선택됨 -->
+                    <template v-else>
+                        <!-- 북마크 로딩 -->
+                        <PageStateBlock v-if="bookmarksLoading" state="loading" loading-message="레시피를 불러오는 중..." />
+
+                        <!-- 북마크가 없을 때 -->
+                        <PageStateBlock
+                            v-else-if="bookmarks.length === 0"
+                            state="empty"
+                            empty-icon="pi pi-bookmark"
+                            empty-title="저장된 레시피가 없습니다"
+                            empty-message="레시피 카드나 상세 페이지에서 북마크 버튼을 눌러 저장해보세요"
+                            empty-button-label="레시피 둘러보기"
+                            @empty-action="browseRecipes"
+                        />
+
+                        <!-- 열린 책 뷰 -->
+                        <OpenBookView
+                            v-else
+                            :recipe-book="selectedRecipeBook"
+                            :bookmarks="bookmarks"
+                            :get-recipe-grid-item="getRecipeGridItem"
+                            :get-category-name="getCategoryName"
+                            :format-date="formatDate"
+                            @recipe-click="viewRecipe"
+                            @memo-updated="onMemoUpdated"
+                        />
+                    </template>
                 </div>
-
-                <!-- 레시피북 선택됨 -->
-                <template v-else>
-                    <!-- 북마크 로딩 -->
-                    <PageStateBlock v-if="bookmarksLoading" state="loading" loading-message="레시피를 불러오는 중..." />
-
-                    <!-- 북마크가 없을 때 -->
-                    <PageStateBlock
-                        v-else-if="bookmarks.length === 0"
-                        state="empty"
-                        empty-icon="pi pi-bookmark"
-                        empty-title="저장된 레시피가 없습니다"
-                        empty-message="레시피 카드나 상세 페이지에서 북마크 버튼을 눌러 저장해보세요"
-                        empty-button-label="레시피 둘러보기"
-                        @empty-action="browseRecipes"
-                    />
-
-                    <!-- 열린 책 뷰 -->
-                    <OpenBookView
-                        v-else
-                        :recipe-book="selectedRecipeBook"
-                        :bookmarks="bookmarks"
-                        :get-recipe-grid-item="getRecipeGridItem"
-                        :get-category-name="getCategoryName"
-                        :format-date="formatDate"
-                        @recipe-click="viewRecipe"
-                        @memo-updated="onMemoUpdated"
-                    />
-                </template>
             </div>
-        </div>
 
-        <!-- 레시피북 생성/수정 Dialog -->
-        <RecipeBookFormDialog v-model:visible="recipeBookDialogVisible" :recipe-book="editingRecipeBook" @recipe-book-created="onRecipeBookCreated" @recipe-book-updated="onRecipeBookUpdated" />
+            <!-- 레시피북 생성/수정 Dialog -->
+            <RecipeBookFormDialog v-model:visible="recipeBookDialogVisible" :recipe-book="editingRecipeBook" @recipe-book-created="onRecipeBookCreated" @recipe-book-updated="onRecipeBookUpdated" />
+        </div>
     </div>
 </template>
 
 <style scoped lang="scss">
+/* 문의/찜 페이지와 동일한 오렌지 톤 카드 배경 */
+.bookmarks-card {
+    background: #ffedd5;
+}
+
+.bookmarks-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.bookmarks-notice__icon {
+    font-size: 1.25rem;
+    color: var(--orange-500, #f97316);
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.bookmarks-notice__text {
+    margin: 0;
+    color: #374151;
+    font-style: italic;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+}
+
+.bookmarks-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--p-text-color, #374151);
+}
+
+.bookmarks-content {
+    min-height: 500px;
+}
+
 .bookmarks-layout {
     display: grid;
     grid-template-columns: 300px 1fr;
@@ -336,15 +399,18 @@ onMounted(() => {
     }
 }
 
+/* 책 종이 느낌의 내부 카드 (밝은 밀색) */
 .recipe-book-sidebar {
-    border-right: 1px solid var(--surface-border);
-    padding-right: 2rem;
+    background: #fdfbf7;
+    border: 1px solid #f0ebe2;
+    border-radius: 8px;
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    padding: 1.25rem;
 
     @media (max-width: 768px) {
-        border-right: none;
-        border-bottom: 1px solid var(--surface-border);
-        padding-right: 0;
-        padding-bottom: 2rem;
+        padding: 1.25rem;
     }
 }
 
@@ -444,6 +510,14 @@ onMounted(() => {
 
 .bookmarks-main {
     flex: 1;
+    background: #fdfbf7;
+    border: 1px solid #f0ebe2;
+    border-radius: 8px;
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    padding: 1.25rem;
+    overflow: hidden;
 }
 
 .empty-state {

@@ -1,5 +1,7 @@
 pluginManagement {
     plugins {
+        id 'org.springframework.boot' version '3.5.3'
+        id 'io.spring.dependency-management' version '1.1.7'
         id 'org.jetbrains.kotlin.jvm' version '2.2.0'
     }
 }
@@ -12,3 +14,4 @@ include 'backend:auth-service'
 include 'backend:cook-service'
 include 'backend:member-service'
 include 'backend:common-service'
+include 'backend:database-migrations'

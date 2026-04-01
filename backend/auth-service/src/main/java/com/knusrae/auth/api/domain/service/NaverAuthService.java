@@ -13,7 +13,6 @@ import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.auth.api.web.response.TokenResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -47,9 +46,10 @@ public class NaverAuthService {
         NaverUserDTO naverUserDTO = getUserInfo(accessToken);
 
         // 1. DB에서 사용자 조회/없으면 생성 (이메일 + 소셜 역할로 조회)
-        Member member = memberRepository.findByEmailAndSocialRole(naverUserDTO.getEmail(), SocialRole.NAVER);
+        Member member = memberRepository.findByEmailAndSocialRole(naverUserDTO.getEmail(), SocialRole.NAVER)
+                .orElse(null);
 
-        if(ObjectUtils.isEmpty(member)) {
+        if (member == null) {
             member = memberRepository.save(
                     Member.builder()
                             .name(naverUserDTO.getName())
@@ -67,8 +67,8 @@ public class NaverAuthService {
             );
         }
 
-        // 2. JWT 토큰 발급 (ID, role 사용)
-        return tokenService.loginWithSocialUser(member.getId(), member.getName(), member.getSocialRole().name());
+        // 2. JWT 토큰 발급 (socialRole + role(USER/ADMIN) 세팅)
+        return tokenService.loginWithMember(member);
     }
 
     private String getAccessToken(String code, String state) throws JsonProcessingException {
@@ -87,10 +87,9 @@ public class NaverAuthService {
         ResponseEntity<String> tokenResponse =
                 restTemplate.postForEntity(TOKEN_URL, tokenRequest, String.class);
 
-        // 1) HTTP Status 체크
+        // 1) HTTP Status 체크 (body는 토큰 포함 가능하므로 로그/예외에 넣지 않음)
         if (!tokenResponse.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Naver token API error: " +
-                    tokenResponse.getStatusCode() + " / body=" + tokenResponse.getBody());
+            throw new RuntimeException("Naver token API error: " + tokenResponse.getStatusCode());
         }
 
         JsonNode tokenJson = objectMapper.readTree(tokenResponse.getBody());
@@ -98,7 +97,7 @@ public class NaverAuthService {
         // 2) access_token 존재 여부 체크
         JsonNode accessTokenNode = tokenJson.get("access_token");
         if (accessTokenNode == null || accessTokenNode.isNull()) {
-            throw new RuntimeException("Failed to get access_token from Naver: " + tokenResponse.getBody());
+            throw new RuntimeException("Failed to get access_token from Naver");
         }
 
         return accessTokenNode.asText();
@@ -115,8 +114,7 @@ public class NaverAuthService {
         );
 
         if (!userInfoResponse.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Naver user info API error: " +
-                    userInfoResponse.getStatusCode() + " / body=" + userInfoResponse.getBody());
+            throw new RuntimeException("Naver user info API error: " + userInfoResponse.getStatusCode());
         }
 
         // NAVER : response 객체에 사용자 정보 존재
@@ -124,7 +122,7 @@ public class NaverAuthService {
         JsonNode user = userInfoJson.get("response");
 
         if (user == null || user.isNull()) {
-            throw new RuntimeException("Failed to get user info from Naver: " + userInfoResponse.getBody());
+            throw new RuntimeException("Failed to get user info from Naver");
         }
 
         return objectMapper.treeToValue(user, NaverUserDTO.class);

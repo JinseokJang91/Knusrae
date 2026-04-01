@@ -28,4 +28,10 @@ public interface RecipePopularityRepository extends JpaRepository<RecipePopulari
      */
     @Query("SELECT rp FROM RecipePopularity rp ORDER BY rp.hits7d DESC")
     List<RecipePopularity> findTopByHits7d(Pageable pageable);
+    
+    /**
+     * 30일 조회수 순
+     */
+    @Query("SELECT rp FROM RecipePopularity rp ORDER BY rp.hits30d DESC")
+    List<RecipePopularity> findTopByHits30d(Pageable pageable);
 }

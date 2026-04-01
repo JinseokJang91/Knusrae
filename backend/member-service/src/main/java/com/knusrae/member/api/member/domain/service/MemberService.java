@@ -1,9 +1,11 @@
 package com.knusrae.member.api.member.domain.service;
 
 import com.knusrae.common.custom.storage.ImageStorage;
+import com.knusrae.common.custom.storage.StorageKeyUtils;
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.common.exception.ResourceNotFoundException;
+import com.knusrae.common.utils.PiiMaskUtils;
 import com.knusrae.member.api.member.dto.MemberDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,16 +42,18 @@ public class MemberService {
     }
 
     private static MemberDto toFullMemberDto(Member m) {
+        boolean isAdmin = isAdminEmail(m.getEmail());
         return MemberDto.builder()
                 .id(m.getId())
                 .name(m.getName())
                 .nickname(m.getNickname())
-                .email(m.getEmail())
-                .phone(m.getPhone())
+                .email(PiiMaskUtils.maskEmail(m.getEmail()))
+                .phone(PiiMaskUtils.maskPhone(m.getPhone()))
                 .profileImage(m.getProfileImage())
                 .bio(m.getBio())
                 .followerCount(m.getFollowerCount())
                 .followingCount(m.getFollowingCount())
+                .isAdmin(isAdmin)
                 .build();
     }
 
@@ -62,6 +66,7 @@ public class MemberService {
                 .bio(m.getBio())
                 .followerCount(m.getFollowerCount())
                 .followingCount(m.getFollowingCount())
+                .isAdmin(false)
                 .build();
     }
 
@@ -74,10 +79,10 @@ public class MemberService {
 
         // 프로필 이미지 업데이트
         if (profileImage != null && !profileImage.isEmpty()) {
-            // 기존 이미지 삭제 (있는 경우)
+            // 기존 이미지 삭제 (있는 경우, 로컬/S3/CloudFront URL 공통 처리)
             if (member.getProfileImage() != null && member.getProfileImage().contains("/")) {
                 try {
-                    String oldKey = extractStorageKey(member.getProfileImage());
+                    String oldKey = StorageKeyUtils.parseKeyFromImageUrl(member.getProfileImage());
                     if (oldKey != null) {
                         imageStorage.deleteByKey(oldKey);
                     }
@@ -98,19 +103,16 @@ public class MemberService {
         return toFullMemberDto(updatedMember);
     }
 
-    private String extractStorageKey(String imageUrl) {
-        if (imageUrl == null || imageUrl.isEmpty()) {
-            return null;
+    /**
+     * 관리자 계정 여부 판별
+     * 현재는 테스트용 계정 이메일을 기준으로 판단한다.
+     * 추후 설정값이나 권한 테이블로 확장 가능.
+     */
+    private static boolean isAdminEmail(String email) {
+        if (email == null) {
+            return false;
         }
-        try {
-            int lastSlash = imageUrl.lastIndexOf('/');
-            if (lastSlash > 0) {
-                String path = imageUrl.substring(imageUrl.indexOf("/uploads/") + 9);
-                return path;
-            }
-        } catch (Exception e) {
-            log.warn("이미지 URL에서 키 추출 실패: {}", imageUrl);
-        }
-        return null;
+        return "testadmin@test.com".equalsIgnoreCase(email.trim()); // TODO
     }
+
 }

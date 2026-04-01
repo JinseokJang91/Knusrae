@@ -1,3 +1,48 @@
-<script setup></script>
+<script setup lang="ts">
+import { useRouter } from 'vue-router';
 
-<template><div></div></template>
+const router = useRouter();
+
+function goHome() {
+    router.push('/');
+}
+</script>
+
+<template>
+    <div class="error-page">
+        <div class="error-content">
+            <i class="pi pi-exclamation-triangle error-icon" />
+            <h1 class="error-title">페이지를 찾을 수 없습니다</h1>
+            <p class="error-message">요청하신 주소가 없거나 변경되었을 수 있습니다.</p>
+            <Button label="홈으로" icon="pi pi-home" @click="goHome" />
+        </div>
+    </div>
+</template>
+
+<style scoped>
+.error-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.error-content {
+    text-align: center;
+    max-width: 24rem;
+}
+.error-icon {
+    font-size: 4rem;
+    color: var(--p-orange-500);
+    margin-bottom: 1rem;
+}
+.error-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+.error-message {
+    color: var(--p-text-muted-color);
+    margin-bottom: 1.5rem;
+}
+</style>

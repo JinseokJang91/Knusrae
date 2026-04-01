@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, watch, computed } from 'vue';
+import Dialog from 'primevue/dialog';
 import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import InquiryFormDialog from '@/components/inquiry/InquiryFormDialog.vue';
 import Button from 'primevue/button';
-import Card from 'primevue/card';
 import Divider from 'primevue/divider';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { useConfirm } from 'primevue/useconfirm';
@@ -13,8 +12,16 @@ import { getInquiryTypeLabel } from '@/types/inquiry';
 import type { InquiryDetail as InquiryDetailType } from '@/types/inquiry';
 import { useAppToast } from '@/utils/toast';
 
-const route = useRoute();
-const router = useRouter();
+const props = defineProps<{
+    visible: boolean;
+    inquiryId: number | null;
+}>();
+
+const emit = defineEmits<{
+    (e: 'update:visible', value: boolean): void;
+    (e: 'deleted'): void;
+}>();
+
 const confirm = useConfirm();
 const { showSuccess, showError } = useAppToast();
 
@@ -24,10 +31,8 @@ const error = ref<string | null>(null);
 const formDialogVisible = ref(false);
 const editingInquiryId = ref<number | null>(null);
 
-const inquiryId = ref<number | null>(null);
-
 async function loadDetail() {
-    const id = inquiryId.value;
+    const id = props.inquiryId;
     if (!id) return;
     try {
         loading.value = true;
@@ -42,8 +47,8 @@ async function loadDetail() {
     }
 }
 
-function goToList() {
-    router.push('/my?tab=inquiries');
+function close() {
+    emit('update:visible', false);
 }
 
 function formatDate(dateString: string): string {
@@ -71,13 +76,15 @@ function confirmDelete() {
         message: `"${detail.value.title}" 문의를 삭제하시겠습니까?`,
         icon: 'pi pi-exclamation-triangle',
         rejectLabel: '취소',
-        acceptLabel: '삭제',
+        rejectClass: 'p-button-secondary',
+        acceptLabel: '확인',
         acceptClass: 'p-button-danger',
         accept: async () => {
             try {
                 await deleteInquiry(detail.value!.id);
                 showSuccess('문의가 삭제되었습니다.');
-                goToList();
+                emit('deleted');
+                close();
             } catch (err: unknown) {
                 showError((err instanceof Error ? err.message : null) || '삭제에 실패했습니다.');
             }
@@ -95,51 +102,53 @@ function onFormClosed() {
     editingInquiryId.value = null;
 }
 
-onMounted(() => {
-    const id = route.params.id;
-    const num = typeof id === 'string' ? parseInt(id, 10) : NaN;
-    if (!Number.isNaN(num)) {
-        inquiryId.value = num;
-        loadDetail();
-    } else {
-        error.value = '잘못된 문의 번호입니다.';
-    }
+const visibleModel = computed({
+    get: () => props.visible,
+    set: (v) => emit('update:visible', v)
 });
 
 watch(
-    () => route.params.id,
-    (id) => {
-        const num = typeof id === 'string' ? parseInt(id, 10) : NaN;
-        inquiryId.value = Number.isNaN(num) ? null : num;
-        if (inquiryId.value) loadDetail();
+    () => [props.visible, props.inquiryId] as const,
+    ([visible, id]) => {
+        if (visible && id) {
+            detail.value = null;
+            error.value = null;
+            loadDetail();
+        } else if (!visible) {
+            detail.value = null;
+            error.value = null;
+        }
     }
 );
 </script>
 
 <template>
-    <div class="inquiry-detail">
-        <div class="page-header mb-4">
-            <div class="flex items-center gap-2 mb-2">
-                <Button icon="pi pi-arrow-left" text rounded @click="goToList" />
-                <h1 class="text-2xl font-bold text-gray-900 m-0">문의 상세</h1>
-            </div>
-        </div>
+    <Dialog
+        v-model:visible="visibleModel"
+        header="문의 상세"
+        :modal="true"
+        :style="{ width: '90vw', maxWidth: '560px' }"
+        :closable="true"
+        class="inquiry-detail-dialog"
+        @hide="close"
+    >
+        <div class="inquiry-detail-dialog__body">
+            <PageStateBlock v-if="loading" state="loading" loading-message="문의를 불러오는 중..." />
+            <PageStateBlock v-else-if="error" state="error" error-title="문의를 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadDetail" />
+            <PageStateBlock v-else-if="!detail" state="empty" empty-icon="pi pi-inbox" empty-title="문의를 찾을 수 없습니다" empty-message="권한이 없거나 삭제된 문의일 수 있습니다." empty-button-label="닫기" @empty-action="close" />
 
-        <PageStateBlock v-if="loading" state="loading" loading-message="문의를 불러오는 중..." />
-        <PageStateBlock v-else-if="error" state="error" error-title="문의를 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadDetail" />
-        <PageStateBlock v-else-if="!detail" state="empty" empty-icon="pi pi-inbox" empty-title="문의를 찾을 수 없습니다" empty-message="권한이 없거나 삭제된 문의일 수 있습니다." empty-button-label="목록으로" @empty-action="goToList" />
-
-        <Card v-else>
-            <template #content>
+            <template v-else>
                 <div class="detail-body">
                     <div class="detail-meta mb-4">
                         <span class="inquiry-type-badge">{{ getInquiryTypeLabel(detail.inquiryType) }}</span>
                         <span class="text-color-secondary text-sm ml-2">{{ formatDate(detail.createdAt) }}</span>
                     </div>
-                    <h2 class="detail-title mb-3">{{ detail.title }}</h2>
-                    <div class="detail-content mb-4">{{ detail.content }}</div>
-                    <div v-if="detail.imageUrls && detail.imageUrls.length > 0" class="detail-images mb-4">
-                        <img v-for="(url, i) in detail.imageUrls" :key="i" :src="url" alt="첨부 이미지" class="detail-image" />
+                    <h2 class="detail-title">{{ detail.title }}</h2>
+                    <div class="detail-inquiry-area">
+                        <div class="detail-content">{{ detail.content }}</div>
+                        <div v-if="detail.imageUrls && detail.imageUrls.length > 0" class="detail-images">
+                            <img v-for="(url, i) in detail.imageUrls" :key="i" :src="url" alt="첨부 이미지" class="detail-image" />
+                        </div>
                     </div>
 
                     <Divider />
@@ -153,32 +162,32 @@ watch(
                         <p v-else class="text-color-secondary m-0">답변 대기 중입니다.</p>
                     </div>
                 </div>
-            </template>
-            <template #footer>
-                <div class="flex justify-between flex-wrap gap-2">
-                    <Button label="목록으로" severity="secondary" outlined @click="goToList" />
-                    <div class="flex gap-2">
-                        <Button v-if="!detail.reply" label="수정" severity="secondary" outlined @click="openEditDialog" />
-                        <Button label="삭제" severity="danger" outlined @click="confirmDelete" />
-                    </div>
+
+                <div class="flex justify-end gap-2 mt-4 flex-wrap">
+                    <Button v-if="!detail.reply" label="수정" severity="secondary" outlined @click="openEditDialog" />
+                    <Button label="삭제" severity="danger" outlined @click="confirmDelete" />
                 </div>
             </template>
-        </Card>
+        </div>
 
         <InquiryFormDialog v-model:visible="formDialogVisible" :inquiry-id="editingInquiryId" @saved="onInquirySaved" @closed="onFormClosed" />
 
         <ConfirmDialog group="inquiry-detail-delete" />
-    </div>
+    </Dialog>
 </template>
 
 <style scoped>
-.inquiry-detail {
-    max-width: 720px;
-    margin: 0 auto;
+.inquiry-detail-dialog__body {
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
 }
 
-.page-header {
-    margin-bottom: 1rem;
+.detail-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .detail-meta {
@@ -186,10 +195,21 @@ watch(
     align-items: center;
 }
 
+.detail-inquiry-area {
+    min-height: 160px;
+    max-height: 240px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    padding: 0.875rem 1rem;
+    background: var(--p-surface-100, #f3f4f6);
+    border-radius: 8px;
+    border: 1px solid var(--p-surface-200, #e5e7eb);
+}
+
 .inquiry-type-badge {
     display: inline-block;
     padding: 0.25rem 0.5rem;
-    background: var(--p-primary-color);
+    background: #374151;
     color: white;
     border-radius: 6px;
     font-size: 0.875rem;
@@ -198,18 +218,21 @@ watch(
 .detail-title {
     font-size: 1.25rem;
     font-weight: 600;
-    margin: 0;
+    margin: 0 0 1rem 0;
 }
 
 .detail-content {
     white-space: pre-wrap;
     line-height: 1.6;
+    padding-right: 0.25rem;
+    color: var(--p-text-color, #374151);
 }
 
 .detail-images {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    margin-top: 0.75rem;
 }
 
 .detail-image {
@@ -221,19 +244,46 @@ watch(
 }
 
 .reply-section {
-    padding-top: 0.5rem;
+    padding-top: 1rem;
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .reply-heading {
-    font-size: 1rem;
+    font-size: 0.9375rem;
     font-weight: 600;
+    color: var(--p-text-color-secondary, #6b7280);
     margin: 0 0 0.5rem 0;
 }
 
 .reply-content {
-    padding: 1rem;
-    background: var(--p-surface-50);
+    padding: 0.875rem 1rem;
+    background: var(--p-surface-100, #f3f4f6);
     border-radius: 8px;
-    border-left: 4px solid var(--p-primary-color);
+    border: 1px solid var(--p-surface-200, #e5e7eb);
+    line-height: 1.6;
+}
+
+.reply-content p {
+    margin: 0 0 0.5rem 0;
+    color: var(--p-text-color, #374151);
+}
+
+.reply-content small {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--p-text-color-secondary, #6b7280);
+}
+</style>
+
+<!-- Dialog는 body로 텔레포트되므로 비-scoped로 X 버튼만 타깃 -->
+<style>
+.inquiry-detail-dialog .p-dialog-close-button,
+.inquiry-detail-dialog .p-dialog-close-button:focus,
+.inquiry-detail-dialog .p-dialog-close-button:focus-visible {
+    border: none;
+    outline: none;
+    box-shadow: none;
 }
 </style>

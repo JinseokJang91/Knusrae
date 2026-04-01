@@ -10,6 +10,7 @@ import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
 
 import '@/assets/styles.scss';
+import { installGlobalErrorHandler } from '@/utils/globalErrorHandler';
 
 // White & Orange 테마 프리셋 정의 (메뉴/버튼 등 primary를 오렌지톤으로 통일)
 const WhitePreset = definePreset(Aura, {
@@ -45,5 +46,7 @@ app.use(PrimeVue, {
 });
 app.use(ConfirmationService);
 app.use(ToastService);
+
+installGlobalErrorHandler(app, router);
 
 app.mount('#app');

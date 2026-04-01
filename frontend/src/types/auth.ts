@@ -10,6 +10,8 @@ export interface MemberInfo {
     bio?: string;
     followerCount?: number;
     followingCount?: number;
+    /** 서버에서 내려주는 관리자 여부 플래그 */
+    isAdmin?: boolean;
 }
 
 /** OAuth 제공자 */

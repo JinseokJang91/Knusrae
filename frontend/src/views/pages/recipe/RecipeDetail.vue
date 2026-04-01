@@ -720,91 +720,93 @@ const onBookmarked = async () => {
 </script>
 
 <template>
-    <div class="min-h-screen">
-        <!-- 로딩 상태 -->
-        <div v-if="loading" class="flex items-center justify-center min-h-screen">
-            <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-500"></div>
-        </div>
+    <div class="page-container">
+        <div class="min-h-screen">
+            <!-- 로딩 상태 -->
+            <div v-if="loading" class="flex items-center justify-center min-h-screen">
+                <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-500"></div>
+            </div>
 
-        <!-- 에러 상태 -->
-        <div v-else-if="error" class="flex items-center justify-center min-h-screen">
-            <div class="text-center">
-                <div class="text-6xl mb-4">😞</div>
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">레시피를 찾을 수 없습니다</h2>
-                <p class="text-gray-600 mb-4">{{ error }}</p>
-                <button @click="goBack" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">돌아가기</button>
+            <!-- 에러 상태 -->
+            <div v-else-if="error" class="flex items-center justify-center min-h-screen">
+                <div class="text-center">
+                    <div class="text-6xl mb-4">😞</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">레시피를 찾을 수 없습니다</h2>
+                    <p class="text-gray-600 mb-4">{{ error }}</p>
+                    <button @click="goBack" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">돌아가기</button>
+                </div>
+            </div>
+
+            <!-- 레시피 상세 내용 (page-container 너비에 맞춤, 다른 화면과 동일) -->
+            <div v-else-if="recipe" class="recipe-detail-content">
+                <RecipeDetailHeader
+                    :recipe="recipe"
+                    :main-image="mainImage"
+                    :cooking-tips-data="cookingTipsData"
+                    :is-liked="isLiked"
+                    :is-bookmarked="isBookmarked"
+                    :is-recipe-author="isRecipeAuthor"
+                    :is-following="isFollowing"
+                    :follow-disabled="!isLoggedIn"
+                    :format-number="formatNumber"
+                    @go-back="goBack"
+                    @toggle-like="toggleLike"
+                    @toggle-bookmark="openBookmarkDialog"
+                    @toggle-follow="toggleFollow"
+                    @go-to-author-profile="goToAuthorProfile"
+                />
+
+                <RecipeDetailIngredients :ingredient-groups="recipe.ingredientGroups || []" />
+
+                <RecipeDetailSteps :steps="recipe.steps || []" />
+
+                <RecipeDetailGallery :images="recipe.images || []" />
+
+                <!-- 댓글 섹션 -->
+                <RecipeComments
+                    :comments="comments"
+                    :is-logged-in="isLoggedIn"
+                    :is-recipe-author="isRecipeAuthor"
+                    :member-profile-image="authStore.memberProfileImage"
+                    v-model:new-comment="newComment"
+                    :new-comment-image-preview="newCommentImagePreview"
+                    v-model:reply-content="replyContent"
+                    :reply-image-preview="replyImagePreview"
+                    :replying-to-comment-id="replyingToCommentId"
+                    :replying-to-comment="replyingToComment"
+                    :editing-comment-id="editingCommentId"
+                    v-model:editing-content="editingContent"
+                    :editing-image-preview="editingImagePreview"
+                    :expanded-comments="expandedComments"
+                    :total-pages="totalPages"
+                    :current-page="currentPage"
+                    :current-member-id="currentMemberId"
+                    :format-date="formatDate"
+                    @submit-comment="submitComment"
+                    @focus-comment-textarea="focusCommentTextarea"
+                    @comment-image-select="handleCommentImageSelect"
+                    @remove-comment-image="removeCommentImage"
+                    @go-login="router.push({ path: '/auth/login', query: { redirect: route.fullPath } })"
+                    @submit-reply="submitReply"
+                    @cancel-reply="cancelReply"
+                    @reply-image-select="handleReplyImageSelect"
+                    @remove-reply-image="removeReplyImage"
+                    @toggle-reply-form="toggleReplyForm"
+                    @start-edit-comment="startEditComment"
+                    @cancel-edit-comment="cancelEditComment"
+                    @edit-image-select="handleEditImageSelect"
+                    @remove-edit-image="removeEditImage"
+                    @update-comment="updateComment"
+                    @delete-comment="deleteComment"
+                    @toggle-replies-visibility="toggleRepliesVisibility"
+                    @load-page="loadPage"
+                    @open-image="(payload) => openImageModalFromPayload(payload, 0)"
+                    @go-to-member-profile="goToMemberProfile"
+                />
             </div>
         </div>
 
-        <!-- 레시피 상세 내용 -->
-        <div v-else-if="recipe" class="max-w-6xl mx-auto px-4 py-8">
-            <RecipeDetailHeader
-                :recipe="recipe"
-                :main-image="mainImage"
-                :cooking-tips-data="cookingTipsData"
-                :is-liked="isLiked"
-                :is-bookmarked="isBookmarked"
-                :is-recipe-author="isRecipeAuthor"
-                :is-following="isFollowing"
-                :follow-disabled="!isLoggedIn"
-                :format-number="formatNumber"
-                @go-back="goBack"
-                @toggle-like="toggleLike"
-                @toggle-bookmark="openBookmarkDialog"
-                @toggle-follow="toggleFollow"
-                @go-to-author-profile="goToAuthorProfile"
-            />
-
-            <RecipeDetailIngredients :ingredient-groups="recipe.ingredientGroups || []" />
-
-            <RecipeDetailSteps :steps="recipe.steps || []" />
-
-            <RecipeDetailGallery :images="recipe.images || []" />
-
-            <!-- 댓글 섹션 -->
-            <RecipeComments
-                :comments="comments"
-                :is-logged-in="isLoggedIn"
-                :is-recipe-author="isRecipeAuthor"
-                :member-profile-image="authStore.memberProfileImage"
-                v-model:new-comment="newComment"
-                :new-comment-image-preview="newCommentImagePreview"
-                v-model:reply-content="replyContent"
-                :reply-image-preview="replyImagePreview"
-                :replying-to-comment-id="replyingToCommentId"
-                :replying-to-comment="replyingToComment"
-                :editing-comment-id="editingCommentId"
-                v-model:editing-content="editingContent"
-                :editing-image-preview="editingImagePreview"
-                :expanded-comments="expandedComments"
-                :total-pages="totalPages"
-                :current-page="currentPage"
-                :current-member-id="currentMemberId"
-                :format-date="formatDate"
-                @submit-comment="submitComment"
-                @focus-comment-textarea="focusCommentTextarea"
-                @comment-image-select="handleCommentImageSelect"
-                @remove-comment-image="removeCommentImage"
-                @go-login="router.push({ path: '/auth/login', query: { redirect: route.fullPath } })"
-                @submit-reply="submitReply"
-                @cancel-reply="cancelReply"
-                @reply-image-select="handleReplyImageSelect"
-                @remove-reply-image="removeReplyImage"
-                @toggle-reply-form="toggleReplyForm"
-                @start-edit-comment="startEditComment"
-                @cancel-edit-comment="cancelEditComment"
-                @edit-image-select="handleEditImageSelect"
-                @remove-edit-image="removeEditImage"
-                @update-comment="updateComment"
-                @delete-comment="deleteComment"
-                @toggle-replies-visibility="toggleRepliesVisibility"
-                @load-page="loadPage"
-                @open-image="(payload) => openImageModalFromPayload(payload, 0)"
-                @go-to-member-profile="goToMemberProfile"
-            />
-        </div>
-
-        <!-- 이미지 모달 -->
+        <!-- 이미지 모달 (body로 텔레포트) -->
         <Teleport to="body">
             <div v-if="showImageModal" @click="closeImageModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[1000]" data-modal="image-modal">
                 <div class="relative max-w-4xl max-h-full p-4" @click.stop>
@@ -821,7 +823,21 @@ const onBookmarked = async () => {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+.recipe-detail-content {
+    padding: 2rem 0;
+}
+@media (max-width: 768px) {
+    .recipe-detail-content {
+        padding: 1.5rem 0;
+    }
+}
+@media (max-width: 480px) {
+    .recipe-detail-content {
+        padding: 1rem 0;
+    }
+}
+
 .animate-spin {
     animation: spin 1s linear infinite;
 }

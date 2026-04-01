@@ -1,18 +1,11 @@
+# 공통 설정. 프로파일로 local / dev / prod 구분 (미지정 시 local)
 spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
   config:
     import: optional:classpath:application-common.yml
   application:
     name: member-service
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/knusrae_db}
-    username: ${DB_USERNAME:knusrae_user}
-    password: ${DB_PASSWORD:CookRecipes999!@#}
-  jpa:
-    hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update} # TODO dev : update, prd : validate or none
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 server:
   port: 8083

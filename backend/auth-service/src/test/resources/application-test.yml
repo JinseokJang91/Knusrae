@@ -1,0 +1,51 @@
+# @ActiveProfiles("test") 전용 — CI/로컬 환경변수와 무관하게 컨텍스트 로딩
+spring:
+  config:
+    import: optional:classpath:application-common.yml
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:h2:mem:auth_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+app:
+  frontend:
+    url: http://localhost:5173
+  test-login:
+    enabled: true
+  oauth:
+    state-secret: test-oauth-state-secret
+
+naver:
+  client:
+    id: test-naver-id
+    secret: test-naver-secret
+  redirect:
+    uri: http://localhost:8081/api/auth/naver/callback
+
+google:
+  client:
+    id: test-google-id
+    secret: test-google-secret
+  redirect:
+    uri: http://localhost:8081/api/auth/google/callback
+
+kakao:
+  client:
+    id: test-kakao-id
+    secret: test-kakao-secret
+  redirect:
+    uri: http://localhost:8081/api/auth/kakao/callback
+
+server:
+  port: 0

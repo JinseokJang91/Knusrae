@@ -14,7 +14,7 @@ const authStore = useAuthStore();
 const commentItems = ref<MyCommentItem[]>([]);
 const totalComments = ref(0);
 const first = ref(0);
-const rows = ref(10);
+const rows = ref(6);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
@@ -69,6 +69,7 @@ const formatDate = (dateString: string): string => {
 const onPageChange = (event: PageState): void => {
     first.value = event.first;
     rows.value = event.rows;
+    loadMyComments();
 };
 
 onMounted(() => {
@@ -92,72 +93,98 @@ watch(currentMemberId, (id) => {
 </script>
 
 <template>
-    <div class="comments-content">
-        <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
-            <p class="text-gray-700 italic">카드를 클릭하면 해당 레시피 상세 페이지의 댓글 영역으로 이동해요.</p>
-        </div>
-
-        <div class="comments-section">
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-2xl font-semibold text-gray-900 m-0">내가 작성한 댓글 ({{ totalComments }})</h2>
+    <div class="page-container page-container--card page-container--wide comments-card">
+        <div class="comments-content">
+            <div class="comments-notice mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
+                <i class="pi pi-info-circle comments-notice__icon" aria-hidden="true"></i>
+                <p class="comments-notice__text">카드를 클릭하면 해당 레시피 상세 페이지의 댓글 영역으로 이동해요.</p>
             </div>
 
-            <!-- 로딩 / 에러 / 비로그인 / 빈 상태 -->
-            <PageStateBlock v-if="loading" state="loading" loading-message="내 댓글을 불러오는 중..." />
-            <PageStateBlock v-else-if="error" state="error" error-title="내 댓글을 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadMyComments" />
-            <PageStateBlock v-else-if="!currentMemberId" state="empty" empty-icon="pi pi-lock" empty-title="로그인이 필요합니다" empty-message="내 댓글을 보려면 로그인해 주세요." empty-button-label="로그인하기" @empty-action="goToLogin" />
-            <PageStateBlock
-                v-else-if="commentItems.length === 0"
-                state="empty"
-                empty-icon="pi pi-comments"
-                empty-title="작성한 댓글이 없습니다"
-                empty-message="레시피에 댓글을 남겨보세요!"
-                empty-button-label="레시피 둘러보기"
-                @empty-action="browseRecipes"
-            />
+            <div class="comments-section">
+                <!-- 로딩 / 에러 / 비로그인 / 빈 상태 -->
+                <PageStateBlock v-if="loading" state="loading" loading-message="내 댓글을 불러오는 중..." />
+                <PageStateBlock v-else-if="error" state="error" error-title="내 댓글을 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadMyComments" />
+                <PageStateBlock v-else-if="!currentMemberId" state="empty" empty-icon="pi pi-lock" empty-title="로그인이 필요합니다" empty-message="내 댓글을 보려면 로그인해 주세요." empty-button-label="로그인하기" @empty-action="goToLogin" />
+                <PageStateBlock
+                    v-else-if="commentItems.length === 0"
+                    state="empty"
+                    empty-icon="pi pi-comments"
+                    empty-title="작성한 댓글이 없습니다"
+                    empty-message="레시피에 댓글을 남겨보세요!"
+                    empty-button-label="레시피 둘러보기"
+                    @empty-action="browseRecipes"
+                />
 
-            <!-- 댓글 카드 목록 -->
-            <template v-else>
-                <div class="comment-cards">
-                    <div
-                        v-for="item in commentItems"
-                        :key="item.comment.id"
-                        class="comment-card"
-                        role="button"
-                        tabindex="0"
-                        @click="goToRecipeComments(item.recipeId)"
-                        @keydown.enter="goToRecipeComments(item.recipeId)"
-                        @keydown.space.prevent="goToRecipeComments(item.recipeId)"
-                    >
-                        <!-- 좌측: 레시피 정보 -->
-                        <div class="comment-card__recipe">
-                            <div class="comment-card__recipe-thumb">
-                                <img :src="item.recipeThumbnail || '/placeholder-recipe.jpg'" :alt="item.recipeTitle" class="comment-card__recipe-img" />
+                <!-- 댓글 카드 목록 -->
+                <template v-else>
+                    <div class="comment-cards">
+                        <div
+                            v-for="item in commentItems"
+                            :key="item.comment.id"
+                            class="comment-card"
+                            role="button"
+                            tabindex="0"
+                            @click="goToRecipeComments(item.recipeId)"
+                            @keydown.enter="goToRecipeComments(item.recipeId)"
+                            @keydown.space.prevent="goToRecipeComments(item.recipeId)"
+                        >
+                            <!-- 좌측: 레시피 정보 -->
+                            <div class="comment-card__recipe">
+                                <div class="comment-card__recipe-thumb">
+                                    <img :src="item.recipeThumbnail || '/placeholder-recipe.jpg'" :alt="item.recipeTitle" class="comment-card__recipe-img" />
+                                </div>
+                                <h3 class="comment-card__recipe-title">{{ item.recipeTitle }}</h3>
                             </div>
-                            <h3 class="comment-card__recipe-title">{{ item.recipeTitle }}</h3>
-                        </div>
-                        <!-- 우측: 댓글 정보 -->
-                        <div class="comment-card__comment">
-                            <p class="comment-card__comment-content">{{ item.comment.content }}</p>
-                            <div v-if="item.comment.imageUrl" class="comment-card__comment-image-wrap">
-                                <img :src="item.comment.imageUrl" alt="댓글 이미지" class="comment-card__comment-image" />
-                            </div>
-                            <div class="comment-card__comment-meta">
-                                <span class="comment-card__comment-date">{{ formatDate(item.comment.createdAt) }}</span>
-                                <span v-if="item.comment.updatedAt && item.comment.updatedAt !== item.comment.createdAt" class="comment-card__comment-edited">(수정됨)</span>
+                            <!-- 우측: 댓글 정보 -->
+                            <div class="comment-card__comment">
+                                <p class="comment-card__comment-content">{{ item.comment.content }}</p>
+                                <div v-if="item.comment.imageUrl" class="comment-card__comment-image-wrap">
+                                    <img :src="item.comment.imageUrl" alt="댓글 이미지" class="comment-card__comment-image" />
+                                </div>
+                                <div class="comment-card__comment-meta">
+                                    <span class="comment-card__comment-date">{{ formatDate(item.comment.createdAt) }}</span>
+                                    <span v-if="item.comment.updatedAt && item.comment.updatedAt !== item.comment.createdAt" class="comment-card__comment-edited">(수정됨)</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="flex justify-center mt-4">
-                    <Paginator v-model:first="first" :rows="rows" :total-records="totalComments" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" @page="onPageChange" />
-                </div>
-            </template>
+                    <div class="flex justify-center mt-4">
+                        <Paginator v-model:first="first" :rows="rows" :total-records="totalComments" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" @page="onPageChange" />
+                    </div>
+                </template>
+            </div>
         </div>
     </div>
 </template>
 
 <style scoped>
+/* 메인(#fff7ed)·마이페이지(흰 카드)와 같은 오렌지 톤 유지. orange-100으로 구분감 + 톤 통일 */
+.comments-card {
+    background: #ffedd5;
+}
+
+.comments-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.comments-notice__icon {
+    font-size: 1.25rem;
+    color: var(--orange-500, #f97316);
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.comments-notice__text {
+    margin: 0;
+    color: #374151;
+    font-style: italic;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+}
+
 .comments-content {
     min-height: 240px;
 }

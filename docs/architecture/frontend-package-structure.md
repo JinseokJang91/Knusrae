@@ -135,12 +135,10 @@ src/
 │       │   └── (기타)
 │       ├── ranking/
 │       │   └── Ranking.vue
-│       ├── recipe/
-│       │   ├── Category.vue
-│       │   ├── RecipeDetail.vue
-│       │   └── SearchResult.vue
-│       └── recommend/
-│           └── TodayRecipe.vue
+│       └── recipe/
+│           ├── Category.vue
+│           ├── RecipeDetail.vue
+│           └── SearchResult.vue
 │
 ├── components/             # 재사용 컴포넌트 (도메인별)
 │   ├── ScrollToTop.vue

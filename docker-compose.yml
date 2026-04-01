@@ -1,14 +1,72 @@
 services:
+  # 백엔드 API 서비스들 (동일 이미지, 서로 다른 JAR 실행)
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: ${BACKEND_IMAGE_REPO:-knusrae-backend}:${BACKEND_IMAGE_TAG:-latest}
+    container_name: knusrae_auth
+    restart: unless-stopped
+    env_file:
+      - ./.env.secrets
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SERVER_PORT: 8081
+      # RDS/Secrets Manager 기준 필수 키(DB_URL, DB_USERNAME, DB_PASSWORD 등)는 ./.env.secrets에서 주입
+    command: ["/app/auth-service.jar", "--server.port=8081"]
+    depends_on:
+      postgres-db:
+        condition: service_started
+        required: false
+
+  member-service:
+    image: ${BACKEND_IMAGE_REPO:-knusrae-backend}:${BACKEND_IMAGE_TAG:-latest}
+    container_name: knusrae_member
+    restart: unless-stopped
+    env_file:
+      - ./.env.secrets
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SERVER_PORT: 8083
+    command: ["/app/member-service.jar", "--server.port=8083"]
+    depends_on:
+      postgres-db:
+        condition: service_started
+        required: false
+
+  cook-service:
+    image: ${BACKEND_IMAGE_REPO:-knusrae-backend}:${BACKEND_IMAGE_TAG:-latest}
+    container_name: knusrae_cook
+    restart: unless-stopped
+    env_file:
+      - ./.env.secrets
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SERVER_PORT: 8082
+    command: ["/app/cook-service.jar", "--server.port=8082"]
+    depends_on:
+      postgres-db:
+        condition: service_started
+        required: false
+
+  # 로컬/테스트용 DB (운영 RDS 사용 시 실행하지 않음)
   postgres-db:
+    profiles: ["local"]
     image: postgres:17
     container_name: postgres_db
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: knusrae_user
-      POSTGRES_PASSWORD: CookRecipes999!@#
-      POSTGRES_DB: knusrae_db
+      POSTGRES_USER: ${POSTGRES_USER:-knusrae_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-knusrae_local_password}
+      POSTGRES_DB: ${POSTGRES_DB:-knusrae_db}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 

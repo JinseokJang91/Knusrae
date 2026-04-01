@@ -6,6 +6,7 @@
 @use './_main'; // 메인 화면
 @use './_topbar'; // 상단바
 @use './_footer';
+@use './_page-container'; // 공통 페이지 래퍼 (좌우 여백 통일)
 @use './_responsive'; // 반응형
 @use './_utils'; // 유틸
 @use './_typography'; // 타이포그래피

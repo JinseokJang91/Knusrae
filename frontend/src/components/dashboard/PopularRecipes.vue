@@ -15,11 +15,11 @@ const popularRecipes = ref<PopularRecipeItem[]>([]);
 const loading = ref(false);
 const selectedPeriod = ref<'24h' | '7d' | '30d'>('24h');
 
-// 기간 옵션
+// 기간 옵션 (랭킹 페이지와 동일한 라벨 사용)
 const periodOptions = [
-    { label: '오늘', value: '24h' },
-    { label: '이번 주', value: '7d' },
-    { label: '이번 달', value: '30d' }
+    { label: '일간', value: '24h' },
+    { label: '주간', value: '7d' },
+    { label: '월간', value: '30d' }
 ];
 
 // 인기 레시피 로드

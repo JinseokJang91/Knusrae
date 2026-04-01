@@ -14,23 +14,17 @@ const routes: RouteRecordRaw[] = [
                 name: 'dashboard',
                 component: () => import('@/views/Dashboard.vue')
             },
-            // 1-2. 오늘의 레시피 추천
-            {
-                path: '/recommend/today',
-                name: 'todayRecipe',
-                component: () => import('@/views/pages/recommend/TodayRecipe.vue')
-            },
-            // 1-3. 검색 결과
+            // 1-2. 검색 결과
             {
                 path: '/recipe/search',
                 name: 'searchResult',
                 component: () => import('@/views/pages/recipe/SearchResult.vue')
             },
-            // 2. 내 레시피 (로그인 필요)
+            // 2. 내 레시피 (로그인 필요) — 목록은 마이페이지 탭에서 표시
             {
                 path: '/my/recipes',
                 name: 'myRecipes',
-                component: () => import('@/views/pages/my/Recipes.vue'),
+                redirect: '/my?tab=recipes',
                 meta: { requiresAuth: true }
             },
             {
@@ -64,8 +58,7 @@ const routes: RouteRecordRaw[] = [
             },
             {
                 path: '/my/inquiries/:id',
-                name: 'inquiryDetail',
-                component: () => import('@/views/pages/my/InquiryDetail.vue'),
+                redirect: () => ({ path: '/my', query: { tab: 'inquiries' } }),
                 meta: { requiresAuth: true }
             },
             {
@@ -172,11 +165,15 @@ const routes: RouteRecordRaw[] = [
                 name: 'monthlyRanking',
                 redirect: { path: '/ranking', query: { period: '30d' } }
             },
-            // 4-4. FAQ
+            // 4-4. 고객지원 (FAQ 포함)
+            {
+                path: '/support',
+                name: 'customerSupport',
+                component: () => import('@/views/pages/community/CustomerSupport.vue')
+            },
             {
                 path: '/community/faq',
-                name: 'faq',
-                component: () => import('@/views/pages/community/FAQ.vue')
+                redirect: '/support'
             },
             // 5. 팔로우 관련
             // 5-1. 다른 회원 프로필
@@ -228,12 +225,30 @@ const routes: RouteRecordRaw[] = [
         path: '/error/error',
         name: 'error',
         component: () => import('@/views/pages/error/Error.vue')
+    },
+    // 알 수 없는 경로 → 404 (반드시 마지막에 등록)
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'notFound',
+        component: () => import('@/views/pages/error/NotFound.vue')
     }
 ];
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
+    routes,
+    scrollBehavior(to, _from, savedPosition) {
+        // 브라우저 뒤로/앞으로 가기 시 저장된 위치로 복원
+        if (savedPosition) {
+            return savedPosition;
+        }
+        // 해시가 있으면(예: 댓글 관리 → 레시피 상세 #comments) 스크롤은 대상 페이지에서 처리
+        if (to.hash) {
+            return; // 스크롤하지 않음 → RecipeDetail 등에서 해당 영역으로 이동 처리
+        }
+        // 기본: 화면 진입 시 최상단으로
+        return { left: 0, top: 0 };
+    }
 });
 
 router.beforeEach(async (to) => {
@@ -252,7 +267,7 @@ router.beforeEach(async (to) => {
         }
     }
     if (requiresAdmin && !authStore.isAdmin) {
-        return { path: '/' };
+        return { path: '/error/access' };
     }
 });
 

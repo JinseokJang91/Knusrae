@@ -23,7 +23,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: 'group-selected', groupId: number | null): void;
-    (e: 'search-changed', query: string): void;
 }>();
 
 const groups = ref<IngredientGroup[]>([]);
@@ -48,20 +47,6 @@ const requestTypes = [
 
 const toast = useToast();
 
-// 검색 디바운스 (300ms)
-let searchTimeout: ReturnType<typeof setTimeout> | null = null;
-
-const handleSearchInput = () => {
-    if (searchTimeout) {
-        clearTimeout(searchTimeout);
-    }
-
-    searchTimeout = setTimeout(() => {
-        emit('search-changed', localSearchQuery.value);
-        loadIngredients();
-    }, 300);
-};
-
 const handleGroupSelect = (groupId: number | null) => {
     selectedGroupId.value = groupId;
     emit('group-selected', groupId);
@@ -77,12 +62,17 @@ const handleIngredientClick = (ingredient: Ingredient) => {
 };
 
 const openRequestDialog = () => {
-    requestForm.value.requestType = props.type === 'storage' ? 'STORAGE' : 'PREPARATION';
+    requestForm.value = {
+        ingredientName: '',
+        requestType: props.type === 'storage' ? 'STORAGE' : 'PREPARATION',
+        message: ''
+    };
     showRequestDialog.value = true;
 };
 
 const handleRequestSubmit = async () => {
-    if (!requestForm.value.ingredientName.trim()) {
+    const trimmedName = requestForm.value.ingredientName.trim();
+    if (!trimmedName) {
         toast.add({
             severity: 'warn',
             summary: '알림',
@@ -95,8 +85,25 @@ const handleRequestSubmit = async () => {
     requestLoading.value = true;
 
     try {
+        // 이미 존재하는 재료인지 확인 (이름 일치 시 요청 불가)
+        const { ingredients: existingList } = await getIngredients({
+            searchQuery: trimmedName,
+            limit: 100
+        });
+        const nameLower = trimmedName.toLowerCase();
+        const alreadyExists = existingList.some((ing) => ing.name.trim().toLowerCase() === nameLower);
+        if (alreadyExists) {
+            toast.add({
+                severity: 'warn',
+                summary: '요청 불가',
+                detail: nameLower + '는 이미 등록되어 있어요! 😄',
+                life: 4000
+            });
+            return;
+        }
+
         await createIngredientRequest({
-            ingredientName: requestForm.value.ingredientName.trim(),
+            ingredientName: trimmedName,
             requestType: requestForm.value.requestType,
             message: requestForm.value.message?.trim() || undefined
         });
@@ -191,18 +198,14 @@ onMounted(() => {
     loadGroups();
     loadIngredients();
 });
+
+defineExpose({
+    openRequestDialog
+});
 </script>
 
 <template>
     <div class="ingredient-list">
-        <!-- 검색 바 + 재료 정보 요청 버튼 -->
-        <div class="search-row mb-6">
-            <span class="p-input-icon-left search-bar">
-                <InputText v-model="localSearchQuery" placeholder="재료명을 검색하세요...(예: 감자, 계란)" class="w-full" @input="handleSearchInput" />
-            </span>
-            <Button label="재료 정보 요청하기" icon="pi pi-send" severity="secondary" outlined class="request-btn" @click="openRequestDialog" />
-        </div>
-
         <!-- 재료 그룹 선택 -->
         <IngredientGroupSelector :groups="groups" :selected-group-id="selectedGroupId" @select="handleGroupSelect" class="mb-6" />
 
@@ -236,7 +239,7 @@ onMounted(() => {
         </div>
 
         <!-- 재료 정보 요청 다이얼로그 -->
-        <Dialog v-model:visible="showRequestDialog" header="재료 정보 요청" :modal="true" :style="{ width: '90vw', maxWidth: '500px' }">
+        <Dialog v-model:visible="showRequestDialog" header="재료 정보 요청" class="ingredient-request-dialog" :modal="true" :style="{ width: '90vw', maxWidth: '500px' }">
             <div class="request-form">
                 <div class="mb-4">
                     <label class="block mb-2 font-semibold">재료명</label>
@@ -267,35 +270,21 @@ onMounted(() => {
     min-height: 400px;
 }
 
-.search-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.search-bar {
-    flex: 0 1 600px;
-    min-width: 0;
-}
-
-/* RecipeDetail 댓글 이미지 첨부 버튼과 동일: bg-gray-100, hover:bg-gray-200, text-gray-700 */
-.request-btn {
-    flex-shrink: 0;
-    margin-left: auto;
-    background-color: #f3f4f6 !important;
-    color: #374151 !important;
-    border-color: #e5e7eb !important;
-}
-
-.request-btn:hover {
-    background-color: #e5e7eb !important;
-    border-color: #d1d5db !important;
-}
-
 /* 재료 그룹 선택 ↔ 재료 목록 구분선 */
 .list-section-divider {
     height: 1px;
     margin: 1.5rem 0 1.25rem;
     background: var(--surface-border);
+}
+</style>
+
+<!-- Dialog는 body로 텔레포트되므로 비-scoped로 X 버튼만 타깃 -->
+<style>
+.ingredient-request-dialog .p-dialog-close-button,
+.ingredient-request-dialog .p-dialog-close-button:focus,
+.ingredient-request-dialog .p-dialog-close-button:focus-visible {
+    border: none;
+    outline: none;
+    box-shadow: none;
 }
 </style>

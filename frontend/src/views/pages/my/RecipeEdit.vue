@@ -286,8 +286,8 @@ const guideImages = GUIDE_IMAGES;
 // 가이드 표시
 function showGuide(section: 'basic' | 'ingredients' | 'classification' | 'steps' | 'settings', event: Event): void {
     event.stopPropagation();
-    const popover = guidePopoverRefs.value[section];
-    if (popover && typeof popover.toggle === 'function') {
+    const popover = guidePopoverRefs.value[section] as { toggle?: (e: Event) => void } | undefined;
+    if (popover?.toggle) {
         popover.toggle(event);
     }
 }
@@ -492,7 +492,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="card">
+    <div class="page-container page-container--card">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-2xl font-bold">레시피 수정</h2>
             <div class="flex gap-2">

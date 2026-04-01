@@ -47,10 +47,9 @@ public class PopularRecipeService {
         List<RecipePopularity> popularityList = switch (period) {
             case "24h" -> recipePopularityRepository.findTopByHits24h(pageable);
             case "7d" -> recipePopularityRepository.findTopByHits7d(pageable);
+            case "30d" -> recipePopularityRepository.findTopByHits30d(pageable);
             default -> recipePopularityRepository.findTopByPopularityScore(pageable);
         };
-        
-        // 기간에 따른 정렬 기준 선택
 
         // 이전 순위 조회 (24시간 전)
         LocalDateTime yesterday = LocalDateTime.now().minusDays(1);

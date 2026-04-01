@@ -11,7 +11,6 @@ import com.knusrae.common.domain.enums.SocialRole;
 import com.knusrae.common.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -47,9 +46,10 @@ public class GoogleAuthService {
         GoogleUserDTO googleUserDTO = getUserInfo(accessToken);
 
         // 1. DB에서 사용자 조회/없으면 생성 (이메일 + 소셜 역할로 조회)
-        Member member = memberRepository.findByEmailAndSocialRole(googleUserDTO.getEmail(), SocialRole.GOOGLE);
+        Member member = memberRepository.findByEmailAndSocialRole(googleUserDTO.getEmail(), SocialRole.GOOGLE)
+                .orElse(null);
 
-        if(ObjectUtils.isEmpty(member)) {
+        if (member == null) {
             member = memberRepository.save(
                     Member.builder()
                             .name(googleUserDTO.getName())
@@ -64,8 +64,8 @@ public class GoogleAuthService {
             );
         }
 
-        // 2. JWT 토큰 발급 (ID, role 사용)
-        return tokenService.loginWithSocialUser(member.getId(), member.getName(), member.getSocialRole().name());
+        // 2. JWT 토큰 발급 (socialRole + role(USER/ADMIN) 세팅)
+        return tokenService.loginWithMember(member);
     }
 
     private String getAccessToken(String code) throws JsonProcessingException {
@@ -83,16 +83,14 @@ public class GoogleAuthService {
 
         ResponseEntity<String> tokenResponse = restTemplate.postForEntity(TOKEN_URL, tokenRequest, String.class);
 
-        // 아래는 아까와 동일한 방어 코드
         if (!tokenResponse.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Google token API error: " + tokenResponse.getStatusCode() +
-                    " / body=" + tokenResponse.getBody());
+            throw new RuntimeException("Google token API error: " + tokenResponse.getStatusCode());
         }
 
         JsonNode tokenJson = objectMapper.readTree(tokenResponse.getBody());
         JsonNode accessTokenNode = tokenJson.get("access_token");
         if (accessTokenNode == null) {
-            throw new RuntimeException("Failed to get access_token from Google: " + tokenResponse.getBody());
+            throw new RuntimeException("Failed to get access_token from Google");
         }
 
         return accessTokenNode.asText();
@@ -108,8 +106,7 @@ public class GoogleAuthService {
         );
 
         if (!userInfoResponse.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Google user info API error: " +
-                    userInfoResponse.getStatusCode() + " / body=" + userInfoResponse.getBody());
+            throw new RuntimeException("Google user info API error: " + userInfoResponse.getStatusCode());
         }
 
         return objectMapper.readValue(userInfoResponse.getBody(), GoogleUserDTO.class);

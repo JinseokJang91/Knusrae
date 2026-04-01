@@ -8,6 +8,7 @@ import com.knusrae.auth.api.web.response.TokenResponse;
 import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.common.security.provider.JwtTokenProvider;
+import com.knusrae.common.utils.PiiMaskUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -30,24 +33,32 @@ public class TokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final TokenBlacklistRepository tokenBlacklistRepository;
     private final MemberRepository memberRepository;
+    private final EntityManager entityManager;
 
+    /**
+     * 회원 엔티티 기준으로 로그인 처리.
+     * JWT claims: socialRole(GOOGLE/NAVER/KAKAO), role(USER/ADMIN), username
+     */
     @Transactional
-    public TokenResponse loginWithSocialUser(Long userId, String username, String role) {
+    public TokenResponse loginWithMember(Member member) {
+        Long userId = member.getId();
         refreshTokenRepository.findByUserId(userId)
                 .ifPresent(existingToken -> {
-            refreshTokenRepository.delete(existingToken);
-            log.debug("기존 Refresh Token 삭제: userId={}", userId);
-        });
+                    refreshTokenRepository.delete(existingToken);
+                    log.debug("기존 Refresh Token 삭제: userId={}", userId);
+                });
 
-        String accessToken = tokenProvider.createAccessToken(
-                String.valueOf(userId),
-                Map.of("role", role, "username", username) // TODO Claim 추가
-        );
+        String socialRole = member.getSocialRole().name();
+        String role = isAdminEmail(member.getEmail()) ? "ADMIN" : "USER";
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", member.getName());
+        claims.put("socialRole", socialRole);
+        claims.put("role", role);
 
+        String accessToken = tokenProvider.createAccessToken(String.valueOf(userId), claims);
         String refreshToken = tokenProvider.createRefreshToken(String.valueOf(userId));
 
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(tokenProvider.getRefreshTokenTtl());
-
         RefreshToken refreshTokenEntity = RefreshToken.builder()
                 .token(refreshToken)
                 .userId(userId)
@@ -55,8 +66,8 @@ public class TokenService {
                 .build();
         refreshTokenRepository.save(refreshTokenEntity);
 
-        log.debug("토큰 발행 완료: userId={}, accessTokenExpiresIn={}초, refreshTokenExpiresIn={}초",
-                userId, tokenProvider.getAccessTokenTtl(), tokenProvider.getRefreshTokenTtl());
+        log.debug("토큰 발행 완료: userId={}, role={}, socialRole={}, accessTokenExpiresIn={}초, refreshTokenExpiresIn={}초",
+                userId, role, socialRole, tokenProvider.getAccessTokenTtl(), tokenProvider.getRefreshTokenTtl());
 
         return new TokenResponse(
                 accessToken,
@@ -64,6 +75,27 @@ public class TokenService {
                 tokenProvider.getAccessTokenTtl(),
                 tokenProvider.getRefreshTokenTtl()
         );
+    }
+
+    /**
+     * 회원 ID로 로그인 (테스트/개발용 JWT 발급 등).
+     * 회원을 조회한 뒤 loginWithMember 호출.
+     */
+    @Transactional
+    public TokenResponse loginWithUserId(Long userId) {
+        Member member = memberRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다. ID: " + userId));
+        return loginWithMember(member);
+    }
+
+    /**
+     * 관리자 계정 여부 판별 (member-service와 동일 기준)
+     */
+    private static boolean isAdminEmail(String email) {
+        if (email == null) {
+            return false;
+        }
+        return "testadmin@test.com".equalsIgnoreCase(email.trim()); // TODO
     }
 
     @Transactional
@@ -82,11 +114,13 @@ public class TokenService {
         }
         Long userId = Long.parseLong(userIdStr);
         
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenString)
+        // 동시 갱신 방지: PESSIMISTIC_WRITE 락으로 해당 row 선점 후 삭제·삽입
+        RefreshToken refreshToken = refreshTokenRepository.findByTokenForUpdate(refreshTokenString)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 Refresh Token입니다."));
         
         if (refreshToken.isExpired()) {
             refreshTokenRepository.delete(refreshToken);
+            entityManager.flush();
             throw new IllegalArgumentException("만료된 Refresh Token입니다.");
         }
         
@@ -94,32 +128,10 @@ public class TokenService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         
         refreshTokenRepository.delete(refreshToken);
+        entityManager.flush(); // 삭제를 먼저 flush하여 이후 insert 시 중복 키 방지
         log.debug("기존 Refresh Token 삭제 (Rotation): userId={}", userId);
-        
-        String newAccessToken = tokenProvider.createAccessToken(
-                String.valueOf(userId),
-                Map.of("role", member.getSocialRole().name(), "username", member.getName())
-        );
-        
-        String newRefreshToken = tokenProvider.createRefreshToken(String.valueOf(userId));
-        
-        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(tokenProvider.getRefreshTokenTtl());
-        RefreshToken newRefreshTokenEntity = RefreshToken.builder()
-                .token(newRefreshToken)
-                .userId(userId)
-                .expiresAt(expiresAt)
-                .build();
-        refreshTokenRepository.save(newRefreshTokenEntity);
-        
-        log.debug("토큰 갱신 완료: userId={}, accessTokenExpiresIn={}초, refreshTokenExpiresIn={}초",
-                userId, tokenProvider.getAccessTokenTtl(), tokenProvider.getRefreshTokenTtl());
-        
-        return new TokenResponse(
-                newAccessToken,
-                newRefreshToken,
-                tokenProvider.getAccessTokenTtl(),
-                tokenProvider.getRefreshTokenTtl()
-        );
+
+        return loginWithMember(member);
     }
 
     @Transactional
@@ -161,16 +173,14 @@ public class TokenService {
         }
     }
 
-    // TODO 테스트 계정 로그인
     @Transactional
-    public TokenResponse loginWithTestAccount(String email) {
-        Member member = memberRepository.findByEmail(email);
-        
-        if (member == null) {
-            throw new IllegalArgumentException("존재하지 않는 테스트 계정입니다: " + email);
+    public TokenResponse loginWithTestAccount(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 테스트 계정입니다."));
+        if (member.getEmail() == null || !member.getEmail().startsWith("test")) {
+            throw new IllegalArgumentException("테스트 계정이 아닙니다.");
         }
-        
-        return loginWithSocialUser(member.getId(), member.getName(), member.getSocialRole().name());
+        return loginWithMember(member);
     }
 
     // TODO 테스트 계정 로그인
@@ -185,7 +195,7 @@ public class TokenService {
                     accountInfo.put("id", member.getId());
                     accountInfo.put("name", member.getName());
                     accountInfo.put("nickname", member.getNickname());
-                    accountInfo.put("email", member.getEmail());
+                    accountInfo.put("email", PiiMaskUtils.maskEmail(member.getEmail()));
                     accountInfo.put("socialRole", member.getSocialRole().name());
                     accountInfo.put("isActive", member.getIsActive().name());
                     return accountInfo;

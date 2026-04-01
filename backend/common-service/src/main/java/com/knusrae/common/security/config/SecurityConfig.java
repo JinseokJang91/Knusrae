@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/recipe/following-feed").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/recipe/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()

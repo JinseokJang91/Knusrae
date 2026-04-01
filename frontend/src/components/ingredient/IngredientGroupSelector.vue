@@ -74,13 +74,12 @@ const handleSelect = (groupId: number | null) => {
 
 <template>
     <div class="ingredient-group-selector">
-        <h3 class="text-lg font-semibold text-gray-700 mb-4">재료 그룹 선택</h3>
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">재료 그룹</h3>
         <div class="selector-row">
             <Button
                 :style="{ opacity: leftButtonOpacity }"
                 :class="['scroll-btn', 'scroll-btn-left', { 'scroll-btn-hidden': leftButtonOpacity === 0 }]"
                 icon="pi pi-chevron-left"
-                text
                 rounded
                 severity="secondary"
                 aria-label="이전 그룹 보기"
@@ -105,7 +104,6 @@ const handleSelect = (groupId: number | null) => {
                 :style="{ opacity: rightButtonOpacity }"
                 :class="['scroll-btn', 'scroll-btn-right', { 'scroll-btn-hidden': rightButtonOpacity === 0 }]"
                 icon="pi pi-chevron-right"
-                text
                 rounded
                 severity="secondary"
                 aria-label="다음 그룹 보기"
@@ -121,13 +119,15 @@ const handleSelect = (groupId: number | null) => {
 }
 
 .selector-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    position: relative;
+    width: 100%;
 }
 
 .scroll-btn {
-    flex-shrink: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
     width: 40px;
     height: 40px;
     transition: opacity 0.25s ease;
@@ -138,11 +138,11 @@ const handleSelect = (groupId: number | null) => {
 }
 
 .scroll-btn-left {
-    margin-right: 4px;
+    left: 0;
 }
 
 .scroll-btn-right {
-    margin-left: 4px;
+    right: 0;
 }
 
 .groups-container {
@@ -153,8 +153,7 @@ const handleSelect = (groupId: number | null) => {
     overflow-y: hidden;
     scroll-behavior: smooth;
     scrollbar-width: thin;
-    min-width: 0;
-    flex: 1;
+    width: 100%;
     padding: 4px 0;
 }
 
@@ -174,9 +173,9 @@ const handleSelect = (groupId: number | null) => {
     align-items: center;
     gap: 8px;
     padding: 16px 20px;
-    border: 2px solid var(--surface-border);
+    border: 1px solid rgba(234, 88, 12, 0.12);
     border-radius: 12px;
-    background: var(--surface-card);
+    background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
     cursor: pointer;
     transition: all 0.2s;
     min-width: 100px;
@@ -184,14 +183,14 @@ const handleSelect = (groupId: number | null) => {
 }
 
 .group-item:hover {
-    border-color: var(--primary-color);
+    border-color: rgba(234, 88, 12, 0.28);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
 }
 
 .group-item.selected {
-    border-color: var(--primary-color);
-    background: var(--primary-color);
+    border-color: rgba(234, 88, 12, 0.5);
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
     color: white;
 }
 
@@ -202,7 +201,7 @@ const handleSelect = (groupId: number | null) => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--surface-ground);
+    background: rgba(255, 237, 213, 0.8);
     overflow: hidden;
 }
 

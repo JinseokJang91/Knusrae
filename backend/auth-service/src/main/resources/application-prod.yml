@@ -1,17 +1,48 @@
-# 프로덕션 환경 설정
+# 프로덕션 환경 (prod) - 환경변수 필수
 spring:
+  flyway:
+    enabled: true
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: validate # 프로덕션에서는 validate 또는 none
+      ddl-auto: validate
     show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
-# 앱 설정
 app:
+  frontend:
+    url: ${FRONTEND_URL}
   test-login:
-    enabled: false # 프로덕션에서는 테스트 로그인 비활성화
+    enabled: ${TEST_LOGIN_ENABLED}
+  oauth:
+    state-secret: ${OAUTH_STATE_SECRET}
 
-# 보안 설정 강화
+naver:
+  client:
+    id: ${NAVER_CLIENT_ID}
+    secret: ${NAVER_CLIENT_SECRET}
+  redirect:
+    uri: ${NAVER_REDIRECT_URI}
+
+google:
+  client:
+    id: ${GOOGLE_CLIENT_ID}
+    secret: ${GOOGLE_CLIENT_SECRET}
+  redirect:
+    uri: ${GOOGLE_REDIRECT_URI}
+
+kakao:
+  client:
+    id: ${KAKAO_CLIENT_ID}
+    secret: ${KAKAO_CLIENT_SECRET}
+  redirect:
+    uri: ${KAKAO_REDIRECT_URI}
+
 server:
   ssl:
-    enabled: false # SSL 설정이 필요한 경우 true로 변경
-
+    enabled: ${SERVER_SSL_ENABLED:false}
