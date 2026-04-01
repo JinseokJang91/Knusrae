@@ -5,6 +5,7 @@ import { getPopularRecipes } from '@/api/recipeApi';
 import RecipeListItem from '@/components/recipe/RecipeListItem.vue';
 import type { PopularRecipeItem } from '@/types/recipe';
 import { useAppToast } from '@/utils/toast';
+import { isEmptyDataError } from '@/utils/errorHandler';
 
 const router = useRouter();
 
@@ -29,6 +30,10 @@ const loadPopularRecipes = async () => {
         const recipes = await getPopularRecipes(10, selectedPeriod.value);
         popularRecipes.value = recipes;
     } catch (error) {
+        if (isEmptyDataError(error)) {
+            popularRecipes.value = [];
+            return;
+        }
         console.error('Failed to load popular recipes:', error);
         showError('인기 레시피를 불러오는데 실패했습니다.');
     } finally {

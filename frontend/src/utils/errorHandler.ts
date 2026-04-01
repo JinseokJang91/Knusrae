@@ -9,6 +9,35 @@ export interface ApiErrorBody {
 }
 
 /**
+ * Error.message("HTTP {status}: ...")에서 상태 코드를 추출
+ */
+export function getHttpStatusFromError(err: unknown): number | null {
+    if (!(err instanceof Error)) return null;
+
+    const match = err.message.match(/^HTTP (\d+):/);
+    if (!match) return null;
+
+    const status = Number(match[1]);
+    return Number.isNaN(status) ? null : status;
+}
+
+/**
+ * 데이터 없음으로 간주할 HTTP 상태 코드
+ * - 204: 정상 응답이지만 본문 없음
+ * - 404: 조회 대상/목록 없음으로 내려오는 API 케이스 대응
+ */
+export function isEmptyDataStatus(status: number | null): boolean {
+    return status === 204 || status === 404;
+}
+
+/**
+ * 에러 객체가 데이터 없음 케이스인지 판별
+ */
+export function isEmptyDataError(err: unknown): boolean {
+    return isEmptyDataStatus(getHttpStatusFromError(err));
+}
+
+/**
  * 에러 메시지 추출 (fallback 순서 명시)
  * 1. err가 Error가 아니면 → defaultMessage
  * 2. err.message가 "HTTP 숫자: {...}" 형태면:

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { getActiveThemes, getThemeRecipes } from '@/api/themeApi';
 import { useAppToast } from '@/utils/toast';
 import type { ThemeCollection, ThemeRecipeItem } from '@/types/theme';
+import { isEmptyDataError } from '@/utils/errorHandler';
 
 const router = useRouter();
 const { showError } = useAppToast();
@@ -22,6 +23,12 @@ const loadThemes = async () => {
             selectTheme(data[0]);
         }
     } catch (error) {
+        if (isEmptyDataError(error)) {
+            themes.value = [];
+            selectedTheme.value = null;
+            themeRecipes.value = [];
+            return;
+        }
         console.error('테마 목록 로딩 실패:', error);
         showError('테마 컬렉션을 불러오는데 실패했습니다.');
     } finally {
@@ -36,6 +43,10 @@ const selectTheme = async (theme: ThemeCollection) => {
         const data = await getThemeRecipes(theme.id, 10);
         themeRecipes.value = data.recipes;
     } catch (error) {
+        if (isEmptyDataError(error)) {
+            themeRecipes.value = [];
+            return;
+        }
         console.error('테마 레시피 로딩 실패:', error);
         showError('테마 레시피를 불러오는데 실패했습니다.');
     } finally {
