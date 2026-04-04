@@ -9,7 +9,6 @@ import TodayRecommendations from '@/components/dashboard/TodayRecommendations.vu
 import RecommendedCreators from '@/components/dashboard/RecommendedCreators.vue';
 
 const authStore = useAuthStore();
-const test = '';
 
 const isLoggedIn = computed(() => authStore.isLoggedIn);
 const nickname = computed(() => authStore.memberName);
@@ -39,7 +38,7 @@ const timeBasedGreeting = computed(() => {
         return {
             theme: 'evening',
             icon: '🌙',
-            message: '오늘 하루 수고하셨어요.',
+            message: '오늘 하루 정말 수고하셨어요.',
             subtitle: '새로운 레시피를 발견해보세요'
         };
     }
