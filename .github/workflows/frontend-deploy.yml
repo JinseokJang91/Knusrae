@@ -55,6 +55,22 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - name: Validate S3 bucket (FRONTEND_S3_BUCKET)
+        env:
+          BUCKET: ${{ vars.FRONTEND_S3_BUCKET }}
+        run: |
+          if [ -z "${BUCKET}" ] || [ "${BUCKET}" = "" ]; then
+            echo "::error::GitHub Actions 변수 FRONTEND_S3_BUCKET 이 비어 있습니다. Repo → Settings → Secrets and variables → Actions → Variables 에서 실제 S3 버킷 이름을 설정하세요."
+            exit 1
+          fi
+          if ! aws s3api head-bucket --bucket "${BUCKET}" 2>/dev/null; then
+            echo "::error::버킷이 없거나 이 OIDC 역할이 속한 계정·리전에서 접근할 수 없습니다: ${BUCKET}"
+            echo "확인: (1) AWS S3 콘솔에 해당 이름의 버킷이 있는지 (2) GitHub Variables 의 이름이 오타 없이 동일한지 (3) OIDC 역할과 버킷이 같은 AWS 계정인지"
+            aws s3api head-bucket --bucket "${BUCKET}" || true
+            exit 1
+          fi
+          echo "head-bucket OK: ${BUCKET}"
+
       - name: Sync to S3
         env:
           BUCKET: ${{ vars.FRONTEND_S3_BUCKET }}
