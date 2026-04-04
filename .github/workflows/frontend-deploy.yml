@@ -1,0 +1,76 @@
+# Knusrae 프론트: main push / 수동 실행 시 빌드 → S3 동기화 → CloudFront 무효화
+
+name: Frontend deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+  workflow_dispatch:
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify dist output
+        run: |
+          if [ ! -d dist ] || [ -z "$(ls -A dist 2>/dev/null)" ]; then
+            echo "ERROR: frontend/dist 가 비어 있거나 없습니다."
+            exit 1
+          fi
+          echo "dist OK ($(du -sh dist | cut -f1))"
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Sync to S3
+        env:
+          BUCKET: ${{ vars.FRONTEND_S3_BUCKET }}
+        run: |
+          aws s3 sync dist/ "s3://${BUCKET}/" --delete
+
+      - name: Invalidate CloudFront
+        env:
+          DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${DISTRIBUTION_ID}" \
+            --paths "/*"
+
+      - name: Verify public URL
+        if: ${{ vars.FRONTEND_VERIFY_URL != '' }}
+        run: |
+          curl -fsSL "${{ vars.FRONTEND_VERIFY_URL }}" -o /dev/null
+          echo "FRONTEND_VERIFY_URL 응답 OK"
