@@ -4,6 +4,7 @@ import { getTrendingCategories } from '@/api/categoryApi';
 import CategorySection from './CategorySection.vue';
 import type { CategoryInfo } from '@/types/category';
 import { useAppToast } from '@/utils/toast';
+import { isEmptyDataError } from '@/utils/errorHandler';
 
 const { showError } = useAppToast();
 
@@ -16,6 +17,10 @@ const loadTrendingCategories = async () => {
         const response = await getTrendingCategories(2, '30d');
         trendingCategories.value = response.categories;
     } catch (error) {
+        if (isEmptyDataError(error)) {
+            trendingCategories.value = [];
+            return;
+        }
         console.error('트렌딩 카테고리 로딩 실패:', error);
         showError('카테고리를 불러오는데 실패했습니다.');
     } finally {

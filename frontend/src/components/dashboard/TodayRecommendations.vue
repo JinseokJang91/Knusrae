@@ -6,6 +6,7 @@ import Button from 'primevue/button';
 import Skeleton from 'primevue/skeleton';
 import { getTodayRecommendations } from '@/api/recommendationApi';
 import type { TodayRecommendationsResponse } from '@/types/recipe';
+import { isEmptyDataError } from '@/utils/errorHandler';
 
 const router = useRouter();
 const toast = useToast();
@@ -23,6 +24,10 @@ const loadRecommendations = async (refresh: boolean = false) => {
         const data = await getTodayRecommendations(3, refresh);
         recommendations.value = data;
     } catch (error) {
+        if (isEmptyDataError(error)) {
+            recommendations.value = null;
+            return;
+        }
         console.error('[TodayRecommendations] 추천 레시피 로딩 실패:', error);
         toast.add({
             severity: 'error',

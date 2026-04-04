@@ -7,6 +7,7 @@ import Button from 'primevue/button';
 import { useAuthStore } from '@/stores/authStore';
 import { getRecentViews, deleteAllRecentViews } from '@/api/recipeViewApi';
 import type { RecipeView } from '@/types/recipe';
+import { isEmptyDataError } from '@/utils/errorHandler';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -32,6 +33,10 @@ const loadRecentViews = async () => {
         const data = await getRecentViews(memberId.value, 10, 0);
         recentViews.value = data.views || [];
     } catch (error) {
+        if (isEmptyDataError(error)) {
+            recentViews.value = [];
+            return;
+        }
         console.error('[RecentViews] 최근 본 레시피 로딩 실패:', error);
         toast.add({
             severity: 'error',

@@ -6,6 +6,7 @@ import { followUser } from '@/api/followApi';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/utils/toast';
 import type { Creator } from '@/types/creator';
+import { isEmptyDataError } from '@/utils/errorHandler';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -25,6 +26,10 @@ const loadCreators = async () => {
         const data = await getRecommendedCreators(6);
         creators.value = data;
     } catch (error) {
+        if (isEmptyDataError(error)) {
+            creators.value = [];
+            return;
+        }
         console.error('추천 크리에이터 로딩 실패:', error);
         showError('추천 크리에이터를 불러오는데 실패했습니다.');
     } finally {

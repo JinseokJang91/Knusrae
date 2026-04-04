@@ -8,6 +8,7 @@ import Badge from 'primevue/badge';
 import type { CategoryInfo } from '@/types/category';
 import type { Recipe } from '@/types/recipe';
 import { useAppToast } from '@/utils/toast';
+import { isEmptyDataError } from '@/utils/errorHandler';
 
 const props = defineProps<{
     category: CategoryInfo;
@@ -39,6 +40,10 @@ const loadRecipes = async () => {
         const response = await getCategoryRecipes(props.category.codeId, props.category.detailCodeId, 12, 'mixed');
         recipes.value = response.recipes;
     } catch (error) {
+        if (isEmptyDataError(error)) {
+            recipes.value = [];
+            return;
+        }
         console.error('카테고리 레시피 로딩 실패:', error);
         showError('카테고리 레시피를 불러오는데 실패했습니다.');
     } finally {
