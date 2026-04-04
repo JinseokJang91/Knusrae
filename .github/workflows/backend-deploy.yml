@@ -153,6 +153,17 @@ jobs:
 
       - name: Health check
         if: ${{ vars.BACKEND_HEALTHCHECK_URL != '' }}
+        env:
+          HEALTH_URL: ${{ vars.BACKEND_HEALTHCHECK_URL }}
         run: |
-          sleep 30
-          curl -fsSL "${{ vars.BACKEND_HEALTHCHECK_URL }}"
+          set -e
+          for attempt in $(seq 1 30); do
+            if curl -fsSL --connect-timeout 10 --max-time 30 "$HEALTH_URL"; then
+              echo "Health check OK (attempt ${attempt})"
+              exit 0
+            fi
+            echo "Health check attempt ${attempt}/30 failed, waiting 15s..."
+            sleep 15
+          done
+          echo "::error::Health check failed after 30 attempts (~7.5 min)"
+          exit 1
