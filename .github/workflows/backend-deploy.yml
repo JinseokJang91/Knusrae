@@ -117,7 +117,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           fingerprint: ${{ vars.EC2_SSH_HOST_FINGERPRINT }}
-          source: deploy-bundle/deploy.tar.gz
+          source: deploy.tar.gz
           target: ${{ env.DEPLOY_PATH }}
 
       - name: Install on EC2 and restart stack
