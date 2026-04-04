@@ -25,10 +25,9 @@ permissions:
 
 env:
   IMAGE_NAME: knusrae-backend
-  DEPLOY_PATH: ${{ vars.BACKEND_DEPLOY_PATH || '/home/ubuntu/knusrae' }}
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -65,6 +64,33 @@ jobs:
           cp infra/scripts/*.sh bundle/scripts/
           tar czf deploy.tar.gz -C bundle .
 
+      - name: Upload deploy bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-bundle
+          path: deploy.tar.gz
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_PATH: ${{ vars.BACKEND_DEPLOY_PATH || '/home/ubuntu/knusrae' }}
+    steps:
+      - name: Download deploy bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-bundle
+
+      - name: Require SSH host fingerprint
+        env:
+          FINGERPRINT: ${{ vars.EC2_SSH_HOST_FINGERPRINT }}
+        run: |
+          if [ -z "${FINGERPRINT}" ]; then
+            echo "::error::Repository 변수 EC2_SSH_HOST_FINGERPRINT 를 설정하세요. (예: ssh-keyscan -t rsa,ecdsa,ed25519 -p 22 HOST | ssh-keygen -lf - -E sha256)"
+            exit 1
+          fi
+
       - name: Log deploy context
         run: |
           echo "commit=${{ github.sha }}"
@@ -79,6 +105,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          fingerprint: ${{ vars.EC2_SSH_HOST_FINGERPRINT }}
           script_stop: true
           envs: DEPLOY_PATH
           script: mkdir -p "$DEPLOY_PATH"
@@ -89,7 +116,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          source: deploy.tar.gz
+          fingerprint: ${{ vars.EC2_SSH_HOST_FINGERPRINT }}
+          source: deploy-bundle/deploy.tar.gz
           target: ${{ env.DEPLOY_PATH }}
 
       - name: Install on EC2 and restart stack
@@ -102,6 +130,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          fingerprint: ${{ vars.EC2_SSH_HOST_FINGERPRINT }}
           script_stop: true
           envs: GITHUB_SHA,KNUSRAE_SECRET_ID,AWS_REGION_FOR_SECRETS,DEPLOY_PATH
           script: |
@@ -119,6 +148,7 @@ jobs:
               bash scripts/fetch-secrets-to-env.sh
             fi
             docker compose up -d --no-build
+            docker image prune -f || true
             rm -f deploy.tar.gz
 
       - name: Health check
