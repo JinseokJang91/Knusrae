@@ -9,4 +9,5 @@ springBoot {
 
 dependencies {
 	implementation project(':backend:common-service')
+	testRuntimeOnly 'com.h2database:h2'
 }
