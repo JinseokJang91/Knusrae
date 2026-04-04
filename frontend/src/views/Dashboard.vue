@@ -9,6 +9,7 @@ import TodayRecommendations from '@/components/dashboard/TodayRecommendations.vu
 import RecommendedCreators from '@/components/dashboard/RecommendedCreators.vue';
 
 const authStore = useAuthStore();
+const test = '';
 
 const isLoggedIn = computed(() => authStore.isLoggedIn);
 const nickname = computed(() => authStore.memberName);
