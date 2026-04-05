@@ -31,7 +31,7 @@ const loadRecentViews = async () => {
     isLoading.value = true;
     try {
         const data = await getRecentViews(memberId.value, 10, 0);
-        recentViews.value = data.views || [];
+        recentViews.value = data?.views ?? [];
     } catch (error) {
         if (isEmptyDataError(error)) {
             recentViews.value = [];

@@ -23,5 +23,12 @@ export async function getTodayRecommendations(limit: number = 3, refresh: boolea
     const response = await httpJson<ApiResponse<TodayRecommendationsResponse>>(BASE_URL, url, {
         method: 'GET'
     });
-    return response.data;
+    const payload = response?.data;
+    return (
+        payload ?? {
+            recipes: [],
+            recommendationType: 'GENERAL',
+            refreshable: false
+        }
+    );
 }
