@@ -1,3 +1,5 @@
+import { EmptySuccessfulJsonBodyError } from '@/utils/errorHandler';
+
 /**
  * JSON 요청을 위한 헬퍼 (Content-Type: application/json)
  * HttpOnly 쿠키를 통해 인증이 처리되므로 Authorization 헤더는 사용하지 않음
@@ -19,11 +21,27 @@ export async function httpJson<T = unknown>(baseUrl: string, url: string, option
         throw new Error(`HTTP ${response.status}: ${text || response.statusText}`);
     }
 
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-        return response.json() as Promise<T>;
+    // 204: 본문 없음 — void DELETE 등은 그대로 성공, 목록 조회는 API 래퍼에서 [] 등으로 정규화
+    if (response.status === 204) {
+        return undefined as T;
     }
-    return response.text() as Promise<T>;
+
+    const contentType = response.headers.get('content-type') || '';
+    const bodyText = await response.text();
+
+    if (contentType.includes('application/json')) {
+        const trimmed = bodyText.trim();
+        if (trimmed === '') {
+            throw new EmptySuccessfulJsonBodyError();
+        }
+        try {
+            return JSON.parse(trimmed) as T;
+        } catch {
+            throw new SyntaxError(`Invalid JSON response for ${url}: ${trimmed.slice(0, 120)}`);
+        }
+    }
+
+    return bodyText as T;
 }
 
 /**

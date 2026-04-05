@@ -9,7 +9,8 @@ const BASE_URL = getApiBaseUrl('cook');
  */
 export async function getPopularRecipes(limit: number = 10, period: '24h' | '7d' | '30d' = '24h'): Promise<PopularRecipeItem[]> {
     const url = `/api/recipe/popular?limit=${limit}&period=${period}`;
-    return await httpJson(BASE_URL, url, { method: 'GET' });
+    const data = await httpJson<PopularRecipeItem[] | null>(BASE_URL, url, { method: 'GET' });
+    return Array.isArray(data) ? data : [];
 }
 
 /**

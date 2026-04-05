@@ -6,6 +6,20 @@
  */
 export interface ApiErrorBody {
     message?: string;
+    /** Spring ErrorResponse 등 */
+    error?: string;
+}
+
+/**
+ * 성공(2xx) 응답인데 JSON 본문이 비어 있어 파싱할 수 없을 때 httpJson에서 던짐.
+ * 목록 API가 빈 본문을 주는 경우 대시보드 등에서 오류 토스트 대신 빈 상태로 처리한다.
+ */
+export class EmptySuccessfulJsonBodyError extends Error {
+    override name = 'EmptySuccessfulJsonBodyError';
+
+    constructor(message = '빈 JSON 응답 본문') {
+        super(message);
+    }
 }
 
 /**
@@ -23,7 +37,7 @@ export function getHttpStatusFromError(err: unknown): number | null {
 
 /**
  * 데이터 없음으로 간주할 HTTP 상태 코드
- * - 204: 정상 응답이지만 본문 없음
+ * - 204: (레거시) Error.message에 HTTP 204가 실릴 때. httpJson은 204 시 throw하지 않고 undefined 반환
  * - 404: 조회 대상/목록 없음으로 내려오는 API 케이스 대응
  */
 export function isEmptyDataStatus(status: number | null): boolean {
@@ -34,6 +48,9 @@ export function isEmptyDataStatus(status: number | null): boolean {
  * 에러 객체가 데이터 없음 케이스인지 판별
  */
 export function isEmptyDataError(err: unknown): boolean {
+    if (err instanceof EmptySuccessfulJsonBodyError) {
+        return true;
+    }
     return isEmptyDataStatus(getHttpStatusFromError(err));
 }
 
