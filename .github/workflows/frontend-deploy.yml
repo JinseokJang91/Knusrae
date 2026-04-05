@@ -39,6 +39,16 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_NAVER_CLIENT_ID: ${{ vars.VITE_NAVER_CLIENT_ID }}
+          VITE_NAVER_REDIRECT_URI: ${{ vars.VITE_NAVER_REDIRECT_URI }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+          VITE_GOOGLE_REDIRECT_URI: ${{ vars.VITE_GOOGLE_REDIRECT_URI }}
+          VITE_KAKAO_CLIENT_ID: ${{ vars.VITE_KAKAO_CLIENT_ID }}
+          VITE_KAKAO_REDIRECT_URI: ${{ vars.VITE_KAKAO_REDIRECT_URI }}
+          VITE_API_BASE_URL_AUTH: ${{ vars.VITE_API_BASE_URL_AUTH }}
+          VITE_API_BASE_URL_COOK: ${{ vars.VITE_API_BASE_URL_COOK }}
+          VITE_API_BASE_URL_MEMBER: ${{ vars.VITE_API_BASE_URL_MEMBER }}
         run: npm run build
 
       - name: Verify dist output
