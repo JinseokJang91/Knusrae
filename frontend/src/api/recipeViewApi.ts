@@ -38,7 +38,8 @@ export async function getRecentViews(memberId: number, limit: number = 10, offse
     const response = await httpJson<ApiResponse<RecentViewsResponse>>(BASE_URL, url, {
         method: 'GET'
     });
-    return response.data;
+    const payload = response?.data;
+    return payload ?? { views: [], totalCount: 0 };
 }
 
 /**

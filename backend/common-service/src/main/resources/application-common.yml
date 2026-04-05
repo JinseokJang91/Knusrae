@@ -22,3 +22,5 @@ app:
       bucket: ${AWS_S3_BUCKET:}
       region: ${AWS_REGION:ap-northeast-2}
       public-base-url: ${AWS_S3_PUBLIC_BASE_URL:}
+  cors:
+    allowed-origins: http://localhost:5173,http://127.0.0.1:5173,https://www.knusrae.com
