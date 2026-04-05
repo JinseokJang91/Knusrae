@@ -41,7 +41,7 @@ const selectTheme = async (theme: ThemeCollection) => {
     loadingRecipes.value = true;
     try {
         const data = await getThemeRecipes(theme.id, 10);
-        themeRecipes.value = data.recipes;
+        themeRecipes.value = data?.recipes ?? [];
     } catch (error) {
         if (isEmptyDataError(error)) {
             themeRecipes.value = [];

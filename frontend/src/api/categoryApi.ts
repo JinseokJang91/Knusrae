@@ -1,6 +1,7 @@
 import { httpJson } from '@/utils/http';
 import { getApiBaseUrl } from '@/utils/constants';
 import type { TrendingCategoriesResponse, CategoryRecipesResponse } from '@/types/category';
+import { EmptySuccessfulJsonBodyError } from '@/utils/errorHandler';
 
 const BASE_URL = getApiBaseUrl('cook');
 
@@ -11,9 +12,13 @@ const BASE_URL = getApiBaseUrl('cook');
  */
 export async function getTrendingCategories(limit: number = 2, period: '7d' | '30d' = '30d'): Promise<TrendingCategoriesResponse> {
     const url = `/api/categories/trending?limit=${limit}&period=${period}`;
-    return await httpJson(BASE_URL, url, {
+    const data = await httpJson<TrendingCategoriesResponse | null>(BASE_URL, url, {
         method: 'GET'
     });
+    return {
+        categories: data?.categories ?? [],
+        period: data?.period ?? period
+    };
 }
 
 /**
@@ -25,7 +30,15 @@ export async function getTrendingCategories(limit: number = 2, period: '7d' | '3
  */
 export async function getCategoryRecipes(codeId: string, detailCodeId: string, limit: number = 12, sort: 'latest' | 'popular' | 'mixed' = 'mixed'): Promise<CategoryRecipesResponse> {
     const url = `/api/categories/${codeId}/${detailCodeId}/recipes?limit=${limit}&sort=${sort}`;
-    return await httpJson(BASE_URL, url, {
+    const data = await httpJson<CategoryRecipesResponse | null>(BASE_URL, url, {
         method: 'GET'
     });
+    if (data == null) {
+        throw new EmptySuccessfulJsonBodyError();
+    }
+    return {
+        category: data.category,
+        recipes: data.recipes ?? [],
+        totalCount: data.totalCount ?? 0
+    };
 }
