@@ -11,7 +11,7 @@ const BASE_URL = getApiBaseUrl('cook');
  * @param period 기간 (7d, 30d) (기본 30d)
  */
 export async function getTrendingCategories(limit: number = 2, period: '7d' | '30d' = '30d'): Promise<TrendingCategoriesResponse> {
-    const url = `/api/categories/trending?limit=${limit}&period=${period}`;
+    const url = `/api/cook/categories/trending?limit=${limit}&period=${period}`;
     const data = await httpJson<TrendingCategoriesResponse | null>(BASE_URL, url, {
         method: 'GET'
     });
@@ -29,7 +29,7 @@ export async function getTrendingCategories(limit: number = 2, period: '7d' | '3
  * @param sort 정렬 기준 (latest, popular, mixed) (기본 mixed)
  */
 export async function getCategoryRecipes(codeId: string, detailCodeId: string, limit: number = 12, sort: 'latest' | 'popular' | 'mixed' = 'mixed'): Promise<CategoryRecipesResponse> {
-    const url = `/api/categories/${codeId}/${detailCodeId}/recipes?limit=${limit}&sort=${sort}`;
+    const url = `/api/cook/categories/${codeId}/${detailCodeId}/recipes?limit=${limit}&sort=${sort}`;
     const data = await httpJson<CategoryRecipesResponse | null>(BASE_URL, url, {
         method: 'GET'
     });

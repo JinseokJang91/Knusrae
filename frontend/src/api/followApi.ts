@@ -8,7 +8,7 @@ const BASE_URL = getApiBaseUrl('member');
  * 팔로우
  */
 export async function followUser(memberId: number): Promise<Follow> {
-    const response = await httpJson<Follow>(BASE_URL, `/api/follows/${memberId}`, { method: 'POST' });
+    const response = await httpJson<Follow>(BASE_URL, `/api/member/follows/${memberId}`, { method: 'POST' });
     return response;
 }
 
@@ -16,14 +16,14 @@ export async function followUser(memberId: number): Promise<Follow> {
  * 언팔로우
  */
 export async function unfollowUser(memberId: number): Promise<void> {
-    await httpJson<void>(BASE_URL, `/api/follows/${memberId}`, { method: 'DELETE' });
+    await httpJson<void>(BASE_URL, `/api/member/follows/${memberId}`, { method: 'DELETE' });
 }
 
 /**
  * 팔로우 여부 확인
  */
 export async function checkFollowing(memberId: number): Promise<{ isFollowing: boolean }> {
-    const response = await httpJson<{ isFollowing: boolean }>(BASE_URL, `/api/follows/${memberId}/check`, { method: 'GET' });
+    const response = await httpJson<{ isFollowing: boolean }>(BASE_URL, `/api/member/follows/${memberId}/check`, { method: 'GET' });
     return response;
 }
 
@@ -31,7 +31,7 @@ export async function checkFollowing(memberId: number): Promise<{ isFollowing: b
  * 팔로워 목록 조회
  */
 export async function getFollowers(memberId: number, page: number = 0, size: number = 20): Promise<FollowListResponse> {
-    const response = await httpJson<FollowListResponse>(BASE_URL, `/api/members/${memberId}/followers?page=${page}&size=${size}`, { method: 'GET' });
+    const response = await httpJson<FollowListResponse>(BASE_URL, `/api/member/${memberId}/followers?page=${page}&size=${size}`, { method: 'GET' });
     return response;
 }
 
@@ -39,7 +39,7 @@ export async function getFollowers(memberId: number, page: number = 0, size: num
  * 팔로잉 목록 조회
  */
 export async function getFollowings(memberId: number, page: number = 0, size: number = 20): Promise<FollowListResponse> {
-    const response = await httpJson<FollowListResponse>(BASE_URL, `/api/members/${memberId}/followings?page=${page}&size=${size}`, { method: 'GET' });
+    const response = await httpJson<FollowListResponse>(BASE_URL, `/api/member/${memberId}/followings?page=${page}&size=${size}`, { method: 'GET' });
     return response;
 }
 

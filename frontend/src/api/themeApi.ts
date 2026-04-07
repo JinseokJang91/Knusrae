@@ -8,7 +8,7 @@ const BASE_URL = getApiBaseUrl('cook');
  * 활성 테마 목록 조회
  */
 export async function getActiveThemes(): Promise<ThemeCollection[]> {
-    const data = await httpJson<ThemeCollection[] | null>(BASE_URL, '/api/themes/active', { method: 'GET' });
+    const data = await httpJson<ThemeCollection[] | null>(BASE_URL, '/api/cook/themes/active', { method: 'GET' });
     return Array.isArray(data) ? data : [];
 }
 
@@ -20,5 +20,5 @@ export async function getThemeRecipes(themeId: number, limit: number = 8, offset
         limit: limit.toString(),
         offset: offset.toString()
     });
-    return await httpJson<ThemeCollectionDetail | null>(BASE_URL, `/api/themes/${themeId}/recipes?${params}`, { method: 'GET' });
+    return await httpJson<ThemeCollectionDetail | null>(BASE_URL, `/api/cook/themes/${themeId}/recipes?${params}`, { method: 'GET' });
 }

@@ -10,7 +10,7 @@ const BASE_URL = getApiBaseUrl('cook');
  * @param codeGroup 예: CATEGORY, COOKINGTIP
  */
 export async function getCommonCodesByGroup(codeGroup: string): Promise<CommonCodeOption[]> {
-    const response = await httpJson<CommonCodeOption[] | unknown>(BASE_URL, `/api/common-codes?codeGroup=${encodeURIComponent(codeGroup)}`, { method: 'GET' });
+    const response = await httpJson<CommonCodeOption[] | unknown>(BASE_URL, `/api/cook/common-codes?codeGroup=${encodeURIComponent(codeGroup)}`, { method: 'GET' });
     return Array.isArray(response) ? response : [];
 }
 
@@ -19,7 +19,7 @@ export async function getCommonCodesByGroup(codeGroup: string): Promise<CommonCo
  * @param codeId 예: INGREDIENTS_GROUP, INGREDIENTS_UNIT
  */
 export async function getCommonCodesByCodeId(codeId: string): Promise<CommonCodeOption[]> {
-    const response = await httpJson<CommonCodeOption[] | unknown>(BASE_URL, `/api/common-codes?codeId=${encodeURIComponent(codeId)}`, { method: 'GET' });
+    const response = await httpJson<CommonCodeOption[] | unknown>(BASE_URL, `/api/cook/common-codes?codeId=${encodeURIComponent(codeId)}`, { method: 'GET' });
     return Array.isArray(response) ? response : [];
 }
 
@@ -27,18 +27,18 @@ export async function getCommonCodesByCodeId(codeId: string): Promise<CommonCode
 
 /** 관리자: 전체 공통코드 목록 */
 export async function getAdminCommonCodeList(): Promise<CommonCodeListItem[]> {
-    const response = await httpJson<CommonCodeListItem[] | unknown>(BASE_URL, '/api/admin/common-codes', { method: 'GET' });
+    const response = await httpJson<CommonCodeListItem[] | unknown>(BASE_URL, '/api/cook/admin/common-codes', { method: 'GET' });
     return Array.isArray(response) ? response : [];
 }
 
 /** 관리자: 공통코드 단건 조회 (상세 포함) */
 export async function getAdminCommonCodeOne(codeId: string): Promise<AdminCommonCode> {
-    return httpJson<AdminCommonCode>(BASE_URL, `/api/admin/common-codes/${encodeURIComponent(codeId)}`, { method: 'GET' });
+    return httpJson<AdminCommonCode>(BASE_URL, `/api/cook/admin/common-codes/${encodeURIComponent(codeId)}`, { method: 'GET' });
 }
 
 /** 관리자: 공통코드 생성 */
 export async function createCommonCode(request: CommonCodeCreateRequest): Promise<CommonCodeListItem> {
-    return httpJson<CommonCodeListItem>(BASE_URL, '/api/admin/common-codes', {
+    return httpJson<CommonCodeListItem>(BASE_URL, '/api/cook/admin/common-codes', {
         method: 'POST',
         body: JSON.stringify(request)
     });
@@ -46,7 +46,7 @@ export async function createCommonCode(request: CommonCodeCreateRequest): Promis
 
 /** 관리자: 공통코드 수정 */
 export async function updateCommonCode(codeId: string, request: CommonCodeUpdateRequest): Promise<AdminCommonCode> {
-    return httpJson<AdminCommonCode>(BASE_URL, `/api/admin/common-codes/${encodeURIComponent(codeId)}`, {
+    return httpJson<AdminCommonCode>(BASE_URL, `/api/cook/admin/common-codes/${encodeURIComponent(codeId)}`, {
         method: 'PUT',
         body: JSON.stringify(request)
     });
@@ -54,14 +54,14 @@ export async function updateCommonCode(codeId: string, request: CommonCodeUpdate
 
 /** 관리자: 공통코드 삭제 */
 export async function deleteCommonCode(codeId: string): Promise<void> {
-    await httpJson(BASE_URL, `/api/admin/common-codes/${encodeURIComponent(codeId)}`, { method: 'DELETE' });
+    await httpJson(BASE_URL, `/api/cook/admin/common-codes/${encodeURIComponent(codeId)}`, { method: 'DELETE' });
 }
 
 // ---------- 관리자 상세코드 CRUD ----------
 
 /** 관리자: 상세코드 추가 */
 export async function createCommonCodeDetail(codeId: string, request: CommonCodeDetailCreateRequest): Promise<AdminCommonCodeDetailItem> {
-    return httpJson<AdminCommonCodeDetailItem>(BASE_URL, `/api/admin/common-codes/${encodeURIComponent(codeId)}/details`, {
+    return httpJson<AdminCommonCodeDetailItem>(BASE_URL, `/api/cook/admin/common-codes/${encodeURIComponent(codeId)}/details`, {
         method: 'POST',
         body: JSON.stringify(request)
     });
@@ -69,7 +69,7 @@ export async function createCommonCodeDetail(codeId: string, request: CommonCode
 
 /** 관리자: 상세코드 수정 */
 export async function updateCommonCodeDetail(codeId: string, detailCodeId: string, request: CommonCodeDetailUpdateRequest): Promise<AdminCommonCodeDetailItem> {
-    return httpJson<AdminCommonCodeDetailItem>(BASE_URL, `/api/admin/common-codes/${encodeURIComponent(codeId)}/details/${encodeURIComponent(detailCodeId)}`, {
+    return httpJson<AdminCommonCodeDetailItem>(BASE_URL, `/api/cook/admin/common-codes/${encodeURIComponent(codeId)}/details/${encodeURIComponent(detailCodeId)}`, {
         method: 'PUT',
         body: JSON.stringify(request)
     });
@@ -77,5 +77,5 @@ export async function updateCommonCodeDetail(codeId: string, detailCodeId: strin
 
 /** 관리자: 상세코드 삭제 */
 export async function deleteCommonCodeDetail(codeId: string, detailCodeId: string): Promise<void> {
-    await httpJson(BASE_URL, `/api/admin/common-codes/${encodeURIComponent(codeId)}/details/${encodeURIComponent(detailCodeId)}`, { method: 'DELETE' });
+    await httpJson(BASE_URL, `/api/cook/admin/common-codes/${encodeURIComponent(codeId)}/details/${encodeURIComponent(detailCodeId)}`, { method: 'DELETE' });
 }
