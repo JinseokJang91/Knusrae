@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping("/api/cook/categories")
 @RequiredArgsConstructor
 @Slf4j
 public class CategoryController {

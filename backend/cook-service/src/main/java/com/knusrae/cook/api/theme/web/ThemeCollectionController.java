@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/themes")
+@RequestMapping("/api/cook/themes")
 @RequiredArgsConstructor
 public class ThemeCollectionController {
 

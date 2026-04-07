@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/recipe/comments")
+@RequestMapping("/api/cook/recipe/comments")
 @RequiredArgsConstructor
 @Slf4j
 public class RecipeCommentController {

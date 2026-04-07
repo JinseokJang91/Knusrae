@@ -15,7 +15,7 @@ import java.util.List;
  * 관리자 공통코드 CRUD API (common-service에서 이전)
  */
 @RestController
-@RequestMapping("/api/admin/common-codes")
+@RequestMapping("/api/cook/admin/common-codes")
 @RequiredArgsConstructor
 @Slf4j
 public class AdminCommonCodeController {
