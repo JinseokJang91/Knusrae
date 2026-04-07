@@ -16,7 +16,7 @@ import java.util.List;
  * 공통코드 조회 API (common-service에서 이전)
  */
 @RestController
-@RequestMapping("/api/common-codes")
+@RequestMapping("/api/cook/common-codes")
 @RequiredArgsConstructor
 @Slf4j
 public class CommonCodeController {

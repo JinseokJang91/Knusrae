@@ -19,7 +19,7 @@ export async function getTodayRecommendations(limit: number = 3, refresh: boolea
         refresh: refresh.toString()
     });
 
-    const url = `/api/recipes/recommendations/today?${params}`;
+    const url = `/api/cook/recipes/recommendations/today?${params}`;
     const response = await httpJson<ApiResponse<TodayRecommendationsResponse>>(BASE_URL, url, {
         method: 'GET'
     });

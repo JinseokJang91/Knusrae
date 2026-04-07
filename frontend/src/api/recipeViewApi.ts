@@ -13,7 +13,7 @@ const BASE_URL = getApiBaseUrl('cook');
  * @returns 조회 기록 정보
  */
 export async function createRecipeView(recipeId: number): Promise<CreateViewResponse> {
-    const url = `/api/recipes/${recipeId}/view`;
+    const url = `/api/cook/recipes/${recipeId}/view`;
     const response = await httpJson<ApiResponse<CreateViewResponse>>(BASE_URL, url, {
         method: 'POST'
     });
@@ -34,7 +34,7 @@ export async function getRecentViews(memberId: number, limit: number = 10, offse
         offset: offset.toString()
     });
 
-    const url = `/api/members/${memberId}/recent-views?${params}`;
+    const url = `/api/cook/members/${memberId}/recent-views?${params}`;
     const response = await httpJson<ApiResponse<RecentViewsResponse>>(BASE_URL, url, {
         method: 'GET'
     });
@@ -48,7 +48,7 @@ export async function getRecentViews(memberId: number, limit: number = 10, offse
  * @param memberId 회원 ID
  */
 export async function deleteAllRecentViews(memberId: number): Promise<void> {
-    const url = `/api/members/${memberId}/recent-views`;
+    const url = `/api/cook/members/${memberId}/recent-views`;
     await httpJson(BASE_URL, url, {
         method: 'DELETE'
     });

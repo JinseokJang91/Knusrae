@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/cook")
 @RequiredArgsConstructor
 @Slf4j
 public class RecipeViewController {

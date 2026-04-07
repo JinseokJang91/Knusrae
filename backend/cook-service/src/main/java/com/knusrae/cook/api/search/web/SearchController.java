@@ -15,7 +15,7 @@ import java.util.List;
  * 메인 화면, 카테고리 등 여러 곳에서 사용할 수 있는 공통 검색 모듈
  */
 @RestController
-@RequestMapping("/api/search")
+@RequestMapping("/api/cook/search")
 @RequiredArgsConstructor
 @Slf4j
 public class SearchController {

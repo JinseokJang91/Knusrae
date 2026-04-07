@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/recipe")
+@RequestMapping("/api/cook/recipe")
 @Slf4j
 public class RecipeController {
     private final RecipeService recipeService;

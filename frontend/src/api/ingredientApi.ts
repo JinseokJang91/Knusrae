@@ -14,7 +14,7 @@ export interface IngredientListResponse {
  * 재료 그룹 목록 조회
  */
 export async function getIngredientGroups(): Promise<IngredientGroup[]> {
-    const response = await httpJson<{ groups?: IngredientGroup[] }>(BASE_URL, '/api/ingredients/groups', { method: 'GET' });
+    const response = await httpJson<{ groups?: IngredientGroup[] }>(BASE_URL, '/api/cook/ingredients/groups', { method: 'GET' });
     return response.groups || [];
 }
 
@@ -30,7 +30,7 @@ export async function getIngredients(params?: { groupId?: number; searchQuery?: 
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.offset) queryParams.append('offset', params.offset.toString());
 
-    const response = await httpJson<IngredientListResponse>(BASE_URL, `/api/ingredients?${queryParams}`, { method: 'GET' });
+    const response = await httpJson<IngredientListResponse>(BASE_URL, `/api/cook/ingredients?${queryParams}`, { method: 'GET' });
     return {
         groups: response.groups || [],
         ingredients: response.ingredients || [],
@@ -42,7 +42,7 @@ export async function getIngredients(params?: { groupId?: number; searchQuery?: 
  * 재료 보관법 조회
  */
 export async function getIngredientStorage(ingredientId: number): Promise<IngredientStorage> {
-    const response = await httpJson<{ data: IngredientStorage }>(BASE_URL, `/api/ingredients/${ingredientId}/storage`, { method: 'GET' });
+    const response = await httpJson<{ data: IngredientStorage }>(BASE_URL, `/api/cook/ingredients/${ingredientId}/storage`, { method: 'GET' });
     return response.data;
 }
 
@@ -50,7 +50,7 @@ export async function getIngredientStorage(ingredientId: number): Promise<Ingred
  * 재료 손질법 조회
  */
 export async function getIngredientPreparation(ingredientId: number): Promise<IngredientPreparation> {
-    const response = await httpJson<{ data: IngredientPreparation }>(BASE_URL, `/api/ingredients/${ingredientId}/preparation`, { method: 'GET' });
+    const response = await httpJson<{ data: IngredientPreparation }>(BASE_URL, `/api/cook/ingredients/${ingredientId}/preparation`, { method: 'GET' });
     return response.data;
 }
 
@@ -58,7 +58,7 @@ export async function getIngredientPreparation(ingredientId: number): Promise<In
  * 재료 정보 요청 생성
  */
 export async function createIngredientRequest(request: IngredientRequest): Promise<IngredientRequestResponse> {
-    const response = await httpJson<{ data: IngredientRequestResponse }>(BASE_URL, '/api/ingredients/requests', {
+    const response = await httpJson<{ data: IngredientRequestResponse }>(BASE_URL, '/api/cook/ingredients/requests', {
         method: 'POST',
         body: JSON.stringify(request)
     });
@@ -69,7 +69,7 @@ export async function createIngredientRequest(request: IngredientRequest): Promi
  * 사용자의 요청 목록 조회
  */
 export async function getMyIngredientRequests(): Promise<IngredientRequestResponse[]> {
-    const response = await httpJson<{ requests?: IngredientRequestResponse[] }>(BASE_URL, '/api/ingredients/requests/my', { method: 'GET' });
+    const response = await httpJson<{ requests?: IngredientRequestResponse[] }>(BASE_URL, '/api/cook/ingredients/requests/my', { method: 'GET' });
     return response.requests || [];
 }
 
@@ -89,7 +89,7 @@ export async function getAdminIngredientRequests(params?: { page?: number; size?
     if (params?.size != null) queryParams.append('size', params.size.toString());
     if (params?.status) queryParams.append('status', params.status);
 
-    const response = await httpJson<AdminIngredientRequestsResponse>(BASE_URL, `/api/ingredients/requests/admin?${queryParams}`, { method: 'GET' });
+    const response = await httpJson<AdminIngredientRequestsResponse>(BASE_URL, `/api/cook/ingredients/requests/admin?${queryParams}`, { method: 'GET' });
     return {
         requests: response.requests || [],
         totalCount: response.totalCount ?? 0,
@@ -102,7 +102,7 @@ export async function getAdminIngredientRequests(params?: { page?: number; size?
  * 재료 정보 요청 상태 업데이트 (관리자 전용)
  */
 export async function updateIngredientRequestStatus(requestId: number, status: string): Promise<IngredientRequestResponse> {
-    const response = await httpJson<{ data: IngredientRequestResponse }>(BASE_URL, `/api/ingredients/requests/${requestId}/status`, {
+    const response = await httpJson<{ data: IngredientRequestResponse }>(BASE_URL, `/api/cook/ingredients/requests/${requestId}/status`, {
         method: 'PUT',
         body: JSON.stringify({ status })
     });
@@ -113,7 +113,7 @@ export async function updateIngredientRequestStatus(requestId: number, status: s
  * 재료 그룹 등록 (관리자 전용)
  */
 export async function createIngredientGroup(request: { name: string; imageUrl?: string; sortOrder?: number }): Promise<IngredientGroup> {
-    const response = await httpJson<{ data: IngredientGroup }>(BASE_URL, '/api/admin/ingredients/groups', {
+    const response = await httpJson<{ data: IngredientGroup }>(BASE_URL, '/api/cook/admin/ingredients/groups', {
         method: 'POST',
         body: JSON.stringify(request)
     });
@@ -124,7 +124,7 @@ export async function createIngredientGroup(request: { name: string; imageUrl?: 
  * 재료 등록 (관리자 전용)
  */
 export async function createIngredient(request: { groupId: number; name: string; imageUrl?: string; sortOrder?: number }): Promise<Ingredient> {
-    const response = await httpJson<{ data: Ingredient }>(BASE_URL, '/api/admin/ingredients', {
+    const response = await httpJson<{ data: Ingredient }>(BASE_URL, '/api/cook/admin/ingredients', {
         method: 'POST',
         body: JSON.stringify(request)
     });
@@ -135,7 +135,7 @@ export async function createIngredient(request: { groupId: number; name: string;
  * 재료 그룹 수정 (관리자 전용)
  */
 export async function updateIngredientGroup(groupId: number, request: { name: string; imageUrl?: string; sortOrder?: number }): Promise<IngredientGroup> {
-    const response = await httpJson<{ data: IngredientGroup }>(BASE_URL, `/api/admin/ingredients/groups/${groupId}`, { method: 'PUT', body: JSON.stringify(request) });
+    const response = await httpJson<{ data: IngredientGroup }>(BASE_URL, `/api/cook/admin/ingredients/groups/${groupId}`, { method: 'PUT', body: JSON.stringify(request) });
     return response.data;
 }
 
@@ -143,7 +143,7 @@ export async function updateIngredientGroup(groupId: number, request: { name: st
  * 재료 그룹 삭제 (관리자 전용, 하위 재료 함께 삭제)
  */
 export async function deleteIngredientGroup(groupId: number): Promise<void> {
-    await httpJson(BASE_URL, `/api/admin/ingredients/groups/${groupId}`, {
+    await httpJson(BASE_URL, `/api/cook/admin/ingredients/groups/${groupId}`, {
         method: 'DELETE'
     });
 }
@@ -152,7 +152,7 @@ export async function deleteIngredientGroup(groupId: number): Promise<void> {
  * 재료 수정 (관리자 전용)
  */
 export async function updateIngredient(ingredientId: number, request: { groupId: number; name: string; imageUrl?: string; sortOrder?: number }): Promise<Ingredient> {
-    const response = await httpJson<{ data: Ingredient }>(BASE_URL, `/api/admin/ingredients/${ingredientId}`, { method: 'PUT', body: JSON.stringify(request) });
+    const response = await httpJson<{ data: Ingredient }>(BASE_URL, `/api/cook/admin/ingredients/${ingredientId}`, { method: 'PUT', body: JSON.stringify(request) });
     return response.data;
 }
 
@@ -160,7 +160,7 @@ export async function updateIngredient(ingredientId: number, request: { groupId:
  * 재료 삭제 (관리자 전용)
  */
 export async function deleteIngredient(ingredientId: number): Promise<void> {
-    await httpJson(BASE_URL, `/api/admin/ingredients/${ingredientId}`, {
+    await httpJson(BASE_URL, `/api/cook/admin/ingredients/${ingredientId}`, {
         method: 'DELETE'
     });
 }
@@ -169,7 +169,7 @@ export async function deleteIngredient(ingredientId: number): Promise<void> {
  * 재료 보관법 등록 (관리자 전용)
  */
 export async function createIngredientStorage(request: { ingredientId: number; content: string; summary?: string }): Promise<IngredientStorage> {
-    const response = await httpJson<{ data: IngredientStorage }>(BASE_URL, '/api/admin/ingredients/storage', {
+    const response = await httpJson<{ data: IngredientStorage }>(BASE_URL, '/api/cook/admin/ingredients/storage', {
         method: 'POST',
         body: JSON.stringify(request)
     });
@@ -180,7 +180,7 @@ export async function createIngredientStorage(request: { ingredientId: number; c
  * 재료 손질법 등록 (관리자 전용)
  */
 export async function createIngredientPreparation(request: { ingredientId: number; content: string; summary?: string }): Promise<IngredientPreparation> {
-    const response = await httpJson<{ data: IngredientPreparation }>(BASE_URL, '/api/admin/ingredients/preparation', {
+    const response = await httpJson<{ data: IngredientPreparation }>(BASE_URL, '/api/cook/admin/ingredients/preparation', {
         method: 'POST',
         body: JSON.stringify(request)
     });
@@ -193,6 +193,6 @@ export async function createIngredientPreparation(request: { ingredientId: numbe
 export async function uploadContentImage(file: File): Promise<{ url: string }> {
     const formData = new FormData();
     formData.append('image', file);
-    const res = await httpForm(BASE_URL, '/api/admin/ingredients/upload-image', formData);
+    const res = await httpForm(BASE_URL, '/api/cook/admin/ingredients/upload-image', formData);
     return res as { url: string };
 }
