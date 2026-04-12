@@ -17,6 +17,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -39,6 +40,8 @@ public class KakaoAuthService {
 
     private static final String TOKEN_URL = "https://kauth.kakao.com/oauth/token";
     private static final String USER_INFO_URL = "https://kapi.kakao.com/v2/user/me";
+    /** {@link Member#getName()} 컬럼 length와 동일 */
+    private static final int MEMBER_NAME_MAX_LEN = 20;
 
     public TokenResponse kakaoLoginProcess(String code) throws JsonProcessingException {
         // 액세스 토큰 요청
@@ -55,7 +58,7 @@ public class KakaoAuthService {
             String profileImage = kakaoUserDTO.getProperties() != null ? kakaoUserDTO.getProperties().getProfileImage() : null;
             member = memberRepository.save(
                     Member.builder()
-                            .name(kakaoUserDTO.getName())
+                            .name(resolveKakaoMemberName(kakaoUserDTO))
                             .nickname(kakaoUserDTO.getNickname())
                             .phone(LoginFormatter.formatPhoneNumber(kakaoUserDTO.getPhoneNumber()))
                             .email(kakaoUserDTO.getEmail())
@@ -120,5 +123,30 @@ public class KakaoAuthService {
         }
 
         return objectMapper.readValue(userInfoResponse.getBody(), KakaoUserDTO.class);
+    }
+
+    /**
+     * 카카오는 사업자 미등록 시 실명(name) 동의를 줄 수 없어 {@code kakao_account.name}이 비는 경우가 있다.
+     * 그때는 프로필 닉네임을 {@link Member#getName()}에 사용한다.
+     */
+    private static String resolveKakaoMemberName(KakaoUserDTO kakaoUser) {
+        if (StringUtils.hasText(kakaoUser.getName())) {
+            return truncateMemberName(kakaoUser.getName().trim());
+        }
+        if (StringUtils.hasText(kakaoUser.getNickname())) {
+            return truncateMemberName(kakaoUser.getNickname().trim());
+        }
+        String email = kakaoUser.getEmail();
+        if (StringUtils.hasText(email) && email.contains("@")) {
+            return truncateMemberName(email.substring(0, email.indexOf('@')));
+        }
+        return "카카오회원";
+    }
+
+    private static String truncateMemberName(String value) {
+        if (value.length() <= MEMBER_NAME_MAX_LEN) {
+            return value;
+        }
+        return value.substring(0, MEMBER_NAME_MAX_LEN);
     }
 }
