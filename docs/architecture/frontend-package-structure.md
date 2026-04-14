@@ -1,42 +1,40 @@
 # Frontend 패키지 및 파일 구조도
 
-**작성일**: 2026-02-20  
+**작성일**: 2026-04-14  
 **대상**: `frontend/` (Vue 3 + TypeScript + Vite + PrimeVue)
 
 ---
 
-## 1. 루트 디렉터리 개요
+## 1. 루트 디렉터리 개요 (현행)
 
-```
+```text
 frontend/
-├── public/                 # 정적 자산 (빌드 시 그대로 복사)
-│   └── guide/              # 가이드 이미지 (Guide_01.png ~ Guide_05.png)
-├── src/                    # 소스 코드 (아래 상세)
+├── src/                         # 소스 코드 (아래 상세)
 ├── index.html
-├── package.json            # 의존성: Vue 3, Vue Router, Pinia, PrimeVue, Tailwind, Toast UI Editor
+├── package.json / package-lock.json
 ├── vite.config.ts
 ├── tsconfig.json / tsconfig.node.json
 ├── tailwind.config.js
 ├── postcss.config.js
-├── .eslintrc.cjs / .prettierrc.json / .editorconfig / .gitignore / .npmrc
-├── components.d.ts         # PrimeVue 자동 임포트 타입
+├── .eslintrc.cjs / eslint.config.cjs
+├── .prettierrc.json / .editorconfig / .gitignore / .npmrc
+├── components.d.ts              # 컴포넌트 자동 임포트 타입
 ├── vercel.json
-├── env.d.ts                # (src 내 env.d.ts 참고)
-├── README.md / LICENSE.md
-└── .env / .env.local       # 환경 변수 (비공개)
+├── Dockerfile / nginx.conf      # 컨테이너/서버 배포 설정
+└── README.md / LICENSE.md
 ```
 
 ---
 
 ## 2. src 디렉터리 구조 (패키지 및 파일)
 
-```
+```text
 src/
-├── main.ts                 # 앱 진입점
-├── App.vue                 # 루트 컴포넌트
-├── env.d.ts                # 환경 변수 타입 선언
+├── main.ts                      # 앱 진입점
+├── App.vue                      # 루트 컴포넌트
+├── env.d.ts                     # Vite 환경 변수 타입
 │
-├── api/                    # 백엔드 API 호출 모듈
+├── api/                         # 도메인별 백엔드 API 호출 모듈
 │   ├── authApi.ts
 │   ├── bookmarkApi.ts
 │   ├── categoryApi.ts
@@ -52,7 +50,7 @@ src/
 │   ├── searchApi.ts
 │   └── themeApi.ts
 │
-├── types/                  # TypeScript 타입/인터페이스
+├── types/                       # TypeScript 타입/인터페이스
 │   ├── auth.ts
 │   ├── bookmark.ts
 │   ├── category.ts
@@ -66,33 +64,35 @@ src/
 │   ├── recipe.ts
 │   ├── recipeCategory.ts
 │   ├── recipeForm.ts
+│   ├── router.d.ts
 │   └── theme.ts
 │
-├── stores/                 # Pinia 스토어
+├── stores/                      # Pinia 스토어
 │   └── authStore.ts
 │
 ├── router/
-│   └── index.ts            # Vue Router 설정
+│   └── index.ts                 # Vue Router 설정
 │
-├── utils/                  # 공통 유틸리티
+├── utils/                       # 공통 유틸리티
 │   ├── auth.ts
 │   ├── constants.ts
 │   ├── errorHandler.ts
-│   ├── http.ts             # HTTP 클라이언트 (axios 래퍼)
+│   ├── globalErrorHandler.ts
+│   ├── http.ts                  # HTTP 클라이언트
+│   ├── mask.ts
 │   ├── oauth.ts
 │   ├── search.ts
-│   ├── toast.ts
-│   └── (기타)
+│   └── toast.ts
 │
-├── layout/                 # 레이아웃 컴포넌트
+├── layout/                      # 레이아웃 컴포넌트
 │   ├── AppLayout.vue
 │   ├── AppTopbar.vue
 │   └── AppFooter.vue
 │
-├── views/                  # 페이지 단위 뷰 (라우트와 1:1 대응)
+├── views/                       # 페이지 단위 뷰
 │   ├── Dashboard.vue
 │   └── pages/
-│       ├── admin/          # 관리자
+│       ├── admin/
 │       │   ├── Admin.vue
 │       │   ├── AdminInquiryList.vue
 │       │   ├── CommonCodeManagement.vue
@@ -100,16 +100,15 @@ src/
 │       │   ├── IngredientGroupRegister.vue
 │       │   ├── IngredientManagementRegister.vue
 │       │   ├── IngredientRegister.vue
-│       │   ├── IngredientRequestList.vue
-│       │   └── (기타)
-│       ├── auth/           # 인증
+│       │   └── IngredientRequestList.vue
+│       ├── auth/
 │       │   ├── Login.vue
 │       │   ├── OAuthCallback.vue
 │       │   ├── GoogleCallback.vue
 │       │   ├── KakaoCallback.vue
 │       │   └── NaverCallback.vue
 │       ├── community/
-│       │   └── FAQ.vue
+│       │   └── CustomerSupport.vue
 │       ├── error/
 │       │   ├── Access.vue
 │       │   ├── Error.vue
@@ -121,18 +120,16 @@ src/
 │       │   └── IngredientManagement.vue
 │       ├── member/
 │       │   └── MemberProfile.vue
-│       ├── my/             # 마이페이지
+│       ├── my/
 │       │   ├── MyPage.vue
 │       │   ├── Profile.vue
 │       │   ├── Bookmarks.vue
 │       │   ├── Comments.vue
 │       │   ├── Favorites.vue
 │       │   ├── Inquiries.vue
-│       │   ├── InquiryDetail.vue
-│       │   ├── Recipes.vue
 │       │   ├── RecipeCreate.vue
 │       │   ├── RecipeEdit.vue
-│       │   └── (기타)
+│       │   └── Recipes.vue
 │       ├── ranking/
 │       │   └── Ranking.vue
 │       └── recipe/
@@ -140,7 +137,7 @@ src/
 │           ├── RecipeDetail.vue
 │           └── SearchResult.vue
 │
-├── components/             # 재사용 컴포넌트 (도메인별)
+├── components/                  # 재사용 컴포넌트 (도메인별)
 │   ├── ScrollToTop.vue
 │   ├── SocialLoginButtons.vue
 │   ├── bookmark/
@@ -153,6 +150,8 @@ src/
 │   ├── common/
 │   │   ├── AppToast.vue
 │   │   └── PageStateBlock.vue
+│   ├── community/
+│   │   └── FAQ.vue
 │   ├── dashboard/
 │   │   ├── CategorySection.vue
 │   │   ├── CategorySections.vue
@@ -172,6 +171,7 @@ src/
 │   │   ├── IngredientGroupSelector.vue
 │   │   └── IngredientList.vue
 │   ├── inquiry/
+│   │   ├── InquiryDetailDialog.vue
 │   │   └── InquiryFormDialog.vue
 │   └── recipe/
 │       ├── RecipeCard.vue
@@ -188,23 +188,24 @@ src/
 │           ├── RecipeFormIngredients.vue
 │           └── RecipeFormSteps.vue
 │
-├── data/                   # 정적/로컬 데이터
+├── data/                        # 정적/로컬 데이터
 │   ├── faqData.ts
 │   └── recipeCategoryData.ts
 │
-└── assets/                 # 스타일·이미지 등 리소스
+└── assets/                      # 스타일·이미지 등 리소스
     ├── styles.scss
     ├── tailwind.css
     ├── images/
-    │   ├── badges/         # 앱스토어, SNS 배지 등
-    │   ├── logo/
-    │   └── social/         # Google, Kakao, Naver 아이콘
+    │   └── badges/
+    │       ├── badge_appstore.svg
+    │       └── badge_googleplay.svg
     └── layout/
         ├── layout.scss
         ├── _core.scss
         ├── _footer.scss
         ├── _main.scss
         ├── _mixins.scss
+        ├── _page-container.scss
         ├── _recipe-card-list.scss
         ├── _recipe-sort-buttons.scss
         ├── _responsive.scss
@@ -217,24 +218,19 @@ src/
 
 ---
 
-## 3. 패키지(폴더) 역할 요약
+## 3. 패키지(폴더) 역할 요약 (현행)
 
 | 폴더 | 역할 |
 |------|------|
-| `api/` | 도메인별 REST API 호출 함수 (auth, recipe, member, theme 등) |
-| `types/` | API·폼·화면에서 사용하는 공통 타입/인터페이스 |
-| `stores/` | 전역 상태 (현재 인증 `authStore` 위주) |
+| `api/` | 도메인별 REST API 호출 함수 (`auth`, `recipe`, `member`, `theme` 등) |
+| `types/` | API/폼/화면에서 사용하는 타입 및 선언 파일 (`router.d.ts` 포함) |
+| `stores/` | 전역 상태 저장소 (현재 `authStore` 중심) |
 | `router/` | 라우트 정의 및 가드 |
-| `utils/` | HTTP 클라이언트, 인증/oauth, 토스트, 검색 등 공용 유틸 |
+| `utils/` | HTTP 클라이언트, 인증/OAuth, 에러 처리, 마스킹, 토스트 유틸 |
 | `layout/` | 상단/하단/전체 레이아웃 컴포넌트 |
-| `views/` | 라우트 단위 페이지 (admin, auth, my, recipe 등) |
-| `components/` | 도메인별 재사용 컴포넌트 (bookmark, dashboard, recipe, ingredient 등) |
+| `views/` | 라우트 단위 페이지 (`admin`, `auth`, `my`, `recipe` 등) |
+| `components/` | 재사용 컴포넌트 (`bookmark`, `dashboard`, `recipe`, `ingredient` 등) |
 | `data/` | FAQ, 레시피 카테고리 등 정적 데이터 |
-| `assets/` | SCSS, Tailwind, 이미지, 레이아웃 변수 |
+| `assets/` | SCSS, 이미지 배지, 레이아웃 스타일 리소스 |
 
 ---
-
-## 4. 참고
-
-- **빌드/실행**: `npm run dev`, `npm run build`
-- **문서 갱신**: 디렉터리·파일 추가·이동 시 이 문서를 함께 수정할 것을 권장합니다.
