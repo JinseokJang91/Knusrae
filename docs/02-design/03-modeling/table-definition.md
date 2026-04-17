@@ -473,9 +473,3 @@
 ## 4. 참고
 
 - **인덱스·UK**: Entity의 `@Index`, `@UniqueConstraint` 기준으로 정의되어 있으며, 상세 DDL은 각 서비스 스키마/마이그레이션 참고.
-- **샘플·마이그레이션 SQL**: [docs/sample/data/sql/](../../sample/data/sql/)  
-  - common_code_20260102.sql, common_code_detail_20260102.sql  
-  - recipe_view_migration.sql  
-  - bookmark_folder_to_recipe_book_migration.sql  
-  - ingredient_group_sequence_fix.sql  
-  - recipe_bookmark_memo.sql  
