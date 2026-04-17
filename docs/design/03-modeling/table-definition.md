@@ -1,7 +1,7 @@
 # 테이블 정의서
 
 **작성 기준**: Backend `@Entity` / `@Table` 분석  
-**기준일**: 2026-02-20  
+**기준일**: 2026-04-17  
 **적용 범위**: Knusrae 애플리케이션 전체 (auth, common, member, cook 서비스)
 
 ---
@@ -299,11 +299,12 @@
 | 2 | popularity_score | 인기도점수 | DOUBLE | N | - | - | 0.0 | |
 | 3 | hits_24h | 24시간조회수 | BIGINT | Y | - | - | 0 | |
 | 4 | hits_7d | 7일조회수 | BIGINT | Y | - | - | 0 | |
-| 5 | favorite_count | 찜수 | BIGINT | Y | - | - | 0 | |
-| 6 | comment_count | 댓글수 | BIGINT | Y | - | - | 0 | |
-| 7 | favorite_increase_24h | 24시간찜증가 | BIGINT | Y | - | - | 0 | |
-| 8 | calculated_at | 산출일시 | DATETIME | N | - | - | - | |
-| 9 | updated_at | 수정일시 | DATETIME | Y | - | - | - | |
+| 5 | hits_30d | 30일조회수 | BIGINT | Y | - | - | 0 | |
+| 6 | favorite_count | 찜수 | BIGINT | Y | - | - | 0 | |
+| 7 | comment_count | 댓글수 | BIGINT | Y | - | - | 0 | |
+| 8 | favorite_increase_24h | 24시간찜증가 | BIGINT | Y | - | - | 0 | |
+| 9 | calculated_at | 산출일시 | DATETIME | N | - | - | - | |
+| 10 | updated_at | 수정일시 | DATETIME | Y | - | - | - | |
 
 #### 2.4.11 recipe_popularity_history (인기 순위 이력)
 

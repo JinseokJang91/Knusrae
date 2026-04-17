@@ -1,7 +1,7 @@
 # 컴포넌트 목록
 
 **정의**: 각 화면에 컴포넌트로 포함되어 기능을 담당하는 파일 목록  
-**기준**: `frontend/src/components/` 및 View에서의 import 분석 (2026-02-20)
+**기준**: `frontend/src/components/` 및 View에서의 import 분석 (2026-04-17)
 
 ---
 
@@ -9,7 +9,7 @@
 
 | No | 컴포넌트(파일) | 경로 | 사용 화면 | 설명·역할 |
 |----|----------------|------|-----------|-----------|
-| 1 | PageStateBlock | components/common/PageStateBlock.vue | Bookmarks, SearchResult, Category, MemberProfile, Profile, FollowingFeed, Inquiries, InquiryDetail, Comments, Favorites, Recipes, FAQ, FollowListDialog | 로딩·빈 목록·에러 등 상태별 블록 UI 표시 |
+| 1 | PageStateBlock | components/common/PageStateBlock.vue | Bookmarks, SearchResult, Category, MemberProfile, Profile, FollowingFeed, Inquiries, InquiryDetailDialog, Comments, Favorites, Recipes, FAQ, FollowListDialog | 로딩·빈 목록·에러 등 상태별 블록 UI 표시 |
 | 2 | AppToast | components/common/AppToast.vue | App.vue(전역) | 전역 토스트 메시지 표시 |
 | 3 | ScrollToTop | components/ScrollToTop.vue | AppLayout | 라우트 변경 시 스크롤 상단 이동 |
 
@@ -80,7 +80,8 @@
 
 | No | 컴포넌트(파일) | 경로 | 사용 화면 | 설명·역할 |
 |----|----------------|------|-----------|-----------|
-| 30 | InquiryFormDialog | components/inquiry/InquiryFormDialog.vue | Inquiries, InquiryDetail | 1:1 문의 작성/수정 다이얼로그 |
+| 30 | InquiryFormDialog | components/inquiry/InquiryFormDialog.vue | Inquiries, InquiryDetailDialog | 1:1 문의 작성/수정 다이얼로그 |
+| 31 | InquiryDetailDialog | components/inquiry/InquiryDetailDialog.vue | Inquiries | 1:1 문의 상세 조회·답변 확인·수정/삭제 다이얼로그 |
 
 ---
 
@@ -88,10 +89,10 @@
 
 | No | 컴포넌트(파일) | 경로 | 사용 화면 | 설명·역할 |
 |----|----------------|------|-----------|-----------|
-| 31 | IngredientList | components/ingredient/IngredientList.vue | IngredientManagement | 재료 그룹·재료 목록 표시 및 그룹 선택 |
-| 32 | IngredientGroupSelector | components/ingredient/IngredientGroupSelector.vue | IngredientList | 재료 그룹 선택 UI |
-| 33 | IngredientGrid | components/ingredient/IngredientGrid.vue | IngredientList | 재료 카드 그리드 배치 |
-| 34 | IngredientCard | components/ingredient/IngredientCard.vue | IngredientGrid | 재료 한 건 카드 표시 |
+| 32 | IngredientList | components/ingredient/IngredientList.vue | IngredientManagement | 재료 그룹·재료 목록 표시 및 그룹 선택 |
+| 33 | IngredientGroupSelector | components/ingredient/IngredientGroupSelector.vue | IngredientList | 재료 그룹 선택 UI |
+| 34 | IngredientGrid | components/ingredient/IngredientGrid.vue | IngredientList | 재료 카드 그리드 배치 |
+| 35 | IngredientCard | components/ingredient/IngredientCard.vue | IngredientGrid | 재료 한 건 카드 표시 |
 
 ---
 
@@ -99,8 +100,8 @@
 
 | No | 컴포넌트(파일) | 경로 | 사용 화면 | 설명·역할 |
 |----|----------------|------|-----------|-----------|
-| 35 | ToastUiEditor | components/editor/ToastUiEditor.vue | IngredientManagementRegister | Toast UI 기반 리치 에디터(저장법·손질법 등 입력) |
-| 36 | ToastUiViewer | components/editor/ToastUiViewer.vue | IngredientDetail | Toast UI 기반 본문 뷰어(저장법·손질법 등 표시) |
+| 36 | ToastUiEditor | components/editor/ToastUiEditor.vue | IngredientManagementRegister | Toast UI 기반 리치 에디터(저장법·손질법 등 입력) |
+| 37 | ToastUiViewer | components/editor/ToastUiViewer.vue | IngredientDetail | Toast UI 기반 본문 뷰어(저장법·손질법 등 표시) |
 
 ---
 
@@ -108,7 +109,8 @@
 
 | No | 컴포넌트(파일) | 경로 | 사용 화면 | 설명·역할 |
 |----|----------------|------|-----------|-----------|
-| 37 | SocialLoginButtons | components/SocialLoginButtons.vue | Login | 소셜 로그인(네이버·구글·카카오) 버튼 |
+| 38 | SocialLoginButtons | components/SocialLoginButtons.vue | Login | 소셜 로그인(네이버·구글·카카오) 버튼 |
+| 39 | FAQ | components/community/FAQ.vue | CustomerSupport | 자주 묻는 질문 목록 표시 컴포넌트 |
 
 ---
 

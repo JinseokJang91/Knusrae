@@ -6,8 +6,9 @@
 |------|------|
 | 프로젝트명 | Knusrae (크누래) |
 | 문서명 | 아키텍처 정의서 |
-| 버전 | 1.0 |
+| 버전 | 1.1 |
 | 작성일 | 2026-02-20 |
+| 최종 수정일 | 2026-03-14 |
 
 ---
 
@@ -73,28 +74,28 @@ flowchart TB
             C9["CreatorController\n추천 크리에이터"]
             C10["SearchController\n레시피 검색"]
             C11["IngredientController\nIngredientRequest\nAdminIngredient"]
+            C12["CommonCodeController\nAdminCommonCodeController\n(공통코드 조회/관리)"]
         end
-        subgraph Common["common-service"]
-            O1["CommonCodeController\nAdminCommonCodeController"]
-            O2["공통 도메인\n(Follow, Member 엔티티 등)"]
+        subgraph Common["common-service (공유 라이브러리)"]
+            O1["공통 도메인\n(CommonCode, Member, Follow\n엔티티·리포지토리·서비스)"]
+            O2["공통 인프라\n(Security, Storage, 예외처리)"]
         end
     end
 
     subgraph Data["데이터 저장소"]
-        MySQL[(MySQL)]
-        Redis[(Redis\n캐시)]
+        PostgreSQL[(PostgreSQL)]
+        Redis[(Redis\n추후 구현 검토)]
     end
 
     Browser -->|"REST"| Auth
     Browser -->|"REST"| Member
     Browser -->|"REST"| Cook
-    Browser -->|"REST"| Common
 
-    Auth --> MySQL
-    Member --> MySQL
-    Cook --> MySQL
-    Cook --> Redis
-    Common --> MySQL
+    Cook -.->|"의존"| Common
+    Auth --> PostgreSQL
+    Member --> PostgreSQL
+    Cook --> PostgreSQL
+    Common --> PostgreSQL
 ```
 
 ---
@@ -104,9 +105,9 @@ flowchart TB
 | 서비스 | 역할 | 주요 API Prefix |
 |--------|------|-----------------|
 | **auth-service** | OAuth 로그인, JWT 발급/갱신/로그아웃 | /api/auth |
-| **member-service** | 회원 프로필, 팔로우, 1:1 문의 | /api/member, /api/follows, /api/inquiries |
-| **cook-service** | 레시피·댓글·북마크·찜·조회·추천·테마·카테고리·크리에이터·검색·재료·관리자 재료 | /api/recipe, /api/recipes, /api/themes, /api/creators, /api/categories, /api/search, /api/ingredients, /api/admin |
-| **common-service** | 공통코드 조회/관리, 공통 엔티티(Follow 등) | /api/common-codes, /api/admin/common-codes |
+| **member-service** | 회원 프로필, 팔로우, 1:1 문의 | /api/member |
+| **cook-service** | 레시피·댓글·북마크·찜·조회·추천·테마·카테고리·크리에이터·검색·재료·관리자 재료·**공통코드 조회/관리** | /api/cook |
+| **common-service** | 공통 도메인(CommonCode, Member, Follow 엔티티·서비스) 및 공통 인프라(보안, 스토리지, 예외 처리). **REST API 미노출**, cook-service 등에서 라이브러리로 의존 | — |
 
 ---
 
@@ -185,16 +186,16 @@ sequenceDiagram
     participant U as 사용자
     participant V as RecipeDetail.vue
     participant C as cook-service
-    participant M as MySQL
+    participant M as PostgreSQL
 
     U->>V: 레시피 상세 진입
-    V->>C: GET /api/recipe/{id}
+    V->>C: GET /api/cook/recipe/{id}
     C->>M: 레시피 조회
     M-->>C: 레시피
     C-->>V: 레시피 상세
 
     alt 로그인 사용자
-        V->>C: POST /api/recipes/{id}/view
+        V->>C: POST /api/cook/recipes/{id}/view
         C->>M: RecipeView 저장/갱신
         C-->>V: 200 OK
     end
@@ -246,7 +247,7 @@ sequenceDiagram
     participant B as cook-service (Bookmark/RecipeBook API)
 
     U->>V: 레시피에서 '북마크' 클릭
-    V->>B: GET /api/recipe/bookmarks/recipe-books (내 레시피북 목록)
+    V->>B: GET /api/cook/recipe/bookmarks/recipe-books (내 레시피북 목록)
     B-->>V: recipeBooks[]
     V-->>U: 레시피북 선택 다이얼로그 표시
 
@@ -264,8 +265,8 @@ sequenceDiagram
 |------|------|
 | **프론트엔드** | Vue 3, TypeScript, Pinia, Vue Router, PrimeVue, Axios, Vite |
 | **백엔드** | Java 17, Spring Boot 3.x, Spring Security, JPA, QueryDSL |
-| **DB** | MySQL 8.0 |
-| **캐시** | Redis (선택·일부 API 캐싱) |
+| **DB** | PostgreSQL |
+| **캐시** | Redis (현재 미구성, 추후 구현 가능) |
 | **인증** | JWT, OAuth2 (네이버/구글/카카오) |
 | **기타** | Spring Scheduler (인기 점수 등 배치성 작업) |
 
@@ -295,7 +296,7 @@ Knusrae/
     └── design/
         ├── 01-requirements/  # 본 요구사항·아키텍처
         ├── 02-interface/
-        ├── 03-table-definition/
+        ├── 03-modeling/
         └── 05-program-list/
 ```
 
@@ -306,3 +307,4 @@ Knusrae/
 | 버전 | 일자 | 변경 내용 |
 |------|------|-----------|
 | 1.0 | 2026-02-20 | 최초 작성(시스템·서비스·프론트 구조 및 주요 플로우) |
+| 1.1 | 2026-03-14 | common-service를 REST 미노출 공유 라이브러리로 정정, 공통코드 API는 cook-service에서 제공. DB를 PostgreSQL로 정정, Redis는 현재 미구성·추후 구현 가능으로 표기 |

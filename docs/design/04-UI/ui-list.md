@@ -1,7 +1,7 @@
 # UI 목록
 
 **정의**: 독립된 화면(라우트 단위)으로 기능을 수행하는 화면 목록  
-**기준**: `frontend/src/router/index.ts` 및 View 컴포넌트 분석 (2026-02-20)
+**기준**: `frontend/src/router/index.ts` 및 View 컴포넌트 분석 (2026-04-17)
 
 ---
 
@@ -20,7 +20,7 @@
 
 | No | 경로 | 라우트 name | View 컴포넌트 | 설명·기능 |
 |----|------|-------------|---------------|-----------|
-| 5 | /my/recipes | myRecipes | Recipes.vue | 내가 작성한 레시피 목록 |
+| 5 | /my/recipes | myRecipes | MyPage.vue | 레시피 관리 탭으로 리다이렉트(`/my?tab=recipes`) |
 | 6 | /my/recipes/new | myRecipeCreate | RecipeCreate.vue | 새 레시피 등록 폼 |
 | 7 | /my/recipes/:id/edit | myRecipeEdit | RecipeEdit.vue | 기존 레시피 수정 폼 |
 
@@ -31,7 +31,7 @@
 | No | 경로 | 라우트 name | View 컴포넌트 | 설명·기능 |
 |----|------|-------------|---------------|-----------|
 | 8 | /my | mypage | MyPage.vue | 마이페이지. 탭: 내 정보 수정(Profile), 내 댓글(Comments), 1:1 문의(Inquiries), 찜 목록(Favorites), 북마크 관리(Bookmarks) |
-| 9 | /my/inquiries/:id | inquiryDetail | InquiryDetail.vue | 1:1 문의 상세 조회·답변 확인 |
+| 9 | /my/inquiries/:id | (redirect) | MyPage.vue | 문의 탭으로 리다이렉트(`/my?tab=inquiries`) |
 
 ---
 
@@ -55,7 +55,7 @@
 | No | 경로 | 라우트 name | View 컴포넌트 | 설명·기능 |
 |----|------|-------------|---------------|-----------|
 | 18 | /ingredient/management | ingredientManagement | IngredientManagement.vue | 재료 관리 목록(그룹·재료 조회) |
-| 19 | /ingredient/management/register | ingredientRegister | IngredientManagementRegister.vue | 재료 관리용 등록(사용자 경로) |
+| 19 | /ingredient/management/register | ingredientRegister | IngredientManagementRegister.vue | 재료 관리용 등록(관리자 권한 필요) |
 | 20 | /ingredient/management/:id | ingredientDetail | IngredientDetail.vue | 재료 상세(저장법·손질법 등) |
 
 ---
@@ -65,7 +65,7 @@
 | No | 경로 | 라우트 name | View 컴포넌트 | 설명·기능 |
 |----|------|-------------|---------------|-----------|
 | 21 | /ranking | ranking | Ranking.vue | 레시피 랭킹(기간별 탭) |
-| 22 | /community/faq | faq | FAQ.vue | 자주 묻는 질문(FAQ) |
+| 22 | /support | customerSupport | CustomerSupport.vue | 고객지원(FAQ 포함) |
 
 ---
 
@@ -101,6 +101,7 @@
 
 ## 비고
 
-- `/my/profile`, `/my/comments`, `/my/inquiries`, `/my/favorites` 는 `/my?tab=...` 로 리다이렉트되며, 실제 콘텐츠는 MyPage.vue 의 탭(Profile, Comments, Inquiries, Favorites)으로 표시됨.
+- `/my/recipes`, `/my/profile`, `/my/comments`, `/my/inquiries`, `/my/favorites` 는 `/my?tab=...` 로 리다이렉트되며, 실제 콘텐츠는 MyPage.vue 탭으로 표시됨.
+- `/community/faq` 는 `/support` 로 리다이렉트됨.
 - `/ranking/weekly`, `/ranking/monthly` 는 `/ranking?period=...` 로 리다이렉트됨.
 - AppLayout 하위 라우트(1~24)는 공통 레이아웃(헤더·네비게이션 등)을 사용함.

@@ -3,7 +3,7 @@
 **정의**: 본 애플리케이션에서 구현된 모든 프로그램 단위(파일)를 테이블 형태로 정의한 문서  
 **작성 기준**: Frontend `frontend/src/`, Backend `backend/*/src/main/java/` 소스 파일 (build/generated 제외)  
 **양식**: SI 산출물 프로그램 목록 (프로그램ID, 프로그램명, 파일경로, 설명, 비고)  
-**기준일**: 2026-02-20
+**기준일**: 2026-04-17
 
 ---
 
@@ -216,7 +216,7 @@
 | 6 | FE-VW-006 | 레시피 등록 | views/pages/my/RecipeCreate.vue | 새 레시피 등록 폼 | /my/recipes/new |
 | 7 | FE-VW-007 | 레시피 수정 | views/pages/my/RecipeEdit.vue | 레시피 수정 폼 | /my/recipes/:id/edit |
 | 8 | FE-VW-008 | 마이페이지 | views/pages/my/MyPage.vue | 프로필·댓글·문의·찜·북마크 탭 | /my |
-| 9 | FE-VW-009 | 문의 상세 | views/pages/my/InquiryDetail.vue | 1:1 문의 상세 | /my/inquiries/:id |
+| 9 | FE-VW-009 | 문의 상세 라우트(리다이렉트) | views/pages/my/MyPage.vue | 문의 상세 경로 접근 시 마이페이지 문의 탭으로 리다이렉트 | /my/inquiries/:id -> /my?tab=inquiries |
 | 10 | FE-VW-010 | 북마크 | views/pages/my/Bookmarks.vue | 북마크(레시피북) 관리 | /my (탭) |
 | 11 | FE-VW-011 | 관리자 메인 | views/pages/admin/Admin.vue | 관리자 메뉴 진입 | /admin |
 | 12 | FE-VW-012 | 재료 그룹 관리 | views/pages/admin/IngredientGroupManagement.vue | 재료 그룹 목록·관리 | /admin/ingredient-groups |
@@ -227,14 +227,14 @@
 | 17 | FE-VW-017 | 문의 목록(관리자) | views/pages/admin/AdminInquiryList.vue | 1:1 문의 목록·답변 | /admin/inquiries |
 | 18 | FE-VW-018 | 공통코드 관리 | views/pages/admin/CommonCodeManagement.vue | 공통코드 CRUD | /admin/common-codes |
 | 19 | FE-VW-019 | 재료 관리 | views/pages/ingredient/IngredientManagement.vue | 재료 그룹·재료 조회 | /ingredient/management |
-| 20 | FE-VW-020 | 재료 관리 등록(사용자) | views/pages/ingredient/IngredientManagementRegister.vue | 저장법·손질법 등록 | /ingredient/management/register |
+| 20 | FE-VW-020 | 재료 관리 등록(관리자) | views/pages/admin/IngredientManagementRegister.vue | 저장법·손질법 등록 | /ingredient/management/register (관리자 권한) |
 | 21 | FE-VW-021 | 재료 상세 | views/pages/ingredient/IngredientDetail.vue | 재료 상세(보관·손질) | /ingredient/management/:id |
 | 22 | FE-VW-022 | 랭킹 | views/pages/ranking/Ranking.vue | 레시피 랭킹 | /ranking |
-| 23 | FE-VW-023 | FAQ | views/pages/community/FAQ.vue | 자주 묻는 질문 | /community/faq |
+| 23 | FE-VW-023 | 고객지원(FAQ 포함) | views/pages/community/CustomerSupport.vue | FAQ 포함 고객지원 화면 | /support (/community/faq는 redirect) |
 | 24 | FE-VW-024 | 회원 프로필 | views/pages/member/MemberProfile.vue | 다른 회원 프로필·레시피·팔로우 | /member/:id |
 | 25 | FE-VW-025 | 팔로잉 피드 | views/pages/feed/FollowingFeed.vue | 팔로우한 회원 레시피 | /feed/following |
 | 26 | FE-VW-026 | 로그인 | views/pages/auth/Login.vue | 로그인(소셜·테스트) | /auth/login |
-| 27 | FE-VW-027 | OAuth 콜백 공통 | views/pages/auth/OAuthCallback.vue | OAuth 콜백 공통 뷰 | - |
+| 27 | FE-VW-027 | OAuth 콜백 공통 컴포넌트(미라우팅) | views/pages/auth/OAuthCallback.vue | 개별 provider 콜백에서 공통 처리에 사용 | 직접 라우트 없음 |
 | 28 | FE-VW-028 | 네이버 콜백 | views/pages/auth/NaverCallback.vue | 네이버 OAuth 콜백 | /auth/naver/callback |
 | 29 | FE-VW-029 | 구글 콜백 | views/pages/auth/GoogleCallback.vue | 구글 OAuth 콜백 | /auth/google/callback |
 | 30 | FE-VW-030 | 카카오 콜백 | views/pages/auth/KakaoCallback.vue | 카카오 OAuth 콜백 | /auth/kakao/callback |
@@ -349,27 +349,27 @@
 
 | No | 서비스 | Controller | Base Path | 주요 메서드(요청 경로) |
 |----|--------|------------|-----------|-------------------------|
-| 1 | auth | AuthController | /api/auth | GET /naver/callback, /google/callback, /kakao/callback, POST /logout, /refresh, GET /jwt/token, POST /test/login, GET /test/accounts |
-| 2 | common | CommonCodeController | /api/common-codes | 공통코드 조회 |
-| 3 | common | AdminCommonCodeController | /api/admin/common-codes | GET/PUT/DELETE /{codeId}, POST /{codeId}/details, PUT/DELETE /{codeId}/details/{detailCodeId} |
+| 1 | auth | AuthController | /api/auth | GET /oauth/state, /naver/callback, /google/callback, /kakao/callback, POST /logout, /refresh, GET /jwt/token, POST /test/login, GET /test/accounts |
+| 2 | common | CommonCodeController | /api/cook/common-codes | 공통코드 조회 |
+| 3 | common | AdminCommonCodeController | /api/cook/admin/common-codes | GET/PUT/DELETE /{codeId}, POST /{codeId}/details, PUT/DELETE /{codeId}/details/{detailCodeId} |
 | 4 | member | MemberController | /api/member | GET /me, /{memberId}, PUT /profile |
-| 5 | member | FollowController | /api | POST/DELETE /follows/{memberId}, GET /follows/{memberId}/check, GET /members/{memberId}/followers, /members/{memberId}/followings |
-| 6 | member | InquiryController | /api/inquiries | POST, GET /my, /{id}, PUT /{id}, DELETE /{id}, GET /admin, /admin/{id}, POST /{id}/reply |
-| 7 | cook | RecipeController | /api/recipe | POST, GET /list/member/{memberId}, /list/all, /{id}, PUT /{id}, DELETE /{id}, GET /popular, /following-feed |
-| 8 | cook | RecipeCommentController | /api/recipe/comments | POST /{recipeId}, /{recipeId}/with-image, GET /member/{memberId}, /{recipeId}, PUT /{commentId}, DELETE /{commentId}, GET /{recipeId}/count |
-| 9 | cook | RecipeBookmarkController | /api/recipe/bookmarks | GET /recipe-books/{recipeBookId}/bookmarks, /check/{recipeId}, PUT /{bookmarkId}/move, /{bookmarkId}/memo |
-| 10 | cook | RecipeBookController | /api/recipe/bookmarks/recipe-books | PUT /{recipeBookId}, DELETE /{recipeBookId}, PUT /reorder, POST /default |
-| 11 | cook | RecipeViewController | /api | POST /recipes/{recipeId}/view, GET /members/{memberId}/recent-views, DELETE /members/{memberId}/recent-views |
-| 12 | cook | RecipeFavoriteController | /api/recipe/favorites | GET /{memberId}, PUT /toggle, GET /check, /count/{recipeId} |
-| 13 | cook | CategoryController | /api/categories | GET /trending, /{codeId}/{detailCodeId}/recipes |
-| 14 | cook | ThemeCollectionController | /api/themes | GET /active, /{themeId}/recipes |
-| 15 | cook | AdminThemeCollectionController | /api/admin/themes | POST /{themeId}/recipes, DELETE /{themeId}/recipes/{recipeId} |
-| 16 | cook | CreatorController | /api/creators | GET /recommended |
-| 17 | cook | SearchController | /api/search | GET /recipes |
-| 18 | cook | RecommendationController | /api/recipes/recommendations | GET /today |
-| 19 | cook | IngredientController | /api/ingredients | GET /groups, /{ingredientId}/storage, /{ingredientId}/preparation |
-| 20 | cook | IngredientRequestController | /api/ingredients/requests | GET /my, /admin, PUT /{id}/status |
-| 21 | cook | AdminIngredientController | /api/admin/ingredients | POST /groups, PUT/DELETE /groups/{id}, PUT/DELETE /{id}, POST /storage, /preparation, PUT/DELETE 등 |
+| 5 | member | FollowController | /api/member | POST/DELETE /follows/{memberId}, GET /follows/{memberId}/check, GET /{memberId}/followers, /{memberId}/followings |
+| 6 | member | InquiryController | /api/member/inquiries | POST, GET /my, /{id}, PUT /{id}, DELETE /{id}, GET /admin, /admin/{id}, POST /{id}/reply |
+| 7 | cook | RecipeController | /api/cook/recipe | POST, GET /list/member/{memberId}, /list/all, /{id}, PUT /{id}, DELETE /{id}, GET /popular, /following-feed |
+| 8 | cook | RecipeCommentController | /api/cook/recipe/comments | POST /{recipeId}, /{recipeId}/with-image, GET /member/{memberId}, /{recipeId}, /{recipeId}/page, PUT /{commentId}, DELETE /{commentId}, GET /{recipeId}/count |
+| 9 | cook | RecipeBookmarkController | /api/cook/recipe/bookmarks | GET /recipe-books/{recipeBookId}/bookmarks, /check/{recipeId}, POST /, DELETE / (query), PUT /{bookmarkId}/move, /{bookmarkId}/memo |
+| 10 | cook | RecipeBookController | /api/cook/recipe/bookmarks/recipe-books | GET /, POST /, PUT /{recipeBookId}, DELETE /{recipeBookId}, PUT /reorder, POST /default |
+| 11 | cook | RecipeViewController | /api/cook | POST /recipes/{recipeId}/view, GET /members/{memberId}/recent-views, DELETE /members/{memberId}/recent-views |
+| 12 | cook | RecipeFavoriteController | /api/cook/recipe/favorites | GET /{memberId}, POST /, DELETE /, PUT /toggle, GET /check, /count/{recipeId} |
+| 13 | cook | CategoryController | /api/cook/categories | GET /trending, /{codeId}/{detailCodeId}/recipes |
+| 14 | cook | ThemeCollectionController | /api/cook/themes | GET /active, /{themeId}/recipes |
+| 15 | cook | AdminThemeCollectionController | /api/cook/admin/themes | POST /, POST /{themeId}/recipes, DELETE /{themeId}/recipes/{recipeId} |
+| 16 | cook | CreatorController | /api/cook/creators | GET /recommended |
+| 17 | cook | SearchController | /api/cook/search | GET /recipes |
+| 18 | cook | RecommendationController | /api/cook/recipes/recommendations | GET /today |
+| 19 | cook | IngredientController | /api/cook/ingredients | GET /groups, /, /{ingredientId}/storage, /{ingredientId}/preparation |
+| 20 | cook | IngredientRequestController | /api/cook/ingredients/requests | POST /, GET /my, /admin, PUT /{id}/status |
+| 21 | cook | AdminIngredientController | /api/cook/admin/ingredients | POST /groups, PUT/DELETE /groups/{id}, PUT/DELETE /{id}, POST /storage, /preparation, PUT/DELETE 등 |
 
 ---
 
@@ -379,30 +379,31 @@
 |----|------|------|----------------|
 | 1 | / | dashboard | Dashboard.vue |
 | 2 | /recipe/search | searchResult | SearchResult.vue |
-| 3 | /my/recipes | myRecipes | Recipes.vue |
+| 3 | /my/recipes | myRecipes (redirect) | MyPage.vue |
 | 4 | /my/recipes/new | myRecipeCreate | RecipeCreate.vue |
 | 5 | /my/recipes/:id/edit | myRecipeEdit | RecipeEdit.vue |
 | 6 | /my | mypage | MyPage.vue |
-| 7 | /my/inquiries/:id | inquiryDetail | InquiryDetail.vue |
+| 7 | /my/inquiries/:id | (redirect) | MyPage.vue |
 | 8 | /admin | admin | Admin.vue |
 | 9~16 | /admin/... | (관리자 화면) | IngredientGroupManagement, CommonCodeManagement 등 |
 | 17 | /recipe/category | category | Category.vue |
 | 18 | /recipe/:id | recipeDetail | RecipeDetail.vue |
 | 19~21 | /ingredient/management/... | (재료 화면) | IngredientManagement, IngredientDetail 등 |
 | 22 | /ranking | ranking | Ranking.vue |
-| 23 | /community/faq | faq | FAQ.vue |
+| 23 | /support | customerSupport | CustomerSupport.vue |
 | 24 | /member/:id | memberProfile | MemberProfile.vue |
 | 25 | /feed/following | followingFeed | FollowingFeed.vue |
 | 26~30 | /auth/... | login, *Callback | Login.vue, NaverCallback.vue 등 |
 | 31~33 | /error/... | notfound, accessDenied, error | NotFound.vue, Access.vue, Error.vue |
 
-* `/my/profile`, `/my/comments`, `/my/inquiries`, `/my/favorites` 는 `/my?tab=...` 로 리다이렉트됨.
+* `/my/recipes`, `/my/profile`, `/my/comments`, `/my/inquiries`, `/my/favorites` 는 `/my?tab=...` 로 리다이렉트됨.
+* `/community/faq` 는 `/support` 로 리다이렉트됨.
 
 ---
 
 ## 부록 C. 배치·스케줄 (참고)
 
-- **인기 레시피 점수 계산**: `PopularityCalculationService` — 매 시 정각 (설계상, 구현 확인은 UPDATE_REQUIRED 참고)
+- **인기 레시피 점수 계산**: `PopularityCalculationService` — 매 시 정각
 - **순위 추적**: `trackRankingChanges()` — 설계됨, 미구현
 
-상세: design 루트 `UPDATE_REQUIRED.md` 참고.
+상세 구현은 `cook-service`의 스케줄/서비스 코드 기준으로 확인.

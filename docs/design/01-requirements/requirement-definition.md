@@ -6,8 +6,9 @@
 |------|------|
 | 프로젝트명 | Knusrae (크누래) |
 | 문서명 | 요구사항 정의서 |
-| 버전 | 1.0 |
-| 작성일 | 2026-02-20 |
+| 버전 | 1.2 |
+| 작성일 | 2026-03-14 |
+| 최종 수정일 | 2026-04-17 |
 | 작성 기준 | 본 애플리케이션 구현 기능 분석·추출 |
 
 ---
@@ -41,7 +42,7 @@
 
 | ID | 요구사항명 | 설명 | 유형 | 우선순위 | 구현상태 | 비고 |
 |----|------------|------|------|----------|----------|------|
-| REQ-AUTH-01 | 소셜 로그인 | 네이버/구글/카카오 OAuth2 기반 로그인 제공 | 기능 | 필수 | 구현됨 | callback 경로: /auth/naver|custom|kakao/callback |
+| REQ-AUTH-01 | 소셜 로그인 | 네이버/구글/카카오 OAuth2 기반 로그인 제공 | 기능 | 필수 | 구현됨 | callback 경로: /auth/naver\|google\|kakao/callback |
 | REQ-AUTH-02 | JWT 인증 | 로그인 후 Access Token 발급·검증, API 인증에 사용 | 기능 | 필수 | 구현됨 | refresh, logout 지원 |
 | REQ-AUTH-03 | 로그아웃 | 사용자 로그아웃 처리 | 기능 | 필수 | 구현됨 | |
 | REQ-AUTH-04 | 토큰 갱신 | Access Token 만료 시 Refresh Token으로 재발급 | 기능 | 필수 | 구현됨 | |
@@ -53,18 +54,18 @@
 | REQ-MEM-01 | 내 정보 조회 | 로그인 회원의 프로필 정보 조회 | 기능 | 필수 | 구현됨 | GET /api/member/me |
 | REQ-MEM-02 | 내 정보 수정 | 닉네임·프로필 이미지 등 프로필 수정 | 기능 | 필수 | 구현됨 | PUT /api/member/profile |
 | REQ-MEM-03 | 타 회원 프로필 조회 | 다른 회원(크리에이터) 프로필·레시피 목록 조회 | 기능 | 필수 | 구현됨 | /member/:id, GET /api/member/{id} |
-| REQ-MEM-04 | 마이페이지 | 내 정보 수정, 내 댓글, 1:1 문의, 찜 목록, 북마크 관리 탭 제공 | 기능 | 필수 | 구현됨 | /my, tab=profile|comments|inquiries|favorites|bookmarks |
+| REQ-MEM-04 | 마이페이지 | 내 정보 수정, 내 레시피, 내 댓글, 1:1 문의, 찜 목록, 북마크 관리 탭 제공 | 기능 | 필수 | 구현됨 | /my, tab=profile|recipes|comments|inquiries|favorites|bookmarks |
 
 ### 2.3 레시피
 
 | ID | 요구사항명 | 설명 | 유형 | 우선순위 | 구현상태 | 비고 |
 |----|------------|------|------|----------|----------|------|
-| REQ-REC-01 | 레시피 등록 | 제목·설명·썸네일·분류·재료·조리단계 등으로 레시피 작성 | 기능 | 필수 | 구현됨 | /my/recipes/new, POST /api/recipe |
-| REQ-REC-02 | 레시피 수정 | 본인 레시피 수정 | 기능 | 필수 | 구현됨 | /my/recipes/:id/edit, PUT /api/recipe/{id} |
-| REQ-REC-03 | 레시피 삭제 | 본인 레시피 삭제 | 기능 | 필수 | 구현됨 | DELETE /api/recipe/{id} |
-| REQ-REC-04 | 레시피 상세 조회 | 단일 레시피 상세 정보·재료·조리단계·댓글 조회 | 기능 | 필수 | 구현됨 | /recipe/:id, GET /api/recipe/{id} |
-| REQ-REC-05 | 내 레시피 목록 | 로그인 회원이 작성한 레시피 목록 조회 | 기능 | 필수 | 구현됨 | /my/recipes, GET /api/recipe/list/member/{memberId} |
-| REQ-REC-06 | 전체 레시피 목록 | 공개 레시피 목록 조회(페이지네이션) | 기능 | 필수 | 구현됨 | GET /api/recipe/list/all |
+| REQ-REC-01 | 레시피 등록 | 제목·설명·썸네일·분류·재료·조리단계 등으로 레시피 작성 | 기능 | 필수 | 구현됨 | /my/recipes/new, POST /api/cook/recipe |
+| REQ-REC-02 | 레시피 수정 | 본인 레시피 수정 | 기능 | 필수 | 구현됨 | /my/recipes/:id/edit, PUT /api/cook/recipe/{id} |
+| REQ-REC-03 | 레시피 삭제 | 본인 레시피 삭제 | 기능 | 필수 | 구현됨 | DELETE /api/cook/recipe/{id} |
+| REQ-REC-04 | 레시피 상세 조회 | 단일 레시피 상세 정보·재료·조리단계·댓글 조회 | 기능 | 필수 | 구현됨 | /recipe/:id, GET /api/cook/recipe/{id} |
+| REQ-REC-05 | 내 레시피 목록 | 로그인 회원이 작성한 레시피 목록 조회 | 기능 | 필수 | 구현됨 | /my/recipes, GET /api/cook/recipe/list/member/{memberId} |
+| REQ-REC-06 | 전체 레시피 목록 | 공개 레시피 목록 조회(페이지네이션) | 기능 | 필수 | 구현됨 | GET /api/cook/recipe/list/all |
 | REQ-REC-07 | 레시피 공개/비공개 | 공개·비공개·초안 상태 관리 | 기능 | 필수 | 구현됨 | visibility, status |
 | REQ-REC-08 | 레시피 분류 | 공통코드 기반 카테고리(종류별·상황별 등) 지정 | 기능 | 필수 | 구현됨 | categories, common-code 연동 |
 
@@ -72,31 +73,31 @@
 
 | ID | 요구사항명 | 설명 | 유형 | 우선순위 | 구현상태 | 비고 |
 |----|------------|------|------|----------|----------|------|
-| REQ-SCH-01 | 레시피 검색 | 키워드로 레시피 검색 | 기능 | 필수 | 구현됨 | /recipe/search, GET /api/search/recipes |
-| REQ-SCH-02 | 카테고리별 레시피 | 코드별·상세코드별 레시피 목록 조회 | 기능 | 필수 | 구현됨 | /recipe/category, GET /api/categories/{codeId}/{detailCodeId}/recipes |
-| REQ-SCH-03 | 트렌딩 카테고리 | 최근 인기 카테고리 목록 조회 | 기능 | 일반 | 구현됨 | GET /api/categories/trending |
+| REQ-SCH-01 | 레시피 검색 | 키워드로 레시피 검색 | 기능 | 필수 | 구현됨 | /recipe/search, GET /api/cook/search/recipes |
+| REQ-SCH-02 | 카테고리별 레시피 | 코드별·상세코드별 레시피 목록 조회 | 기능 | 필수 | 구현됨 | /recipe/category, GET /api/cook/categories/{codeId}/{detailCodeId}/recipes |
+| REQ-SCH-03 | 트렌딩 카테고리 | 최근 인기 카테고리 목록 조회 | 기능 | 일반 | 구현됨 | GET /api/cook/categories/trending |
 
 ### 2.5 대시보드·추천
 
 | ID | 요구사항명 | 설명 | 유형 | 우선순위 | 구현상태 | 비고 |
 |----|------------|------|------|----------|----------|------|
 | REQ-DSH-01 | 메인 대시보드 | 메인 화면에서 오늘의 추천·인기·테마·카테고리·최근 본·추천 크리에이터 표시 | 기능 | 필수 | 구현됨 | /, Dashboard.vue |
-| REQ-DSH-02 | 오늘의 레시피 추천 | 사용자 맞춤 또는 일반 추천 레시피 N건 조회 | 기능 | 필수 | 구현됨 | GET /api/recipes/recommendations/today, 캐시 12시간 |
-| REQ-DSH-03 | 인기 레시피 | 인기도 점수 기반 인기 레시피 목록(기간별 24h/7d/30d) | 기능 | 필수 | 구현됨 | GET /api/recipes/popular |
-| REQ-DSH-04 | 테마 컬렉션 | 활성 테마 목록 및 테마별 레시피 목록 조회 | 기능 | 일반 | 구현됨 | GET /api/themes/active, /{themeId}/recipes |
-| REQ-DSH-05 | 최근 본 레시피 | 로그인 회원의 최근 조회 레시피 목록 | 기능 | 일반 | 구현됨 | POST /api/recipes/{id}/view, GET /api/members/{id}/recent-views |
-| REQ-DSH-06 | 추천 크리에이터 | 팔로워·레시피 수 등 기반 추천 크리에이터 목록(이미 팔로우 제외) | 기능 | 일반 | 구현됨 | GET /api/creators/recommended |
+| REQ-DSH-02 | 오늘의 레시피 추천 | 사용자 맞춤 또는 일반 추천 레시피 N건 조회 | 기능 | 필수 | 구현됨 | GET /api/cook/recipes/recommendations/today, 캐시 12시간 |
+| REQ-DSH-03 | 인기 레시피 | 인기도 점수 기반 인기 레시피 목록(기간별 24h/7d/30d) | 기능 | 필수 | 구현됨 | GET /api/cook/recipe/popular |
+| REQ-DSH-04 | 테마 컬렉션 | 활성 테마 목록 및 테마별 레시피 목록 조회 | 기능 | 일반 | 구현됨 | GET /api/cook/themes/active, /{themeId}/recipes |
+| REQ-DSH-05 | 최근 본 레시피 | 로그인 회원의 최근 조회 레시피 목록 | 기능 | 일반 | 구현됨 | POST /api/cook/recipes/{id}/view, GET /api/cook/members/{id}/recent-views |
+| REQ-DSH-06 | 추천 크리에이터 | 팔로워·레시피 수 등 기반 추천 크리에이터 목록(이미 팔로우 제외) | 기능 | 일반 | 구현됨 | GET /api/cook/creators/recommended |
 | REQ-DSH-07 | 랭킹 화면 | 인기 레시피 랭킹 전용 페이지(기간별) | 기능 | 일반 | 구현됨 | /ranking, period=24h|7d|30d |
 
 ### 2.6 팔로우·크리에이터
 
 | ID | 요구사항명 | 설명 | 유형 | 우선순위 | 구현상태 | 비고 |
 |----|------------|------|------|----------|----------|------|
-| REQ-FLW-01 | 팔로우/언팔로우 | 특정 회원 팔로우·언팔로우 | 기능 | 필수 | 구현됨 | POST/DELETE /api/follows/{memberId} |
-| REQ-FLW-02 | 팔로우 여부 확인 | 특정 회원에 대한 팔로우 여부 조회 | 기능 | 일반 | 구현됨 | GET /api/follows/{memberId}/check |
-| REQ-FLW-03 | 팔로워/팔로잉 목록 | 특정 회원의 팔로워·팔로잉 목록 조회 | 기능 | 일반 | 구현됨 | GET /api/members/{id}/followers, /followings |
-| REQ-FLW-04 | 팔로잉 피드 | 팔로우한 크리에이터의 최신 레시피 피드 | 기능 | 일반 | 구현됨 | /feed/following, GET /api/recipe/following-feed |
-| REQ-FLW-05 | 크리에이터 프로필 상세 | 크리에이터 프로필·최근/인기 레시피 조회 | 기능 | 일반 | 구현됨 | GET /api/creators/{memberId}/profile |
+| REQ-FLW-01 | 팔로우/언팔로우 | 특정 회원 팔로우·언팔로우 | 기능 | 필수 | 구현됨 | POST/DELETE /api/member/follows/{memberId} |
+| REQ-FLW-02 | 팔로우 여부 확인 | 특정 회원에 대한 팔로우 여부 조회 | 기능 | 일반 | 구현됨 | GET /api/member/follows/{memberId}/check |
+| REQ-FLW-03 | 팔로워/팔로잉 목록 | 특정 회원의 팔로워·팔로잉 목록 조회 | 기능 | 일반 | 구현됨 | GET /api/member/{id}/followers, /followings |
+| REQ-FLW-04 | 팔로잉 피드 | 팔로우한 크리에이터의 최신 레시피 피드 | 기능 | 일반 | 구현됨 | /feed/following, GET /api/cook/recipe/following-feed |
+| REQ-FLW-05 | 크리에이터 프로필 상세 | 크리에이터 프로필·최근/인기 레시피 조회 | 기능 | 일반 | 구현됨 | GET /api/member/{memberId} + /api/cook/recipe/list/member/{memberId} |
 
 ### 2.7 북마크·레시피북·찜
 
@@ -107,32 +108,32 @@
 | REQ-BMK-03 | 레시피 북마크 추가 | 레시피를 지정 레시피북에 북마크 추가 | 기능 | 필수 | 구현됨 | 북마크 다이얼로그 등 |
 | REQ-BMK-04 | 북마크 이동·메모 | 북마크를 다른 레시피북으로 이동, 메모 수정 | 기능 | 일반 | 구현됨 | PUT /move, /memo |
 | REQ-BMK-05 | 레시피별 북마크 여부 조회 | 특정 레시피가 북마크된 레시피북 목록 조회 | 기능 | 일반 | 구현됨 | GET /check/{recipeId} |
-| REQ-FAV-01 | 찜 하기/해제 | 레시피 찜 토글 | 기능 | 필수 | 구현됨 | PUT /api/recipe/favorites/toggle |
-| REQ-FAV-02 | 찜 목록 조회 | 로그인 회원의 찜한 레시피 목록 | 기능 | 필수 | 구현됨 | GET /api/recipe/favorites/{memberId}, /my?tab=favorites |
+| REQ-FAV-01 | 찜 하기/해제 | 레시피 찜 토글 | 기능 | 필수 | 구현됨 | PUT /api/cook/recipe/favorites/toggle |
+| REQ-FAV-02 | 찜 목록 조회 | 로그인 회원의 찜한 레시피 목록 | 기능 | 필수 | 구현됨 | GET /api/cook/recipe/favorites/{memberId}, /my?tab=favorites |
 | REQ-FAV-03 | 찜 여부/개수 조회 | 특정 레시피 찜 여부·찜 개수 조회 | 기능 | 일반 | 구현됨 | GET /check, /count/{recipeId} |
 
 ### 2.8 댓글·조회 기록
 
 | ID | 요구사항명 | 설명 | 유형 | 우선순위 | 구현상태 | 비고 |
 |----|------------|------|------|----------|----------|------|
-| REQ-CMT-01 | 댓글 등록 | 레시피에 댓글·이미지 댓글 등록 | 기능 | 필수 | 구현됨 | POST /api/recipe/comments/{recipeId}, /with-image |
-| REQ-CMT-02 | 댓글 수정·삭제 | 본인 댓글 수정·삭제 | 기능 | 필수 | 구현됨 | PUT/DELETE /api/recipe/comments/{commentId} |
+| REQ-CMT-01 | 댓글 등록 | 레시피에 댓글·이미지 댓글 등록 | 기능 | 필수 | 구현됨 | POST /api/cook/recipe/comments/{recipeId}, /with-image |
+| REQ-CMT-02 | 댓글 수정·삭제 | 본인 댓글 수정·삭제 | 기능 | 필수 | 구현됨 | PUT/DELETE /api/cook/recipe/comments/{commentId} |
 | REQ-CMT-03 | 댓글 목록 조회 | 레시피별·회원별 댓글 목록·페이지 조회 | 기능 | 필수 | 구현됨 | GET /{recipeId}, /member/{memberId}, /{recipeId}/page |
 | REQ-CMT-04 | 댓글 개수 조회 | 레시피별 댓글 개수 | 기능 | 일반 | 구현됨 | GET /{recipeId}/count |
-| REQ-VIW-01 | 조회 기록 저장 | 레시피 상세 조회 시 조회 기록 생성/갱신 | 기능 | 일반 | 구현됨 | POST /api/recipes/{recipeId}/view |
-| REQ-VIW-02 | 최근 본 레시피 삭제 | 본인 최근 본 레시피 전체 삭제 | 기능 | 일반 | 구현됨 | DELETE /api/members/{memberId}/recent-views |
+| REQ-VIW-01 | 조회 기록 저장 | 레시피 상세 조회 시 조회 기록 생성/갱신 | 기능 | 일반 | 구현됨 | POST /api/cook/recipes/{recipeId}/view |
+| REQ-VIW-02 | 최근 본 레시피 삭제 | 본인 최근 본 레시피 전체 삭제 | 기능 | 일반 | 구현됨 | DELETE /api/cook/members/{memberId}/recent-views |
 
 ### 2.9 재료·문의
 
 | ID | 요구사항명 | 설명 | 유형 | 우선순위 | 구현상태 | 비고 |
 |----|------------|------|------|----------|----------|------|
-| REQ-ING-01 | 재료 그룹/재료 조회 | 재료 그룹 목록·재료별 보관법·손질법 조회 | 기능 | 필수 | 구현됨 | GET /api/ingredients/groups, /{id}/storage|preparation |
+| REQ-ING-01 | 재료 그룹/재료 조회 | 재료 그룹 목록·재료별 보관법·손질법 조회 | 기능 | 필수 | 구현됨 | GET /api/cook/ingredients/groups, /{id}/storage|preparation |
 | REQ-ING-02 | 재료 상세 화면 | 재료 상세 정보·보관·손질법 표시 | 기능 | 일반 | 구현됨 | /ingredient/management/:id |
 | REQ-ING-03 | 재료 등록 요청 | 사용자 재료 등록 요청 제출 | 기능 | 일반 | 구현됨 | IngredientRequestController |
 | REQ-ING-04 | 재료 요청 목록(내역/관리자) | 본인 요청 목록·관리자 요청 목록·상태 변경 | 기능 | 일반 | 구현됨 | GET /my, /admin, PUT /{id}/status |
-| REQ-INQ-01 | 1:1 문의 등록 | 제목·내용으로 1:1 문의 등록 | 기능 | 필수 | 구현됨 | POST /api/inquiries |
+| REQ-INQ-01 | 1:1 문의 등록 | 제목·내용으로 1:1 문의 등록 | 기능 | 필수 | 구현됨 | POST /api/member/inquiries |
 | REQ-INQ-02 | 내 문의 목록·상세·수정·삭제 | 본인 문의 목록·상세 조회·수정·삭제 | 기능 | 필수 | 구현됨 | GET /my, /{id}, PUT/DELETE /{id} |
-| REQ-INQ-03 | 문의 답변(관리자) | 관리자 문의 답변 등록 | 기능 | 필수 | 구현됨 | POST /api/inquiries/{id}/reply |
+| REQ-INQ-03 | 문의 답변(관리자) | 관리자 문의 답변 등록 | 기능 | 필수 | 구현됨 | POST /api/member/inquiries/{id}/reply |
 
 ### 2.10 관리자
 
@@ -140,7 +141,7 @@
 |----|------------|------|------|----------|----------|------|
 | REQ-ADM-01 | 관리자 홈 | 관리자 기능 진입점(메뉴) | 기능 | 필수 | 구현됨 | /admin |
 | REQ-ADM-02 | 공통코드 관리 | 공통코드·상세코드 CRUD | 기능 | 필수 | 구현됨 | /admin/common-codes, AdminCommonCodeController |
-| REQ-ADM-03 | 테마 컬렉션 관리 | 테마 생성·테마에 레시피 추가/제거 | 기능 | 일반 | 구현됨 | POST /api/admin/themes, /{id}/recipes |
+| REQ-ADM-03 | 테마 컬렉션 관리 | 테마 생성·테마에 레시피 추가/제거 | 기능 | 일반 | 구현됨 | POST /api/cook/admin/themes, /{id}/recipes |
 | REQ-ADM-04 | 재료 그룹/재료 관리 | 재료 그룹·재료·보관법·손질법 등록·수정·삭제·이미지 업로드 | 기능 | 필수 | 구현됨 | AdminIngredientController, /admin/ingredient-* |
 | REQ-ADM-05 | 문의 관리 | 문의 목록·상세·답변 | 기능 | 필수 | 구현됨 | /admin/inquiries, AdminInquiryList |
 
@@ -149,8 +150,8 @@
 | ID | 요구사항명 | 설명 | 유형 | 우선순위 | 구현상태 | 비고 |
 |----|------------|------|------|----------|----------|------|
 | REQ-CMM-01 | 공통코드 조회 | 프론트/백엔드에서 공통코드 목록 조회 | 기능 | 필수 | 구현됨 | CommonCodeController |
-| REQ-CMM-02 | FAQ 화면 | 자주 묻는 질문 목록 표시 | 기능 | 일반 | 구현됨 | /community/faq |
-| REQ-CMM-03 | 에러·접근 제한 화면 | 404·403·500 등 에러·접근 거부 전용 화면 | 기능 | 필수 | 구현됨 | /error/notfound, /access, /error |
+| REQ-CMM-02 | FAQ 화면 | 자주 묻는 질문 목록 표시 | 기능 | 일반 | 구현됨 | /support (기존 /community/faq는 redirect) |
+| REQ-CMM-03 | 에러·접근 제한 화면 | 404·403·500 등 에러·접근 거부 전용 화면 | 기능 | 필수 | 구현됨 | /error/notfound, /error/access, /error/error |
 
 ---
 
@@ -170,10 +171,10 @@
 
 ## 4. 요구사항 추적 (참고)
 
-- **인터페이스**: [02-interface/api-specification.md](../02-interface/api-specification.md)
-- **테이블·엔티티**: [03-table-definition/entity-design.md](../03-table-definition/entity-design.md), [테이블정의서.md](../03-table-definition/테이블정의서.md)
+- **인터페이스**: [02-interface/interface-definition.md](../02-interface/interface-definition.md), [02-interface/api-list.md](../02-interface/api-list.md)
+- **테이블·엔티티**: [03-modeling/table-definition.md](../03-modeling/table-definition.md)
 - **화면·라우트**: [05-program-list/프로그램목록.md](../05-program-list/프로그램목록.md) — 프론트 라우트·View 매핑
-- **백엔드 API 목록**: 동일 프로그램목록 문서 — Controller·Base Path·주요 메서드
+- **백엔드 API 목록**: [02-interface/api-list.md](../02-interface/api-list.md) — Controller·Base Path·주요 메서드
 
 ---
 
@@ -182,3 +183,5 @@
 | 버전 | 일자 | 변경 내용 |
 |------|------|-----------|
 | 1.0 | 2026-02-20 | 최초 작성(구현 기능 기반 요구사항 추출) |
+| 1.1 | 2026-03-14 | 참조 문서 링크 정정(api-specification→interface-definition·api-list, entity-design→테이블정의서), 문서 정보 최신화 |
+| 1.2 | 2026-04-17 | 현재 애플리케이션 라우트 기준으로 소셜 콜백 경로(custom→google), FAQ 경로(/support), 에러 경로(/error/access, /error/error) 표기 정정 |
