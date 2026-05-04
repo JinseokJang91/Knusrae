@@ -3,6 +3,7 @@ package com.knusrae.member.api.member.domain.service;
 import com.knusrae.common.custom.storage.ImageStorage;
 import com.knusrae.common.custom.storage.StorageKeyUtils;
 import com.knusrae.common.domain.entity.Member;
+import com.knusrae.common.domain.enums.MemberRole;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.common.exception.ResourceNotFoundException;
 import com.knusrae.common.utils.PiiMaskUtils;
@@ -42,7 +43,7 @@ public class MemberService {
     }
 
     private static MemberDto toFullMemberDto(Member m) {
-        boolean isAdmin = isAdminEmail(m.getEmail());
+        boolean isAdmin = m.getRole() == MemberRole.ADMIN;
         return MemberDto.builder()
                 .id(m.getId())
                 .name(m.getName())
@@ -101,18 +102,6 @@ public class MemberService {
         member.updateProfile(name, nickname, bio, profileImageUrl);
         Member updatedMember = memberRepository.save(member);
         return toFullMemberDto(updatedMember);
-    }
-
-    /**
-     * 관리자 계정 여부 판별
-     * 현재는 테스트용 계정 이메일을 기준으로 판단한다.
-     * 추후 설정값이나 권한 테이블로 확장 가능.
-     */
-    private static boolean isAdminEmail(String email) {
-        if (email == null) {
-            return false;
-        }
-        return "testadmin@test.com".equalsIgnoreCase(email.trim()); // TODO
     }
 
 }

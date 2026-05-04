@@ -6,6 +6,7 @@ import com.knusrae.auth.api.domain.repository.RefreshTokenRepository;
 import com.knusrae.auth.api.domain.repository.TokenBlacklistRepository;
 import com.knusrae.auth.api.web.response.TokenResponse;
 import com.knusrae.common.domain.entity.Member;
+import com.knusrae.common.domain.enums.MemberRole;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.common.security.provider.JwtTokenProvider;
 import com.knusrae.common.utils.PiiMaskUtils;
@@ -49,7 +50,7 @@ public class TokenService {
                 });
 
         String socialRole = member.getSocialRole().name();
-        String role = isAdminEmail(member.getEmail()) ? "ADMIN" : "USER";
+        String role = member.getRole() == MemberRole.ADMIN ? "ADMIN" : "USER";
         Map<String, Object> claims = new HashMap<>();
         claims.put("username", member.getName());
         claims.put("socialRole", socialRole);
@@ -86,16 +87,6 @@ public class TokenService {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다. ID: " + userId));
         return loginWithMember(member);
-    }
-
-    /**
-     * 관리자 계정 여부 판별 (member-service와 동일 기준)
-     */
-    private static boolean isAdminEmail(String email) {
-        if (email == null) {
-            return false;
-        }
-        return "testadmin@test.com".equalsIgnoreCase(email.trim()); // TODO
     }
 
     @Transactional

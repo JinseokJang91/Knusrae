@@ -1,0 +1,211 @@
+-- 2026-01-02 기준 총 75개
+
+-- 재료 그룹/단위
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', '재료', now(), 1, now(), 'Y', 'INGREDIENTS_GROUP');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', '양념', now(), 2, now(), 'Y', 'INGREDIENTS_GROUP');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', '조리도구', now(), 3, now(), 'Y', 'INGREDIENTS_GROUP');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', '기타', now(), 4, now(), 'Y', 'INGREDIENTS_GROUP');
+
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', 'g (그램)', now(), 1, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', 'kg (킬로그램)', now(), 2, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', 'ml (밀리리터)', now(), 3, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', 'L (리터)', now(), 4, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1005', '개', now(), 5, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1006', '큰술', now(), 6, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1007', '작은술', now(), 7, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1008', '티스푼', now(), 8, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1009', '꼬집', now(), 9, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1010', '컵', now(), 10, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1011', '잔', now(), 11, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1012', '장', now(), 12, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1013', '쪽', now(), 13, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1014', '줄기', now(), 14, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1015', '대', now(), 15, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1016', '마리', now(), 16, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1017', '봉지', now(), 17, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1018', '팩', now(), 18, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1019', '조각', now(), 19, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1020', '토막', now(), 20, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1021', '줄', now(), 21, now(), 'Y', 'INGREDIENTS_UNIT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1022', '단', now(), 22, now(), 'Y', 'INGREDIENTS_UNIT');
+
+-- 요리 TIP
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', '5분 이내', now(), 1, now(), 'Y', 'COOKING_TIME');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', '10분 이내', now(), 2, now(), 'Y', 'COOKING_TIME');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', '20분 이내', now(), 3, now(), 'Y', 'COOKING_TIME');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', '30분 이내', now(), 4, now(), 'Y', 'COOKING_TIME');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1005', '1시간 이내', now(), 5, now(), 'Y', 'COOKING_TIME');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1006', '2시간 이내', now(), 6, now(), 'Y', 'COOKING_TIME');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1007', '2시간 이상', now(), 7, now(), 'Y', 'COOKING_TIME');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1008', '12시간 이내', now(), 8, now(), 'Y', 'COOKING_TIME');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1009', '24시간 이내', now(), 9, now(), 'Y', 'COOKING_TIME');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1010', '24시간 이상', now(), 10, now(), 'Y', 'COOKING_TIME');
+
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', '매우 쉬움', now(), 1, now(), 'Y', 'DIFFICULTY');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', '쉬움', now(), 2, now(), 'Y', 'DIFFICULTY');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', '보통', now(), 3, now(), 'Y', 'DIFFICULTY');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', '조금 어려움', now(), 4, now(), 'Y', 'DIFFICULTY');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1005', '어려움', now(), 5, now(), 'Y', 'DIFFICULTY');
+
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', '1인분', now(), 1, now(), 'Y', 'SERVINGS');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', '2인분', now(), 2, now(), 'Y', 'SERVINGS');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', '3인분', now(), 3, now(), 'Y', 'SERVINGS');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', '4인분', now(), 4, now(), 'Y', 'SERVINGS');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1005', '5인분', now(), 5, now(), 'Y', 'SERVINGS');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1006', '6인분 이상', now(), 6, now(), 'Y', 'SERVINGS');
+
+-----------------------------------------
+-- 카테고리
+-----------------------------------------
+
+-- NEW
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', '한식', now(), 1,  now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', '로컬푸드(제철 한식)', now(), 2,  now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', '중식', now(), 3,  now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', '일식', now(), 4,  now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1005', '이탈리안', now(), 5,  now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1006', '프렌치', now(), 6,  now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1007', '양식(스페니시/독일/동유럽/그리스/지중해)', now(), 7,  now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1008', '아메리칸/하와이안', now(), 8,  now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1009', '중동/터키', now(), 9,  now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1010', '아시안(태국/베트남/필리핀/말레이/인도네시아)', now(), 10, now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1011', '멕시칸', now(), 11, now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1012', '인도/커리', now(), 12, now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1013', '분식', now(), 13, now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1014', '퓨전', now(), 14, now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1015', '홈파티/브런치', now(), 15, now(), 'Y', 'COOKING_STYLE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1016', '캠핑요리', now(), 16, now(), 'Y', 'COOKING_STYLE');
+
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', '돼지고기', now(), 1,  now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', '소고기', now(), 2,  now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', '닭고기', now(), 3,  now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', '생선', now(), 4,  now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1005', '새우/오징어', now(), 5,  now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1006', '조개/굴', now(), 6,  now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1007', '게/문어', now(), 7,  now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1008', '해산물(기타)', now(), 8,  now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1009', '유제품(치즈/우유/생크림/요거트/버터 등)', now(), 9,  now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1010', '과일', now(), 10, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1011', '견과/씨앗류(아몬드/호두/참깨 등)', now(), 11, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1012', '소스/양념(고추장/된장/간장/마라/굴소스/토마토소스 등)', now(), 12, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1013', '계란', now(), 13, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1014', '두부/콩', now(), 14, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1015', '버섯', now(), 15, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1016', '채소류', now(), 16, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1017', '김치', now(), 17, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1018', '면/파스타', now(), 18, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1019', '쌀/밥', now(), 19, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1020', '빵/베이킹', now(), 20, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1021', '냉동식품/가공식품 활용(햄/참치캔/어묵 등)', now(), 21, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1022', '양고기', now(), 22, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1023', '오리고기', now(), 23, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1024', '내장/특수부위(곱창/대창/막창/간/염통 등)', now(), 24, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1025', '건어물류(노가리/먹태/쥐포 등)', now(), 25, now(), 'Y', 'COOKING_MAIN_INGREDIENT');
+
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', '밥/덮밥/볶음밥', now(), 1,  now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', '국/탕/찌개', now(), 2,  now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', '라면', now(), 3,  now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', '우동/소바/쌀국수', now(), 4,  now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1005', '파스타', now(), 5,  now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1006', '죽/이유식/환자식', now(), 6,  now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1007', '전골', now(), 7,  now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1008', '구이', now(), 8,  now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1009', '볶음', now(), 9,  now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1010', '조림', now(), 10, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1011', '찜', now(), 11, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1012', '튀김', now(), 12, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1013', '무침', now(), 13, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1014', '반찬(밑반찬/도시락반찬)', now(), 14, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1015', '김밥', now(), 15, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1016', '샌드위치', now(), 16, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1017', '샐러드', now(), 17, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1018', '수프', now(), 18, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1019', '안주', now(), 19, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1020', '야식', now(), 20, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1021', '오트밀/시리얼볼/요거트볼', now(), 21, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1022', '플래터', now(), 22, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1023', '핑거푸드/파티푸드', now(), 23, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1024', '한그릇 요리', now(), 24, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1025', '비빔', now(), 25, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1026', '부침', now(), 26, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1027', '만두류', now(), 27, now(), 'Y', 'COOKING_MENU_FORM');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1028', '젓갈/장류', now(), 28, now(), 'Y', 'COOKING_MENU_FORM');
+
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', '에어프라이어', now(), 1,  now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', '전자레인지', now(), 2,  now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', '오븐/베이킹', now(), 3,  now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', '프라이팬 원팬', now(), 4,  now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1005', '압력밥솥', now(), 5,  now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1006', '끓이기', now(), 6,  now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1007', '굽기', now(), 7,  now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1008', '볶기', now(), 8,  now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1009', '삶기', now(), 9,  now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1010', '데치기', now(), 10, now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1011', '조리기구별(멀티쿠커 등)', now(), 11, now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1012', '찜기/스팀', now(), 12, now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1013', '그릴/토스터', now(), 13, now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1014', '믹서/블렌더', now(), 14, now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1015', '숙성/절임', now(), 15, now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1016', '저온조리/수비드', now(), 16, now(), 'Y', 'COOKING_TECHNIQUE');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1017', '무염/저염 조리', now(), 17, now(), 'Y', 'COOKING_TECHNIQUE');
+
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', '자취/혼밥', now(), 1,  now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', '가족식사', now(), 2,  now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', '아이반찬', now(), 3,  now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', '손님초대', now(), 4,  now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1005', '명절/제사', now(), 5,  now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1006', '다이어트/헬시', now(), 6,  now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1007', '고단백', now(), 7,  now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1008', '저탄수', now(), 8,  now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1009', '비건/채식', now(), 9,  now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1010', '해장', now(), 10, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1011', '술안주', now(), 11, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1012', '도시락', now(), 12, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1013', '간식', now(), 13, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1014', '아침식사', now(), 14, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1015', '브런치/간단 점심', now(), 15, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1016', '비오는 날', now(), 16, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1017', '추운 날', now(), 17, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1018', '여름철 입맛', now(), 18, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1019', '이벤트(생일/기념일/크리스마스 등)', now(), 19, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1020', '알레르기/제한식(견과류 제외/유제품 제외/글루텐프리)', now(), 20, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1021', '아이 간식', now(), 21, now(), 'Y', 'COOKING_TARGET');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1022', '어른 간식', now(), 22, now(), 'Y', 'COOKING_TARGET');
+
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', '5분 이내', now(), 1,  now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', '10분 이내', now(), 2,  now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', '30분 이내', now(), 3,  now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', '60분 이내', now(), 4,  now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1005', '2시간 이내', now(), 5,  now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1006', '2시간 초과', now(), 6,  now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1007', '초간단', now(), 7,  now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1008', '실패없는 레시피', now(), 8,  now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1009', '초보용', now(), 9,  now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1010', '중급', now(), 10, now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1011', '고급', now(), 11, now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1012', '3가지 재료', now(), 12, now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1013', '5가지 재료', now(), 13, now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1014', '설거지 최소', now(), 14, now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1015', '미리 준비(밀프렙)', now(), 15, now(), 'Y', 'COOKING_LEVEL');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1016', '대량 조리(한 번에 4~6인분)', now(), 16, now(), 'Y', 'COOKING_LEVEL');
+
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1001', '쿠키', now(), 1,  now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1002', '케이크', now(), 2,  now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1003', '빵', now(), 3,  now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1004', '떡/한과', now(), 4,  now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1005', '아이스크림', now(), 5,  now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1006', '잼/시럽', now(), 6,  now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1007', '커피/라떼', now(), 7,  now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1008', '차', now(), 8,  now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1009', '스무디', now(), 9,  now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1010', '에이드', now(), 10, now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1011', '노오븐 디저트(전자레인지/냉장)', now(), 11, now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1012', '초콜릿/캔디/바크', now(), 12, now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1013', '푸딩/젤리/무스', now(), 13, now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1014', '파이/타르트', now(), 14, now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1015', '빙수/셔벗', now(), 15, now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1016', '요거트/그래놀라', now(), 16, now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1017', '칵테일/하이볼/논알콜 칵테일', now(), 17, now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1018', '프로틴 쉐이크/건강 음료', now(), 18, now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1019', '과일청(레몬청/자몽청 등)', now(), 19, now(), 'Y', 'COOKING_DESSERT');
+INSERT INTO public.common_code_detail (detail_code_id,code_name,created_at,sort,updated_at,use_yn,code_id) VALUES ('1020', '홈메이드 시럽', now(), 20, now(), 'Y', 'COOKING_DESSERT');

@@ -28,3 +28,12 @@ export async function updateProfile(formData: FormData): Promise<void> {
         method: 'PUT'
     });
 }
+
+/**
+ * 회원 탈퇴 (서버에서 관련 데이터 삭제 후 204)
+ */
+export async function withdrawMember(): Promise<void> {
+    await httpJson<void>(BASE_URL, '/api/member/me', {
+        method: 'DELETE'
+    });
+}
