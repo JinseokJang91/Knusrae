@@ -23,3 +23,10 @@ onMounted(() => {
     <AppToast />
     <router-view />
 </template>
+
+<!-- ConfirmDialog는 appendTo body로 뜨므로 scoped가 아닌 전역 규칙으로 \n 줄바꿈 반영 -->
+<style>
+.p-confirmdialog-message {
+    white-space: pre-line;
+}
+</style>

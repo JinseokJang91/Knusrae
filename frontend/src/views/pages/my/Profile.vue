@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { updateProfile } from '@/api/memberApi';
+import { updateProfile, withdrawMember } from '@/api/memberApi';
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useConfirm } from 'primevue/useconfirm';
 import { fetchMemberInfo } from '@/utils/auth';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/utils/toast';
@@ -12,6 +14,8 @@ import Textarea from 'primevue/textarea';
 import FollowListDialog from '@/components/follow/FollowListDialog.vue';
 
 const authStore = useAuthStore();
+const router = useRouter();
+const confirm = useConfirm();
 const { showSuccess, showError } = useAppToast();
 
 /** 글자 수 제한 */
@@ -34,6 +38,7 @@ const profileImageFile = ref<File | null>(null);
 const initialLoading = ref(true);
 const initialError = ref<string | null>(null);
 const saving = ref(false);
+const withdrawing = ref(false);
 const showFollowersDialog = ref(false);
 const showFollowingsDialog = ref(false);
 
@@ -96,6 +101,35 @@ const retryLoadMemberInfo = async () => {
     initialLoading.value = true;
     await loadMemberInfo();
 };
+
+const WITHDRAW_CONFIRM_MESSAGE = '탈퇴 시 계정과 연결된 모든 데이터가 영구 삭제되며 복구할 수 없습니다.\n탈퇴를 진행하시겠습니까?';
+
+function confirmWithdraw() {
+    confirm.require({
+        header: '회원 탈퇴',
+        message: WITHDRAW_CONFIRM_MESSAGE,
+        icon: 'pi pi-exclamation-triangle',
+        rejectLabel: '취소',
+        rejectClass: 'p-button-secondary',
+        acceptLabel: '확인',
+        acceptClass: 'p-button-danger',
+        accept: async () => {
+            try {
+                withdrawing.value = true;
+                await withdrawMember();
+                showSuccess('회원 탈퇴가 완료되었습니다.');
+                await authStore.logout();
+                await router.replace('/');
+            } catch (error) {
+                console.error('회원 탈퇴 실패:', error);
+                const message = (error instanceof Error ? error.message : null) || '회원 탈퇴 처리에 실패했습니다.';
+                showError(message);
+            } finally {
+                withdrawing.value = false;
+            }
+        }
+    });
+}
 
 const onSave = async () => {
     const validation = validateBeforeSave();
@@ -186,14 +220,14 @@ onMounted(() => {
                                     이름
                                     <span class="profile-edit-count" :class="{ 'text-red-500': nameLength > MAX_NAME }">({{ nameLength }}/{{ MAX_NAME }})</span>
                                 </label>
-                                <InputText v-model="form.name" class="w-full" placeholder="이름" :maxlength="MAX_NAME" :disabled="saving" />
+                                <InputText v-model="form.name" class="w-full" placeholder="이름" :maxlength="MAX_NAME" :disabled="saving || withdrawing" />
                             </div>
                             <div class="col-span-12 md:col-span-6">
                                 <label class="block text-sm font-medium mb-2">
                                     닉네임
                                     <span class="profile-edit-count" :class="{ 'text-red-500': nicknameLength > MAX_NICKNAME }">({{ nicknameLength }}/{{ MAX_NICKNAME }})</span>
                                 </label>
-                                <InputText v-model="form.nickname" class="w-full" placeholder="닉네임" :maxlength="MAX_NICKNAME" :disabled="saving" />
+                                <InputText v-model="form.nickname" class="w-full" placeholder="닉네임" :maxlength="MAX_NICKNAME" :disabled="saving || withdrawing" />
                             </div>
                             <div class="col-span-12">
                                 <label class="block text-sm font-medium mb-2">이메일</label>
@@ -204,11 +238,12 @@ onMounted(() => {
                                     자기소개
                                     <span class="profile-edit-count" :class="{ 'text-red-500': bioLength > MAX_BIO }">({{ bioLength }}/{{ MAX_BIO }})</span>
                                 </label>
-                                <Textarea v-model="form.bio" class="w-full profile-edit-bio" placeholder="자기소개를 입력해주세요" :rows="4" :maxlength="MAX_BIO" :disabled="saving" />
+                                <Textarea v-model="form.bio" class="w-full profile-edit-bio" placeholder="자기소개를 입력해주세요" :rows="4" :maxlength="MAX_BIO" :disabled="saving || withdrawing" />
                             </div>
                         </div>
                         <div class="profile-edit-actions">
-                            <Button type="button" label="저장" icon="pi pi-save" :loading="saving" :disabled="saving" @click="onSave" />
+                            <Button type="button" label="회원 탈퇴" icon="pi pi-user-minus" severity="danger" :loading="withdrawing" :disabled="saving || withdrawing" @click="confirmWithdraw" />
+                            <Button type="button" label="저장" icon="pi pi-save" :loading="saving" :disabled="saving || withdrawing" @click="onSave" />
                         </div>
                     </div>
                 </section>
@@ -416,8 +451,10 @@ onMounted(() => {
 
 .profile-edit-actions {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.5rem;
-    justify-content: flex-end;
     padding-top: 0.5rem;
 }
 

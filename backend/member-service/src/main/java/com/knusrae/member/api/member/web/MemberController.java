@@ -2,6 +2,7 @@ package com.knusrae.member.api.member.web;
 
 import com.knusrae.common.utils.AuthenticationUtils;
 import com.knusrae.member.api.member.domain.service.MemberService;
+import com.knusrae.member.api.member.domain.service.MemberWithdrawalService;
 import com.knusrae.member.api.member.dto.MemberDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class MemberController {
 
     private final MemberService memberService;
+    private final MemberWithdrawalService memberWithdrawalService;
 
     @GetMapping("/me")
     public ResponseEntity<MemberDto> retrieveCurrentMember(Authentication authentication) {
@@ -35,6 +37,17 @@ public class MemberController {
         log.info("GET /api/member/{} - 회원 정보 조회", memberId);
         MemberDto memberDto = memberService.getMemberById(memberId);
         return ResponseEntity.ok(memberDto);
+    }
+
+    /**
+     * 회원 탈퇴 — 관련 데이터 일괄 삭제 후 회원 행 삭제 (204)
+     */
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> withdrawCurrentMember(Authentication authentication) {
+        Long memberId = AuthenticationUtils.extractMemberId(authentication);
+        log.info("DELETE /api/member/me - 회원 탈퇴 요청 ID: {}", memberId);
+        memberWithdrawalService.withdrawMember(memberId);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
