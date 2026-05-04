@@ -2,6 +2,7 @@ package com.knusrae.common.domain.entity;
 
 import com.knusrae.common.domain.enums.Active;
 import com.knusrae.common.domain.enums.Gender;
+import com.knusrae.common.domain.enums.MemberRole;
 import com.knusrae.common.domain.enums.SocialRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -52,6 +53,11 @@ public class Member {
     @Enumerated(EnumType.STRING)
     @Column(name = "social_role", nullable = false) // "NAVER | KAKAO | GOOGLE"
     private SocialRole socialRole;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false) // "USER | ADMIN"
+    @Builder.Default
+    private MemberRole role = MemberRole.USER;
 
     @Column(length = 500)
     private String profileImage;
