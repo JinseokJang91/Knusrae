@@ -27,5 +27,26 @@ public class AuthenticationUtils {
             throw new IllegalArgumentException("유효하지 않은 회원 ID 형식입니다.");
         }
     }
+
+    /**
+     * Authentication에서 회원 ID를 추출합니다. 비로그인(익명) 요청이면 null을 반환합니다.
+     *
+     * @param authentication Spring Security Authentication 객체 (null 허용)
+     * @return 회원 ID, 비로그인이면 null
+     */
+    public static Long extractMemberIdOrNull(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal == null || "anonymousUser".equals(principal)) {
+            return null;
+        }
+        try {
+            return Long.parseLong(principal.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 }
 

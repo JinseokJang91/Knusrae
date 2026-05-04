@@ -2,6 +2,7 @@ package com.knusrae.cook.api.recipe.domain.service;
 
 import com.knusrae.common.custom.storage.ImageStorage;
 import com.knusrae.common.domain.entity.Member;
+import com.knusrae.common.exception.ResourceNotFoundException;
 import com.knusrae.common.utils.constants.CommonConstants;
 import com.knusrae.common.domain.entity.CommonCodeDetail;
 import com.knusrae.common.domain.entity.CommonCodeDetailId;
@@ -308,9 +309,16 @@ public class RecipeService {
     }
 
     @Transactional
-    public RecipeDetailDto retrieveRecipeDetail(Long id) {
+    public RecipeDetailDto retrieveRecipeDetail(Long id, Long requesterId) {
         Recipe recipe = recipeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Recipe not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("레시피를 찾을 수 없습니다. ID: " + id));
+
+        if (recipe.getVisibility() == Visibility.PRIVATE) {
+            if (requesterId == null || !requesterId.equals(recipe.getMemberId())) {
+                throw new ResourceNotFoundException("레시피를 찾을 수 없습니다. ID: " + id);
+            }
+        }
+
         recipe.increaseHits();
         Member member = memberRepository.findById(recipe.getMemberId())
                 .orElse(null);

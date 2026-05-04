@@ -112,9 +112,12 @@ public class RecipeController {
      */
     // READ - 레시피 상세 조회 (이미지, 댓글, 리뷰 포함)
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<RecipeDetailDto> retrieveRecipeDetail(@PathVariable Long id) {
+    public ResponseEntity<RecipeDetailDto> retrieveRecipeDetail(
+            @PathVariable Long id,
+            Authentication authentication) {
         log.debug("Fetching recipe detail for ID: {}", id);
-        RecipeDetailDto recipeDetail = recipeService.retrieveRecipeDetail(id);
+        Long requesterId = AuthenticationUtils.extractMemberIdOrNull(authentication);
+        RecipeDetailDto recipeDetail = recipeService.retrieveRecipeDetail(id, requesterId);
         log.info("Recipe detail retrieved successfully: id={}, title={}", id, recipeDetail.getTitle());
         return ResponseEntity.ok(recipeDetail);
     }

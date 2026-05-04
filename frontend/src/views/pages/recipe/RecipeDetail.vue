@@ -162,6 +162,10 @@ const fetchRecipeDetail = async () => {
         // 댓글 목록 불러오기
         await fetchComments();
     } catch (err) {
+        if (err instanceof Error && err.message.startsWith('HTTP 404')) {
+            router.replace('/error/notfound');
+            return;
+        }
         error.value = '레시피를 불러오는 중 오류가 발생했습니다.';
         console.error('Recipe detail fetch error:', err);
     } finally {
