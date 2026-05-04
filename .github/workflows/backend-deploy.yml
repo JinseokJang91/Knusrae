@@ -138,6 +138,14 @@ jobs:
             cd "$DEPLOY_PATH"
             tar xzf deploy.tar.gz
             chmod +x scripts/*.sh 2>/dev/null || true
+
+            echo "=== [disk] before cleanup ==="
+            df -h /
+            docker image prune -af || true
+            rm -f backend-image.tar.gz.old 2>/dev/null || true
+            echo "=== [disk] after cleanup ==="
+            df -h /
+
             gunzip -c backend-image.tar.gz | docker load
             export BACKEND_IMAGE_REPO=knusrae-backend
             export BACKEND_IMAGE_TAG="$GITHUB_SHA"
