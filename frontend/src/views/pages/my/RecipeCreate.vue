@@ -378,12 +378,14 @@ async function submit(): Promise<void> {
     formData.append('recipe', recipeBlob, 'recipe.json');
 
     if (form.thumbnailFile) {
-        formData.append('images', form.thumbnailFile, 'thumbnail.png');
+        const thumbnailExt = form.thumbnailFile.name.split('.').pop() || 'jpg';
+        formData.append('images', form.thumbnailFile, `thumbnail.${thumbnailExt}`);
     }
 
     form.steps.forEach((s, idx) => {
         if (s.file) {
-            formData.append('images', s.file, `step-${idx + 1}.png`);
+            const stepExt = s.file.name.split('.').pop() || 'jpg';
+            formData.append('images', s.file, `step-${idx + 1}.${stepExt}`);
         }
     });
 
