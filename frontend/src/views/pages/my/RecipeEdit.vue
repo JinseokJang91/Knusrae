@@ -372,13 +372,15 @@ async function submit() {
         if (hasAnyImageChange) {
             // 썸네일 처리: 새 파일이 있으면 사용, 없으면 기존 URL에서 다운로드
             if (form.thumbnailFile) {
-                formData.append('images', form.thumbnailFile, 'thumbnail.png');
+                const thumbnailExt = form.thumbnailFile.name.split('.').pop() || 'jpg';
+                formData.append('images', form.thumbnailFile, `thumbnail.${thumbnailExt}`);
             } else if (form.thumbnailPreview) {
                 try {
                     const response = await fetch(form.thumbnailPreview, { credentials: 'include' });
                     if (response.ok) {
                         const blob = await response.blob();
-                        formData.append('images', blob, 'thumbnail.png');
+                        const mimeExt = blob.type.split('/')[1] || 'jpg';
+                        formData.append('images', blob, `thumbnail.${mimeExt}`);
                     }
                 } catch (err) {
                     console.error('썸네일 fetch 에러:', err);
@@ -389,13 +391,15 @@ async function submit() {
             for (let i = 0; i < form.steps.length; i++) {
                 const step = form.steps[i];
                 if (step.file) {
-                    formData.append('images', step.file, `step-${i + 1}.png`);
+                    const stepExt = step.file.name.split('.').pop() || 'jpg';
+                    formData.append('images', step.file, `step-${i + 1}.${stepExt}`);
                 } else if (step.existingImageUrl) {
                     try {
                         const response = await fetch(step.existingImageUrl, { credentials: 'include' });
                         if (response.ok) {
                             const blob = await response.blob();
-                            formData.append('images', blob, `step-${i + 1}.png`);
+                            const mimeExt = blob.type.split('/')[1] || 'jpg';
+                            formData.append('images', blob, `step-${i + 1}.${mimeExt}`);
                         }
                     } catch (err) {
                         console.error(`Step ${i + 1}: fetch 에러:`, err);
