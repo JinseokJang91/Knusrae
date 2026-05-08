@@ -121,12 +121,6 @@ async function updateStatus(status: string) {
     try {
         await updateIngredientRequestStatus(selectedRequest.value.id, status);
         selectedRequest.value = { ...selectedRequest.value, status };
-        toast.add({
-            severity: 'success',
-            summary: '상태 변경',
-            detail: status === 'PROCESSED' ? '처리 완료로 변경했습니다.' : '반려로 변경했습니다.',
-            life: 3000
-        });
         await loadRequests();
     } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : '상태 변경에 실패했습니다.';

@@ -19,7 +19,7 @@ import { useAppToast } from '@/utils/toast';
 
 const router = useRouter();
 const authStore = useAuthStore();
-const { showSuccess, showError } = useAppToast();
+const { showError } = useAppToast();
 
 const items = ref<InquiryListItem[]>([]);
 const totalElements = ref(0);
@@ -72,7 +72,6 @@ async function submitReply() {
         const updated = await submitInquiryReply(selectedDetail.value.id, replyContent.value.trim());
         selectedDetail.value = updated;
         replyContent.value = '';
-        showSuccess('답변이 등록되었습니다.');
         await loadInquiries();
     } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : null;

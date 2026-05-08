@@ -10,7 +10,7 @@ import { isEmptyDataError } from '@/utils/errorHandler';
 
 const router = useRouter();
 const authStore = useAuthStore();
-const { showSuccess, showError } = useAppToast();
+const { showError } = useAppToast();
 
 const creators = ref<Creator[]>([]);
 const loading = ref(false);
@@ -50,7 +50,6 @@ const handleFollow = async (creator: Creator) => {
     followLoadingMap.value.set(creator.memberId, true);
     try {
         await followUser(creator.memberId);
-        showSuccess(`${creator.nickname}님을 팔로우했습니다.`);
 
         // 팔로우 성공 시 카드를 목록에서 제거 (페이드아웃 후 삭제)
         removingSet.value = new Set([...removingSet.value, creator.memberId]);

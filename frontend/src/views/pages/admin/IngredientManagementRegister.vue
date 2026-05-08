@@ -143,20 +143,8 @@ const handleSubmit = async () => {
 
         if (registerType.value === 'storage') {
             await createIngredientStorage(request);
-            toast.add({
-                severity: 'success',
-                summary: '등록 완료',
-                detail: '재료 보관법이 등록되었습니다.',
-                life: 3000
-            });
         } else {
             await createIngredientPreparation(request);
-            toast.add({
-                severity: 'success',
-                summary: '등록 완료',
-                detail: '재료 손질법이 등록되었습니다.',
-                life: 3000
-            });
         }
 
         // 관리자 경로에서 왔으면 관리자페이지로, 아니면 재료 관리 화면으로

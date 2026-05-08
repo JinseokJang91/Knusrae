@@ -174,7 +174,6 @@ async function submitCreateGroup() {
             imageUrl: createGroupForm.value.imageUrl?.trim() || undefined,
             sortOrder: createGroupForm.value.sortOrder ?? undefined
         });
-        toast.add({ severity: 'success', summary: '등록 완료', detail: '재료 그룹이 등록되었습니다.' });
         createGroupDialogVisible.value = false;
         await loadGroups();
     } catch (e) {
@@ -266,7 +265,6 @@ async function submitEditGroup() {
         if (detailGroup.value?.id === updated.id) {
             detailGroup.value = updated;
         }
-        toast.add({ severity: 'success', summary: '수정 완료', detail: '재료 그룹이 수정되었습니다.' });
         editGroupDialogVisible.value = false;
     } catch (e) {
         toast.add({
@@ -290,7 +288,6 @@ function confirmDeleteGroup(group: IngredientGroup) {
         async accept() {
             try {
                 await deleteIngredientGroup(group.id);
-                toast.add({ severity: 'success', summary: '삭제 완료', detail: '재료 그룹이 삭제되었습니다.' });
                 if (detailGroup.value?.id === group.id) {
                     detailDialogVisible.value = false;
                     detailGroup.value = null;
@@ -401,7 +398,6 @@ async function submitAddIngredient() {
         });
         detailIngredients.value = [...detailIngredients.value, created];
         addIngredientDialogVisible.value = false;
-        toast.add({ severity: 'success', summary: '등록 완료', detail: '재료가 등록되었습니다.' });
     } catch (e) {
         toast.add({
             severity: 'error',
@@ -489,7 +485,6 @@ async function submitEditIngredient() {
             next[idx] = { ...updated, group: detailGroup.value };
             detailIngredients.value = next;
         }
-        toast.add({ severity: 'success', summary: '수정 완료', detail: '재료가 수정되었습니다.' });
         editIngredientDialogVisible.value = false;
     } catch (e) {
         toast.add({
@@ -514,7 +509,6 @@ function confirmDeleteIngredient(ingredient: Ingredient) {
             try {
                 await deleteIngredient(ingredient.id);
                 detailIngredients.value = detailIngredients.value.filter((i) => i.id !== ingredient.id);
-                toast.add({ severity: 'success', summary: '삭제 완료', detail: '재료가 삭제되었습니다.' });
             } catch (e) {
                 toast.add({
                     severity: 'error',

@@ -83,13 +83,6 @@ const deleteAllViews = async () => {
     try {
         await deleteAllRecentViews(memberId.value);
         recentViews.value = [];
-
-        toast.add({
-            severity: 'success',
-            summary: '삭제 완료',
-            detail: '최근 본 레시피 기록이 삭제되었습니다.',
-            life: 3000
-        });
     } catch (error) {
         console.error('기록 삭제 실패:', error);
         toast.add({

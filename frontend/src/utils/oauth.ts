@@ -34,13 +34,7 @@ const oauthConfigs: Record<string, Omit<OAuthConfig, 'clientId' | 'redirectUri'>
 /**
  * @param serverState 서버에서 발급한 state (GET /api/auth/oauth/state?provider=...). CSRF 방지용.
  */
-export function openOAuthPopup(
-    provider: 'naver' | 'google' | 'kakao',
-    clientId: string,
-    redirectUri: string,
-    additionalParams: Record<string, string> = {},
-    serverState: string
-): void {
+export function openOAuthPopup(provider: 'naver' | 'google' | 'kakao', clientId: string, redirectUri: string, additionalParams: Record<string, string> = {}, serverState: string): void {
     if (!clientId || !redirectUri) {
         alert(`${provider} 로그인 설정이 완료되지 않았습니다. 환경 변수를 확인해주세요.`);
         return;

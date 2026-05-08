@@ -124,7 +124,6 @@ async function submitCreate() {
             codeName: createForm.value.codeName!.trim(),
             useYn: createForm.value.useYn || 'Y'
         });
-        toast.add({ severity: 'success', summary: '등록 완료', detail: '공통코드가 등록되었습니다.' });
         createDialogVisible.value = false;
         await loadList();
     } catch (e) {
@@ -198,7 +197,6 @@ async function submitDetailAdd() {
         });
         editDetails.value = [...editDetails.value, created];
         detailAddDialogVisible.value = false;
-        toast.add({ severity: 'success', summary: '등록 완료', detail: '상세코드가 등록되었습니다.' });
     } catch (e) {
         toast.add({
             severity: 'error',
@@ -249,7 +247,6 @@ async function submitDetailEdit() {
             editDetails.value = next;
         }
         detailEditDialogVisible.value = false;
-        toast.add({ severity: 'success', summary: '수정 완료', detail: '상세코드가 수정되었습니다.' });
     } catch (e) {
         toast.add({
             severity: 'error',
@@ -274,7 +271,6 @@ function confirmDetailDelete(row: AdminCommonCodeDetailItem) {
             try {
                 await deleteCommonCodeDetail(editingCodeId.value!, row.detailCodeId);
                 editDetails.value = editDetails.value.filter((d) => d.detailCodeId !== row.detailCodeId);
-                toast.add({ severity: 'success', summary: '삭제 완료', detail: '상세코드가 삭제되었습니다.' });
             } catch (e) {
                 toast.add({
                     severity: 'error',
@@ -303,7 +299,6 @@ async function submitEdit() {
             codeName: editForm.value.codeName!.trim(),
             useYn: editForm.value.useYn
         });
-        toast.add({ severity: 'success', summary: '수정 완료', detail: '공통코드가 수정되었습니다.' });
         editDialogVisible.value = false;
         await loadList();
     } catch (e) {
@@ -328,7 +323,6 @@ function confirmDelete(row: CommonCodeListItem) {
         async accept() {
             try {
                 await deleteCommonCode(row.codeId);
-                toast.add({ severity: 'success', summary: '삭제 완료', detail: '공통코드가 삭제되었습니다.' });
                 await loadList();
             } catch (e) {
                 toast.add({

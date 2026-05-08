@@ -53,7 +53,7 @@ const loadRecipes = async () => {
 
 // 카테고리 페이지로 이동
 const goToCategory = () => {
-    router.push(`/recipes/category/${props.category.codeId}/${props.category.detailCodeId}`);
+    router.push(`/recipe/category/${props.category.codeId}/${props.category.detailCodeId}`);
 };
 
 onMounted(() => {

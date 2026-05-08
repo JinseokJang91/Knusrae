@@ -398,8 +398,6 @@ async function submit(): Promise<void> {
         isSubmitSuccessful.value = true;
 
         router.push('/my/recipes');
-    } else {
-        showError('레시피 등록 중 오류가 발생했습니다.', '등록 실패');
     }
 
     submitting.value = false;
