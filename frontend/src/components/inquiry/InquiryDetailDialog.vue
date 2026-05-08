@@ -123,15 +123,7 @@ watch(
 </script>
 
 <template>
-    <Dialog
-        v-model:visible="visibleModel"
-        header="문의 상세"
-        :modal="true"
-        :style="{ width: '90vw', maxWidth: '560px' }"
-        :closable="true"
-        class="inquiry-detail-dialog"
-        @hide="close"
-    >
+    <Dialog v-model:visible="visibleModel" header="문의 상세" :modal="true" :style="{ width: '90vw', maxWidth: '560px' }" :closable="true" class="inquiry-detail-dialog" @hide="close">
         <div class="inquiry-detail-dialog__body">
             <PageStateBlock v-if="loading" state="loading" loading-message="문의를 불러오는 중..." />
             <PageStateBlock v-else-if="error" state="error" error-title="문의를 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadDetail" />

@@ -143,7 +143,6 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .following-feed-container {
-
     .feed-header {
         margin-bottom: 2rem;
         padding-bottom: 1.5rem;
@@ -165,7 +164,6 @@ onMounted(() => {
 
 @media (max-width: 768px) {
     .following-feed-container {
-
         .feed-content {
             .recipe-grid {
                 grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));

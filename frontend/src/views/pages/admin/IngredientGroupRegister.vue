@@ -95,7 +95,6 @@ const handleSubmit = async () => {
             imageUrl: form.value.imageUrl?.trim() || undefined,
             sortOrder: form.value.sortOrder ?? undefined
         });
-        toast.add({ severity: 'success', summary: '등록 완료', detail: '재료 그룹이 등록되었습니다.', life: 3000 });
         router.push('/admin');
     } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : '등록 중 오류가 발생했습니다.';

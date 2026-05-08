@@ -44,13 +44,31 @@ const loadRecommendations = async (refresh: boolean = false) => {
  * 새로고침
  */
 const refreshRecommendations = async () => {
-    await loadRecommendations(true);
-    toast.add({
-        severity: 'success',
-        summary: '새로고침',
-        detail: '새로운 추천 레시피를 불러왔습니다.',
-        life: 2000
-    });
+    isLoading.value = true;
+    try {
+        const data = await getTodayRecommendations(3, true);
+        recommendations.value = data;
+        toast.add({
+            severity: 'success',
+            summary: '새로고침',
+            detail: '새로운 추천 레시피를 불러왔습니다.',
+            life: 2000
+        });
+    } catch (error) {
+        if (isEmptyDataError(error)) {
+            recommendations.value = null;
+            return;
+        }
+        console.error('[TodayRecommendations] 추천 레시피 새로고침 실패:', error);
+        toast.add({
+            severity: 'error',
+            summary: '오류',
+            detail: '추천 레시피를 불러오는데 실패했습니다.',
+            life: 3000
+        });
+    } finally {
+        isLoading.value = false;
+    }
 };
 
 /**
