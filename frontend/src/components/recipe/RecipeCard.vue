@@ -19,7 +19,7 @@ const formatNumber = (num?: number) => {
 };
 
 const goToRecipe = () => {
-    router.push(`/recipes/${props.recipe.id}`);
+    router.push(`/recipe/${props.recipe.id}`);
 };
 </script>
 
