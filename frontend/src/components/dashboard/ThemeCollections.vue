@@ -99,8 +99,8 @@ onMounted(() => {
 
         <!-- 테마 없음 -->
         <div v-else-if="themes.length === 0" class="empty-state">
-            <i class="pi pi-bookmark" style="font-size: 3rem; color: var(--text-color-secondary)"></i>
-            <p>현재 활성화된 테마가 없습니다.</p>
+            <i class="pi pi-bookmark empty-state__icon" aria-hidden="true"></i>
+            <p class="empty-state__msg">현재 활성화된 테마가 없습니다.</p>
         </div>
 
         <!-- 테마 탭 + 레시피 -->
@@ -138,7 +138,7 @@ onMounted(() => {
                     </div>
 
                     <div v-else-if="themeRecipes.length === 0" class="recipes-empty">
-                        <p>등록된 레시피가 없습니다.</p>
+                        <p class="recipes-empty__msg">등록된 레시피가 없습니다.</p>
                     </div>
 
                     <div v-else class="recipes-scroll">
@@ -217,6 +217,27 @@ onMounted(() => {
     justify-content: center;
     padding: 40px;
     gap: 12px;
+    color: var(--text-color-secondary);
+}
+
+.empty-state__icon {
+    font-size: 2.25rem;
+    color: var(--text-color-secondary);
+    opacity: 0.85;
+}
+
+.empty-state__msg {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    text-align: center;
+    color: var(--text-color-secondary);
+    max-width: 20rem;
+}
+
+.recipes-empty__msg {
+    margin: 0;
+    font-size: 0.8125rem;
     color: var(--text-color-secondary);
 }
 
@@ -483,6 +504,31 @@ onMounted(() => {
 
 // 반응형
 @media (max-width: 768px) {
+    .section-header .header-left {
+        .section-title {
+            font-size: 1.125rem;
+            line-height: 1.3;
+        }
+
+        .section-subtitle {
+            font-size: 0.8125rem;
+        }
+    }
+
+    .theme-detail .theme-description {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.375rem;
+
+        p {
+            font-size: 0.8125rem;
+        }
+
+        .theme-period {
+            font-size: 0.75rem;
+        }
+    }
+
     .scroll-btn {
         display: none;
     }
@@ -498,6 +544,29 @@ onMounted(() => {
 
     .recipe-card {
         width: 150px;
+    }
+
+    .recipe-card .recipe-info {
+        .recipe-title {
+            font-size: 0.75rem;
+        }
+
+        .recipe-author {
+            font-size: 0.6875rem;
+        }
+
+        .recipe-stats .stat {
+            font-size: 0.625rem;
+        }
+    }
+
+    .empty-state__icon {
+        font-size: 2rem;
+    }
+
+    .empty-state__msg,
+    .recipes-empty__msg {
+        font-size: 0.8125rem;
     }
 }
 </style>

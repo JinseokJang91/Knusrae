@@ -1,0 +1,38 @@
+// ---------------------------------------------------------------------------
+// 반응형 레이아웃 토큰 (P2-1)
+// - SCSS 소스 오브 트루스: 레이아웃 SCSS에서 @use 로 참조합니다.
+// - 동일 값은 variables/_common.scss :root 에 CSS 변수로 노출합니다 (Vue·유틸용).
+// - 브레이크포인트 구간은 tailwind.config.js · _responsive.scss 와 맞춥니다.
+// ---------------------------------------------------------------------------
+
+// 데스크톱 고정폭 — .page-container / .topbar-inner (2xl·xl)
+$page-container-margin-x: 6rem;
+$page-container-margin-x-wide: 2rem;
+
+// 구간별 좌우 인셋 (각 side) — .page-container max-width · .topbar-inner padding
+$rsp-inline-lg: 3rem; // 1024px–1279px
+$rsp-inline-md: 2rem; // 768px–1023px
+$rsp-inline-md-wide: 1.5rem;
+$rsp-inline-sm: 1rem; // 640px–767px
+$rsp-inline-sm-wide: 0.75rem;
+$rsp-inline-xs: 0.75rem; // max-width 639px
+$rsp-inline-xs-wide: 0.5rem;
+
+// .layout-main-container — 탑바 아래 본문 좌우 패딩 (미디어쿼리 단계)
+$layout-main-padding-tablet: 2rem; // max-width 1023px
+$layout-main-padding-mobile: 1rem; // max-width 768px
+$layout-main-padding-mobile-narrow: 0.75rem; // max-width 375px
+$layout-main-padding-mobile-tiny: 0.5rem; // max-width 360px
+
+$layout-main-top-gap-tablet: 0.75rem;
+$layout-main-top-gap-mobile: 0.5rem;
+
+// 모바일 하단 탭바 대비 본문 하단 패딩 보조값
+$layout-main-padding-bottom-with-nav: 1.5rem;
+$layout-main-padding-bottom-with-nav-narrow: 1rem;
+
+// .page-container--card 내부 패딩
+$page-container-card-padding-xl: 2rem;
+$page-container-card-padding-lg: 1.5rem;
+$page-container-card-padding-md: 1.25rem;
+$page-container-card-padding-sm: 1rem;

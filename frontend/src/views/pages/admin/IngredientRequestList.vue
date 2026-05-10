@@ -6,6 +6,7 @@ import Button from 'primevue/button';
 import Card from 'primevue/card';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import Paginator from 'primevue/paginator';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import Dialog from 'primevue/dialog';
@@ -178,6 +179,31 @@ onMounted(() => {
 
                 <!-- 테이블 -->
                 <div v-else>
+                    <div class="ingredient-mobile-list ingredient-mobile-only">
+                        <article v-for="(req, index) in requests" :key="req.id" class="ingredient-mobile-item">
+                            <div class="ingredient-mobile-item__header">
+                                <span class="ingredient-mobile-item__no">No. {{ currentPage * pageSize + index + 1 }}</span>
+                                <Tag :value="statusLabel(req.status)" :severity="statusSeverity(req.status)" />
+                            </div>
+                            <h3 class="ingredient-mobile-item__title">{{ req.ingredientName }}</h3>
+                            <p class="ingredient-mobile-item__meta">{{ requestTypeLabel(req.requestType) }} · {{ req.memberId != null ? `회원 #${req.memberId}` : '비회원' }}</p>
+                            <p class="ingredient-mobile-item__meta">{{ formatDate(req.createdAt) }}</p>
+                            <p class="ingredient-mobile-item__message">{{ messagePreview(req.message) }}</p>
+                            <div class="ingredient-mobile-item__actions">
+                                <Button label="상세 보기" icon="pi pi-eye" severity="secondary" outlined size="small" @click="openDetail(req)" />
+                            </div>
+                        </article>
+                        <Paginator
+                            :first="currentPage * pageSize"
+                            :rows="pageSize"
+                            :total-records="totalCount"
+                            template="PrevPageLink CurrentPageReport NextPageLink"
+                            current-page-report-template="{currentPage} / {totalPages}"
+                            class="ingredient-mobile-paginator"
+                            @page="onPage"
+                        />
+                    </div>
+
                     <DataTable
                         :value="requests"
                         :paginator="true"
@@ -188,7 +214,7 @@ onMounted(() => {
                         :loading="loading"
                         data-key="id"
                         responsive-layout="scroll"
-                        class="p-datatable-sm"
+                        class="p-datatable-sm ingredient-desktop-only"
                         @page="onPage"
                     >
                         <template #empty>
@@ -305,6 +331,81 @@ onMounted(() => {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.ingredient-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.ingredient-mobile-item {
+    background: var(--p-card-background, #ffffff);
+    border: 1px solid var(--p-card-border-color, rgba(0, 0, 0, 0.08));
+    border-radius: 12px;
+    padding: 0.875rem;
+    box-shadow: var(--p-card-shadow, 0 1px 3px rgba(0, 0, 0, 0.06));
+}
+
+.ingredient-mobile-item__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.ingredient-mobile-item__no {
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+
+.ingredient-mobile-item__title {
+    margin: 0.625rem 0 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.ingredient-mobile-item__meta {
+    margin: 0.375rem 0 0;
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+
+.ingredient-mobile-item__message {
+    margin: 0.625rem 0 0;
+    font-size: 0.875rem;
+    color: #374151;
+}
+
+.ingredient-mobile-item__actions {
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.ingredient-mobile-paginator {
+    margin-top: 0.25rem;
+}
+
+.ingredient-desktop-only {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .ingredient-mobile-only {
+        display: none;
+    }
+
+    .ingredient-desktop-only {
+        display: block;
+    }
+}
+
+@media (max-width: 767px) {
+    .ingredient-mobile-item__actions :deep(.p-button) {
+        min-height: 44px;
+    }
 }
 
 .detail-content {

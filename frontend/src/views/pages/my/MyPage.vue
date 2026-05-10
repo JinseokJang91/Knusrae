@@ -6,6 +6,7 @@ import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
+import Select from 'primevue/select';
 import Profile from './Profile.vue';
 import Comments from './Comments.vue';
 import Inquiries from './Inquiries.vue';
@@ -16,6 +17,15 @@ import Recipes from './Recipes.vue';
 const route = useRoute();
 const router = useRouter();
 const activeTab = ref('profile');
+
+const mobileMenuItems = [
+    { key: 'profile', icon: 'pi pi-id-card', label: '내 정보' },
+    { key: 'comments', icon: 'pi pi-comments', label: '내 댓글' },
+    { key: 'inquiries', icon: 'pi pi-inbox', label: '1:1 문의내역' },
+    { key: 'favorites', icon: 'pi pi-heart', label: '찜 목록' },
+    { key: 'bookmarks', icon: 'pi pi-bookmark', label: '북마크 관리' },
+    { key: 'recipes', icon: 'pi pi-book', label: '레시피 관리' }
+];
 
 // URL 쿼리 파라미터에서 탭 정보 읽기
 onMounted(() => {
@@ -41,7 +51,34 @@ watch(activeTab, (newTab) => {
                 <h1 class="text-3xl font-bold m-0">마이페이지</h1>
             </div>
 
-            <Tabs v-model:value="activeTab">
+            <div class="mypage-mobile-nav">
+                <Select v-model="activeTab" :options="mobileMenuItems" option-label="label" option-value="key" class="mypage-mobile-nav__select">
+                    <template #value="slotProps">
+                        <div v-if="slotProps.value" class="mypage-mobile-nav__selected">
+                            <i :class="[mobileMenuItems.find((item) => item.key === slotProps.value)?.icon || 'pi pi-list', 'mypage-mobile-nav__option-icon']"></i>
+                            <span class="mypage-mobile-nav__option-label">{{ mobileMenuItems.find((item) => item.key === slotProps.value)?.label || '' }}</span>
+                        </div>
+                        <span v-else>메뉴 선택</span>
+                    </template>
+                    <template #option="slotProps">
+                        <div class="mypage-mobile-nav__option">
+                            <i :class="[slotProps.option.icon, 'mypage-mobile-nav__option-icon']"></i>
+                            <span class="mypage-mobile-nav__option-label">{{ slotProps.option.label }}</span>
+                        </div>
+                    </template>
+                </Select>
+            </div>
+
+            <div class="mypage-mobile-content">
+                <Profile v-if="activeTab === 'profile'" />
+                <Comments v-else-if="activeTab === 'comments'" />
+                <Inquiries v-else-if="activeTab === 'inquiries'" />
+                <Favorites v-else-if="activeTab === 'favorites'" />
+                <Bookmarks v-else-if="activeTab === 'bookmarks'" />
+                <Recipes v-else />
+            </div>
+
+            <Tabs v-model:value="activeTab" class="mypage-desktop-tabs">
                 <TabList>
                     <Tab value="profile">
                         <div class="flex items-center gap-2">
@@ -110,6 +147,11 @@ watch(activeTab, (newTab) => {
 .mypage-container {
     padding: 0;
 
+    .mypage-mobile-nav,
+    .mypage-mobile-content {
+        display: none;
+    }
+
     .mypage-header {
         display: flex;
         align-items: center;
@@ -167,20 +209,46 @@ watch(activeTab, (newTab) => {
             font-size: 1.5rem;
         }
 
-        :deep(.p-tabs) {
-            .p-tablist {
-                flex-wrap: wrap;
-                gap: 0.25rem;
+        .mypage-desktop-tabs {
+            display: none;
+        }
 
-                .p-tab {
-                    padding: 0.75rem 1rem;
-                    font-size: 0.9rem;
-                }
-            }
+        .mypage-mobile-nav {
+            display: block;
+            margin-bottom: 0.875rem;
+        }
 
-            .p-tabpanels {
-                padding: 0.75rem 0;
-            }
+        .mypage-mobile-nav__select {
+            width: 100%;
+        }
+
+        .mypage-mobile-nav__selected,
+        .mypage-mobile-nav__option {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.625rem;
+            min-width: 0;
+        }
+
+        .mypage-mobile-nav__selected i,
+        .mypage-mobile-nav__option i {
+            color: var(--primary-color);
+            flex-shrink: 0;
+        }
+
+        .mypage-mobile-nav__selected span,
+        .mypage-mobile-nav__option span {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        :deep(.mypage-mobile-nav__select .p-select-label) {
+            padding-top: 0.7rem;
+            padding-bottom: 0.7rem;
+        }
+
+        .mypage-mobile-content {
+            display: block;
         }
     }
 }
@@ -197,16 +265,41 @@ watch(activeTab, (newTab) => {
             font-size: 1.35rem;
         }
 
-        :deep(.p-tabs) {
-            .p-tab {
-                padding: 0.6rem 0.75rem;
-                font-size: 0.85rem;
-            }
-
-            .p-tabpanels {
-                padding: 0.5rem 0;
-            }
+        .mypage-mobile-nav__selected span,
+        .mypage-mobile-nav__option span {
+            font-size: 0.85rem;
         }
+    }
+}
+</style>
+
+<style lang="scss">
+@media (max-width: 768px) {
+    .p-select-list-container {
+        max-height: 16rem;
+    }
+
+    .p-select-option {
+        padding: 0.625rem 0.75rem;
+    }
+
+    .p-select-option .mypage-mobile-nav__option {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: 0.875rem;
+    }
+
+    .p-select-option .mypage-mobile-nav__option-icon {
+        width: 1.125rem;
+        min-width: 1.125rem;
+        text-align: center;
+        margin-right: 0;
+        color: var(--primary-color);
+    }
+
+    .p-select-option .mypage-mobile-nav__option-label {
+        line-height: 1.3;
     }
 }
 </style>

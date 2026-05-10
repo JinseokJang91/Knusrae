@@ -351,7 +351,23 @@ function confirmDelete(row: CommonCodeListItem) {
                 <div class="flex justify-end mb-4">
                     <Button label="공통코드 추가" icon="pi pi-plus" @click="openCreateDialog" />
                 </div>
-                <DataTable :value="list" :loading="loading" data-key="codeId" striped-rows class="p-datatable-sm" responsive-layout="scroll">
+                <div class="common-code-mobile-list common-code-mobile-only">
+                    <article v-for="item in list" :key="item.codeId" class="common-code-mobile-item">
+                        <div class="common-code-mobile-item__header">
+                            <h3 class="common-code-mobile-item__title">{{ item.codeName }}</h3>
+                            <Tag :value="item.useYn === 'Y' ? '사용' : '미사용'" :severity="item.useYn === 'Y' ? 'success' : 'secondary'" />
+                        </div>
+                        <p class="common-code-mobile-item__meta">코드 ID: {{ item.codeId }}</p>
+                        <p class="common-code-mobile-item__meta">코드 그룹: {{ item.codeGroup }}</p>
+                        <div class="common-code-mobile-item__actions">
+                            <Button label="수정" icon="pi pi-pencil" text severity="secondary" @click="openEditDialog(item)" />
+                            <Button label="삭제" icon="pi pi-trash" text severity="danger" @click="confirmDelete(item)" />
+                        </div>
+                    </article>
+                    <div v-if="!loading && list.length === 0" class="text-center text-gray-500 py-4">등록된 공통코드가 없습니다.</div>
+                </div>
+
+                <DataTable :value="list" :loading="loading" data-key="codeId" striped-rows class="p-datatable-sm common-code-desktop-only" responsive-layout="scroll">
                     <Column field="codeId" header="코드 ID" sortable />
                     <Column field="codeGroup" header="코드 그룹" sortable />
                     <Column field="codeName" header="코드명" sortable />
@@ -530,5 +546,66 @@ function confirmDelete(row: CommonCodeListItem) {
     padding: 24px;
     max-width: 1000px;
     margin: 0 auto;
+}
+
+.common-code-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.common-code-mobile-item {
+    background: var(--p-card-background, #ffffff);
+    border: 1px solid var(--p-card-border-color, rgba(0, 0, 0, 0.08));
+    border-radius: 12px;
+    padding: 0.875rem;
+    box-shadow: var(--p-card-shadow, 0 1px 3px rgba(0, 0, 0, 0.06));
+}
+
+.common-code-mobile-item__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.common-code-mobile-item__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.common-code-mobile-item__meta {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    color: #4b5563;
+}
+
+.common-code-mobile-item__actions {
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.25rem;
+}
+
+.common-code-desktop-only {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .common-code-mobile-only {
+        display: none;
+    }
+
+    .common-code-desktop-only {
+        display: block;
+    }
+}
+
+@media (max-width: 768px) {
+    .common-code-management {
+        padding: 16px;
+    }
 }
 </style>

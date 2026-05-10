@@ -8,6 +8,7 @@ import Button from 'primevue/button';
 import Badge from 'primevue/badge';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import Paginator from 'primevue/paginator';
 import ConfirmDialog from 'primevue/confirmdialog';
 import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import { useAppToast } from '@/utils/toast';
@@ -99,6 +100,8 @@ const filteredRecipes = computed(() => {
     return items.value.filter((r) => r.title.includes(q));
 });
 
+const pagedRecipes = computed(() => filteredRecipes.value.slice(first.value, first.value + rowsPerPage.value));
+
 // 검색어 변경 시 첫 페이지로 이동 (필터 결과가 줄어들면 빈 페이지를 가리키지 않도록)
 watch(search, () => {
     first.value = 0;
@@ -145,7 +148,36 @@ onMounted(() => {
 
             <!-- 레시피 테이블 -->
             <template v-else>
-                <div class="recipes-table-wrap">
+                <div class="recipes-mobile-list recipes-mobile-only">
+                    <article v-for="(recipe, index) in pagedRecipes" :key="recipe.id" class="recipes-mobile-item">
+                        <div class="recipes-mobile-item__header">
+                            <span class="recipes-mobile-item__no">No. {{ first + index + 1 }}</span>
+                            <div class="recipes-mobile-item__badges">
+                                <Badge v-if="recipe.status === 'DRAFT'" value="초안" severity="warning" />
+                                <Badge v-else value="발행" severity="info" />
+                                <Badge :value="recipe.visibility === 'PUBLIC' ? '공개' : '비공개'" severity="secondary" />
+                            </div>
+                        </div>
+                        <button type="button" class="recipes-mobile-item__title" @click="viewRecipeDetail(recipe.id)">
+                            {{ recipe.title }}
+                        </button>
+                        <div class="recipes-mobile-item__actions">
+                            <Button label="수정" icon="pi pi-pencil" size="small" severity="secondary" outlined @click="handleEditRecipe(recipe)" />
+                            <Button label="삭제" icon="pi pi-trash" size="small" severity="danger" outlined @click="confirmDelete(recipe)" />
+                        </div>
+                    </article>
+                    <Paginator
+                        :first="first"
+                        :rows="rowsPerPage"
+                        :total-records="filteredRecipes.length"
+                        template="PrevPageLink CurrentPageReport NextPageLink"
+                        current-page-report-template="{currentPage} / {totalPages}"
+                        class="recipes-mobile-paginator"
+                        @page="onPageChange"
+                    />
+                </div>
+
+                <div class="recipes-table-wrap recipes-desktop-only">
                     <DataTable
                         :value="filteredRecipes"
                         :paginator="true"
@@ -269,6 +301,85 @@ onMounted(() => {
 .recipes-datatable :deep(.p-datatable-thead > tr > th:first-child),
 .recipes-datatable :deep(.p-datatable-tbody > tr > td:first-child) {
     padding-left: 1.25rem;
+}
+
+.recipes-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.recipes-mobile-item {
+    background: var(--p-card-background, #ffffff);
+    border: 1px solid var(--p-card-border-color, rgba(0, 0, 0, 0.08));
+    border-radius: 12px;
+    padding: 0.875rem;
+    box-shadow: var(--p-card-shadow, 0 1px 3px rgba(0, 0, 0, 0.06));
+}
+
+.recipes-mobile-item__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.recipes-mobile-item__no {
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+
+.recipes-mobile-item__badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.375rem;
+}
+
+.recipes-mobile-item__title {
+    margin-top: 0.625rem;
+    border: none;
+    background: transparent;
+    color: var(--p-primary-color);
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    padding: 0;
+}
+
+.recipes-mobile-item__title:hover {
+    text-decoration: underline;
+}
+
+.recipes-mobile-item__actions {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.recipes-mobile-paginator {
+    margin-top: 0.25rem;
+}
+
+.recipes-desktop-only {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .recipes-mobile-only {
+        display: none;
+    }
+
+    .recipes-desktop-only {
+        display: block;
+    }
+}
+
+@media (max-width: 767px) {
+    .recipes-mobile-item__actions :deep(.p-button) {
+        min-height: 44px;
+    }
 }
 
 .recipe-title-link {

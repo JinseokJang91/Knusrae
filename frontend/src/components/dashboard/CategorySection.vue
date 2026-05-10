@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { getCategoryRecipes } from '@/api/categoryApi';
 import RecipeCard from '@/components/recipe/RecipeCard.vue';
-import Button from 'primevue/button';
 import Badge from 'primevue/badge';
 import type { CategoryInfo } from '@/types/category';
 import type { Recipe } from '@/types/recipe';
@@ -65,16 +64,21 @@ onMounted(() => {
     <div class="category-section">
         <div class="section-header">
             <div class="category-title-area">
-                <i :class="categoryIcon" class="category-icon"></i>
-                <div>
-                    <h2 class="section-title">{{ category.detailName }}</h2>
+                <i :class="categoryIcon" class="category-icon" aria-hidden="true"></i>
+                <div class="category-main">
+                    <div class="category-title-row">
+                        <h2 class="section-title">{{ category.detailName }}</h2>
+                        <button type="button" class="category-page-link" @click="goToCategory">
+                            <span class="category-page-link__label">카테고리 페이지</span>
+                            <i class="pi pi-arrow-right category-page-link__icon" aria-hidden="true"></i>
+                        </button>
+                    </div>
                     <p class="section-subtitle">
                         <Badge v-if="category.reason" :value="category.reason" />
                         {{ category.recipeCount ? `${category.recipeCount}개의 레시피` : '' }}
                     </p>
                 </div>
             </div>
-            <Button label="카테고리 페이지" icon="pi pi-arrow-right" icon-pos="right" @click="goToCategory" text />
         </div>
 
         <!-- 로딩 상태 -->
@@ -101,16 +105,69 @@ onMounted(() => {
 }
 
 .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 24px;
 }
 
 .category-title-area {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
+}
+
+.category-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.category-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.category-page-link {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--primary-color, #f97316);
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.category-page-link:hover {
+    text-decoration: underline;
+}
+
+.category-page-link:focus-visible {
+    outline: 2px solid var(--primary-color, #f97316);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.category-page-link__icon {
+    font-size: 0.65rem;
+    opacity: 0.9;
+}
+
+@media (min-width: 769px) {
+    .category-page-link {
+        font-size: 0.8125rem;
+    }
+
+    .category-page-link__icon {
+        font-size: 0.7rem;
+    }
 }
 
 .category-icon {
@@ -119,8 +176,11 @@ onMounted(() => {
 }
 
 .section-title {
-    font-size: 24px;
+    flex: 1;
+    min-width: 0;
+    font-size: 1.5rem;
     font-weight: 700;
+    line-height: 1.3;
     margin: 0;
     color: var(--text-color);
 }
@@ -136,14 +196,24 @@ onMounted(() => {
 
 .recipes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 20px;
 }
 
 @media (max-width: 1024px) {
     .recipes-grid {
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 16px;
+    }
+
+    /* 대시보드 다른 섹션 헤더(1.125rem)와 동일 트랙 */
+    .section-title {
+        font-size: 1.125rem;
+        line-height: 1.35;
+    }
+
+    .category-icon {
+        font-size: 1.375rem;
     }
 }
 
@@ -152,19 +222,36 @@ onMounted(() => {
         padding: 1rem 0;
     }
 
-    .section-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-
     .section-title {
-        font-size: 20px;
+        font-size: 1.0625rem;
+        line-height: 1.35;
     }
 
+    .section-subtitle {
+        font-size: 0.8125rem;
+    }
+
+    .category-icon {
+        font-size: 1.25rem;
+    }
+
+    .category-title-area {
+        gap: 0.625rem;
+    }
+
+    .category-page-link {
+        font-size: 0.6875rem;
+        margin-top: 0.125rem;
+    }
+
+    .category-page-link__icon {
+        font-size: 0.6rem;
+    }
+
+    /* 360~430px에서 2열은 가능할 때만(auto-fill), 좁으면 1열 */
     .recipes-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+        gap: 0.875rem;
     }
 }
 
@@ -172,13 +259,16 @@ onMounted(() => {
     .recipes-grid {
         display: flex;
         overflow-x: auto;
-        gap: 12px;
+        gap: 0.875rem;
         scroll-snap-type: x mandatory;
+        scroll-padding-inline: 0;
         padding-bottom: 8px;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
     }
 
     .recipes-grid > * {
-        flex: 0 0 240px;
+        flex: 0 0 min(240px, calc(100vw - 3.25rem));
         scroll-snap-align: start;
     }
 }

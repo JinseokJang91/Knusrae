@@ -150,8 +150,8 @@ function formatCount(count: number | undefined | null): string | null {
                         </div>
                         <!-- 작성자 영역: 표시할 내용이 있을 때만 영역 노출 -->
                         <div v-if="showAuthor && (recipe.memberNickname || recipe.memberName)" class="recipe-author-zone">
-                            <div class="recipe-author mt-2 flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            <div class="recipe-author mt-2 flex items-center gap-1.5 md:gap-2">
+                                <div class="h-5 w-5 shrink-0 rounded-full bg-gray-300 md:h-6 md:w-6 flex items-center justify-center overflow-hidden">
                                     <img v-if="recipe.memberProfileImage" :src="recipe.memberProfileImage" alt="작성자 프로필" class="w-full h-full object-cover" />
                                     <i v-else class="pi pi-user text-gray-600 text-xs"></i>
                                 </div>

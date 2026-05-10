@@ -199,7 +199,7 @@ defineExpose({
     margin-bottom: 24px;
 
     .section-title {
-        font-size: 24px;
+        font-size: 1.5rem;
         font-weight: 700;
         color: var(--text-color);
         display: flex;
@@ -213,7 +213,7 @@ defineExpose({
     }
 
     .section-subtitle {
-        font-size: 14px;
+        font-size: 0.9375rem;
         color: var(--text-color-secondary);
     }
 
@@ -383,6 +383,7 @@ defineExpose({
     .recommendations-grid,
     .loading-container .skeleton-cards {
         grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
     }
 }
 
@@ -391,16 +392,63 @@ defineExpose({
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
+
+        .section-title {
+            font-size: 1.125rem;
+            line-height: 1.3;
+        }
+
+        .section-subtitle {
+            font-size: 0.8125rem;
+        }
     }
 
     .recommendations-grid,
     .loading-container .skeleton-cards {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
     .recommendation-card {
-        max-width: 500px;
-        margin: 0 auto;
+        max-width: none;
+        margin: 0;
+    }
+
+    .card-info {
+        padding: 12px 14px;
+    }
+
+    .recipe-title {
+        font-size: 1rem;
+        margin-bottom: 6px;
+    }
+
+    .recipe-description {
+        font-size: 0.8125rem;
+        margin-bottom: 10px;
+    }
+
+    .recipe-stats {
+        gap: 12px;
+        font-size: 0.8125rem;
+        padding-top: 10px;
+    }
+
+    .card-thumbnail {
+        height: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .recommend-badge {
+        font-size: 0.6875rem;
+        padding: 5px 10px;
+        top: 10px;
+        left: 10px;
+    }
+
+    .card-thumbnail {
+        height: 168px;
     }
 }
 </style>

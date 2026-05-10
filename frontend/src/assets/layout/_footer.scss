@@ -166,6 +166,7 @@
 /* 태블릿 세로 (768px 이하) */
 @media (max-width: 768px) {
     .layout-footer {
+        display: none;
         padding: 1.5rem 1rem 1rem;
         gap: 1.5rem;
 

@@ -2,7 +2,7 @@
 import logoText from '@/assets/images/logo/logo-full.png';
 import { useAuthStore } from '@/stores/authStore';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
 import Menu from 'primevue/menu';
 import { getRecentSearchKeywords, deleteRecentSearchKeyword, deleteAllRecentSearchKeywords, saveRecentSearchKeyword, type RecentSearchKeyword } from '@/utils/search';
@@ -10,6 +10,7 @@ import { RECIPE_CATEGORIES } from '@/data/recipeCategoryData';
 import type { RecipeCategory } from '@/types/recipeCategory';
 
 const router = useRouter();
+const route = useRoute();
 const confirm = useConfirm();
 const authStore = useAuthStore();
 
@@ -17,6 +18,15 @@ const searchQuery = ref('');
 const profileMenu = ref();
 const categoryDropdownRef = ref<HTMLElement | null>(null);
 const mobileMenuOpen = ref(false);
+const topbarRef = ref<HTMLElement | null>(null);
+let topbarResizeObserver: ResizeObserver | null = null;
+
+const syncLayoutTopOffset = () => {
+    if (!topbarRef.value) return;
+
+    const renderedTopbarHeight = Math.ceil(topbarRef.value.getBoundingClientRect().height);
+    document.documentElement.style.setProperty('--layout-main-top-offset', `${renderedTopbarHeight}px`);
+};
 
 // 카테고리 선택 시 드롭다운 닫기
 const closeCategoryDropdown = () => {
@@ -343,6 +353,20 @@ const handleLogout = async () => {
     });
 };
 
+/** 햄버거 드로어 풋터: 메뉴 닫은 뒤 로그아웃 확인 */
+const handleMobileDrawerLogout = () => {
+    closeMobileMenu();
+    handleLogout();
+};
+
+const handleMobileDrawerLogin = () => {
+    closeMobileMenu();
+    router.push({
+        path: '/auth/login',
+        query: { redirect: route.fullPath }
+    });
+};
+
 // 로그인 상태 변경 감시하여 최근 검색어 로드 및 자동저장 설정 업데이트
 watch(
     () => authStore.isLoggedIn,
@@ -401,16 +425,28 @@ const handleOAuthMessage = async (event: MessageEvent) => {
 onMounted(() => {
     document.addEventListener('click', handleClickOutside);
     window.addEventListener('message', handleOAuthMessage);
+    window.addEventListener('resize', syncLayoutTopOffset);
+
+    syncLayoutTopOffset();
+    if (topbarRef.value) {
+        topbarResizeObserver = new ResizeObserver(() => {
+            syncLayoutTopOffset();
+        });
+        topbarResizeObserver.observe(topbarRef.value);
+    }
 });
 
 onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside);
     window.removeEventListener('message', handleOAuthMessage);
+    window.removeEventListener('resize', syncLayoutTopOffset);
+    topbarResizeObserver?.disconnect();
+    topbarResizeObserver = null;
 });
 </script>
 
 <template>
-    <div class="layout-topbar-horizontal">
+    <div ref="topbarRef" class="layout-topbar-horizontal">
         <!-- main과 동일한 콘텐츠 영역으로 정렬되는 내부 래퍼 -->
         <div class="topbar-inner">
             <!-- 좌측 영역: 로고 + 앱명 + 메뉴 -->
@@ -472,7 +508,9 @@ onUnmounted(() => {
             <div class="topbar-center">
                 <div class="search-wrapper">
                     <div class="search-container">
-                        <i class="pi pi-search search-icon" @click="handleSearch"></i>
+                        <button type="button" class="search-icon-btn" aria-label="검색" @click="handleSearch">
+                            <i class="pi pi-search" aria-hidden="true"></i>
+                        </button>
                         <input type="text" placeholder="레시피를 검색해보세요..." class="search-input" v-model="searchQuery" @keyup.enter="handleSearch" @focus="handleSearchFocus" @blur="handleSearchBlur" />
                         <button v-if="searchQuery" class="search-clear-btn" @click="clearSearch">
                             <i class="pi pi-times"></i>
@@ -548,24 +586,27 @@ onUnmounted(() => {
                                 <i class="fa-solid fa-times"></i>
                             </button>
                         </div>
-                        <nav class="mobile-menu-nav">
-                            <router-link to="/recipe/category" class="mobile-menu-item" @click="closeMobileMenu">
-                                <i class="fa-solid fa-utensils"></i>
-                                <span>전체 레시피</span>
-                            </router-link>
-                            <router-link to="/ingredient/management" class="mobile-menu-item" @click="closeMobileMenu">
-                                <i class="fa-solid fa-boxes-packing"></i>
-                                <span>재료 관리</span>
-                            </router-link>
-                            <router-link to="/ranking" class="mobile-menu-item" @click="closeMobileMenu">
-                                <i class="fa-solid fa-ranking-star"></i>
-                                <span>랭킹</span>
-                            </router-link>
-                            <router-link v-for="category in RECIPE_CATEGORIES" :key="category.id" :to="getCategoryRouteLink(category)" class="mobile-menu-item" @click="closeMobileMenu">
-                                <i :class="category.icon"></i>
-                                <span>{{ category.name }}</span>
-                            </router-link>
-                        </nav>
+                        <div class="mobile-menu-body">
+                            <nav class="mobile-menu-nav" aria-labelledby="mobile-menu-category-heading">
+                                <section class="mobile-menu-section">
+                                    <h2 id="mobile-menu-category-heading" class="mobile-menu-section__label">카테고리</h2>
+                                    <router-link v-for="category in RECIPE_CATEGORIES" :key="category.id" :to="getCategoryRouteLink(category)" class="mobile-menu-item mobile-menu-item--nested" @click="closeMobileMenu">
+                                        <i :class="category.icon" aria-hidden="true"></i>
+                                        <span>{{ category.name }}</span>
+                                    </router-link>
+                                </section>
+                            </nav>
+                        </div>
+                        <div class="mobile-menu-footer">
+                            <button v-if="authStore.isLoggedIn" type="button" class="mobile-menu-footer__logout" @click="handleMobileDrawerLogout">
+                                <i class="pi pi-sign-out" aria-hidden="true"></i>
+                                <span>로그아웃</span>
+                            </button>
+                            <button v-else type="button" class="mobile-menu-footer__login" @click="handleMobileDrawerLogin">
+                                <i class="pi pi-sign-in" aria-hidden="true"></i>
+                                <span>로그인</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </Transition>

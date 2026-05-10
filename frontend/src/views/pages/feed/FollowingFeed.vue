@@ -97,8 +97,8 @@ onMounted(() => {
     <div class="page-container page-container--card">
         <div class="following-feed-container">
             <div class="feed-header">
-                <h1 class="text-3xl font-bold m-0">팔로잉 피드</h1>
-                <p class="text-secondary mt-2">팔로우한 크리에이터들의 최신 레시피를 확인하세요</p>
+                <h1 class="feed-page-title">팔로잉 피드</h1>
+                <p class="feed-page-subtitle">팔로우한 크리에이터들의 최신 레시피를 확인하세요</p>
             </div>
 
             <!-- 로그인하지 않은 경우 -->
@@ -147,28 +147,56 @@ onMounted(() => {
         margin-bottom: 2rem;
         padding-bottom: 1.5rem;
         border-bottom: 2px solid var(--surface-border);
+    }
 
-        .text-secondary {
-            color: var(--text-color-secondary);
-        }
+    .feed-page-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1.25;
+    }
+
+    .feed-page-subtitle {
+        margin: 0.5rem 0 0;
+        color: var(--text-color-secondary);
+        font-size: 1rem;
+        line-height: 1.5;
     }
 
     .feed-content {
         .recipe-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.5rem;
         }
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
+    .following-feed-container .feed-content .recipe-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.25rem;
+    }
+}
+
+@media (max-width: 767px) {
     .following-feed-container {
-        .feed-content {
-            .recipe-grid {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                gap: 1rem;
-            }
+        .feed-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+        }
+
+        .feed-page-title {
+            font-size: 1.375rem;
+        }
+
+        .feed-page-subtitle {
+            font-size: 0.875rem;
+        }
+
+        .feed-content .recipe-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
     }
 }

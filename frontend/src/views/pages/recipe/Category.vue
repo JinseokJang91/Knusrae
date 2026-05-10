@@ -736,7 +736,7 @@ onMounted(() => {
                     placeholder="카테고리 검색 (예: 한식, 요리 키워드)"
                     class="category-search-input w-full"
                     @item-select="onCategorySearchSelect"
-                    inputClass="w-full"
+                    inputClass="w-full category-autocomplete-input"
                 >
                     <template #option="slotProps">
                         <div class="flex items-center gap-2 py-1">
@@ -750,56 +750,62 @@ onMounted(() => {
                 </AutoComplete>
             </div>
 
-            <!-- 2. 가로 탭 + 메가메뉴 패널 -->
+            <!-- 2. 가로 탭 + 메가메뉴 패널 (모바일: 상단 가로 스크롤 대분류 → 하단 세부 칩) -->
             <div class="category-tabs-panel">
                 <!-- 선택 영역 라벨: 사용자가 클릭 가능한 카테고리임을 명시 -->
                 <div class="category-select-label">
                     <i class="pi pi-check-circle category-select-icon" aria-hidden="true"></i>
                     <span class="category-select-title">카테고리</span>
-                    <span class="category-select-hint">원하는 카테고리를 클릭하세요</span>
+                    <span class="category-select-hint category-select-hint--desktop">원하는 카테고리를 클릭하세요</span>
+                    <span class="category-select-hint category-select-hint--mobile">원하는 카테고리를 클릭하고, 아래에서 세부 항목을 선택하세요</span>
                 </div>
-                <!-- 메인 카테고리 탭 (세그먼트 스타일) -->
-                <div class="main-category-tabs" role="tablist">
-                    <div class="main-category-tabs__track">
-                        <button
-                            v-for="mainCategory in mainCategories"
-                            :key="mainCategory.codeId"
-                            type="button"
-                            role="tab"
-                            :class="['tab-button', selectedMainCategory === mainCategory.codeId ? 'active' : '']"
-                            :aria-pressed="selectedMainCategory === mainCategory.codeId"
-                            :aria-label="`${mainCategory.codeName} 카테고리 선택`"
-                            @click="selectMainCategory(mainCategory.codeId)"
-                        >
-                            <span class="tab-button__label">{{ mainCategory.codeName }}</span>
-                        </button>
+                <div class="category-split">
+                    <!-- 메인 카테고리 탭 (세그먼트 스타일) -->
+                    <div class="category-split__main">
+                        <div class="main-category-tabs" role="tablist">
+                            <div class="main-category-tabs__track">
+                                <button
+                                    v-for="mainCategory in mainCategories"
+                                    :key="mainCategory.codeId"
+                                    type="button"
+                                    role="tab"
+                                    :class="['tab-button', selectedMainCategory === mainCategory.codeId ? 'active' : '']"
+                                    :aria-pressed="selectedMainCategory === mainCategory.codeId"
+                                    :aria-label="`${mainCategory.codeName} 카테고리 선택`"
+                                    @click="selectMainCategory(mainCategory.codeId)"
+                                >
+                                    <span class="tab-button__label">{{ mainCategory.codeName }}</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <!-- 선택된 메인의 상세 카테고리 패널 (맨 앞 '전체' + 칩 그리드) -->
-                <div class="sub-categories-panel">
-                    <div class="sub-categories-panel__chips">
-                        <button
-                            v-if="selectedMainCategory"
-                            key="sub-all"
-                            type="button"
-                            :class="['category-chip', selectedCategory === null ? 'selected' : '']"
-                            :aria-pressed="selectedCategory === null"
-                            aria-label="전체 카테고리 선택"
-                            @click="selectCategory(null)"
-                        >
-                            <span class="category-chip__label">전체</span>
-                        </button>
-                        <button
-                            v-for="detail in selectedMainCategoryDetails"
-                            :key="detail.detailCodeId"
-                            type="button"
-                            :class="['category-chip', selectedCategory === detail.detailCodeId ? 'selected' : '']"
-                            :aria-pressed="selectedCategory === detail.detailCodeId"
-                            :aria-label="`${detail.codeName} 카테고리 선택`"
-                            @click="selectCategory(detail.detailCodeId)"
-                        >
-                            <span class="category-chip__label">{{ detail.codeName }}</span>
-                        </button>
+                    <!-- 선택된 메인의 상세 카테고리 패널 (맨 앞 '전체' + 칩 그리드) -->
+                    <div class="category-split__sub">
+                        <div class="sub-categories-panel">
+                            <div v-if="selectedMainCategory" class="sub-categories-panel__chips">
+                                <button
+                                    key="sub-all"
+                                    type="button"
+                                    :class="['category-chip', selectedCategory === null ? 'selected' : '']"
+                                    :aria-pressed="selectedCategory === null"
+                                    aria-label="이 대분류의 모든 세부 항목 보기"
+                                    @click="selectCategory(null)"
+                                >
+                                    <span class="category-chip__label">전체</span>
+                                </button>
+                                <button
+                                    v-for="detail in selectedMainCategoryDetails"
+                                    :key="detail.detailCodeId"
+                                    type="button"
+                                    :class="['category-chip', selectedCategory === detail.detailCodeId ? 'selected' : '']"
+                                    :aria-pressed="selectedCategory === detail.detailCodeId"
+                                    :aria-label="`${detail.codeName} 카테고리 선택`"
+                                    @click="selectCategory(detail.detailCodeId)"
+                                >
+                                    <span class="category-chip__label">{{ detail.codeName }}</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -807,19 +813,23 @@ onMounted(() => {
 
         <!-- body : 레시피 목록 섹션 -->
         <div class="recipe-section">
-            <div class="flex justify-between items-center mb-5">
-                <div class="flex items-center gap-3 flex-wrap">
-                    <h2 class="text-2xl font-bold text-gray-900 m-0">{{ getCategoryTitle() }}</h2>
-                    <div class="recipe-count-bubble">
-                        <span class="text-primary font-bold">{{ totalDisplayRecipes.toLocaleString() }}</span
-                        >개의 레시피가 준비되어 있어요!
+            <div class="recipe-section-header mb-5">
+                <div class="recipe-section-header__left">
+                    <div class="recipe-section-header__titles">
+                        <h2 class="category-recipe-title font-bold text-gray-900 m-0">{{ getCategoryTitle() }}</h2>
+                        <div class="recipe-count-bubble recipe-count-bubble--category">
+                            <span class="text-primary font-bold">{{ totalDisplayRecipes.toLocaleString() }}</span
+                            >개의 레시피가 준비되어 있어요!
+                        </div>
                     </div>
-                    <div v-if="authStore.isLoggedIn" class="flex items-center gap-2" @mousedown.stop>
-                        <span class="text-sm text-gray-600 whitespace-nowrap">팔로잉 피드 보기</span>
+                    <div v-if="authStore.isLoggedIn" class="recipe-section-header__following" @mousedown.stop>
+                        <span class="recipe-section-header__following-label text-gray-600">팔로잉 피드 보기</span>
                         <ToggleSwitch v-model="showFollowingFeed" @update:modelValue="(value: boolean) => onFollowingFeedToggle(value)" />
                     </div>
                 </div>
-                <SelectButton v-model="sortBy" :options="sortOptions" optionLabel="label" optionValue="value" class="recipe-sort-buttons" @change="onSortChange" />
+                <div class="recipe-section-header__sort">
+                    <SelectButton v-model="sortBy" :options="sortOptions" optionLabel="label" optionValue="value" class="recipe-sort-buttons w-full" @change="onSortChange" />
+                </div>
             </div>
 
             <!-- 로딩 / 에러 / 빈 상태 -->
@@ -896,26 +906,152 @@ onMounted(() => {
     font-size: 3rem;
 }
 
-/* 정렬 버튼: 오렌지 톤 테마 (PrimeVue 4 SelectButton = ToggleButton, .p-togglebutton / .p-togglebutton-checked) */
+/* 레시피 목록 헤더: 모바일에서 제목·개수·토글·정렬 축 분리 */
+.recipe-section-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+}
+
+.recipe-section-header__left {
+    flex: 1 1 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.recipe-section-header__titles {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.category-recipe-title {
+    font-size: 1.125rem;
+    line-height: 1.35;
+}
+
+.recipe-section-header__following {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.recipe-section-header__following-label {
+    font-size: 0.8125rem;
+    white-space: nowrap;
+}
+
+.recipe-section-header__sort {
+    flex: 1 1 100%;
+    min-width: 0;
+}
+
+@media (min-width: 768px) {
+    .recipe-section-header {
+        flex-wrap: nowrap;
+        align-items: flex-start;
+    }
+
+    .recipe-section-header__left {
+        flex: 1 1 auto;
+    }
+
+    .recipe-section-header__titles {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 1rem;
+        row-gap: 0.5rem;
+    }
+
+    .category-recipe-title {
+        font-size: 1.5rem;
+    }
+
+    .recipe-section-header__sort {
+        flex: 0 0 auto;
+        max-width: min(100%, 22rem);
+    }
+}
+
+@media (min-width: 1024px) {
+    .category-recipe-title {
+        font-size: 1.75rem;
+    }
+}
+
+/* 말풍선 꼬리: 모바일에서 제목 아래로 내려올 때 좌측 정렬에 맞춤 */
+@media (max-width: 767px) {
+    .recipe-count-bubble--category::before,
+    .recipe-count-bubble--category::after {
+        display: none;
+    }
+
+    .recipe-count-bubble--category {
+        white-space: normal;
+        max-width: 100%;
+        font-size: 0.8rem;
+        padding: 0.4rem 0.75rem;
+    }
+}
+
+/* 정렬 버튼: 오렌지 톤 + 모바일에서 전폭·작은 글자·줄바꿈 */
+.recipe-sort-buttons :deep(.p-selectbutton) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    width: 100%;
+    justify-content: stretch;
+}
+
 .recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton) {
     border-color: #fdba74;
     color: #c2410c;
     background: #fff7ed;
+    flex: 1 1 calc(33.333% - 0.24rem);
+    min-width: 0;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.35rem;
+    line-height: 1.25;
 }
+
 .recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton:hover) {
     border-color: #fb923c;
     color: #9a3412;
     background: #ffedd5;
 }
+
 .recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton.p-togglebutton-checked) {
     border-color: #ea580c;
     background: #f97316;
     color: #fff;
 }
+
 .recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton.p-togglebutton-checked:hover) {
     background: #ea580c;
     border-color: #c2410c;
     color: #fff;
+}
+
+@media (min-width: 768px) {
+    .recipe-sort-buttons :deep(.p-selectbutton) {
+        flex-wrap: nowrap;
+        width: auto;
+        justify-content: flex-end;
+        gap: 0;
+    }
+
+    .recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton) {
+        flex: 0 0 auto;
+        font-size: 0.8125rem;
+        padding: 0.45rem 0.65rem;
+    }
 }
 
 /* 카테고리 선택기 스타일 (오렌지 톤 배경으로 칩·탭과 구분) */
@@ -928,15 +1064,35 @@ onMounted(() => {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-/* 1. 카테고리 검색(자동완성) */
+/* 1. 카테고리 검색(자동완성): 탑바 검색보다 한 단계 작게 */
 .category-search .category-search-input {
     max-width: 400px;
+}
+
+.category-search :deep(.p-inputtext),
+.category-search :deep(.p-autocomplete-input) {
+    font-size: 0.8125rem;
+    padding: 0.4rem 0.65rem;
+    min-height: 2.35rem;
+}
+
+@media (min-width: 768px) {
+    .category-search :deep(.p-inputtext),
+    .category-search :deep(.p-autocomplete-input) {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+        min-height: 2.5rem;
+    }
 }
 
 /* 2. 가로 탭 + 메가메뉴 패널 */
 .category-tabs-panel {
     border-top: 1px solid var(--surface-border);
     padding-top: 1rem;
+}
+
+.category-split {
+    display: block;
 }
 
 /* 카테고리 선택 영역 라벨 (선택 가능함을 명시) */
@@ -965,9 +1121,31 @@ onMounted(() => {
     color: var(--text-color-secondary);
 }
 
+.category-select-hint--mobile {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .category-select-hint--desktop {
+        display: none;
+    }
+
+    .category-select-hint--mobile {
+        display: inline;
+        flex-basis: 100%;
+        margin-left: 0;
+    }
+}
+
 /* 메인 카테고리 탭: 세그먼트 컨트롤 스타일 (고급스러운 트랙 + 버튼) */
 .main-category-tabs {
     margin-bottom: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .category-split__main .main-category-tabs {
+        margin-bottom: 0.5rem;
+    }
 }
 
 .main-category-tabs__track {
@@ -1020,6 +1198,74 @@ onMounted(() => {
     box-shadow:
         0 3px 12px rgba(234, 88, 12, 0.4),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 767px) {
+    .category-split {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch;
+    }
+
+    .category-split__main {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .category-split__main .main-category-tabs {
+        margin-bottom: 0;
+    }
+
+    /* 상단 대분류: 한 줄 가로 스크롤 */
+    .main-category-tabs__track {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        width: 100%;
+        max-width: 100%;
+        max-height: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x proximity;
+        gap: 6px;
+        padding: 6px 2px 8px;
+    }
+
+    .category-split .main-category-tabs .tab-button {
+        flex: 0 0 auto;
+        width: auto;
+        text-align: center;
+        padding: 0.5rem 0.85rem;
+        font-size: 0.8rem;
+        border-radius: 10px;
+        line-height: 1.25;
+        white-space: nowrap;
+        scroll-snap-align: start;
+    }
+
+    .category-split__sub {
+        width: 100%;
+        min-width: 0;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(253, 186, 116, 0.45);
+    }
+
+    .sub-categories-panel {
+        min-height: auto;
+        padding: 0;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .sub-categories-panel__chips {
+        max-height: none;
+        overflow: visible;
+        align-content: flex-start;
+    }
 }
 
 /* 서브 카테고리 패널 */
@@ -1087,7 +1333,10 @@ onMounted(() => {
     .category-search .category-search-input {
         max-width: 100%;
     }
+}
 
+/* 태블릿 이상: 기존 가로 탭 밀도만 조정 (좌우 분할 아님) */
+@media (min-width: 768px) and (max-width: 1023px) {
     .main-category-tabs__track {
         gap: 0.25rem;
         padding: 3px;
@@ -1095,7 +1344,7 @@ onMounted(() => {
     }
 
     .main-category-tabs .tab-button {
-        padding: 0.5rem 0.9rem;
+        padding: 0.5rem 0.85rem;
         font-size: 0.85rem;
     }
 
@@ -1111,18 +1360,9 @@ onMounted(() => {
         margin-bottom: 1.5rem;
     }
 
-    .main-category-tabs__track {
-        border-radius: 10px;
-    }
-
-    .main-category-tabs .tab-button {
-        padding: 0.45rem 0.7rem;
-        font-size: 0.8rem;
-    }
-
     .category-chip {
-        padding: 0.35rem 0.65rem;
-        font-size: 0.75rem;
+        padding: 0.35rem 0.55rem;
+        font-size: 0.72rem;
     }
 }
 </style>

@@ -6,6 +6,7 @@ import Button from 'primevue/button';
 import Badge from 'primevue/badge';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import Paginator from 'primevue/paginator';
 import ConfirmDialog from 'primevue/confirmdialog';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -178,7 +179,32 @@ watch(currentMemberId, (id) => {
                 />
 
                 <template v-else>
-                    <div class="inquiries-table-wrap">
+                    <div class="inquiries-mobile-list inquiries-mobile-only">
+                        <article v-for="(item, index) in items" :key="item.id" class="inquiries-mobile-item">
+                            <div class="inquiries-mobile-item__header">
+                                <span class="inquiries-mobile-item__no">No. {{ first + index + 1 }}</span>
+                                <Badge :value="item.hasReply ? '완료' : '대기'" :severity="item.hasReply ? 'success' : 'secondary'" />
+                            </div>
+                            <p class="inquiries-mobile-item__meta">{{ getInquiryTypeLabel(item.inquiryType) }} · {{ formatDate(item.createdAt) }}</p>
+                            <button type="button" class="inquiries-mobile-item__title" @click="openDetailDialog(item.id)">
+                                {{ item.title }}
+                            </button>
+                            <div class="inquiries-mobile-item__actions">
+                                <Button label="삭제" icon="pi pi-trash" severity="danger" outlined size="small" @click="confirmDelete(item)" />
+                            </div>
+                        </article>
+                        <Paginator
+                            :first="first"
+                            :rows="rows"
+                            :total-records="totalElements"
+                            template="PrevPageLink CurrentPageReport NextPageLink"
+                            current-page-report-template="{currentPage} / {totalPages}"
+                            class="inquiries-mobile-paginator"
+                            @page="onPageChange"
+                        />
+                    </div>
+
+                    <div class="inquiries-table-wrap inquiries-desktop-only">
                         <DataTable
                             :value="items"
                             :paginator="true"
@@ -330,5 +356,83 @@ watch(currentMemberId, (id) => {
 
 .inquiry-date-cell {
     font-size: 0.8125rem;
+}
+
+.inquiries-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.inquiries-mobile-item {
+    background: var(--p-card-background, #ffffff);
+    border: 1px solid var(--p-card-border-color, rgba(0, 0, 0, 0.08));
+    border-radius: 12px;
+    padding: 0.875rem;
+    box-shadow: var(--p-card-shadow, 0 1px 3px rgba(0, 0, 0, 0.06));
+}
+
+.inquiries-mobile-item__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.inquiries-mobile-item__no {
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+
+.inquiries-mobile-item__meta {
+    margin: 0.5rem 0 0;
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+
+.inquiries-mobile-item__title {
+    margin-top: 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--p-primary-color);
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    padding: 0;
+}
+
+.inquiries-mobile-item__title:hover {
+    text-decoration: underline;
+}
+
+.inquiries-mobile-item__actions {
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.inquiries-mobile-paginator {
+    margin-top: 0.25rem;
+}
+
+.inquiries-desktop-only {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .inquiries-mobile-only {
+        display: none;
+    }
+
+    .inquiries-desktop-only {
+        display: block;
+    }
+}
+
+@media (max-width: 767px) {
+    .inquiries-mobile-item__actions :deep(.p-button) {
+        min-height: 44px;
+    }
 }
 </style>
