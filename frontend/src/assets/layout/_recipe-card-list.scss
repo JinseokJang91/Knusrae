@@ -79,12 +79,8 @@
     transform: translateY(-4px);
 }
 
-/* 카드 열이 좁을 때(모바일 2열 ≈ 170px 등): 과도한 세로 높이 방지 · 모바일 그리드와 동일 밀도 */
-@container recipe-card (max-width: 320px) {
-    :scope .recipe-image-container {
-        height: 92px;
-    }
-
+/* 카드 열이 극히 좁을 때(모바일 2열 ≈ 150~190px): 텍스트 압축, 댓글 숨김, 이미지는 미디어쿼리에 위임 */
+@container recipe-card (max-width: 200px) {
     :scope .recipe-card .p-card-header {
         padding: 6px 6px 4px;
     }
@@ -106,7 +102,7 @@
     :scope .recipe-content {
         padding: 0.35rem 0.45rem 0.45rem;
         height: auto;
-        min-height: 108px;
+        min-height: 0;
         max-height: none;
     }
 
@@ -119,12 +115,12 @@
 
     :scope .recipe-title-zone {
         min-height: 0;
-        margin-bottom: 0.15rem;
+        margin-bottom: 0.1rem;
     }
 
     :scope .recipe-title {
         font-size: 0.78rem;
-        margin: 0 0 0.25rem;
+        margin: 0 0 0.2rem;
         line-height: 1.3;
         -webkit-line-clamp: 2;
     }
@@ -137,14 +133,14 @@
 
     :scope .info-item {
         font-size: 0.68rem;
+        white-space: nowrap;
     }
 
     :scope .info-item i {
         font-size: 0.65rem;
     }
 
-    :scope .recipe-content .recipe-author span,
-    :scope .recipe-content .recipe-comment-count span {
+    :scope .recipe-content .recipe-author span {
         font-size: 0.68rem;
     }
 
@@ -153,7 +149,7 @@
     }
 
     :scope .recipe-comment-zone {
-        min-height: 0;
+        display: none;
     }
 
     :scope .recipe-info-tag {
@@ -427,10 +423,10 @@
     color: var(--text-color);
 }
 
-/* 모바일·태블릿 세로: 한 줄 2열 — 이미지 가로형에 가깝게 · 본문 고정 높이 완화 · 메타 세로 정렬 */
+/* 모바일·태블릿 세로: 2열 — 이미지 포커스 · 텍스트 압축 · 댓글 숨김 */
 @media (max-width: 768px) {
     .recipe-image-container {
-        height: 96px;
+        height: 140px;
     }
 
     .recipe-grid {
@@ -464,7 +460,7 @@
 
     .recipe-content {
         height: auto;
-        min-height: 112px;
+        min-height: 0;
         padding: 0.38rem 0.45rem 0.48rem;
     }
 
@@ -477,19 +473,28 @@
 
     .recipe-title-zone {
         min-height: 0;
-        margin-bottom: 0.15rem;
+        margin-bottom: 0.1rem;
     }
 
     .recipe-title {
         font-size: 0.82rem;
         line-height: 1.28;
-        margin: 0 0 0.25rem;
+        margin: 0 0 0.2rem;
     }
 
     .recipe-info {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.12rem;
+        gap: 0.1rem;
+    }
+
+    .info-item {
+        font-size: 0.7rem;
+        gap: 0.15rem;
+    }
+
+    .info-item i {
+        font-size: 0.65rem;
     }
 
     .recipe-author-zone {
@@ -497,36 +502,23 @@
         margin-top: 0.15rem;
     }
 
-    .recipe-comment-zone {
-        min-height: 0;
-    }
-
     .recipe-author.mt-2 {
-        margin-top: 0.25rem !important;
+        margin-top: 0.2rem !important;
     }
 
-    .recipe-comment-count.mt-1 {
-        margin-top: 0.15rem !important;
+    .recipe-content .recipe-author span {
+        font-size: 0.7rem;
     }
 
-    .info-item {
-        font-size: 0.72rem;
-        gap: 0.2rem;
-    }
-
-    .info-item i {
-        font-size: 0.68rem;
-    }
-
-    .recipe-content .recipe-author span,
-    .recipe-content .recipe-comment-count span {
-        font-size: 0.72rem;
+    /* 모바일에서 댓글 영역 숨김 */
+    .recipe-comment-zone {
+        display: none;
     }
 }
 
 @media (max-width: 480px) {
     .recipe-image-container {
-        height: 88px;
+        height: 125px;
     }
 
     .recipe-grid {
@@ -539,7 +531,6 @@
     }
 
     .recipe-content {
-        min-height: 106px;
         padding: 0.34rem 0.4rem 0.42rem;
     }
 
@@ -552,8 +543,7 @@
         font-size: 0.68rem;
     }
 
-    .recipe-content .recipe-author span,
-    .recipe-content .recipe-comment-count span {
+    .recipe-content .recipe-author span {
         font-size: 0.68rem;
     }
 }

@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import AutoComplete from 'primevue/autocomplete';
 import type { AutoCompleteCompleteEvent, AutoCompleteOptionSelectEvent } from 'primevue/autocomplete';
 import SelectButton from 'primevue/selectbutton';
+import Select from 'primevue/select';
 import Paginator from 'primevue/paginator';
 import type { PageState } from 'primevue/paginator';
 import PageStateBlock from '@/components/common/PageStateBlock.vue';
@@ -735,6 +736,8 @@ onMounted(() => {
                     optionLabel="label"
                     placeholder="카테고리 검색 (예: 한식, 요리 키워드)"
                     class="category-search-input w-full"
+                    panelClass="category-search-panel"
+                    appendTo="self"
                     @item-select="onCategorySearchSelect"
                     inputClass="w-full category-autocomplete-input"
                 >
@@ -814,21 +817,26 @@ onMounted(() => {
         <!-- body : 레시피 목록 섹션 -->
         <div class="recipe-section">
             <div class="recipe-section-header mb-5">
-                <div class="recipe-section-header__left">
-                    <div class="recipe-section-header__titles">
-                        <h2 class="category-recipe-title font-bold text-gray-900 m-0">{{ getCategoryTitle() }}</h2>
-                        <div class="recipe-count-bubble recipe-count-bubble--category">
-                            <span class="text-primary font-bold">{{ totalDisplayRecipes.toLocaleString() }}</span
-                            >개의 레시피가 준비되어 있어요!
-                        </div>
-                    </div>
-                    <div v-if="authStore.isLoggedIn" class="recipe-section-header__following" @mousedown.stop>
-                        <span class="recipe-section-header__following-label text-gray-600">팔로잉 피드 보기</span>
-                        <ToggleSwitch v-model="showFollowingFeed" @update:modelValue="(value: boolean) => onFollowingFeedToggle(value)" />
+                <!-- 1행: 타이틀 + 레시피 개수 말풍선 -->
+                <div class="recipe-section-header__row1">
+                    <h2 class="category-recipe-title font-bold text-gray-900 m-0">{{ getCategoryTitle() }}</h2>
+                    <div class="recipe-count-bubble recipe-count-bubble--category">
+                        <span class="text-primary font-bold">{{ totalDisplayRecipes.toLocaleString() }}</span>
+                        개의 레시피가 준비되어 있어요!
                     </div>
                 </div>
-                <div class="recipe-section-header__sort">
-                    <SelectButton v-model="sortBy" :options="sortOptions" optionLabel="label" optionValue="value" class="recipe-sort-buttons w-full" @change="onSortChange" />
+                <!-- 2행: 팔로잉 토글(좌) + 정렬(우) -->
+                <div class="recipe-section-header__row2">
+                    <div v-if="authStore.isLoggedIn" class="recipe-section-header__following" @mousedown.stop>
+                        <span class="recipe-section-header__following-label text-gray-600">팔로잉 피드 보기</span>
+                        <span class="recipe-section-header__following-label--compact text-gray-600">팔로잉</span>
+                        <ToggleSwitch v-model="showFollowingFeed" @update:modelValue="(value: boolean) => onFollowingFeedToggle(value)" />
+                    </div>
+                    <!-- 데스크톱: SelectButton / 모바일: Select 드롭다운 -->
+                    <div class="recipe-section-header__sort">
+                        <SelectButton v-model="sortBy" :options="sortOptions" optionLabel="label" optionValue="value" class="recipe-sort-buttons recipe-sort-buttons--desktop" @change="onSortChange" />
+                        <Select v-model="sortBy" :options="sortOptions" optionLabel="label" optionValue="value" class="recipe-sort-select recipe-sort-select--mobile" panelClass="recipe-sort-panel" @change="onSortChange" />
+                    </div>
                 </div>
             </div>
 
@@ -906,72 +914,127 @@ onMounted(() => {
     font-size: 3rem;
 }
 
-/* 레시피 목록 헤더: 모바일에서 제목·개수·토글·정렬 축 분리 */
+/* ── 레시피 섹션 헤더 ── */
 .recipe-section-header {
     display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+/* 1행: 타이틀 + 개수 말풍선 */
+.recipe-section-header__row1 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.75rem 1rem;
-}
-
-.recipe-section-header__left {
-    flex: 1 1 100%;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-}
-
-.recipe-section-header__titles {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    width: 100%;
 }
 
 .category-recipe-title {
-    font-size: 1.125rem;
+    font-size: 1rem;
     line-height: 1.35;
+    flex-shrink: 0;
+}
+
+.recipe-count-bubble--category {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.7rem;
+}
+
+/* 2행: 팔로잉 토글 + 정렬 */
+.recipe-section-header__row2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
 }
 
 .recipe-section-header__following {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.375rem;
+    flex-shrink: 0;
 }
 
 .recipe-section-header__following-label {
     font-size: 0.8125rem;
     white-space: nowrap;
+    display: none;
+}
+
+.recipe-section-header__following-label--compact {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    display: inline;
 }
 
 .recipe-section-header__sort {
-    flex: 1 1 100%;
-    min-width: 0;
+    flex-shrink: 0;
+    margin-left: auto;
 }
 
+/* 모바일: SelectButton 숨기고 Select 드롭다운 표시 */
+.recipe-sort-buttons--desktop {
+    display: none;
+}
+
+.recipe-sort-select--mobile {
+    display: inline-flex;
+}
+
+/* Select 드롭다운 오렌지 톤 */
+.recipe-sort-select :deep(.p-select) {
+    min-width: 6.5rem;
+    border-color: #fdba74;
+    background: #fff7ed;
+    border-radius: 8px;
+}
+
+.recipe-sort-select :deep(.p-select-label) {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.5rem;
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.recipe-sort-select :deep(.p-select-dropdown) {
+    color: #1f2937;
+    width: 1.75rem;
+}
+
+/* ── 태블릿 이상 (768px+) ── */
 @media (min-width: 768px) {
     .recipe-section-header {
-        flex-wrap: nowrap;
-        align-items: flex-start;
+        gap: 0.75rem;
     }
 
-    .recipe-section-header__left {
-        flex: 1 1 auto;
-    }
-
-    .recipe-section-header__titles {
-        flex-direction: row;
-        flex-wrap: wrap;
+    .recipe-section-header__row1 {
         align-items: center;
-        column-gap: 1rem;
-        row-gap: 0.5rem;
+        gap: 1rem;
     }
 
     .category-recipe-title {
         font-size: 1.5rem;
+    }
+
+    .recipe-section-header__row2 {
+        gap: 1rem;
+    }
+
+    .recipe-section-header__following-label {
+        display: inline;
+    }
+
+    .recipe-section-header__following-label--compact {
+        display: none;
+    }
+
+    /* 데스크톱: Select 숨기고 SelectButton 표시 */
+    .recipe-sort-buttons--desktop {
+        display: inline-flex;
+    }
+
+    .recipe-sort-select--mobile {
+        display: none;
     }
 
     .recipe-section-header__sort {
@@ -986,44 +1049,35 @@ onMounted(() => {
     }
 }
 
-/* 말풍선 꼬리: 모바일에서 제목 아래로 내려올 때 좌측 정렬에 맞춤 */
+/* 말풍선: 모바일에서 꼬리 유지, 줄바꿈 허용 */
 @media (max-width: 767px) {
-    .recipe-count-bubble--category::before,
-    .recipe-count-bubble--category::after {
-        display: none;
-    }
-
     .recipe-count-bubble--category {
         white-space: normal;
-        max-width: 100%;
-        font-size: 0.8rem;
-        padding: 0.4rem 0.75rem;
     }
 }
 
-/* 정렬 버튼: 오렌지 톤 + 모바일에서 전폭·작은 글자·줄바꿈 */
+/* ── SelectButton 스타일 (데스크톱용 오렌지 톤) ── */
 .recipe-sort-buttons :deep(.p-selectbutton) {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    width: 100%;
-    justify-content: stretch;
+    flex-wrap: nowrap;
+    width: auto;
+    justify-content: flex-end;
+    gap: 0;
 }
 
 .recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton) {
     border-color: #fdba74;
-    color: #c2410c;
+    color: #1f2937;
     background: #fff7ed;
-    flex: 1 1 calc(33.333% - 0.24rem);
-    min-width: 0;
-    font-size: 0.75rem;
-    padding: 0.4rem 0.35rem;
+    flex: 0 0 auto;
+    font-size: 0.8125rem;
+    padding: 0.45rem 0.65rem;
     line-height: 1.25;
 }
 
 .recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton:hover) {
     border-color: #fb923c;
-    color: #9a3412;
+    color: #111827;
     background: #ffedd5;
 }
 
@@ -1037,21 +1091,6 @@ onMounted(() => {
     background: #ea580c;
     border-color: #c2410c;
     color: #fff;
-}
-
-@media (min-width: 768px) {
-    .recipe-sort-buttons :deep(.p-selectbutton) {
-        flex-wrap: nowrap;
-        width: auto;
-        justify-content: flex-end;
-        gap: 0;
-    }
-
-    .recipe-sort-buttons :deep(.p-selectbutton .p-togglebutton) {
-        flex: 0 0 auto;
-        font-size: 0.8125rem;
-        padding: 0.45rem 0.65rem;
-    }
 }
 
 /* 카테고리 선택기 스타일 (오렌지 톤 배경으로 칩·탭과 구분) */
@@ -1363,6 +1402,35 @@ onMounted(() => {
     .category-chip {
         padding: 0.35rem 0.55rem;
         font-size: 0.72rem;
+    }
+}
+</style>
+
+<style>
+.recipe-sort-panel .p-select-option {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.65rem;
+}
+
+.category-search-panel {
+    width: 100%;
+    min-width: 0 !important;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.category-search-panel .p-autocomplete-option {
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.35;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+}
+
+@media (max-width: 768px) {
+    .category-search-panel .p-autocomplete-option {
+        font-size: 0.75rem;
+        padding: 0.45rem 0.6rem;
     }
 }
 </style>
