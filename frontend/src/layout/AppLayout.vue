@@ -32,16 +32,8 @@ const mobileNavItems = computed<NavItem[]>(() => {
         { key: 'ranking', label: '랭킹', icon: 'pi pi-chart-bar', to: '/ranking' }
     ];
 
-    if (authStore.isAdmin) {
-        items.push({ key: 'admin', label: '관리자', icon: 'pi pi-cog', to: '/admin', requiresAuth: true });
-    } else {
-        items.push({ key: 'my-recipes', label: '내 레시피', icon: 'pi pi-book', to: '/my/recipes', requiresAuth: true });
-        items.push({ key: 'my', label: '마이', icon: 'pi pi-user', to: '/my', requiresAuth: true });
-    }
-
-    if (authStore.isAdmin) {
-        items.push({ key: 'my', label: '마이', icon: 'pi pi-user', to: '/my', requiresAuth: true });
-    }
+    items.push({ key: 'ingredient-management', label: '재료 관리', icon: 'pi pi-box', to: '/ingredient/management', requiresAuth: true });
+    items.push({ key: 'my', label: '마이', icon: 'pi pi-user', to: '/my', requiresAuth: true });
 
     return items;
 });

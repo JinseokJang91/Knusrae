@@ -43,8 +43,8 @@ const authStore = useAuthStore();
 const { showError, showWarn } = useAppToast();
 
 const RANKING_LIMIT = 50;
-const INITIAL_DISPLAY_COUNT = 16; // 4줄 (한 줄 약 4개 가정)
-const LOAD_MORE_STEP = 16;
+const INITIAL_DISPLAY_COUNT = 12; // 1열 기준 첫 화면 분량
+const LOAD_MORE_STEP = 12;
 type PeriodValue = '24h' | '7d' | '30d';
 
 const popularRecipes = ref<PopularRecipeItem[]>([]);
@@ -231,9 +231,9 @@ watch(
                                 {{ option.label }}
                             </Tab>
                         </TabList>
+                        <p v-if="displayCalculatedAt" class="ranking-calculated-at">기준: {{ displayCalculatedAt }} 갱신</p>
                         <TabPanels>
                             <TabPanel v-for="option in periodOptions" :key="option.value" :value="option.value">
-                                <p v-if="displayCalculatedAt" class="calculated-at">기준: {{ displayCalculatedAt }} 갱신</p>
                                 <div class="ranking-content">
                                     <div v-if="loading" class="loading-state">
                                         <i class="pi pi-spinner pi-spin text-4xl text-primary-500"></i>
@@ -293,16 +293,28 @@ watch(
     padding: 24px 16px;
 }
 
+@media (max-width: 768px) {
+    .ranking-page {
+        padding: 16px 12px;
+    }
+}
+
 .ranking-header {
     margin-bottom: 32px;
 }
 
+@media (max-width: 768px) {
+    .ranking-header {
+        margin-bottom: 20px;
+    }
+}
+
 .ranking-subtitle {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 0 0 20px 0;
-    padding: 14px 18px;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 0 16px 0;
+    padding: 12px 14px;
     background: linear-gradient(135deg, var(--primary-50, #f0f9ff) 0%, var(--primary-100, #e0f2fe) 100%);
     border: 1px solid var(--primary-200, #bae6fd);
     border-radius: 12px;
@@ -318,16 +330,46 @@ watch(
 
 .ranking-subtitle__icon {
     flex-shrink: 0;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: var(--primary-600, var(--primary-color));
+    margin-top: 0.1rem;
 }
 
 .ranking-subtitle__text {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 500;
     color: var(--primary-900, var(--text-color));
-    letter-spacing: -0.01em;
-    line-height: 1.5;
+    letter-spacing: -0.02em;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 0;
+    flex: 1;
+}
+
+@media (min-width: 769px) {
+    .ranking-subtitle {
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding: 14px 18px;
+    }
+
+    .ranking-subtitle__icon {
+        font-size: 1.25rem;
+        margin-top: 0;
+    }
+
+    .ranking-subtitle__text {
+        font-size: 1rem;
+        -webkit-line-clamp: unset;
+        line-clamp: unset;
+        display: block;
+        overflow: visible;
+    }
 }
 
 .ranking-tabs-wrap {
@@ -340,18 +382,57 @@ watch(
     background: transparent;
 }
 
+/* 탭: 리스트 전체 너비에 3등분 + 인디케이터(ink bar)가 각 탭 영역과 정렬되도록 */
 .ranking-tabs :deep(.p-tablist) {
-    margin-bottom: 12px;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.ranking-tabs :deep(.p-tablist-content) {
+    width: 100%;
+    overflow: hidden;
+}
+
+.ranking-tabs :deep(.p-tablist-tab-list) {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    position: relative;
+}
+
+.ranking-tabs :deep(.p-tab) {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.8125rem;
+    padding: 0.65rem 0.35rem;
+}
+
+@media (min-width: 480px) {
+    .ranking-tabs :deep(.p-tab) {
+        font-size: 0.875rem;
+        padding: 0.75rem 0.5rem;
+    }
 }
 
 .ranking-tabs :deep(.p-tabpanel) {
     padding: 0;
 }
 
-.calculated-at {
-    font-size: 0.875rem;
+.ranking-calculated-at {
+    font-size: 0.7rem;
     color: var(--text-color-secondary);
-    margin: 0;
+    margin: 6px 0 10px 0;
+    text-align: right;
+    line-height: 1.35;
+}
+
+@media (min-width: 640px) {
+    .ranking-calculated-at {
+        font-size: 0.75rem;
+        margin-bottom: 12px;
+    }
 }
 
 .ranking-content {
@@ -370,9 +451,9 @@ watch(
     margin-top: 0;
 }
 
-/* Category와 동일한 그리드 레이아웃 (한 눈에 여러 순위 확인) */
+/* 1열·큰 썸네일: _recipe-card-list.scss 의 .recipe-grid.ranking-grid 와 함께 사용 */
 .ranking-grid {
-    margin-top: 0.5rem;
+    margin-top: 0.35rem;
 }
 
 .ranking-btn-more {

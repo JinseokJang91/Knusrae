@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter, RouterLink } from 'vue-router';
+import { useAuthStore } from '@/stores/authStore';
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
@@ -16,6 +17,7 @@ import Recipes from './Recipes.vue';
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 const activeTab = ref('profile');
 
 const mobileMenuItems = [
@@ -48,7 +50,10 @@ watch(activeTab, (newTab) => {
     <div class="page-container page-container--card page-container--wide">
         <div class="mypage-container">
             <div class="mypage-header">
-                <h1 class="text-3xl font-bold m-0">마이페이지</h1>
+                <div class="mypage-header__title-row">
+                    <h1 class="text-3xl font-bold m-0">마이페이지</h1>
+                    <RouterLink v-if="authStore.isAdmin" to="/admin" class="mypage-admin-link">관리자 메뉴</RouterLink>
+                </div>
             </div>
 
             <div class="mypage-mobile-nav">
@@ -153,15 +158,40 @@ watch(activeTab, (newTab) => {
     }
 
     .mypage-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
         margin-bottom: 1.5rem;
-        flex-wrap: wrap;
+
+        &__title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem 1rem;
+            flex-wrap: wrap;
+        }
 
         h1 {
             color: var(--primary-color);
+        }
+    }
+
+    .mypage-admin-link {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.45rem 0.85rem;
+        border-radius: var(--border-radius, 6px);
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        font-size: 0.8125rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition:
+            background-color 0.15s,
+            color 0.15s;
+
+        &:hover {
+            background: var(--primary-color);
+            color: var(--primary-color-text, #fff);
         }
     }
 
@@ -256,9 +286,11 @@ watch(activeTab, (newTab) => {
 @media (max-width: 480px) {
     .mypage-container {
         .mypage-header {
-            flex-direction: column;
-            align-items: flex-start;
             margin-bottom: 1rem;
+        }
+
+        .mypage-header__title-row {
+            align-items: flex-start;
         }
 
         .mypage-header h1 {

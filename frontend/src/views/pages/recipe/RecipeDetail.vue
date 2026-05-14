@@ -724,7 +724,7 @@ const onBookmarked = async () => {
 </script>
 
 <template>
-    <div class="page-container">
+    <div class="page-container recipe-detail-page">
         <div class="min-h-screen">
             <!-- 로딩 상태 -->
             <div v-if="loading" class="flex items-center justify-center min-h-screen">
@@ -784,6 +784,7 @@ const onBookmarked = async () => {
                     :expanded-comments="expandedComments"
                     :total-pages="totalPages"
                     :current-page="currentPage"
+                    :total-comments="totalComments"
                     :current-member-id="currentMemberId"
                     :format-date="formatDate"
                     @submit-comment="submitComment"
@@ -828,17 +829,22 @@ const onBookmarked = async () => {
 </template>
 
 <style scoped lang="scss">
+/* 본문은 layout 배경(#fff7ed 계열) 위에 카드만 띄움 — 캡처와 동일한 톤 유지 */
+.recipe-detail-page {
+    min-width: 0;
+}
+
 .recipe-detail-content {
-    padding: 2rem 0;
+    padding: 2rem 0 2.5rem;
 }
 @media (max-width: 768px) {
     .recipe-detail-content {
-        padding: 1.5rem 0;
+        padding: 1rem 0 1.5rem;
     }
 }
 @media (max-width: 480px) {
     .recipe-detail-content {
-        padding: 1rem 0;
+        padding: 0.75rem 0 1.25rem;
     }
 }
 

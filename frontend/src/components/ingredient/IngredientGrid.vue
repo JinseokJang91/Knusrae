@@ -31,22 +31,28 @@ const handleClick = (ingredient: Ingredient) => {
 
 @media (max-width: 1024px) {
     .ingredient-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
         gap: 16px;
     }
 }
 
 @media (max-width: 768px) {
     .ingredient-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
         gap: 12px;
     }
 }
 
 @media (max-width: 480px) {
     .ingredient-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+}
+
+@media (max-width: 360px) {
+    .ingredient-grid {
+        gap: 8px;
     }
 }
 </style>

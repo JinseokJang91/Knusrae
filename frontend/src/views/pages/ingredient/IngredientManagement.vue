@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
@@ -20,8 +20,23 @@ const searchQuery = ref('');
 const storageListRef = ref<ComponentPublicInstance | null>(null);
 const preparationListRef = ref<ComponentPublicInstance | null>(null);
 
+/** 768px 이하에서만 검색/요청 UI 간소화 (데스크톱은 기존과 동일) */
+const isNarrowTopBar = ref(typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches);
+
+let narrowTopBarMql: MediaQueryList | null = null;
+
+function syncNarrowTopBar() {
+    isNarrowTopBar.value = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+}
+
+const searchPlaceholder = computed(() => (isNarrowTopBar.value ? '재료명 검색 (예: 감자, 계란)' : '재료명을 검색하세요...(예: 감자, 계란)'));
+
 // URL 쿼리 파라미터로 탭 상태 복원
 onMounted(() => {
+    narrowTopBarMql = window.matchMedia('(max-width: 768px)');
+    syncNarrowTopBar();
+    narrowTopBarMql.addEventListener('change', syncNarrowTopBar);
+
     const type = route.query.type as string;
     if (type === 'preparation') {
         activeTab.value = 'preparation';
@@ -93,17 +108,25 @@ watch(
     },
     { immediate: true }
 );
+
+onUnmounted(() => {
+    narrowTopBarMql?.removeEventListener('change', syncNarrowTopBar);
+});
 </script>
 
 <template>
-    <div class="page-container page-container--card">
+    <div class="page-container page-container--card ingredient-management" :class="{ 'page-container--wide': isNarrowTopBar }">
         <div class="ingredient-panel">
-            <!-- 1. 검색창(좌) + 재료 정보 요청(우) -->
+            <!-- 검색 + 요청: 모바일(≤768px)만 간소화, 데스크톱은 기존 전체 라벨·긴 placeholder -->
             <div class="top-row">
                 <span class="p-input-icon-left search-bar">
-                    <InputText v-model="searchQuery" placeholder="재료명을 검색하세요...(예: 감자, 계란)" class="w-full" @input="updateQuery()" />
+                    <InputText v-model="searchQuery" :placeholder="searchPlaceholder" class="w-full" @input="updateQuery()" />
                 </span>
-                <Button label="재료 정보 요청하기" icon="pi pi-send" class="request-btn" size="small" raised @click="openRequestDialog" />
+                <div class="top-row__spacer" aria-hidden="true"></div>
+                <button v-if="isNarrowTopBar" type="button" class="request-btn-native" v-tooltip.top="'재료 정보 요청하기'" aria-label="재료 정보 요청하기" @click="openRequestDialog">
+                    <i class="pi pi-send" aria-hidden="true"></i>
+                </button>
+                <Button v-else label="재료 정보 요청하기" icon="pi pi-send" class="request-btn request-btn--labeled" size="small" raised @click="openRequestDialog" />
             </div>
 
             <!-- 검색 영역 하단 구분선 (Category.vue .category-tabs-panel과 동일) -->
@@ -128,6 +151,13 @@ watch(
 </template>
 
 <style scoped>
+/* 바깥 카드: 모바일에서 좌우 여백 회수 (.page-container--card 패딩 보정) */
+@media (max-width: 768px) {
+    .ingredient-management.page-container--card {
+        padding: 0.625rem;
+    }
+}
+
 /* 배경 단순화: 페이지 배경(오렌지) → 하나의 흰 카드. 테두리는 Category.vue .category-selector와 동일 */
 .ingredient-panel {
     background: var(--surface-card);
@@ -141,9 +171,18 @@ watch(
     overflow: hidden;
 }
 
-/* 검색 영역: Category.vue .category-selector와 동일한 패딩(1.5rem)으로 위치 맞춤 */
+@media (max-width: 768px) {
+    .ingredient-panel {
+        box-shadow: none;
+        border-radius: 10px;
+    }
+}
+
+/* 검색 행: 데스크톱에서 스페이서로 요청 버튼을 카드 우측 끝까지 밀기 (줄바꿈 익명 플렉스 아이템 이슈 회피) */
 .top-row {
     display: flex;
+    width: 100%;
+    box-sizing: border-box;
     align-items: center;
     gap: 1rem;
     padding: 1.5rem;
@@ -152,16 +191,81 @@ watch(
     flex-shrink: 0;
 }
 
-/* Category.vue 검색창과 동일한 길이 */
+.top-row__spacer {
+    display: none;
+}
+
+@media (min-width: 769px) {
+    .top-row__spacer {
+        display: block;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+}
+
+/* 검색창 너비: 데스크톱은 Category.vue .category-search-input 과 동일(최대 400px) */
 .search-bar {
     flex: 0 1 400px;
     max-width: 400px;
     min-width: 0;
 }
 
-.request-btn {
+/* Category.vue .category-search 와 동일한 입력 타이포 (placeholder 포함 동일 크기) */
+.search-bar :deep(.p-inputtext) {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.8125rem;
+    padding: 0.4rem 0.65rem;
+    min-height: 2.35rem;
+}
+
+@media (min-width: 768px) {
+    .search-bar :deep(.p-inputtext) {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+        min-height: 2.5rem;
+    }
+}
+
+/* 데스크톱: 전체 라벨 버튼 (스페이서가 우측 정렬 담당) */
+.request-btn--labeled {
     flex-shrink: 0;
-    margin-left: auto;
+}
+
+/* 모바일: PrimeVue Button 라벨 없이 아이콘만 (네이티브 버튼) */
+.request-btn-native {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.06),
+        0 1px 4px rgba(234, 88, 12, 0.28);
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.request-btn-native:focus-visible {
+    outline: 2px solid #ea580c;
+    outline-offset: 2px;
+}
+
+.request-btn-native:active {
+    transform: scale(0.96);
+}
+
+.request-btn-native .pi {
+    font-size: 0.95rem;
 }
 
 /* 탭/리스트 영역: 같은 카드 안에 이어지도록 테두리만 구분 (별도 흰 박스 제거) */
@@ -205,16 +309,59 @@ watch(
 }
 
 @media (max-width: 768px) {
+    /* 모바일: 검색이 남는 가로를 채움 */
+    .search-bar {
+        flex: 1 1 0;
+        max-width: none;
+    }
+
     .top-row {
-        padding: 1rem; /* Category.vue .category-selector 반응형과 동일 */
+        flex-direction: row;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.875rem 1rem;
+    }
+
+    /* 입력 타이포는 상단 공통 규칙(Category.vue와 동일) 유지 — 여기서 font-size 덮어쓰지 않음 */
+    /* 모바일 탭: 균등 분할 + 터치 영역 */
+    .ingredient-tabs :deep(.p-tablist) {
+        width: 100%;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        padding-top: 0.375rem;
+    }
+
+    .ingredient-tabs :deep(.p-tablist-content) {
+        width: 100%;
+    }
+
+    .ingredient-tabs :deep(.p-tablist-tab-list) {
+        display: flex;
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .ingredient-tabs :deep(.p-tab) {
+        flex: 1 1 0;
+        min-width: 0;
+        justify-content: center;
+        text-align: center;
+        min-height: 2.75rem;
+        font-size: 0.9rem;
+        padding: 0.6rem 0.35rem;
     }
 
     .tab-panel-wrap {
-        padding: 1rem;
+        padding: 0.25rem 0 0.625rem;
     }
 
-    .search-bar {
-        max-width: 100%;
+    .ingredient-tabs :deep(.p-tabpanels) {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .ingredient-tabs :deep(.p-tabpanel) {
+        padding-top: 0.75rem;
     }
 }
 </style>

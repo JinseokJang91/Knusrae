@@ -547,3 +547,51 @@
         font-size: 0.68rem;
     }
 }
+
+/* 랭킹 전용: 순위 리스트는 1열 + 썸네일을 Category 2열보다 크게 (Ranking.vue .recipe-grid.ranking-grid) */
+.recipe-grid.ranking-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+
+@media (min-width: 769px) {
+    .recipe-grid.ranking-grid {
+        max-width: 720px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .recipe-grid.ranking-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .recipe-grid.ranking-grid .recipe-image-container {
+        height: 200px;
+    }
+
+    .recipe-grid.ranking-grid .recipe-title {
+        font-size: 0.9rem;
+    }
+
+    .recipe-grid.ranking-grid .info-item {
+        font-size: 0.78rem;
+    }
+
+    .recipe-grid.ranking-grid .recipe-content .recipe-author span {
+        font-size: 0.78rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .recipe-grid.ranking-grid .recipe-image-container {
+        height: 180px;
+    }
+
+    .recipe-grid.ranking-grid .recipe-title {
+        font-size: 0.85rem;
+    }
+}
