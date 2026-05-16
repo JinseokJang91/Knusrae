@@ -176,7 +176,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="page-container page-container--card page-container--wide profile-card">
+    <div class="profile-root profile-card">
         <div class="profile-content">
             <!-- 초기 로딩 -->
             <PageStateBlock v-if="initialLoading" state="loading" loading-message="프로필 정보를 불러오는 중..." />
@@ -242,8 +242,25 @@ onMounted(() => {
                             </div>
                         </div>
                         <div class="profile-edit-actions">
-                            <Button type="button" label="회원 탈퇴" icon="pi pi-user-minus" severity="danger" :loading="withdrawing" :disabled="saving || withdrawing" @click="confirmWithdraw" />
-                            <Button type="button" label="저장" icon="pi pi-save" :loading="saving" :disabled="saving || withdrawing" @click="onSave" />
+                            <Button
+                                type="button"
+                                class="profile-action-btn profile-action-btn--withdraw"
+                                label="회원 탈퇴"
+                                icon="pi pi-user-minus"
+                                severity="danger"
+                                :loading="withdrawing"
+                                :disabled="saving || withdrawing"
+                                @click="confirmWithdraw"
+                            />
+                            <Button
+                                type="button"
+                                class="profile-action-btn profile-action-btn--save"
+                                label="저장"
+                                icon="pi pi-save"
+                                :loading="saving"
+                                :disabled="saving || withdrawing"
+                                @click="onSave"
+                            />
                         </div>
                     </div>
                 </section>
@@ -273,10 +290,22 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* 프로필 카드: 은은한 오렌지톤 배경 */
-/* 프로필 카드: 라벤더 톤 (내부 카드보다 진하게 계층감) */
-.profile-card {
+/* 마이페이지 탭 내부용 — 데스크톱은 기존 카드 패딩·라벤더 배경 유지 */
+.profile-root.profile-card {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     background: linear-gradient(165deg, #f3eff8 0%, #ebe4f2 50%, #e5dcee 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: none;
+    box-shadow: none;
+}
+
+@media (min-width: 1024px) {
+    .profile-root.profile-card {
+        padding: 2rem;
+    }
 }
 
 .profile-content {
@@ -454,8 +483,16 @@ onMounted(() => {
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 0.75rem;
     padding-top: 0.5rem;
+}
+
+.profile-action-btn--withdraw {
+    margin-right: auto;
+}
+
+.profile-action-btn--save {
+    margin-left: auto;
 }
 
 /* 자기소개: 수동 리사이즈 비활성화, 넘치면 스크롤 (PrimeVue Textarea 루트가 textarea 요소) */
@@ -465,16 +502,149 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+    .profile-root.profile-card {
+        background: var(--surface-card, #fff);
+        border-radius: 0;
+        padding: 0;
+    }
+
+    .profile-content {
+        gap: 0.75rem;
+        min-height: 0;
+    }
+
     .profile-summary {
-        padding: 1rem;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+        padding: 1rem 0.875rem;
+    }
+
+    .profile-summary-avatar {
+        width: 4.5rem;
+        height: 4.5rem;
+        min-width: 4.5rem;
+        min-height: 4.5rem;
+    }
+
+    .profile-summary-initials {
+        font-size: 1.5rem;
+    }
+
+    .profile-summary-avatar-hint {
+        font-size: 0.625rem;
+    }
+
+    .profile-summary-info {
+        width: 100%;
     }
 
     .profile-summary-name {
-        font-size: 1.2rem;
+        font-size: 1.125rem;
+        line-height: 1.35;
+        word-break: break-word;
+    }
+
+    .profile-summary-nickname {
+        font-size: 0.8125rem;
+        margin-bottom: 0.625rem;
+        word-break: break-all;
+    }
+
+    .profile-summary-social {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .profile-summary-label {
+        font-size: 0.8125rem;
     }
 
     .profile-edit-card {
-        padding: 1.25rem;
+        padding: 1rem 0.875rem;
+    }
+
+    .profile-edit-title {
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        line-height: 1.35;
+    }
+
+    .profile-edit-fields {
+        gap: 1rem;
+    }
+
+    .profile-edit-fields :deep(label) {
+        font-size: 0.8125rem;
+        margin-bottom: 0.375rem;
+    }
+
+    .profile-edit-count {
+        font-size: 0.75rem;
+    }
+
+    .profile-edit-fields :deep(.p-inputtext),
+    .profile-edit-fields :deep(.p-textarea) {
+        font-size: 0.875rem;
+    }
+
+    .profile-edit-fields :deep(.p-inputtext) {
+        padding: 0.625rem 0.75rem;
+    }
+
+    .profile-edit-fields :deep(.profile-edit-bio) {
+        min-height: 5.5rem;
+        padding: 0.625rem 0.75rem;
+    }
+
+    .profile-edit-fields .grid {
+        gap: 0.875rem !important;
+    }
+
+    .profile-edit-actions {
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        padding-top: 0.25rem;
+    }
+
+    .profile-edit-actions :deep(.profile-action-btn.p-button) {
+        min-height: 0;
+        padding: 0.4375rem 0.75rem;
+        font-size: 0.8125rem;
+        line-height: 1.25;
+    }
+
+    .profile-edit-actions :deep(.profile-action-btn .p-button-icon) {
+        font-size: 0.8125rem;
+    }
+
+    .profile-edit-actions :deep(.profile-action-btn .p-button-label) {
+        line-height: 1.25;
+    }
+
+    .profile-edit-actions :deep(.profile-action-btn--withdraw.p-button),
+    .profile-edit-actions :deep(.profile-action-btn--save.p-button) {
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-summary {
+        padding: 0.875rem 0.75rem;
+    }
+
+    .profile-summary-name {
+        font-size: 1.0625rem;
+    }
+
+    .profile-edit-card {
+        padding: 0.875rem 0.75rem;
+    }
+
+    .profile-edit-actions :deep(.profile-action-btn.p-button) {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
     }
 }
 </style>

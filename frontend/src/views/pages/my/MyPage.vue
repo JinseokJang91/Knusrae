@@ -51,7 +51,7 @@ watch(activeTab, (newTab) => {
         <div class="mypage-container">
             <div class="mypage-header">
                 <div class="mypage-header__title-row">
-                    <h1 class="text-3xl font-bold m-0">마이페이지</h1>
+                    <h1 class="mypage-title m-0">마이페이지</h1>
                     <RouterLink v-if="authStore.isAdmin" to="/admin" class="mypage-admin-link">관리자 메뉴</RouterLink>
                 </div>
             </div>
@@ -168,7 +168,11 @@ watch(activeTab, (newTab) => {
             flex-wrap: wrap;
         }
 
-        h1 {
+        h1.mypage-title {
+            margin: 0;
+            font-size: 1.1875rem;
+            font-weight: 700;
+            line-height: 1.35;
             color: var(--primary-color);
         }
     }
@@ -231,12 +235,24 @@ watch(activeTab, (newTab) => {
     }
 }
 
-@media (max-width: 768px) {
-    .mypage-container {
-        padding: 0.5rem;
+@media (min-width: 768px) {
+    .mypage-container .mypage-header h1.mypage-title {
+        font-size: 1.875rem;
+        line-height: 1.25;
+    }
+}
 
-        .mypage-header h1 {
-            font-size: 1.5rem;
+@media (max-width: 767px) {
+    .mypage-container {
+        padding: 0;
+
+        .mypage-header {
+            margin-bottom: 1rem;
+        }
+
+        .mypage-admin-link {
+            padding: 0.35rem 0.55rem;
+            font-size: 0.75rem;
         }
 
         .mypage-desktop-tabs {
@@ -293,8 +309,13 @@ watch(activeTab, (newTab) => {
             align-items: flex-start;
         }
 
-        .mypage-header h1 {
-            font-size: 1.35rem;
+        .mypage-header h1.mypage-title {
+            font-size: 1.0625rem;
+        }
+
+        .mypage-admin-link {
+            padding: 0.3rem 0.5rem;
+            font-size: 0.6875rem;
         }
 
         .mypage-mobile-nav__selected span,
@@ -306,6 +327,28 @@ watch(activeTab, (newTab) => {
 </style>
 
 <style lang="scss">
+/* 전역 typography h1(2.5rem) 덮어쓰기 — scoped와 동일한 선택자 깊이 */
+.mypage-container .mypage-header h1.mypage-title {
+    margin: 0;
+    font-size: 1.1875rem;
+    line-height: 1.35;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+@media (min-width: 768px) {
+    .mypage-container .mypage-header h1.mypage-title {
+        font-size: 1.875rem;
+        line-height: 1.25;
+    }
+}
+
+@media (max-width: 480px) {
+    .mypage-container .mypage-header h1.mypage-title {
+        font-size: 1.0625rem;
+    }
+}
+
 @media (max-width: 768px) {
     .p-select-list-container {
         max-height: 16rem;

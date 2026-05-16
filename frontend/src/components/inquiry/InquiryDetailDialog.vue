@@ -5,7 +5,6 @@ import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import InquiryFormDialog from '@/components/inquiry/InquiryFormDialog.vue';
 import Button from 'primevue/button';
 import Divider from 'primevue/divider';
-import ConfirmDialog from 'primevue/confirmdialog';
 import { useConfirm } from 'primevue/useconfirm';
 import { getInquiryDetail, deleteInquiry } from '@/api/inquiryApi';
 import { getInquiryTypeLabel } from '@/types/inquiry';
@@ -71,7 +70,6 @@ function openEditDialog() {
 function confirmDelete() {
     if (!detail.value) return;
     confirm.require({
-        group: 'inquiry-detail-delete',
         header: '문의 삭제',
         message: `"${detail.value.title}" 문의를 삭제하시겠습니까?`,
         icon: 'pi pi-exclamation-triangle',
@@ -163,8 +161,6 @@ watch(
         </div>
 
         <InquiryFormDialog v-model:visible="formDialogVisible" :inquiry-id="editingInquiryId" @saved="onInquirySaved" @closed="onFormClosed" />
-
-        <ConfirmDialog group="inquiry-detail-delete" />
     </Dialog>
 </template>
 

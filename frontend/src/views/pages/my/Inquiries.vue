@@ -7,7 +7,6 @@ import Badge from 'primevue/badge';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Paginator from 'primevue/paginator';
-import ConfirmDialog from 'primevue/confirmdialog';
 import { useConfirm } from 'primevue/useconfirm';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -103,7 +102,6 @@ function onPageChange(event: PageState) {
 
 function confirmDelete(row: InquiryListItem) {
     confirm.require({
-        group: 'inquiry-delete',
         header: '문의 삭제',
         message: `"${row.title}" 문의를 삭제하시겠습니까?`,
         icon: 'pi pi-exclamation-triangle',
@@ -265,7 +263,6 @@ watch(currentMemberId, (id) => {
             <InquiryFormDialog v-model:visible="formDialogVisible" :inquiry-id="editingInquiryId" @saved="onInquirySaved" @closed="onFormClosed" />
             <InquiryDetailDialog v-model:visible="detailDialogVisible" :inquiry-id="selectedInquiryId" @deleted="onDetailDeleted" />
 
-            <ConfirmDialog group="inquiry-delete" />
         </div>
     </div>
 </template>
@@ -283,7 +280,7 @@ watch(currentMemberId, (id) => {
 }
 
 .inquiries-notice__icon {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     color: var(--orange-500, #f97316);
     flex-shrink: 0;
     margin-top: 0.125rem;
@@ -293,16 +290,56 @@ watch(currentMemberId, (id) => {
     margin: 0;
     color: #374151;
     font-style: italic;
-    font-size: 0.9375rem;
-    line-height: 1.5;
+    font-size: 0.875rem;
+    line-height: 1.45;
     letter-spacing: 0.01em;
+}
+
+@media (max-width: 767px) {
+    .inquiries-notice {
+        gap: 0.5rem;
+    }
+
+    .inquiries-notice__icon {
+        font-size: 1.0625rem;
+        margin-top: 0.0625rem;
+    }
+
+    .inquiries-notice__text {
+        font-size: 0.8125rem;
+        line-height: 1.5;
+    }
+}
+
+@media (max-width: 480px) {
+    .inquiries-notice__icon {
+        font-size: 1rem;
+    }
+
+    .inquiries-notice__text {
+        font-size: 0.75rem;
+        line-height: 1.45;
+    }
 }
 
 .inquiries-title {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 600;
+    line-height: 1.35;
     color: var(--p-text-color, #374151);
+}
+
+@media (max-width: 767px) {
+    .inquiries-title {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .inquiries-title {
+        font-size: 0.9375rem;
+    }
 }
 
 /* 테이블 영역: 카드형 래퍼로 오렌지 배경과 자연스럽게 구분 */

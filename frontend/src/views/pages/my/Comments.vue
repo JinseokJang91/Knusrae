@@ -170,7 +170,7 @@ watch(currentMemberId, (id) => {
 }
 
 .comments-notice__icon {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     color: var(--orange-500, #f97316);
     flex-shrink: 0;
     margin-top: 0.125rem;
@@ -180,9 +180,36 @@ watch(currentMemberId, (id) => {
     margin: 0;
     color: #374151;
     font-style: italic;
-    font-size: 0.9375rem;
-    line-height: 1.5;
+    font-size: 0.875rem;
+    line-height: 1.45;
     letter-spacing: 0.01em;
+}
+
+@media (max-width: 767px) {
+    .comments-notice {
+        gap: 0.5rem;
+    }
+
+    .comments-notice__icon {
+        font-size: 1.0625rem;
+        margin-top: 0.0625rem;
+    }
+
+    .comments-notice__text {
+        font-size: 0.8125rem;
+        line-height: 1.5;
+    }
+}
+
+@media (max-width: 480px) {
+    .comments-notice__icon {
+        font-size: 1rem;
+    }
+
+    .comments-notice__text {
+        font-size: 0.75rem;
+        line-height: 1.45;
+    }
 }
 
 .comments-content {
