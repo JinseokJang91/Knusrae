@@ -165,9 +165,9 @@ function formatCount(count: number | undefined | null): string | null {
                             </div>
                         </div>
                         <!-- 추가한 날짜: 카드 맨 아래 고정 -->
-                        <div v-if="dateText" class="recipe-date-footer text-sm text-gray-500 mt-2 pt-2 border-t border-gray-200 flex items-center gap-1">
-                            <i class="pi pi-calendar"></i>
-                            <span class="truncate">추가한 날짜 : {{ dateText }}</span>
+                        <div v-if="dateText" class="recipe-date-footer">
+                            <i class="pi pi-calendar recipe-date-footer__icon" aria-hidden="true"></i>
+                            <span class="recipe-date-footer__text">추가한 날짜 : {{ dateText }}</span>
                         </div>
                     </div>
                 </div>
@@ -191,5 +191,31 @@ function formatCount(count: number | undefined | null): string | null {
 }
 .recipe-date-footer {
     margin-top: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--surface-border, #e5e7eb);
+    color: var(--text-color-secondary, #6b7280);
+}
+
+.recipe-date-footer__icon {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    margin-top: 0.1rem;
+}
+
+.recipe-date-footer__text {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
 }
 </style>

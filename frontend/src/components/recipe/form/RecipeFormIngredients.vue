@@ -155,13 +155,13 @@ function updateItemField(groupIndex: number, itemIndex: number, field: keyof Ing
 </script>
 
 <template>
-    <div class="border border-gray-200 rounded-lg p-5 bg-white">
-        <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
-                <h3 class="text-xl font-semibold text-gray-600">
+    <div class="recipe-form-section">
+        <div class="recipe-form-section__header">
+            <div class="recipe-form-section__title-row mb-0">
+                <h3 class="recipe-form-section__title">
                     <span class="mr-1">준비물</span>
                     <template v-if="guideImage">
-                        <i ref="guideIconRef" class="pi pi-question-circle help-button" style="cursor: pointer" @click="(e) => guidePopoverRef?.toggle?.(e)" />
+                        <i ref="guideIconRef" class="pi pi-question-circle help-button" @click="(e) => guidePopoverRef?.toggle?.(e)" />
                         <Popover ref="guidePopoverRef" :target="guideIconRef" :show-close-icon="true" :dismissable="true">
                             <div class="p-2">
                                 <img :src="guideImage" alt="준비물 가이드" class="max-w-full h-auto" />
@@ -170,14 +170,14 @@ function updateItemField(groupIndex: number, itemIndex: number, field: keyof Ing
                     </template>
                 </h3>
             </div>
-            <Button label="그룹 추가" icon="pi pi-plus" @click="addGroup" :disabled="disabled" />
+            <Button class="recipe-form-btn" label="그룹 추가" icon="pi pi-plus" @click="addGroup" :disabled="disabled" />
         </div>
-        <div v-if="modelValue.length === 0" class="p-3 text-gray-500 border rounded">아직 준비물 그룹이 없습니다. '그룹 추가'를 눌러 시작하세요.</div>
+        <div v-if="modelValue.length === 0" class="recipe-form-section__empty">아직 준비물 그룹이 없습니다. '그룹 추가'를 눌러 시작하세요.</div>
 
-        <div v-for="(group, groupIndex) in modelValue" :key="group.id" class="border rounded p-4 mb-4 bg-gray-50">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3 flex-1">
-                    <div class="font-medium text-gray-700">그룹 {{ groupIndex + 1 }}</div>
+        <div v-for="(group, groupIndex) in modelValue" :key="group.id" class="recipe-form-block">
+            <div class="recipe-form-block__toolbar recipe-form-block__meta-row">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div class="recipe-form-block__toolbar-title shrink-0">그룹 {{ groupIndex + 1 }}</div>
                     <div class="flex-1 max-w-xs">
                         <Message v-if="ingredientTypesError" severity="error" :closable="false" class="mb-2">
                             {{ ingredientTypesError }}
@@ -202,39 +202,39 @@ function updateItemField(groupIndex: number, itemIndex: number, field: keyof Ing
                         <InputText :model-value="group.customTypeName" placeholder="그룹 타입을 직접 입력하세요" class="w-full" @update:model-value="(v) => updateGroupCustomTypeName(groupIndex, v ?? '')" />
                     </div>
                 </div>
-                <div class="flex gap-2">
-                    <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveGroupUp(groupIndex)" :disabled="groupIndex === 0 || disabled" />
-                    <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveGroupDown(groupIndex)" :disabled="groupIndex === modelValue.length - 1 || disabled" />
-                    <Button icon="pi pi-trash" severity="danger" size="small" @click="removeGroup(groupIndex)" :disabled="disabled" />
+                <div class="recipe-form-block__toolbar-actions">
+                    <Button class="recipe-form-btn recipe-form-btn--icon-only" icon="pi pi-arrow-up" severity="secondary" aria-label="그룹 위로" @click="moveGroupUp(groupIndex)" :disabled="groupIndex === 0 || disabled" />
+                    <Button class="recipe-form-btn recipe-form-btn--icon-only" icon="pi pi-arrow-down" severity="secondary" aria-label="그룹 아래로" @click="moveGroupDown(groupIndex)" :disabled="groupIndex === modelValue.length - 1 || disabled" />
+                    <Button class="recipe-form-btn recipe-form-btn--icon-only" icon="pi pi-trash" severity="danger" aria-label="그룹 삭제" @click="removeGroup(groupIndex)" :disabled="disabled" />
                 </div>
             </div>
 
             <div class="mb-3">
-                <Button label="항목 추가" icon="pi pi-plus" size="small" @click="addItem(groupIndex)" :disabled="disabled" />
+                <Button class="recipe-form-btn" label="항목 추가" icon="pi pi-plus" @click="addItem(groupIndex)" :disabled="disabled" />
             </div>
 
-            <div v-if="group.items.length === 0" class="p-2 text-sm text-gray-400 border border-dashed rounded mb-2">이 그룹에 항목이 없습니다. '항목 추가'를 눌러 추가하세요.</div>
+            <div v-if="group.items.length === 0" class="recipe-form-section__empty mb-2">이 그룹에 항목이 없습니다. '항목 추가'를 눌러 추가하세요.</div>
 
-            <div v-for="(item, itemIndex) in group.items" :key="item.id" class="border rounded p-3 mb-2 bg-white">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="text-sm text-gray-600">항목 {{ itemIndex + 1 }}</div>
-                    <div class="flex gap-2">
-                        <Button icon="pi pi-arrow-up" severity="secondary" size="small" @click="moveItemUp(groupIndex, itemIndex)" :disabled="itemIndex === 0 || disabled" />
-                        <Button icon="pi pi-arrow-down" severity="secondary" size="small" @click="moveItemDown(groupIndex, itemIndex)" :disabled="itemIndex === group.items.length - 1 || disabled" />
-                        <Button icon="pi pi-trash" severity="danger" size="small" @click="removeItem(groupIndex, itemIndex)" :disabled="disabled" />
+            <div v-for="(item, itemIndex) in group.items" :key="item.id" class="recipe-form-block mb-2 !bg-white">
+                <div class="recipe-form-block__toolbar mb-2">
+                    <div class="recipe-form-block__toolbar-title text-sm">항목 {{ itemIndex + 1 }}</div>
+                    <div class="recipe-form-block__toolbar-actions">
+                        <Button class="recipe-form-btn recipe-form-btn--icon-only" icon="pi pi-arrow-up" severity="secondary" aria-label="항목 위로" @click="moveItemUp(groupIndex, itemIndex)" :disabled="itemIndex === 0 || disabled" />
+                        <Button class="recipe-form-btn recipe-form-btn--icon-only" icon="pi pi-arrow-down" severity="secondary" aria-label="항목 아래로" @click="moveItemDown(groupIndex, itemIndex)" :disabled="itemIndex === group.items.length - 1 || disabled" />
+                        <Button class="recipe-form-btn recipe-form-btn--icon-only" icon="pi pi-trash" severity="danger" aria-label="항목 삭제" @click="removeItem(groupIndex, itemIndex)" :disabled="disabled" />
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label class="block mb-2 text-sm">이름</label>
+                        <label class="recipe-form-section__label text-sm">이름</label>
                         <InputText :model-value="item.name" placeholder="재료명을 입력하세요" class="w-full" @update:model-value="(v) => updateItemField(groupIndex, itemIndex, 'name', v ?? '')" />
                     </div>
                     <div>
-                        <label class="block mb-2 text-sm">수량 <span class="text-gray-400 text-xs">(선택사항, 분수 입력 가능: 1/2, 3/4 등)</span></label>
+                        <label class="recipe-form-section__label text-sm">수량 <span class="text-gray-400 text-xs">(선택, 1/2·3/4 등)</span></label>
                         <InputText :model-value="item.quantity" placeholder="수량을 입력하세요 (예: 1, 1.5, 1/2)" class="w-full" @update:model-value="(v) => updateItemField(groupIndex, itemIndex, 'quantity', v ?? null)" />
                     </div>
                     <div>
-                        <label class="block mb-2 text-sm">단위 <span class="text-gray-400 text-xs">(선택사항)</span></label>
+                        <label class="recipe-form-section__label text-sm">단위 <span class="text-gray-400 text-xs">(선택)</span></label>
                         <Message v-if="unitsError" severity="error" :closable="false" class="mb-2 text-xs">
                             {{ unitsError }}
                         </Message>

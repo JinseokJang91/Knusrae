@@ -15,6 +15,7 @@ declare module 'vue' {
     Button: typeof import('primevue/button')['default']
     CategorySection: typeof import('./src/components/dashboard/CategorySection.vue')['default']
     CategorySections: typeof import('./src/components/dashboard/CategorySections.vue')['default']
+    ConfirmDialog: typeof import('primevue/confirmdialog')['default']
     FAQ: typeof import('./src/components/community/FAQ.vue')['default']
     FollowListDialog: typeof import('./src/components/follow/FollowListDialog.vue')['default']
     IngredientCard: typeof import('./src/components/ingredient/IngredientCard.vue')['default']

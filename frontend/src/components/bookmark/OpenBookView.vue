@@ -100,13 +100,13 @@ function onRecipeClick(recipeId: number) {
 
 <template>
     <div class="open-book-view">
-        <div class="bookmarks-header">
+        <div class="open-book-view__header">
             <div>
-                <h2 class="text-2xl font-semibold m-0 flex items-center gap-3">
-                    <i class="pi pi-bookmark" :style="{ color: getRecipeBookColorHex(recipeBook.color) }"></i>
+                <h2 class="open-book-view__title">
+                    <i class="pi pi-bookmark open-book-view__title-icon" :style="{ color: getRecipeBookColorHex(recipeBook.color) }" aria-hidden="true"></i>
                     {{ recipeBook.name }}
                 </h2>
-                <p class="text-gray-600 mt-1">{{ recipeBook.bookmarkCount }}개의 레시피</p>
+                <p class="open-book-view__count">{{ recipeBook.bookmarkCount }}개의 레시피</p>
             </div>
         </div>
 
@@ -186,8 +186,44 @@ function onRecipeClick(recipeId: number) {
     gap: 1.5rem;
 }
 
-.bookmarks-header {
+.open-book-view__header {
     margin-bottom: 0;
+}
+
+.open-book-view__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--p-text-color, #374151);
+    min-width: 0;
+    word-break: break-word;
+}
+
+.open-book-view__title-icon {
+    flex-shrink: 0;
+    font-size: 1.125rem;
+}
+
+.open-book-view__count {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--text-color-secondary, #6b7280);
+}
+
+@media (max-width: 767px) {
+    .open-book-view__title {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .open-book-view__title {
+        font-size: 0.9375rem;
+    }
 }
 
 .open-book-view__book {
@@ -195,17 +231,25 @@ function onRecipeClick(recipeId: number) {
 }
 
 .open-book-view__page-content {
-    height: 100%;
     min-height: 280px;
     display: flex;
     flex-direction: column;
+    min-width: 0;
 
     :deep(.recipe-card-wrapper) {
-        flex: 1;
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
     }
 
     :deep(.recipe-card-wrapper .recipe-card) {
-        height: 100%;
+        height: auto;
+        min-height: 0;
+    }
+
+    :deep(.recipe-card-wrapper .recipe-content) {
+        height: auto;
+        min-height: 0;
     }
 }
 

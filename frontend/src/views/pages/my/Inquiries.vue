@@ -157,17 +157,18 @@ watch(currentMemberId, (id) => {
                 <p class="inquiries-notice__text">제목을 클릭하면 문의 상세 팝업에서 답변을 확인할 수 있어요.</p>
             </div>
 
-            <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+            <div class="inquiries-header-row flex justify-between items-center mb-3 flex-wrap gap-2">
                 <h2 class="inquiries-title">문의내역</h2>
-                <Button label="문의하기" icon="pi pi-plus" size="small" @click="openCreateDialog" />
+                <Button label="문의하기" icon="pi pi-plus" class="inquiries-action-btn" @click="openCreateDialog" />
             </div>
 
             <div class="inquiries-section">
                 <PageStateBlock v-if="loading" state="loading" loading-message="문의 내역을 불러오는 중..." />
                 <PageStateBlock v-else-if="error" state="error" error-title="문의 내역을 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadInquiries" />
-                <PageStateBlock v-else-if="!currentMemberId" state="empty" empty-icon="pi pi-lock" empty-title="로그인이 필요합니다" empty-message="1:1 문의 내역을 보려면 로그인해 주세요." empty-button-label="로그인하기" @empty-action="goToLogin" />
+                <PageStateBlock v-else-if="!currentMemberId" compact-mobile state="empty" empty-icon="pi pi-lock" empty-title="로그인이 필요합니다" empty-message="1:1 문의 내역을 보려면 로그인해 주세요." empty-button-label="로그인하기" @empty-action="goToLogin" />
                 <PageStateBlock
                     v-else-if="items.length === 0"
+                    compact-mobile
                     state="empty"
                     empty-icon="pi pi-inbox"
                     empty-title="문의 내역이 없습니다"
@@ -188,7 +189,7 @@ watch(currentMemberId, (id) => {
                                 {{ item.title }}
                             </button>
                             <div class="inquiries-mobile-item__actions">
-                                <Button label="삭제" icon="pi pi-trash" severity="danger" outlined size="small" @click="confirmDelete(item)" />
+                                <Button label="삭제" icon="pi pi-trash" class="inquiries-item-action-btn" severity="danger" outlined @click="confirmDelete(item)" />
                             </div>
                         </article>
                         <Paginator
@@ -330,6 +331,10 @@ watch(currentMemberId, (id) => {
     color: var(--p-text-color, #374151);
 }
 
+.inquiries-header-row :deep(.inquiries-action-btn.p-button) {
+    flex-shrink: 0;
+}
+
 @media (max-width: 767px) {
     .inquiries-title {
         font-size: 1rem;
@@ -468,8 +473,53 @@ watch(currentMemberId, (id) => {
 }
 
 @media (max-width: 767px) {
-    .inquiries-mobile-item__actions :deep(.p-button) {
-        min-height: 44px;
+    .inquiries-header-row :deep(.inquiries-action-btn.p-button) {
+        min-height: 0;
+        padding: 0.4375rem 0.75rem;
+        font-size: 0.8125rem;
+        line-height: 1.25;
+    }
+
+    .inquiries-header-row :deep(.inquiries-action-btn .p-button-icon) {
+        font-size: 0.8125rem;
+    }
+
+    .inquiries-header-row :deep(.inquiries-action-btn .p-button-label) {
+        line-height: 1.25;
+    }
+
+    .inquiries-mobile-item__actions :deep(.inquiries-item-action-btn.p-button) {
+        min-height: 0;
+        padding: 0.4375rem 0.75rem;
+        font-size: 0.8125rem;
+        line-height: 1.25;
+    }
+
+    .inquiries-mobile-item__actions :deep(.inquiries-item-action-btn .p-button-icon) {
+        font-size: 0.8125rem;
+    }
+
+    .inquiries-mobile-item__actions :deep(.inquiries-item-action-btn .p-button-label) {
+        line-height: 1.25;
+    }
+}
+
+@media (min-width: 768px) {
+    .inquiries-header-row :deep(.inquiries-action-btn.p-button) {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .inquiries-header-row :deep(.inquiries-action-btn.p-button) {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
+    }
+
+    .inquiries-mobile-item__actions :deep(.inquiries-item-action-btn.p-button) {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
     }
 }
 </style>

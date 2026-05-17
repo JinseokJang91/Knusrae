@@ -34,12 +34,12 @@ function getDetailOptions(option: CommonCodeOption): Array<{ label: string; valu
 </script>
 
 <template>
-    <div class="border border-gray-200 rounded-lg p-5 bg-white">
-        <div class="flex items-center gap-1 mb-1">
-            <h3 class="text-xl font-semibold text-gray-600">
+    <div class="recipe-form-section">
+        <div class="recipe-form-section__title-row">
+            <h3 class="recipe-form-section__title">
                 <span class="mr-1">분류 정보</span>
                 <template v-if="guideImage">
-                    <i ref="guideIconRef" class="pi pi-question-circle help-button" style="cursor: pointer" @click="(e) => guidePopoverRef?.toggle?.(e)" />
+                    <i ref="guideIconRef" class="pi pi-question-circle help-button" @click="(e) => guidePopoverRef?.toggle?.(e)" />
                     <Popover ref="guidePopoverRef" :target="guideIconRef" :show-close-icon="true" :dismissable="true">
                         <div class="p-2">
                             <img :src="guideImage" alt="분류 정보 가이드" class="max-w-full h-auto" />
@@ -50,12 +50,12 @@ function getDetailOptions(option: CommonCodeOption): Array<{ label: string; valu
         </div>
         <div class="flex flex-col gap-6">
             <div>
-                <label class="block mb-2 font-medium"><b>카테고리</b></label>
+                <label class="recipe-form-section__label"><b>카테고리</b></label>
                 <Message v-if="categoriesError" severity="error" :closable="false" class="mb-2">
                     {{ categoriesError }}
                 </Message>
                 <div v-else>
-                    <div v-if="categoriesLoading" class="p-3 text-gray-500 border border-dashed rounded">카테고리 정보를 불러오는 중입니다...</div>
+                    <div v-if="categoriesLoading" class="recipe-form-section__empty">카테고리 정보를 불러오는 중입니다...</div>
                     <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div v-for="option in categoryOptions" :key="option.codeId" class="flex flex-col gap-2" :data-category-id="`category-${option.codeId}`">
                             <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>
@@ -76,12 +76,12 @@ function getDetailOptions(option: CommonCodeOption): Array<{ label: string; valu
             </div>
 
             <div>
-                <label class="block mb-2 font-medium"><b>요리팁</b></label>
+                <label class="recipe-form-section__label"><b>요리팁</b></label>
                 <Message v-if="cookingTipsError" severity="error" :closable="false" class="mb-2">
                     {{ cookingTipsError }}
                 </Message>
                 <div v-else>
-                    <div v-if="cookingTipsLoading" class="p-3 text-gray-500 border border-dashed rounded">요리팁 정보를 불러오는 중입니다...</div>
+                    <div v-if="cookingTipsLoading" class="recipe-form-section__empty">요리팁 정보를 불러오는 중입니다...</div>
                     <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div v-for="option in cookingTipsOptions" :key="option.codeId" class="flex flex-col gap-2" :data-cooking-tip-id="`cookingTip-${option.codeId}`">
                             <span class="text-sm font-medium text-gray-700">{{ option.codeName }}</span>

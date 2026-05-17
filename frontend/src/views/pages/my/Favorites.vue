@@ -151,7 +151,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="page-container page-container--card page-container--wide favorites-card">
+    <div class="page-container page-container--card page-container--wide favorites-root favorites-card">
         <div class="favorites-content">
             <div class="favorites-notice mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
                 <i class="pi pi-info-circle favorites-notice__icon" aria-hidden="true"></i>
@@ -169,6 +169,7 @@ onMounted(() => {
                 <PageStateBlock v-else-if="error" state="error" error-title="찜 목록을 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadFavorites" />
                 <PageStateBlock
                     v-else-if="displayFavorites.length === 0"
+                    compact-mobile
                     state="empty"
                     empty-icon="pi pi-heart"
                     empty-title="찜한 레시피가 없습니다"
@@ -204,7 +205,13 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* 문의/댓글 페이지와 동일한 오렌지 톤 카드 배경 */
+/* Comments/Inquiries와 동일 — page-container--card 패딩 + 오렌지 톤 (favorites-root는 그리드 스코프용) */
+.favorites-root {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
 .favorites-card {
     background: #ffedd5;
 }
@@ -216,7 +223,7 @@ onMounted(() => {
 }
 
 .favorites-notice__icon {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     color: var(--orange-500, #f97316);
     flex-shrink: 0;
     margin-top: 0.125rem;
@@ -226,25 +233,92 @@ onMounted(() => {
     margin: 0;
     color: #374151;
     font-style: italic;
-    font-size: 0.9375rem;
-    line-height: 1.5;
+    font-size: 0.875rem;
+    line-height: 1.45;
     letter-spacing: 0.01em;
+}
+
+@media (max-width: 767px) {
+    .favorites-notice {
+        gap: 0.5rem;
+    }
+
+    .favorites-notice__icon {
+        font-size: 1.0625rem;
+        margin-top: 0.0625rem;
+    }
+
+    .favorites-notice__text {
+        font-size: 0.8125rem;
+        line-height: 1.5;
+    }
+}
+
+@media (max-width: 480px) {
+    .favorites-notice__icon {
+        font-size: 1rem;
+    }
+
+    .favorites-notice__text {
+        font-size: 0.75rem;
+        line-height: 1.45;
+    }
 }
 
 .favorites-title {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 600;
+    line-height: 1.35;
     color: var(--p-text-color, #374151);
+}
+
+@media (max-width: 767px) {
+    .favorites-title {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .favorites-title {
+        font-size: 0.9375rem;
+    }
 }
 
 .recipe-section {
     margin-top: 0;
     padding-top: 0;
+    border-top: none;
     width: 100%;
+    min-width: 0;
 }
 
 .favorites-content {
+    min-width: 0;
     min-height: 500px;
+}
+
+@media (min-width: 769px) {
+    .favorites-root .recipe-section .recipe-grid {
+        width: 100%;
+    }
+
+    .favorites-root .recipe-section :deep(.recipe-image-container) {
+        height: 320px;
+    }
+}
+
+@media (max-width: 767px) {
+    .favorites-root.favorites-card {
+        background: var(--surface-card, #fff);
+        border-radius: 0;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+    }
+
+    .favorites-content {
+        min-height: 0;
+    }
 }
 </style>
