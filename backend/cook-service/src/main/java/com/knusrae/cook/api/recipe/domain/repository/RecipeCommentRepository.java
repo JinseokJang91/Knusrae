@@ -2,10 +2,13 @@ package com.knusrae.cook.api.recipe.domain.repository;
 
 import com.knusrae.cook.api.recipe.domain.entity.Recipe;
 import com.knusrae.cook.api.recipe.domain.entity.RecipeComment;
+import com.knusrae.cook.api.recipe.domain.enums.Status;
+import com.knusrae.cook.api.recipe.domain.enums.Visibility;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -34,7 +37,22 @@ public interface RecipeCommentRepository extends JpaRepository<RecipeComment, Lo
 
     // 특정 사용자가 작성한 댓글 조회 (페이징)
     Page<RecipeComment> findAllByMemberIdOrderByCreatedAtDesc(Long memberId, Pageable pageable);
-    
+
+    /** 회원이 작성한 댓글 중 게시·공개 레시피에 달린 것만 (카테고리/찜 목록과 동일 노출 조건) */
+    @Query("""
+            SELECT rc FROM RecipeComment rc
+            JOIN rc.recipe r
+            WHERE rc.memberId = :memberId
+              AND r.status = :status
+              AND r.visibility = :visibility
+            ORDER BY rc.createdAt DESC
+            """)
+    Page<RecipeComment> findByMemberIdOnPublishedPublicRecipes(
+            @Param("memberId") Long memberId,
+            @Param("status") Status status,
+            @Param("visibility") Visibility visibility,
+            Pageable pageable);
+
     // 특정 레시피의 댓글 개수 조회 (recipeId 기준)
     long countByRecipeId(Long recipeId);
 }

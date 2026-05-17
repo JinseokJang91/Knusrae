@@ -22,6 +22,11 @@ import com.knusrae.cook.api.recipe.domain.repository.RecipeImageRepository;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeRepository;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeCommentRepository;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeFavoriteRepository;
+import com.knusrae.cook.api.recipe.domain.repository.RecipeViewRepository;
+import com.knusrae.cook.api.recipe.domain.repository.RecipePopularityRepository;
+import com.knusrae.cook.api.recipe.domain.repository.RecipePopularityHistoryRepository;
+import com.knusrae.cook.api.recipe.domain.repository.RecipeBookmarkRepository;
+import com.knusrae.cook.api.theme.domain.repository.ThemeCollectionRecipeRepository;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.common.domain.repository.FollowRepository;
 import com.knusrae.cook.api.recipe.domain.constants.RecipeConstants;
@@ -59,6 +64,11 @@ public class RecipeService {
     private final RecipeCommentRepository recipeCommentRepository;
     private final RecipeIngredientGroupRepository recipeIngredientGroupRepository;
     private final RecipeFavoriteRepository recipeFavoriteRepository;
+    private final RecipeViewRepository recipeViewRepository;
+    private final RecipePopularityRepository recipePopularityRepository;
+    private final RecipePopularityHistoryRepository recipePopularityHistoryRepository;
+    private final RecipeBookmarkRepository recipeBookmarkRepository;
+    private final ThemeCollectionRecipeRepository themeCollectionRecipeRepository;
 
     @Transactional
     public RecipeDto createRecipe(RecipeDto recipeDto, List<MultipartFile> images, Integer mainImageIndex) {
@@ -465,7 +475,12 @@ public class RecipeService {
         if (!recipe.getMemberId().equals(memberId)) {
             throw new org.springframework.security.access.AccessDeniedException("레시피 작성자만 삭제할 수 있습니다.");
         }
+        recipeViewRepository.deleteByRecipeId(id);
         recipeFavoriteRepository.deleteByRecipeId(id);
+        recipeBookmarkRepository.deleteByRecipeId(id);
+        recipePopularityHistoryRepository.deleteByRecipeId(id);
+        recipePopularityRepository.deleteById(id);
+        themeCollectionRecipeRepository.deleteByRecipeId(id);
         List<RecipeImage> images = recipeImageRepository.findAllByRecipe(recipe);
         for(RecipeImage image : images) {
             imageStorage.deleteByKey(image.getStorageKey());

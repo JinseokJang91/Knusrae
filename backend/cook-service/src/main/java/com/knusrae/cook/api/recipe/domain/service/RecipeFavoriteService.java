@@ -4,6 +4,8 @@ import com.knusrae.common.domain.entity.Member;
 import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.cook.api.recipe.domain.entity.Recipe;
 import com.knusrae.cook.api.recipe.domain.entity.RecipeFavorite;
+import com.knusrae.cook.api.recipe.domain.enums.Status;
+import com.knusrae.cook.api.recipe.domain.enums.Visibility;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeFavoriteRepository;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeRepository;
 import com.knusrae.cook.api.recipe.dto.RecipeFavoriteDto;
@@ -71,7 +73,7 @@ public class RecipeFavoriteService {
                 .map(favorite -> {
                     Recipe recipe = recipeRepository.findById(favorite.getRecipeId())
                             .orElse(null);
-                    if (recipe == null) {
+                    if (recipe == null || !isPublishedPublic(recipe)) {
                         return null;
                     }
                     Member member = memberRepository.findById(recipe.getMemberId())
@@ -106,5 +108,11 @@ public class RecipeFavoriteService {
 
     public long getFavoriteCount(Long recipeId) {
         return recipeFavoriteRepository.countByRecipeId(recipeId);
+    }
+
+    /** 카테고리 전체 목록(list/all)과 동일: 게시·공개 레시피만 노출 */
+    private static boolean isPublishedPublic(Recipe recipe) {
+        return recipe.getStatus() == Status.PUBLISHED
+                && recipe.getVisibility() == Visibility.PUBLIC;
     }
 }

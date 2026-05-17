@@ -40,4 +40,6 @@ public interface RecipePopularityHistoryRepository extends JpaRepository<RecipeP
             @Param("recipeId") Long recipeId, 
             @Param("targetTime") LocalDateTime targetTime
     );
+
+    void deleteByRecipeId(Long recipeId);
 }
