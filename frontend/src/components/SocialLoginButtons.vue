@@ -3,6 +3,7 @@ type Provider = 'kakao' | 'google' | 'naver';
 
 defineProps<{
     disabled?: boolean;
+    compactDesktop?: boolean;
 }>();
 
 defineEmits<{
@@ -15,13 +16,13 @@ const providers: Array<{
     ariaLabel: string;
 }> = [
     { key: 'kakao', label: '카카오 로그인', ariaLabel: '카카오 로그인' },
-    { key: 'google', label: 'Google 로그인', ariaLabel: 'Google 로그인' },
+    { key: 'google', label: 'Sign in with Google', ariaLabel: 'Sign in with Google' },
     { key: 'naver', label: '네이버 로그인', ariaLabel: '네이버 로그인' }
 ];
 </script>
 
 <template>
-    <div class="social-login">
+    <div class="social-login" :class="{ 'social-login--compact-desktop': compactDesktop }">
         <button v-for="p in providers" :key="p.key" type="button" class="social-btn" :class="`social-btn--${p.key}`" :disabled="disabled" :aria-label="p.ariaLabel" @click="$emit('click', p.key)">
             <!-- 아이콘: 왼쪽 절대 위치 고정 -->
             <span class="social-btn__icon" aria-hidden="true">
@@ -131,5 +132,37 @@ const providers: Array<{
     background: #ffffff;
     color: #1f1f1f;
     border-color: #dadce0;
+    font-family: 'Roboto', 'Noto Sans KR', sans-serif;
+    font-weight: 500;
+}
+
+/* 네이버 완성형 가이드: 가운데 정렬 시 아이콘-레이블 간격 8px 권장 */
+.social-btn--naver {
+    gap: 8px;
+}
+
+/* 카카오 가이드: 컨테이너 코너 라운드 12px */
+.social-btn--kakao {
+    border-radius: 12px;
+}
+
+@media (min-width: 1024px) {
+    .social-login--compact-desktop .social-btn {
+        height: 42px;
+        border-radius: 12px;
+        padding: 0 12px;
+        gap: 12px;
+        font-size: 16px;
+    }
+
+    .social-login--compact-desktop .social-btn--naver {
+        gap: 8px;
+    }
+
+    .social-login--compact-desktop .social-btn__icon {
+        flex-basis: 22px;
+        width: 22px;
+        height: 22px;
+    }
 }
 </style>

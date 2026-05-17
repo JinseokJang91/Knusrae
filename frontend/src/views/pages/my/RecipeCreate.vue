@@ -481,19 +481,19 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="page-container page-container--card">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-2xl font-bold">레시피 등록</h2>
-            <div class="flex gap-2">
-                <Button label="목록으로" icon="pi pi-arrow-left" severity="secondary" @click="goBack" :disabled="submitting" />
+    <div class="page-container page-container--card recipe-form-page">
+        <div class="recipe-form-page__header">
+            <h2 class="recipe-form-page__title">레시피 등록</h2>
+            <div class="recipe-form-page__header-actions">
+                <Button class="recipe-form-btn" label="목록으로" icon="pi pi-arrow-left" severity="secondary" @click="goBack" :disabled="submitting" />
             </div>
         </div>
 
-        <div class="mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
-            <p class="text-gray-700 italic">셰프님이 누군가를 위해 정성들인 이 요리처럼, 레시피에서도 셰프님의 따뜻한 정성을 보여주세요.</p>
+        <div class="recipe-form-page__notice">
+            <p class="recipe-form-page__notice-text">셰프님이 누군가를 위해 정성들인 이 요리처럼, 레시피에서도 셰프님의 따뜻한 정성을 보여주세요.</p>
         </div>
 
-        <div class="flex flex-col gap-6">
+        <div class="recipe-form-page__body">
             <RecipeFormBasicInfo
                 ref="basicInfoFormRef"
                 :title="form.title"
@@ -551,11 +551,11 @@ onBeforeUnmount(() => {
             />
 
             <!-- 설정 및 저장 -->
-            <div class="border border-gray-200 rounded-lg p-5 bg-white">
-                <div class="flex items-center gap-1 mb-1">
-                    <h3 class="text-xl font-semibold text-gray-600">
+            <div class="recipe-form-section">
+                <div class="recipe-form-section__title-row">
+                    <h3 class="recipe-form-section__title">
                         <span class="mr-1">설정 및 저장</span>
-                        <i ref="el => { if (el) guideIconRefs.settings = el as HTMLElement; }" class="pi pi-question-circle help-button" @click="showGuide('settings', $event)" style="cursor: pointer" />
+                        <i ref="el => { if (el) guideIconRefs.settings = el as HTMLElement; }" class="pi pi-question-circle help-button" @click="showGuide('settings', $event)" />
                         <Popover
                             :ref="
                                 (el) => {
@@ -574,16 +574,16 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
-                        <label class="block mb-2 font-medium"><b>공개 여부</b></label>
+                        <label class="recipe-form-section__label"><b>공개 여부</b></label>
                         <Select v-model="form.visibility" :options="visibilityOptions" optionLabel="label" optionValue="value" class="w-full" />
                     </div>
                     <div>
-                        <label class="block mb-2 font-medium"><b>상태</b></label>
+                        <label class="recipe-form-section__label"><b>상태</b></label>
                         <Select v-model="form.status" :options="statusOptions" optionLabel="label" optionValue="value" class="w-full" />
                     </div>
                 </div>
-                <div class="flex justify-end gap-2">
-                    <Button label="등록" icon="pi pi-check" severity="primary" @click="submit" :disabled="submitting" />
+                <div class="recipe-form-page__actions">
+                    <Button class="recipe-form-btn" label="등록" icon="pi pi-check" severity="primary" @click="submit" :disabled="submitting" />
                 </div>
             </div>
         </div>
@@ -604,13 +604,4 @@ onBeforeUnmount(() => {
     box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.2) !important;
 }
 
-.help-button {
-    color: #ea580c;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.help-button:hover {
-    opacity: 1;
-}
 </style>

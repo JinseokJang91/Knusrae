@@ -76,4 +76,9 @@ public interface RecipeViewRepository extends JpaRepository<RecipeView, Long> {
      * 특정 회원의 모든 조회 기록 삭제
      */
     void deleteByMemberId(Long memberId);
+
+    /**
+     * 특정 레시피의 모든 조회 기록 삭제 (레시피 삭제 시 사용)
+     */
+    void deleteByRecipeId(Long recipeId);
 }

@@ -8,7 +8,7 @@ import Button from 'primevue/button';
 import Badge from 'primevue/badge';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import ConfirmDialog from 'primevue/confirmdialog';
+import Paginator from 'primevue/paginator';
 import PageStateBlock from '@/components/common/PageStateBlock.vue';
 import { useAppToast } from '@/utils/toast';
 import type { Recipe } from '@/types/recipe';
@@ -67,7 +67,6 @@ function onPageChange(event: PageState) {
 // 레시피 삭제
 function confirmDelete(recipe: Recipe) {
     confirm.require({
-        group: 'recipe-delete',
         header: '레시피 삭제',
         message: `"${recipe.title}" 레시피를 삭제하시겠습니까?`,
         icon: 'pi pi-exclamation-triangle',
@@ -99,6 +98,8 @@ const filteredRecipes = computed(() => {
     return items.value.filter((r) => r.title.includes(q));
 });
 
+const pagedRecipes = computed(() => filteredRecipes.value.slice(first.value, first.value + rowsPerPage.value));
+
 // 검색어 변경 시 첫 페이지로 이동 (필터 결과가 줄어들면 빈 페이지를 가리키지 않도록)
 watch(search, () => {
     first.value = 0;
@@ -111,18 +112,32 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="page-container page-container--card page-container--wide recipes-card">
+    <div class="page-container page-container--card page-container--wide recipes-root recipes-card">
         <div class="recipes-content">
             <div class="recipes-notice mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r">
                 <i class="pi pi-info-circle recipes-notice__icon" aria-hidden="true"></i>
                 <p class="recipes-notice__text">제목을 클릭하면 레시피 상세 페이지로 이동해요. 등록·수정·삭제는 여기서 할 수 있어요.</p>
             </div>
 
-            <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+            <div class="recipes-toolbar mb-3">
                 <h2 class="recipes-title">레시피 관리</h2>
-                <div class="flex gap-2 flex-wrap">
-                    <input v-model="search" type="text" class="recipes-search px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="레시피 검색" :disabled="loading" />
-                    <Button label="레시피 등록하기" icon="pi pi-plus" size="small" :disabled="loading" @click="handleCreateRecipe" />
+                <div class="recipes-toolbar__actions">
+                    <input
+                        v-model="search"
+                        type="search"
+                        class="recipes-search"
+                        placeholder="레시피 검색"
+                        :disabled="loading"
+                        aria-label="레시피 검색"
+                    />
+                    <Button
+                        class="recipes-action-btn recipes-action-btn--create"
+                        label="레시피 등록하기"
+                        icon="pi pi-plus"
+                        :disabled="loading"
+                        aria-label="레시피 등록하기"
+                        @click="handleCreateRecipe"
+                    />
                 </div>
             </div>
 
@@ -135,6 +150,7 @@ onMounted(() => {
             <!-- 빈 상태 -->
             <PageStateBlock
                 v-else-if="filteredRecipes.length === 0"
+                compact-mobile
                 state="empty"
                 empty-icon="pi pi-book"
                 empty-title="등록된 레시피가 없습니다"
@@ -145,7 +161,36 @@ onMounted(() => {
 
             <!-- 레시피 테이블 -->
             <template v-else>
-                <div class="recipes-table-wrap">
+                <div class="recipes-mobile-list recipes-mobile-only">
+                    <article v-for="(recipe, index) in pagedRecipes" :key="recipe.id" class="recipes-mobile-item">
+                        <div class="recipes-mobile-item__header">
+                            <span class="recipes-mobile-item__no">No. {{ first + index + 1 }}</span>
+                            <div class="recipes-mobile-item__badges">
+                                <Badge v-if="recipe.status === 'DRAFT'" value="초안" severity="warning" />
+                                <Badge v-else value="발행" severity="info" />
+                                <Badge :value="recipe.visibility === 'PUBLIC' ? '공개' : '비공개'" severity="secondary" />
+                            </div>
+                        </div>
+                        <button type="button" class="recipes-mobile-item__title" @click="viewRecipeDetail(recipe.id)">
+                            {{ recipe.title }}
+                        </button>
+                        <div class="recipes-mobile-item__actions">
+                            <Button label="수정" icon="pi pi-pencil" class="recipes-item-action-btn" severity="secondary" outlined @click="handleEditRecipe(recipe)" />
+                            <Button label="삭제" icon="pi pi-trash" class="recipes-item-action-btn" severity="danger" outlined @click="confirmDelete(recipe)" />
+                        </div>
+                    </article>
+                    <Paginator
+                        :first="first"
+                        :rows="rowsPerPage"
+                        :total-records="filteredRecipes.length"
+                        template="PrevPageLink CurrentPageReport NextPageLink"
+                        current-page-report-template="{currentPage} / {totalPages}"
+                        class="recipes-mobile-paginator"
+                        @page="onPageChange"
+                    />
+                </div>
+
+                <div class="recipes-table-wrap recipes-desktop-only">
                     <DataTable
                         :value="filteredRecipes"
                         :paginator="true"
@@ -197,13 +242,18 @@ onMounted(() => {
                 </div>
             </template>
 
-            <ConfirmDialog group="recipe-delete" />
         </div>
     </div>
 </template>
 
 <style scoped>
-/* 문의/찜 목록과 동일한 오렌지 톤 카드 배경 */
+/* Comments/Inquiries·Favorites와 동일 — page-container--card 패딩 + 오렌지 톤 */
+.recipes-root {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
 .recipes-card {
     background: #ffedd5;
 }
@@ -215,7 +265,7 @@ onMounted(() => {
 }
 
 .recipes-notice__icon {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     color: var(--orange-500, #f97316);
     flex-shrink: 0;
     margin-top: 0.125rem;
@@ -225,19 +275,92 @@ onMounted(() => {
     margin: 0;
     color: #374151;
     font-style: italic;
-    font-size: 0.9375rem;
-    line-height: 1.5;
+    font-size: 0.875rem;
+    line-height: 1.45;
     letter-spacing: 0.01em;
+}
+
+@media (max-width: 767px) {
+    .recipes-notice {
+        gap: 0.5rem;
+    }
+
+    .recipes-notice__icon {
+        font-size: 1.0625rem;
+        margin-top: 0.0625rem;
+    }
+
+    .recipes-notice__text {
+        font-size: 0.8125rem;
+        line-height: 1.5;
+    }
+}
+
+@media (max-width: 480px) {
+    .recipes-notice__icon {
+        font-size: 1rem;
+    }
+
+    .recipes-notice__text {
+        font-size: 0.75rem;
+        line-height: 1.45;
+    }
 }
 
 .recipes-title {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 600;
+    line-height: 1.35;
     color: var(--p-text-color, #374151);
 }
 
+.recipes-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+}
+
+.recipes-toolbar__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.recipes-search {
+    width: 100%;
+    max-width: 14rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.35;
+    color: var(--p-text-color, #374151);
+    border: 1px solid var(--p-surface-border, #d1d5db);
+    border-radius: var(--p-border-radius-md, 6px);
+    background: var(--p-input-background, #fff);
+    box-sizing: border-box;
+}
+
+.recipes-search:focus {
+    outline: none;
+    border-color: var(--p-primary-color);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--p-primary-color) 20%, transparent);
+}
+
+.recipes-search:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.recipes-toolbar :deep(.recipes-action-btn.p-button) {
+    flex-shrink: 0;
+}
+
 .recipes-content {
+    min-width: 0;
     min-height: 500px;
 }
 
@@ -271,6 +394,96 @@ onMounted(() => {
     padding-left: 1.25rem;
 }
 
+.recipes-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.recipes-mobile-item {
+    background: var(--p-card-background, #ffffff);
+    border: 1px solid var(--p-card-border-color, rgba(0, 0, 0, 0.08));
+    border-radius: 12px;
+    padding: 0.875rem;
+    box-shadow: var(--p-card-shadow, 0 1px 3px rgba(0, 0, 0, 0.06));
+}
+
+.recipes-mobile-item__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.recipes-mobile-item__no {
+    font-size: 0.8125rem;
+    color: #6b7280;
+}
+
+.recipes-mobile-item__badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.375rem;
+}
+
+.recipes-mobile-item__title {
+    margin-top: 0.625rem;
+    border: none;
+    background: transparent;
+    color: var(--p-primary-color);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: left;
+    cursor: pointer;
+    padding: 0;
+    word-break: break-word;
+}
+
+.recipes-mobile-item__title:hover {
+    text-decoration: underline;
+}
+
+.recipes-mobile-item__actions {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.recipes-mobile-paginator {
+    margin-top: 0.25rem;
+}
+
+.recipes-desktop-only {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .recipes-mobile-only {
+        display: none;
+    }
+
+    .recipes-desktop-only {
+        display: block;
+    }
+
+    .recipes-toolbar {
+        flex-wrap: nowrap;
+    }
+
+    .recipes-toolbar__actions {
+        flex-wrap: nowrap;
+        flex-shrink: 0;
+    }
+
+    .recipes-search {
+        width: 14rem;
+        max-width: 14rem;
+        flex: 0 0 auto;
+    }
+}
+
 .recipe-title-link {
     color: var(--p-primary-color);
     text-decoration: none;
@@ -278,5 +491,127 @@ onMounted(() => {
 
 .recipe-title-link:hover {
     text-decoration: underline;
+}
+
+@media (max-width: 767px) {
+    .recipes-root.recipes-card {
+        background: var(--surface-card, #fff);
+        border-radius: 0;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+    }
+
+    .recipes-content {
+        min-height: 0;
+    }
+
+    .recipes-title {
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+
+    .recipes-toolbar {
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .recipes-toolbar__actions {
+        flex: 1;
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+        gap: 0.375rem;
+        min-width: 0;
+    }
+
+    .recipes-search {
+        flex: 1;
+        min-width: 0;
+        max-width: none;
+        padding: 0.4375rem 0.625rem;
+        font-size: 0.8125rem;
+    }
+
+    .recipes-toolbar :deep(.recipes-action-btn.p-button) {
+        min-height: 0;
+        padding: 0.4375rem 0.75rem;
+        font-size: 0.8125rem;
+        line-height: 1.25;
+    }
+
+    .recipes-toolbar :deep(.recipes-action-btn .p-button-icon) {
+        font-size: 0.8125rem;
+    }
+
+    .recipes-toolbar :deep(.recipes-action-btn--create .p-button-label) {
+        display: none;
+    }
+
+    .recipes-toolbar :deep(.recipes-action-btn--create.p-button) {
+        padding: 0.4375rem 0.5rem;
+        width: 2.25rem;
+        justify-content: center;
+    }
+
+    .recipes-toolbar :deep(.recipes-action-btn--create .p-button-icon) {
+        margin: 0;
+    }
+
+    .recipes-mobile-item__title {
+        font-size: 0.875rem;
+    }
+
+    .recipes-mobile-item__actions :deep(.recipes-item-action-btn.p-button) {
+        min-height: 0;
+        padding: 0.4375rem 0.75rem;
+        font-size: 0.8125rem;
+        line-height: 1.25;
+    }
+
+    .recipes-mobile-item__actions :deep(.recipes-item-action-btn .p-button-icon) {
+        font-size: 0.8125rem;
+    }
+
+    .recipes-mobile-item__actions :deep(.recipes-item-action-btn .p-button-label) {
+        line-height: 1.25;
+    }
+}
+
+@media (min-width: 768px) {
+    .recipes-toolbar :deep(.recipes-action-btn.p-button) {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .recipes-title {
+        font-size: 0.9375rem;
+    }
+
+    .recipes-search {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .recipes-toolbar :deep(.recipes-action-btn.p-button) {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
+    }
+
+    .recipes-toolbar :deep(.recipes-action-btn--create.p-button) {
+        padding: 0.375rem 0.4375rem;
+        width: 2rem;
+    }
+
+    .recipes-mobile-item__title {
+        font-size: 0.8125rem;
+    }
+
+    .recipes-mobile-item__actions :deep(.recipes-item-action-btn.p-button) {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.75rem;
+    }
 }
 </style>

@@ -46,9 +46,9 @@ onMounted(() => {
         </template>
 
         <!-- 데이터 없음 -->
-        <div v-if="!loading && trendingCategories.length === 0" class="text-center py-20">
-            <i class="pi pi-inbox text-6xl text-gray-300 mb-4"></i>
-            <p class="text-gray-500 text-lg">카테고리가 없습니다.</p>
+        <div v-if="!loading && trendingCategories.length === 0" class="category-sections-empty">
+            <i class="pi pi-inbox category-sections-empty__icon"></i>
+            <p class="category-sections-empty__msg">카테고리가 없습니다.</p>
         </div>
     </div>
 </template>
@@ -64,5 +64,22 @@ onMounted(() => {
     .category-sections {
         gap: 28px;
     }
+}
+
+.category-sections-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.category-sections-empty__icon {
+    font-size: 3rem;
+    color: var(--surface-300, #d1d5db);
+    margin-bottom: 0.75rem;
+}
+
+.category-sections-empty__msg {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-color-secondary);
 }
 </style>

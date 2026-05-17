@@ -6,6 +6,8 @@ import com.knusrae.common.domain.repository.MemberRepository;
 import com.knusrae.cook.api.recipe.domain.constants.RecipeConstants;
 import com.knusrae.cook.api.recipe.domain.entity.Recipe;
 import com.knusrae.cook.api.recipe.domain.entity.RecipeComment;
+import com.knusrae.cook.api.recipe.domain.enums.Status;
+import com.knusrae.cook.api.recipe.domain.enums.Visibility;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeCommentRepository;
 import com.knusrae.cook.api.recipe.domain.repository.RecipeRepository;
 import com.knusrae.cook.api.recipe.dto.MemberCommentItemDto;
@@ -284,7 +286,8 @@ public class RecipeCommentService {
      */
     public Map<String, Object> getCommentsByMemberId(Long memberId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<RecipeComment> commentPage = recipeCommentRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId, pageable);
+        Page<RecipeComment> commentPage = recipeCommentRepository.findByMemberIdOnPublishedPublicRecipes(
+                memberId, Status.PUBLISHED, Visibility.PUBLIC, pageable);
         List<RecipeComment> comments = commentPage.getContent();
         List<Long> memberIds = comments.stream()
                 .map(RecipeComment::getMemberId)

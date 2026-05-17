@@ -230,7 +230,7 @@ defineExpose({
     margin-bottom: 24px;
 
     .section-title {
-        font-size: 24px;
+        font-size: 1.5rem;
         font-weight: 700;
         color: var(--text-color);
         display: flex;
@@ -244,7 +244,7 @@ defineExpose({
     }
 
     .section-subtitle {
-        font-size: 14px;
+        font-size: 0.9375rem;
         color: var(--text-color-secondary);
     }
 
@@ -390,6 +390,15 @@ defineExpose({
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
+
+        .section-title {
+            font-size: 1.125rem;
+            margin-bottom: 2px;
+        }
+
+        .section-subtitle {
+            font-size: 0.8125rem;
+        }
     }
 
     .recent-view-card {

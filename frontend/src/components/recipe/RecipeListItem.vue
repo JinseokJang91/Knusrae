@@ -56,48 +56,48 @@ const formatDate = (dateString?: string) => {
         <!-- 레시피 정보 -->
         <div class="p-4">
             <!-- 카테고리 -->
-            <div v-if="categoryName" class="text-sm text-primary-500 font-semibold mb-2">
+            <div v-if="categoryName" class="recipe-list-item__category">
                 {{ categoryName }}
             </div>
 
-            <!-- 제목 -->
-            <h3 class="text-xl font-bold mb-2 line-clamp-2">
+            <!-- 제목 (모바일: 대시보드 섹션 타이틀보다 한 단계 작게) -->
+            <h3 class="recipe-list-item__title line-clamp-2">
                 {{ recipe.title }}
             </h3>
 
             <!-- 설명 -->
-            <p v-if="recipe.description" class="text-gray-600 text-sm mb-4 line-clamp-2">
+            <p v-if="recipe.description" class="recipe-list-item__desc line-clamp-2">
                 {{ recipe.description }}
             </p>
 
             <!-- 통계 정보 -->
-            <div v-if="showStats" class="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                <span class="flex items-center gap-1">
+            <div v-if="showStats" class="recipe-list-item__stats">
+                <span class="recipe-list-item__stat">
                     <i class="pi pi-eye"></i>
                     {{ recipe.hits || 0 }}
                 </span>
-                <span class="flex items-center gap-1">
+                <span class="recipe-list-item__stat">
                     <i class="pi pi-heart"></i>
                     {{ recipe.favoriteCount || 0 }}
                 </span>
-                <span class="flex items-center gap-1">
+                <span class="recipe-list-item__stat">
                     <i class="pi pi-comment"></i>
                     {{ recipe.commentCount || 0 }}
                 </span>
             </div>
 
             <!-- 작성자 정보 -->
-            <div v-if="showAuthor" class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
+            <div v-if="showAuthor" class="recipe-list-item__author-row">
+                <div class="recipe-list-item__author">
                     <img v-if="recipe.memberProfileImage" :src="recipe.memberProfileImage" :alt="recipe.memberNickname || recipe.memberName" class="w-8 h-8 rounded-full" />
                     <div v-else class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
                         <i class="pi pi-user text-gray-500"></i>
                     </div>
-                    <span class="text-sm font-medium">
+                    <span class="recipe-list-item__author-name">
                         {{ recipe.memberNickname || recipe.memberName }}
                     </span>
                 </div>
-                <span class="text-xs text-gray-400">
+                <span class="recipe-list-item__date">
                     {{ formatDate(recipe.createdAt) }}
                 </span>
             </div>
@@ -105,7 +105,7 @@ const formatDate = (dateString?: string) => {
     </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .recipe-list-item {
     transition: all 0.3s ease;
 }
@@ -132,5 +132,118 @@ const formatDate = (dateString?: string) => {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+.recipe-list-item__category {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--primary-color, #f97316);
+    margin-bottom: 0.375rem;
+    text-transform: none;
+    letter-spacing: -0.01em;
+}
+
+.recipe-list-item__title {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 0 0 0.5rem;
+    color: var(--text-color);
+}
+
+.recipe-list-item__desc {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--text-color-secondary);
+    margin: 0 0 1rem;
+}
+
+.recipe-list-item__stats {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 0.75rem;
+}
+
+.recipe-list-item__stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.recipe-list-item__author-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.recipe-list-item__author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.recipe-list-item__author-name {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.recipe-list-item__date {
+    font-size: 0.6875rem;
+    color: var(--text-color-secondary);
+    flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+    .recipe-list-item__category {
+        font-size: 0.625rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .recipe-list-item__title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        margin-bottom: 0.375rem;
+    }
+
+    .recipe-list-item__desc {
+        font-size: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .recipe-list-item__stats {
+        font-size: 0.75rem;
+        gap: 0.5rem 0.75rem;
+        margin-bottom: 0.625rem;
+    }
+
+    .recipe-list-item__author-name {
+        font-size: 0.75rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .recipe-list-item__category {
+        font-size: 0.8125rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .recipe-list-item__title {
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .recipe-list-item__desc {
+        font-size: 0.875rem;
+    }
 }
 </style>

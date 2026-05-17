@@ -1,11 +1,14 @@
 /* 메인 콘텐츠 영역 */
 
+@use './variables/responsive-tokens' as rsp;
+
 .layout-main-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     justify-content: space-between;
-    padding: 6rem 0 0 0; // 상단: topbar 높이(5rem) + 여백(1rem), 하단: footer를 위한 여백은 layout-main의 padding-bottom으로 처리
+    // 탑바 실제 렌더 높이(AppTopbar 동기화) + 의도된 시각 여백
+    padding: calc(var(--layout-main-top-offset) + var(--layout-main-top-gap)) var(--layout-main-padding-x) 0 var(--layout-main-padding-x);
     
     // background: white;
     background:
@@ -23,39 +26,43 @@
 /* 태블릿 가로 이하 (1023px 이하) - topbar가 wrap될 때 */
 @media (max-width: 1023px) {
     .layout-main-container {
-        padding: 8rem 2rem 0 2rem; // topbar가 wrap되어 높이가 늘어남 (약 7rem) + 여백(1rem)
+        --layout-main-top-gap: #{rsp.$layout-main-top-gap-tablet};
+        --layout-main-padding-x: #{rsp.$layout-main-padding-tablet};
     }
 }
 
 /* 태블릿 세로 (768px 이하) */
 @media (max-width: 768px) {
     .layout-main-container {
-        padding: 7rem 1rem 0 1rem; // topbar 높이 조정 + 여백
+        --layout-main-top-gap: #{rsp.$layout-main-top-gap-mobile};
+        --layout-main-padding-x: #{rsp.$layout-main-padding-mobile};
     }
     
     .layout-main {
-        padding-bottom: 1.5rem; // footer와의 간격 조정
+        padding-bottom: calc(#{rsp.$layout-main-padding-bottom-with-nav} + var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom)); // 하단 탭바와 콘텐츠 겹침 방지
     }
 }
 
 /* iPhone 표준 모바일 (375px 이하) */
 @media (max-width: 375px) {
     .layout-main-container {
-        padding: 6rem 0.75rem 0 0.75rem; // topbar 높이 + 여백
+        --layout-main-top-gap: #{rsp.$layout-main-top-gap-mobile};
+        --layout-main-padding-x: #{rsp.$layout-main-padding-mobile-narrow};
     }
     
     .layout-main {
-        padding-bottom: 1rem; // footer와의 간격 조정
+        padding-bottom: calc(#{rsp.$layout-main-padding-bottom-with-nav-narrow} + var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom)); // 하단 탭바와 콘텐츠 겹침 방지
     }
 }
 
 /* 안드로이드 모바일 (360px 이하) */
 @media (max-width: 360px) {
     .layout-main-container {
-        padding: 6rem 0.5rem 0 0.5rem; // topbar 높이 + 여백
+        --layout-main-top-gap: #{rsp.$layout-main-top-gap-mobile};
+        --layout-main-padding-x: #{rsp.$layout-main-padding-mobile-tiny};
     }
     
     .layout-main {
-        padding-bottom: 1rem; // footer와의 간격 조정
+        padding-bottom: calc(#{rsp.$layout-main-padding-bottom-with-nav-narrow} + var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom)); // 하단 탭바와 콘텐츠 겹침 방지
     }
 }

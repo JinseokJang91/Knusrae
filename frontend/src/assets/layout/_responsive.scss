@@ -1,12 +1,14 @@
 /* 반응형 디자인 - 웹 ~ 모바일 웹뷰 공통 */
 
-/* 좌우 여백: 이 값의 2배만큼 페이지 컨테이너 너비에서 빠짐 (예: 6rem → 카드 좌우에 6rem씩 여백) */
-$page-container-margin-x: 6rem;
-/* 넓은 레이아웃용(마이페이지 등): 좌우 여백 축소 */
-$page-container-margin-x-wide: 2rem;
+@use './variables/responsive-tokens' as rsp;
 
-/* Full HD 데스크톱 (1920px 이상) - 가장 보편적인 데스크톱 해상도 */
-@media screen and (min-width: 1920px) {
+/* 좌우 여백: 이 값의 2배만큼 페이지 컨테이너 너비에서 빠짐 (예: 6rem → 카드 좌우에 6rem씩 여백) */
+$page-container-margin-x: rsp.$page-container-margin-x;
+/* 넓은 레이아웃용(마이페이지 등): 좌우 여백 축소 */
+$page-container-margin-x-wide: rsp.$page-container-margin-x-wide;
+
+/* 2xl 데스크톱 (1536px 이상) */
+@media screen and (min-width: 1536px) {
     .layout-main,
     .landing-wrapper {
         width: 1504px;
@@ -32,8 +34,8 @@ $page-container-margin-x-wide: 2rem;
     }
 }
 
-/* 중형 노트북 (1440px 이상) */
-@media (min-width: 1440px) and (max-width: 1919px) {
+/* xl 데스크톱/노트북 (1280px ~ 1535px) */
+@media (min-width: 1280px) and (max-width: 1535px) {
     .layout-main,
     .landing-wrapper {
         max-width: 1200px;
@@ -57,33 +59,8 @@ $page-container-margin-x-wide: 2rem;
     }
 }
 
-/* 중소형 노트북 (1366px 이상) */
-@media (min-width: 1366px) and (max-width: 1439px) {
-    .layout-main,
-    .landing-wrapper {
-        max-width: 1200px;
-        margin-left: auto !important;
-        margin-right: auto !important;
-    }
-    .page-container {
-        max-width: calc(1200px - #{$page-container-margin-x} * 2);
-        margin-left: auto !important;
-        margin-right: auto !important;
-    }
-    .page-container--wide {
-        max-width: calc(1200px - #{$page-container-margin-x-wide} * 2);
-    }
-    .topbar-inner {
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: $page-container-margin-x;
-        padding-right: $page-container-margin-x;
-    }
-}
-
-/* 태블릿 가로 / 작은 데스크톱 (1024px ~ 1365px) - 페이지 컨테이너 여백 축소 */
-@media (min-width: 1024px) and (max-width: 1365px) {
+/* lg 태블릿 가로 / 작은 데스크톱 (1024px ~ 1279px) */
+@media (min-width: 1024px) and (max-width: 1279px) {
     .layout-main,
     .landing-wrapper {
         width: 100%;
@@ -93,7 +70,7 @@ $page-container-margin-x-wide: 2rem;
     }
     .page-container {
         width: 100%;
-        max-width: calc(100% - 3rem * 2);
+        max-width: calc(100% - #{rsp.$rsp-inline-lg} * 2);
         margin-left: auto !important;
         margin-right: auto !important;
     }
@@ -101,12 +78,12 @@ $page-container-margin-x-wide: 2rem;
         max-width: calc(100% - #{$page-container-margin-x-wide} * 2);
     }
     .topbar-inner {
-        padding-left: 3rem;
-        padding-right: 3rem;
+        padding-left: rsp.$rsp-inline-lg;
+        padding-right: rsp.$rsp-inline-lg;
     }
 }
 
-/* 태블릿 세로 (768px ~ 1023px) */
+/* md 태블릿 세로 (768px ~ 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
     .layout-main,
     .landing-wrapper {
@@ -117,21 +94,21 @@ $page-container-margin-x-wide: 2rem;
     }
     .page-container {
         width: 100%;
-        max-width: calc(100% - 2rem * 2);
+        max-width: calc(100% - #{rsp.$rsp-inline-md} * 2);
         margin-left: auto !important;
         margin-right: auto !important;
     }
     .page-container--wide {
-        max-width: calc(100% - 1.5rem * 2);
+        max-width: calc(100% - #{rsp.$rsp-inline-md-wide} * 2);
     }
     .topbar-inner {
-        padding-left: 2rem;
-        padding-right: 2rem;
+        padding-left: rsp.$rsp-inline-md;
+        padding-right: rsp.$rsp-inline-md;
     }
 }
 
-/* 모바일 가로 / 큰 폰 (480px ~ 767px) */
-@media (min-width: 480px) and (max-width: 767px) {
+/* sm 모바일 가로 / 큰 폰 (640px ~ 767px) */
+@media (min-width: 640px) and (max-width: 767px) {
     .layout-main,
     .landing-wrapper {
         width: 100%;
@@ -141,21 +118,21 @@ $page-container-margin-x-wide: 2rem;
     }
     .page-container {
         width: 100%;
-        max-width: calc(100% - 1rem * 2);
+        max-width: calc(100% - #{rsp.$rsp-inline-sm} * 2);
         margin-left: auto !important;
         margin-right: auto !important;
     }
     .page-container--wide {
-        max-width: calc(100% - 0.75rem * 2);
+        max-width: calc(100% - #{rsp.$rsp-inline-sm-wide} * 2);
     }
     .topbar-inner {
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding-left: rsp.$rsp-inline-sm;
+        padding-right: rsp.$rsp-inline-sm;
     }
 }
 
-/* 모바일 세로 (480px 미만) - 웹뷰 최소 대응 */
-@media (max-width: 479px) {
+/* 모바일 세로/기본 (640px 미만) - 웹뷰 최소 대응 */
+@media (max-width: 639px) {
     .layout-main,
     .landing-wrapper {
         width: 100%;
@@ -165,15 +142,15 @@ $page-container-margin-x-wide: 2rem;
     }
     .page-container {
         width: 100%;
-        max-width: calc(100% - 0.75rem * 2);
+        max-width: calc(100% - #{rsp.$rsp-inline-xs} * 2);
         margin-left: auto !important;
         margin-right: auto !important;
     }
     .page-container--wide {
-        max-width: calc(100% - 0.5rem * 2);
+        max-width: calc(100% - #{rsp.$rsp-inline-xs-wide} * 2);
     }
     .topbar-inner {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
+        padding-left: rsp.$rsp-inline-xs;
+        padding-right: rsp.$rsp-inline-xs;
     }
 }

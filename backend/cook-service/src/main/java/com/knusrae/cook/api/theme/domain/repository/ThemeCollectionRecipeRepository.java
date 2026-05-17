@@ -21,4 +21,6 @@ public interface ThemeCollectionRecipeRepository extends JpaRepository<ThemeColl
     void deleteByCollectionId(Long collectionId);
 
     void deleteByCollectionIdAndRecipeId(Long collectionId, Long recipeId);
+
+    void deleteByRecipeId(Long recipeId);
 }

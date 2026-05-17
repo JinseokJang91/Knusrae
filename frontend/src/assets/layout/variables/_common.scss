@@ -1,3 +1,5 @@
+@use './responsive-tokens' as rsp;
+
 :root {
     --primary-color: var(--p-primary-color);
     --primary-contrast-color: var(--p-primary-contrast-color);
@@ -17,4 +19,33 @@
     --focus-ring-color: var(--p-focus-ring-color);
     --focus-ring-offset: var(--p-focus-ring-offset);
     --focus-ring-shadow: var(--p-focus-ring-shadow);
+    /* Layout offsets for fixed topbar and safe-area friendly spacing */
+    --layout-main-top-offset: 6rem;
+    --layout-main-top-gap: 1rem;
+    --layout-main-padding-x: 0;
+    --topbar-height: 5rem;
+    --mobile-bottom-nav-height: 4.25rem;
+    /* 터치 타깃 최소 크기 (WCAG 권장·모바일 UI 관행) */
+    --touch-target-min: 44px;
+
+    /* 반응형 인셋·간격 — variables/_responsive-tokens.scss 과 동일 값 */
+    --rsp-inline-lg: #{rsp.$rsp-inline-lg};
+    --rsp-inline-md: #{rsp.$rsp-inline-md};
+    --rsp-inline-md-wide: #{rsp.$rsp-inline-md-wide};
+    --rsp-inline-sm: #{rsp.$rsp-inline-sm};
+    --rsp-inline-sm-wide: #{rsp.$rsp-inline-sm-wide};
+    --rsp-inline-xs: #{rsp.$rsp-inline-xs};
+    --rsp-inline-xs-wide: #{rsp.$rsp-inline-xs-wide};
+    --layout-main-padding-tablet: #{rsp.$layout-main-padding-tablet};
+    --layout-main-padding-mobile: #{rsp.$layout-main-padding-mobile};
+    --layout-main-padding-mobile-narrow: #{rsp.$layout-main-padding-mobile-narrow};
+    --layout-main-padding-mobile-tiny: #{rsp.$layout-main-padding-mobile-tiny};
+    --layout-main-top-gap-tablet: #{rsp.$layout-main-top-gap-tablet};
+    --layout-main-top-gap-mobile: #{rsp.$layout-main-top-gap-mobile};
+    --layout-main-padding-bottom-with-nav: #{rsp.$layout-main-padding-bottom-with-nav};
+    --layout-main-padding-bottom-with-nav-narrow: #{rsp.$layout-main-padding-bottom-with-nav-narrow};
+    --page-container-card-padding-xl: #{rsp.$page-container-card-padding-xl};
+    --page-container-card-padding-lg: #{rsp.$page-container-card-padding-lg};
+    --page-container-card-padding-md: #{rsp.$page-container-card-padding-md};
+    --page-container-card-padding-sm: #{rsp.$page-container-card-padding-sm};
 }

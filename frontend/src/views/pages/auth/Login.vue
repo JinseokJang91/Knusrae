@@ -106,27 +106,29 @@ async function loginAsAdmin() {
 </script>
 
 <template>
-    <div class="bg-white dark:bg-gray-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden relative">
-        <!-- 홈 아이콘 -->
-        <div class="absolute top-6 left-6 z-10">
-            <Button @click="goHome" icon="pi pi-home" size="large" rounded title="홈으로 돌아가기" />
+    <div class="login-page bg-white dark:bg-gray-950">
+        <div class="login-nav-actions">
+            <!-- 홈 아이콘 -->
+            <div class="login-nav-btn">
+                <Button @click="goHome" icon="pi pi-home" size="large" rounded title="홈으로 돌아가기" />
+            </div>
+
+            <!-- 뒤로가기 버튼 -->
+            <div class="login-nav-btn">
+                <Button @click="goBack" icon="pi pi-arrow-left" size="large" rounded title="이전 페이지로 돌아가기" />
+            </div>
         </div>
 
-        <!-- 뒤로가기 버튼 -->
-        <div class="absolute top-6 left-20 z-10">
-            <Button @click="goBack" icon="pi pi-arrow-left" size="large" rounded title="이전 페이지로 돌아가기" />
-        </div>
-
-        <div class="flex flex-col items-center justify-center">
-            <div style="border-radius: 56px; padding: 0.4em; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 50%)">
-                <div class="w-full bg-white dark:bg-gray-900 py-20 px-8 sm:px-40" style="border-radius: 53px">
+        <div class="login-content">
+            <div class="login-panel-gradient">
+                <div class="login-panel w-full bg-white dark:bg-gray-900">
                     <div class="text-center mb-8">
                         <img :src="logoImage" alt="로고 이미지" class="logo-image w-48 h-auto mx-auto" />
                         <span class="text-2xl font-bold">로그인 / 회원가입</span>
                     </div>
 
                     <div class="space-y-4">
-                        <SocialLoginButtons @click="handleSocialLogin" />
+                        <SocialLoginButtons compact-desktop @click="handleSocialLogin" />
 
                         <!-- 개발 환경에서만 표시되는 테스트 계정 로그인 -->
                         <div v-if="isDevelopment" class="mt-8 pt-6 border-t border-gray-300 dark:border-gray-700">
@@ -185,6 +187,93 @@ async function loginAsAdmin() {
 </template>
 
 <style scoped>
+.login-page {
+    position: relative;
+    min-height: 100dvh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(1.25rem + env(safe-area-inset-top)) 1rem calc(1.25rem + env(safe-area-inset-bottom));
+    overflow-x: hidden;
+}
+
+.login-content {
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    justify-content: center;
+}
+
+.login-panel-gradient {
+    width: 100%;
+    max-width: 620px;
+    border-radius: 56px;
+    padding: 0.4em;
+    background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 50%);
+}
+
+.login-panel {
+    border-radius: 53px;
+    padding: 2.5rem 1.25rem;
+}
+
+.login-nav-btn {
+    display: flex;
+}
+
+.login-nav-actions {
+    position: fixed;
+    top: calc(0.875rem + env(safe-area-inset-top));
+    left: max(0.75rem, env(safe-area-inset-left));
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+@media (min-width: 768px) {
+    .login-page {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .login-panel {
+        padding: 3.5rem 2.25rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .login-content {
+        max-width: 760px;
+    }
+
+    .login-panel-gradient {
+        max-width: 600px;
+    }
+
+    .login-panel {
+        padding: 3.75rem 2.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-panel-gradient {
+        border-radius: 28px;
+        padding: 0.25rem;
+    }
+
+    .login-panel {
+        border-radius: 24px;
+        padding: 2rem 1rem;
+    }
+
+    .login-nav-actions {
+        left: max(0.5rem, env(safe-area-inset-left));
+        gap: 0.75rem;
+    }
+}
+
 .pi-eye {
     transform: scale(1.6);
     margin-right: 1rem;

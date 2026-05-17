@@ -395,4 +395,42 @@ onMounted(() => {
         cursor: not-allowed;
     }
 }
+
+@media (max-width: 768px) {
+    .section-header .header-left {
+        .section-title {
+            font-size: 1.125rem;
+            line-height: 1.3;
+        }
+
+        .section-subtitle {
+            font-size: 0.8125rem;
+        }
+    }
+
+    .creator-info {
+        .creator-nickname {
+            font-size: 0.9375rem;
+        }
+
+        .creator-bio {
+            font-size: 0.75rem;
+        }
+    }
+
+    .creator-stats .stat-item {
+        span:not(.stat-label) {
+            font-size: 0.8125rem;
+        }
+
+        .stat-label {
+            font-size: 0.625rem;
+        }
+    }
+
+    .follow-btn {
+        font-size: 0.8125rem;
+        padding: 0.5rem 0;
+    }
+}
 </style>

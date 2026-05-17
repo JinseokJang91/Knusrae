@@ -74,7 +74,7 @@ const handleSelect = (groupId: number | null) => {
 
 <template>
     <div class="ingredient-group-selector">
-        <h3 class="text-lg font-semibold text-gray-700 mb-4">재료 그룹</h3>
+        <h3 class="group-heading">재료 그룹</h3>
         <div class="selector-row">
             <Button
                 :style="{ opacity: leftButtonOpacity }"
@@ -118,6 +118,20 @@ const handleSelect = (groupId: number | null) => {
     margin-bottom: 24px;
 }
 
+.group-heading {
+    margin: 0 0 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+@media (max-width: 768px) {
+    .group-heading {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+    }
+}
+
 .selector-row {
     position: relative;
     width: 100%;
@@ -155,6 +169,7 @@ const handleSelect = (groupId: number | null) => {
     scrollbar-width: thin;
     width: 100%;
     padding: 4px 0;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* 스크롤바 숨기거나 얇게 (선택 사항) */
@@ -182,10 +197,12 @@ const handleSelect = (groupId: number | null) => {
     flex-shrink: 0;
 }
 
-.group-item:hover {
-    border-color: rgba(234, 88, 12, 0.28);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+@media (hover: hover) and (pointer: fine) {
+    .group-item:hover {
+        border-color: rgba(234, 88, 12, 0.28);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+    }
 }
 
 .group-item.selected {
@@ -222,23 +239,39 @@ const handleSelect = (groupId: number | null) => {
 }
 
 @media (max-width: 768px) {
+    .ingredient-group-selector {
+        margin-bottom: 1rem;
+    }
+
+    /* 터치 스크롤 위주: 좌우 화살표 숨김 */
+    .scroll-btn {
+        display: none;
+    }
+
     .groups-container {
-        gap: 12px;
+        gap: 10px;
+        scroll-snap-type: x proximity;
+        scroll-padding-inline: 2px;
+        padding-bottom: 6px;
     }
 
     .group-item {
-        min-width: 80px;
-        padding: 12px 16px;
+        min-width: 76px;
+        padding: 10px 12px;
+        scroll-snap-align: start;
     }
 
     .group-icon {
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
     }
 
-    .scroll-btn {
-        width: 36px;
-        height: 36px;
+    .group-label {
+        font-size: 12px;
+        max-width: 72px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 </style>

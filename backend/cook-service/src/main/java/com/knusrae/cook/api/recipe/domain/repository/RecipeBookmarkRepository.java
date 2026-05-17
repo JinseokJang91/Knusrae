@@ -53,6 +53,11 @@ public interface RecipeBookmarkRepository extends JpaRepository<RecipeBookmark, 
     void deleteByRecipeBookId(Long recipeBookId);
 
     /**
+     * 특정 레시피의 모든 북마크 삭제 (레시피 삭제 시 사용)
+     */
+    void deleteByRecipeId(Long recipeId);
+
+    /**
      * 레시피북별 북마크 개수 조회 (여러 레시피북)
      */
     @Query("SELECT rb.recipeBookId, COUNT(rb) FROM RecipeBookmark rb WHERE rb.recipeBookId IN :recipeBookIds GROUP BY rb.recipeBookId")

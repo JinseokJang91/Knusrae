@@ -1,5 +1,7 @@
 /* 공통 페이지 래퍼 - 모든 화면의 좌우 여백/최대 너비 통일 */
 
+@use './variables/responsive-tokens' as rsp;
+
 .page-container {
     width: 100%;
     box-sizing: border-box;
@@ -13,26 +15,26 @@
     background: var(--surface-card);
     border: 1px solid var(--surface-border);
     border-radius: 16px;
-    padding: 2rem;
+    padding: rsp.$page-container-card-padding-xl;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 /* 반응형: 카드형 페이지 패딩 조정 */
 @media (max-width: 1023px) {
     .page-container--card {
-        padding: 1.5rem;
+        padding: rsp.$page-container-card-padding-lg;
     }
 }
 
 @media (max-width: 768px) {
     .page-container--card {
-        padding: 1.25rem;
+        padding: rsp.$page-container-card-padding-md;
         border-radius: 12px;
     }
 }
 
 @media (max-width: 480px) {
     .page-container--card {
-        padding: 1rem;
+        padding: rsp.$page-container-card-padding-sm;
     }
 }

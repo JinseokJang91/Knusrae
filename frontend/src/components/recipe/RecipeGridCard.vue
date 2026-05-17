@@ -150,8 +150,8 @@ function formatCount(count: number | undefined | null): string | null {
                         </div>
                         <!-- 작성자 영역: 표시할 내용이 있을 때만 영역 노출 -->
                         <div v-if="showAuthor && (recipe.memberNickname || recipe.memberName)" class="recipe-author-zone">
-                            <div class="recipe-author mt-2 flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            <div class="recipe-author mt-2 flex items-center gap-1.5 md:gap-2">
+                                <div class="h-5 w-5 shrink-0 rounded-full bg-gray-300 md:h-6 md:w-6 flex items-center justify-center overflow-hidden">
                                     <img v-if="recipe.memberProfileImage" :src="recipe.memberProfileImage" alt="작성자 프로필" class="w-full h-full object-cover" />
                                     <i v-else class="pi pi-user text-gray-600 text-xs"></i>
                                 </div>
@@ -165,9 +165,9 @@ function formatCount(count: number | undefined | null): string | null {
                             </div>
                         </div>
                         <!-- 추가한 날짜: 카드 맨 아래 고정 -->
-                        <div v-if="dateText" class="recipe-date-footer text-sm text-gray-500 mt-2 pt-2 border-t border-gray-200 flex items-center gap-1">
-                            <i class="pi pi-calendar"></i>
-                            <span class="truncate">추가한 날짜 : {{ dateText }}</span>
+                        <div v-if="dateText" class="recipe-date-footer">
+                            <i class="pi pi-calendar recipe-date-footer__icon" aria-hidden="true"></i>
+                            <span class="recipe-date-footer__text">추가한 날짜 : {{ dateText }}</span>
                         </div>
                     </div>
                 </div>
@@ -191,5 +191,31 @@ function formatCount(count: number | undefined | null): string | null {
 }
 .recipe-date-footer {
     margin-top: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--surface-border, #e5e7eb);
+    color: var(--text-color-secondary, #6b7280);
+}
+
+.recipe-date-footer__icon {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    margin-top: 0.1rem;
+}
+
+.recipe-date-footer__text {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
 }
 </style>

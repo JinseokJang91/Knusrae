@@ -37,8 +37,8 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .scroll-to-top-btn {
     position: fixed;
-    bottom: 2rem;
-    right: 2rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+    right: calc(1rem + env(safe-area-inset-right));
     width: 3rem;
     height: 3rem;
     border-radius: 50%;
@@ -83,10 +83,13 @@ onUnmounted(() => {
 // 반응형 디자인
 @media (max-width: 768px) {
     .scroll-to-top-btn {
-        bottom: 1.5rem;
-        right: 1.5rem;
-        width: 2.5rem;
-        height: 2.5rem;
+        bottom: calc(0.75rem + var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom));
+        right: calc(0.75rem + env(safe-area-inset-right));
+        /* 최소 터치 타깃 44px (--touch-target-min) */
+        width: max(2.75rem, var(--touch-target-min));
+        height: max(2.75rem, var(--touch-target-min));
+        min-width: var(--touch-target-min);
+        min-height: var(--touch-target-min);
 
         i {
             font-size: 1rem;

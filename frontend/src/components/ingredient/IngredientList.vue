@@ -207,22 +207,22 @@ defineExpose({
 <template>
     <div class="ingredient-list">
         <!-- 재료 그룹 선택 -->
-        <IngredientGroupSelector :groups="groups" :selected-group-id="selectedGroupId" @select="handleGroupSelect" class="mb-6" />
+        <IngredientGroupSelector :groups="groups" :selected-group-id="selectedGroupId" @select="handleGroupSelect" />
 
         <!-- 그룹 선택 ↔ 재료 목록 구분 -->
         <div class="list-section-divider" aria-hidden="true"></div>
 
         <!-- 로딩 상태 -->
-        <div v-if="loading" class="text-center py-8">
+        <div v-if="loading" class="list-state list-state--loading text-center py-8">
             <ProgressSpinner />
-            <p class="text-gray-600 mt-3">재료를 불러오는 중...</p>
+            <p class="list-state__hint">재료를 불러오는 중...</p>
         </div>
 
         <!-- 에러 상태 -->
-        <div v-else-if="error" class="text-center py-8">
-            <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4"></i>
-            <h3 class="text-2xl font-semibold text-gray-600 mb-2">재료를 불러올 수 없습니다</h3>
-            <p class="text-gray-600 mb-4">{{ error }}</p>
+        <div v-else-if="error" class="list-state list-state--error text-center py-8">
+            <i class="pi pi-exclamation-triangle list-state__icon list-state__icon--error mb-4" aria-hidden="true"></i>
+            <h3 class="list-state__title">재료를 불러올 수 없습니다</h3>
+            <p class="list-state__message mb-4">{{ error }}</p>
             <Button label="다시 시도" @click="loadIngredients" />
         </div>
 
@@ -232,10 +232,10 @@ defineExpose({
         </div>
 
         <!-- 빈 상태 -->
-        <div v-else class="text-center py-12">
-            <i class="pi pi-inbox text-6xl text-gray-400 mb-4"></i>
-            <h3 class="text-xl font-semibold text-gray-600 mb-2">재료가 없습니다</h3>
-            <p class="text-gray-500">검색 조건을 변경해보세요.</p>
+        <div v-else class="list-state list-state--empty text-center py-12">
+            <i class="pi pi-inbox list-state__icon list-state__icon--muted mb-4" aria-hidden="true"></i>
+            <h3 class="list-state__title list-state__title--sub">재료가 없습니다</h3>
+            <p class="list-state__hint list-state__hint--muted">검색 조건을 변경해보세요.</p>
         </div>
 
         <!-- 재료 정보 요청 다이얼로그 -->
@@ -270,11 +270,92 @@ defineExpose({
     min-height: 400px;
 }
 
+@media (max-width: 768px) {
+    .ingredient-list {
+        min-height: 280px;
+    }
+}
+
 /* 재료 그룹 선택 ↔ 재료 목록 구분선 */
 .list-section-divider {
     height: 1px;
     margin: 1.5rem 0 1.25rem;
     background: var(--surface-border);
+}
+
+@media (max-width: 768px) {
+    .list-section-divider {
+        margin: 1rem 0 0.875rem;
+    }
+}
+
+.list-state__icon {
+    display: inline-block;
+    font-size: 3rem;
+    line-height: 1;
+}
+
+.list-state__icon--error {
+    color: var(--red-500, #ef4444);
+}
+
+.list-state__icon--muted {
+    color: #9ca3af;
+}
+
+.list-state__title {
+    margin: 0 0 0.5rem;
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.list-state__title--sub {
+    font-size: 1.125rem;
+}
+
+.list-state__message {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: #4b5563;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.list-state__hint {
+    margin: 0.75rem 0 0;
+    font-size: 0.9375rem;
+    color: #4b5563;
+}
+
+.list-state__hint--muted {
+    color: #6b7280;
+}
+
+@media (max-width: 768px) {
+    .list-state--loading,
+    .list-state--error,
+    .list-state--empty {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .list-state__icon {
+        font-size: 2.5rem;
+    }
+
+    .list-state__title {
+        font-size: 1.125rem;
+    }
+
+    .list-state__title--sub {
+        font-size: 1rem;
+    }
+
+    .list-state__message,
+    .list-state__hint {
+        font-size: 0.875rem;
+    }
 }
 </style>
 

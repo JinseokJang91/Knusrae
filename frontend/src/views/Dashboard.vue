@@ -297,15 +297,18 @@ const greetingTitle = computed(() => {
         border-radius: 16px;
 
         .hero-icon {
-            font-size: 2rem;
+            font-size: 1.75rem;
         }
 
         .hero-title {
-            font-size: 1.5rem;
+            font-size: 1.1875rem;
+            font-weight: 700;
+            line-height: 1.35;
         }
 
         .hero-subtitle {
-            font-size: 0.95rem;
+            font-size: 0.8125rem;
+            line-height: 1.45;
         }
     }
 
@@ -324,15 +327,15 @@ const greetingTitle = computed(() => {
         padding: 16px 20px;
 
         .hero-icon {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
         }
 
         .hero-title {
-            font-size: 1.25rem;
+            font-size: 1.0625rem;
         }
 
         .hero-subtitle {
-            font-size: 0.9rem;
+            font-size: 0.8125rem;
         }
     }
 

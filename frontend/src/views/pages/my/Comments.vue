@@ -104,9 +104,10 @@ watch(currentMemberId, (id) => {
                 <!-- 로딩 / 에러 / 비로그인 / 빈 상태 -->
                 <PageStateBlock v-if="loading" state="loading" loading-message="내 댓글을 불러오는 중..." />
                 <PageStateBlock v-else-if="error" state="error" error-title="내 댓글을 불러올 수 없습니다" :error-message="error" retry-label="다시 시도" @retry="loadMyComments" />
-                <PageStateBlock v-else-if="!currentMemberId" state="empty" empty-icon="pi pi-lock" empty-title="로그인이 필요합니다" empty-message="내 댓글을 보려면 로그인해 주세요." empty-button-label="로그인하기" @empty-action="goToLogin" />
+                <PageStateBlock v-else-if="!currentMemberId" compact-mobile state="empty" empty-icon="pi pi-lock" empty-title="로그인이 필요합니다" empty-message="내 댓글을 보려면 로그인해 주세요." empty-button-label="로그인하기" @empty-action="goToLogin" />
                 <PageStateBlock
                     v-else-if="commentItems.length === 0"
+                    compact-mobile
                     state="empty"
                     empty-icon="pi pi-comments"
                     empty-title="작성한 댓글이 없습니다"
@@ -170,7 +171,7 @@ watch(currentMemberId, (id) => {
 }
 
 .comments-notice__icon {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     color: var(--orange-500, #f97316);
     flex-shrink: 0;
     margin-top: 0.125rem;
@@ -180,9 +181,36 @@ watch(currentMemberId, (id) => {
     margin: 0;
     color: #374151;
     font-style: italic;
-    font-size: 0.9375rem;
-    line-height: 1.5;
+    font-size: 0.875rem;
+    line-height: 1.45;
     letter-spacing: 0.01em;
+}
+
+@media (max-width: 767px) {
+    .comments-notice {
+        gap: 0.5rem;
+    }
+
+    .comments-notice__icon {
+        font-size: 1.0625rem;
+        margin-top: 0.0625rem;
+    }
+
+    .comments-notice__text {
+        font-size: 0.8125rem;
+        line-height: 1.5;
+    }
+}
+
+@media (max-width: 480px) {
+    .comments-notice__icon {
+        font-size: 1rem;
+    }
+
+    .comments-notice__text {
+        font-size: 0.75rem;
+        line-height: 1.45;
+    }
 }
 
 .comments-content {
@@ -206,7 +234,7 @@ watch(currentMemberId, (id) => {
     padding: 1rem;
     background: var(--p-card-background);
     border: 1px solid var(--p-card-border-color);
-    border-radius: var(--p-card-border-radius);
+    border-radius: 10px;
     box-shadow: var(--p-card-shadow);
     cursor: pointer;
     transition:
@@ -301,6 +329,18 @@ watch(currentMemberId, (id) => {
 
 .comment-card__comment-edited {
     margin-left: 0.25rem;
+}
+
+@media (min-width: 768px) {
+    .comment-card {
+        background: var(--surface-card, #ffffff);
+        border-color: var(--surface-border, #e5e7eb);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    .comment-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
 }
 
 @media (max-width: 900px) {
